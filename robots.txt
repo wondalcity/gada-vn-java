@@ -1,0 +1,37 @@
+# robots.txt — safety.1gada.com
+# 가다(GADA) 건설기초안전교육 기관 찾기
+
+User-agent: *
+Allow: /
+
+# 주요 검색엔진 크롤러 허용
+User-agent: Googlebot
+Allow: /
+
+User-agent: Yeti
+Allow: /
+
+User-agent: Bingbot
+Allow: /
+
+User-agent: DuckDuckBot
+Allow: /
+
+# 소셜 미리보기 크롤러 허용
+User-agent: facebookexternalhit
+Allow: /
+
+User-agent: Twitterbot
+Allow: /
+
+User-agent: LinkedInBot
+Allow: /
+
+User-agent: KakaoTalk-Scrap
+Allow: /
+
+User-agent: Slackbot
+Allow: /
+
+# Sitemap
+Sitemap: https://safety.1gada.com/sitemap.xml

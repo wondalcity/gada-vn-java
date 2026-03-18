@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:xhtml="http://www.w3.org/1999/xhtml"
+        xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
+  <url>
+    <loc>https://safety.1gada.com/</loc>
+    <lastmod>2026-03-18</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://safety.1gada.com/"/>
+    <image:image>
+      <image:loc>https://image.1gada.com/og_image.png</image:loc>
+      <image:title>가다(GADA) 건설기초안전교육 기관 찾기</image:title>
+      <image:caption>전국 71개 건설기초안전교육 기관을 지도에서 찾고, 안전교육 수료 후 건설 일자리를 연결합니다.</image:caption>
+    </image:image>
+  </url>
+</urlset>

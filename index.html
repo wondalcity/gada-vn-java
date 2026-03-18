@@ -6,12 +6,19 @@
 
 <!-- ── Primary Meta ─────────────────────────────────────────────────────── -->
 <title>건설기초안전교육 기관 찾기 | 가다(GADA) 안전교육</title>
-<meta name="description" content="전국 71개 건설기초안전교육 기관을 지도에서 찾아보세요. 내 위치 기반 가까운 교육기관 검색, 등급·외국어 교육 필터, 전화·홈페이지 바로가기 제공. 안전교육 수료 후 가다에서 건설 일자리를 찾아보세요.">
-<meta name="keywords" content="건설기초안전교육,기초안전보건교육,건설안전교육기관,건설현장안전교육,KOSHA,안전교육기관찾기,건설일용직,가다,GADA,건설근로자,안전교육이수">
+<meta name="description" content="가다(GADA)에서 전국 71개 건설기초안전교육 기관을 지도로 찾아보세요. 내 위치 기반 가까운 교육기관 검색, 등급·외국어 교육 필터, 전화 바로걸기 제공. KOSHA 지정 기관 한눈에 확인. 안전교육 수료 후 가다에서 건설 일자리를 찾아보세요.">
+<meta name="keywords" content="가다,GADA,건설기초안전교육,기초안전보건교육,건설안전교육기관,건설현장안전교육,KOSHA,안전교육기관찾기,건설일용직,건설근로자,안전교육이수,건설안전교육지도,가다안전교육,건설기초안전교육기관지도,안전교육기관검색,건설근로자안전교육,일용직안전교육,현장안전교육">
 <meta name="author" content="가다(GADA) — 웍스메이트">
+<meta name="application-name" content="가다 안전교육">
 <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1">
 <meta name="theme-color" content="#03070F">
 <link rel="canonical" href="https://safety.1gada.com/">
+
+<!-- ── 검색엔진 소유권 인증 (Search Console 등록 후 content 값 입력) ────── -->
+<!-- Google Search Console -->
+<meta name="google-site-verification" content="GOOGLE_VERIFICATION_CODE_HERE">
+<!-- Naver Search Advisor -->
+<meta name="naver-site-verification" content="NAVER_VERIFICATION_CODE_HERE">
 
 <!-- ── Favicon ────────────────────────────────────────────────────────── -->
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%230669F7'/><circle cx='16' cy='13' r='5' fill='white'/><path d='M16 18c-5 0-9 2.5-9 5.5V25h18v-1.5c0-3-4-5.5-9-5.5z' fill='white'/></svg>">
@@ -52,48 +59,80 @@
   "@context": "https://schema.org",
   "@graph": [
     {
+      "@type": "Organization",
+      "@id": "https://1gada.com/#organization",
+      "name": "가다",
+      "alternateName": ["GADA", "웍스메이트", "가다(GADA)"],
+      "url": "https://1gada.com",
+      "logo": {
+        "@type": "ImageObject",
+        "url": "https://image.1gada.com/og_image.png",
+        "width": 1100,
+        "height": 740
+      },
+      "sameAs": [
+        "https://1gada.com",
+        "https://gada.worksmate.co.kr",
+        "https://safety.1gada.com"
+      ],
+      "description": "건설 일용직 근로자와 현장을 연결하는 인력 중개 플랫폼. 건설기초안전교육 기관 찾기, 일자리 매칭 서비스 제공."
+    },
+    {
       "@type": "WebApplication",
       "@id": "https://safety.1gada.com/#webapp",
       "name": "건설기초안전교육 기관 찾기",
-      "alternateName": "가다 안전교육 기관 지도",
+      "alternateName": ["가다 안전교육", "GADA 안전교육 기관 지도"],
       "url": "https://safety.1gada.com/",
-      "description": "KOSHA 지정 전국 71개 건설기초안전교육 기관을 지도에서 검색하고 내 위치 기반으로 가까운 기관을 찾을 수 있는 서비스입니다.",
+      "description": "가다(GADA)에서 제공하는 KOSHA 지정 전국 71개 건설기초안전교육 기관 지도 서비스. 내 위치 기반 가까운 기관 검색, 등급·외국어 교육 필터 제공.",
       "applicationCategory": "UtilityApplication",
-      "operatingSystem": "Web",
+      "operatingSystem": "Web, iOS, Android",
       "inLanguage": "ko-KR",
       "isAccessibleForFree": true,
       "offers": { "@type": "Offer", "price": "0", "priceCurrency": "KRW" },
-      "provider": {
-        "@type": "Organization",
-        "name": "웍스메이트",
-        "url": "https://1gada.com",
-        "logo": "https://image.1gada.com/og_image.png",
-        "sameAs": ["https://1gada.com", "https://gada.worksmate.co.kr"]
-      },
-      "areaServed": {
-        "@type": "Country",
-        "name": "대한민국",
-        "addressCountry": "KR"
-      }
+      "provider": { "@id": "https://1gada.com/#organization" },
+      "areaServed": { "@type": "Country", "name": "대한민국", "addressCountry": "KR" },
+      "screenshot": "https://image.1gada.com/og_image.png"
     },
     {
       "@type": "WebSite",
       "@id": "https://safety.1gada.com/#website",
       "url": "https://safety.1gada.com/",
-      "name": "가다(GADA) 안전교육 기관 찾기",
-      "description": "건설기초안전교육 기관을 지도에서 찾고 안전교육 수료 후 건설 일자리를 연결합니다.",
+      "name": "가다 안전교육 기관 찾기",
+      "description": "가다(GADA)가 제공하는 건설기초안전교육 기관 지도 서비스. 전국 71개 기관 검색, 내 위치 기반 거리 계산.",
       "inLanguage": "ko-KR",
-      "publisher": {
-        "@type": "Organization",
-        "name": "웍스메이트(가다)",
-        "url": "https://1gada.com"
+      "publisher": { "@id": "https://1gada.com/#organization" },
+      "potentialAction": {
+        "@type": "SearchAction",
+        "target": "https://safety.1gada.com/?q={search_term_string}",
+        "query-input": "required name=search_term_string"
       }
     },
     {
       "@type": "BreadcrumbList",
       "itemListElement": [
-        { "@type": "ListItem", "position": 1, "name": "가다", "item": "https://1gada.com" },
+        { "@type": "ListItem", "position": 1, "name": "가다(GADA)", "item": "https://1gada.com" },
         { "@type": "ListItem", "position": 2, "name": "안전교육 기관 찾기", "item": "https://safety.1gada.com/" }
+      ]
+    },
+    {
+      "@type": "FAQPage",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "건설기초안전교육은 어디서 받나요?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "가다(GADA) 안전교육 서비스에서 전국 71개 KOSHA 지정 건설기초안전교육 기관을 지도로 찾을 수 있습니다. 내 위치 기반으로 가까운 기관을 검색하고 바로 전화 연결할 수 있습니다."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "건설기초안전교육 이수 후 일자리는 어떻게 찾나요?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "가다(GADA) 앱 또는 웹사이트(1gada.com)에서 건설 현장 일자리를 찾을 수 있습니다. 안전교육 수료 후 가다에서 검증된 건설 일용직 일자리를 매칭받으세요."
+          }
+        }
       ]
     }
   ]
