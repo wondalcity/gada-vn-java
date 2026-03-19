@@ -213,10 +213,23 @@ html, body { width:100%; height:100%; overflow:hidden; background:var(--bg); col
 .stat-num.yellow{ color:var(--yellow); }
 .stat-label { font-family:'Pretendard', sans-serif; font-size:11px; color:var(--text-muted); letter-spacing:0.5px; margin-top:2px; font-weight:500; }
 
-/* Locate Button */
-#locateBtn {
-  display:flex; align-items:center; gap:8px;
-  padding:9px 18px;
+/* Address Search */
+#addrWrap { display:flex; align-items:center; gap:6px; flex-shrink:0; }
+#addrInput {
+  width:200px;
+  background:var(--bg3);
+  border:1px solid var(--border);
+  border-radius:10px;
+  padding:9px 12px;
+  font-family:'Pretendard', sans-serif;
+  font-size:14px; color:var(--text); outline:none;
+  transition:border-color 0.2s, box-shadow 0.2s, background 0.2s;
+}
+#addrInput::placeholder { color:var(--text-muted); }
+#addrInput:focus { border-color:var(--blue); background:var(--bg4); box-shadow:0 0 0 3px var(--blue-glow); }
+#addrSearchBtn {
+  display:flex; align-items:center; gap:6px;
+  padding:9px 16px;
   background:var(--blue);
   border:none; border-radius:10px;
   color:white; font-family:'Pretendard', sans-serif;
@@ -225,10 +238,11 @@ html, body { width:100%; height:100%; overflow:hidden; background:var(--bg); col
   box-shadow:0 4px 20px rgba(6,105,247,0.4);
   transition:background 0.2s, transform 0.1s, box-shadow 0.2s;
 }
-#locateBtn:hover { background:var(--blue-dim); box-shadow:0 6px 28px rgba(6,105,247,0.55); }
-#locateBtn:active { transform:scale(0.97); }
-#locateBtn svg { width:14px; height:14px; stroke:white; fill:none; stroke-width:2.5; flex-shrink:0; }
-#locateBtn.locating svg { animation:spin 1s linear infinite; }
+#addrSearchBtn:hover { background:var(--blue-dim); box-shadow:0 6px 28px rgba(6,105,247,0.55); }
+#addrSearchBtn:active { transform:scale(0.97); }
+#addrSearchBtn:disabled { opacity:0.7; cursor:not-allowed; }
+#addrSearchBtn svg { width:14px; height:14px; stroke:white; fill:none; stroke-width:2.5; flex-shrink:0; }
+#addrSearchBtn.searching svg { animation:spin 1s linear infinite; }
 @keyframes spin { to { transform:rotate(360deg); } }
 
 /* ─── Side Panel ──────────────────────────────────────────────────────── */
@@ -463,45 +477,6 @@ html, body { width:100%; height:100%; overflow:hidden; background:var(--bg); col
 .type-info  .noloc-text strong { color:var(--text); }
 #noloc-banner button { margin-left:auto; flex-shrink:0; background:transparent; border:none; color:var(--text-muted); font-size:16px; cursor:pointer; padding:4px; }
 
-/* ─── Location Consent Modal ──────────────────────────────────────────── */
-#locConsent {
-  display:none; position:fixed; inset:0; z-index:500;
-  align-items:center; justify-content:center;
-  background:rgba(0,0,0,0.65); backdrop-filter:blur(6px);
-}
-#locConsent.show { display:flex; }
-#locConsentBox {
-  background:var(--bg2); border:1px solid var(--border-b); border-radius:20px;
-  padding:32px 28px; max-width:360px; width:calc(100% - 40px);
-  box-shadow:0 24px 80px rgba(0,0,0,0.7);
-  animation:fade-up 0.3s cubic-bezier(0.34,1.56,0.64,1);
-}
-#locConsentBox .lc-icon {
-  width:52px; height:52px; border-radius:14px;
-  background:var(--blue-tint); border:1px solid var(--border-b);
-  display:flex; align-items:center; justify-content:center; margin-bottom:20px;
-}
-#locConsentBox .lc-icon svg { width:26px; height:26px; stroke:var(--blue); fill:none; stroke-width:1.8; stroke-linecap:round; }
-#locConsentBox h3 { font-size:18px; font-weight:700; color:var(--text); margin-bottom:10px; }
-#locConsentBox p  { font-size:14px; color:var(--text-muted); line-height:1.7; margin-bottom:8px; }
-#locConsentBox .lc-note {
-  font-size:12px; color:var(--text-dim); line-height:1.6;
-  background:var(--bg3); border-radius:8px; padding:10px 12px; margin:16px 0 24px;
-}
-#locConsentBox .lc-btns { display:flex; gap:10px; }
-#locConsentBox .lc-allow {
-  flex:1; padding:13px; border:none; border-radius:12px;
-  background:var(--blue); color:#fff; font-family:'Pretendard',sans-serif;
-  font-size:15px; font-weight:700; cursor:pointer;
-  transition:background 0.15s;
-}
-#locConsentBox .lc-allow:hover { background:var(--blue-dim); }
-#locConsentBox .lc-deny {
-  padding:13px 18px; border:1px solid var(--border); border-radius:12px;
-  background:transparent; color:var(--text-muted); font-family:'Pretendard',sans-serif;
-  font-size:15px; cursor:pointer; transition:border-color 0.15s;
-}
-#locConsentBox .lc-deny:hover { border-color:var(--text-muted); }
 
 /* ─── 기관 찾기 버튼 (공통) ───────────────────────────────────────────── */
 #findBtn {
@@ -573,8 +548,8 @@ html, body { width:100%; height:100%; overflow:hidden; background:var(--bg); col
   .search-wrap { display:none; }
   #topbar { gap:8px; padding:0 12px; }
   #findBtn { margin-left:auto; display:flex; }
-  #locateBtn { padding:9px 14px; font-size:12px; }
-  #locateBtn svg { width:13px; height:13px; }
+  #addrInput { width:110px; font-size:12px; padding:8px 10px; }
+  #addrSearchBtn { padding:8px 12px; font-size:12px; }
   .panel-header-bar { padding:16px 16px 12px; }
 }
 
@@ -621,33 +596,18 @@ html, body { width:100%; height:100%; overflow:hidden; background:var(--bg); col
     <svg viewBox="0 0 24 24"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
     기관 찾기 <span class="find-count" id="findBtnCount">71</span>
   </button>
-  <button id="locateBtn">
-    <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/><circle cx="12" cy="12" r="9"/></svg>
-    내 위치 찾기
-  </button>
+  <div id="addrWrap">
+    <input id="addrInput" type="text" placeholder="주소 입력 후 검색" autocomplete="off">
+    <button id="addrSearchBtn">
+      <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      주변 검색
+    </button>
+  </div>
 </div>
 
 <!-- Panel backdrop -->
 <div id="panelBackdrop" onclick="closePanel()"></div>
 
-<!-- Location consent modal -->
-<div id="locConsent">
-  <div id="locConsentBox">
-    <div class="lc-icon">
-      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/><circle cx="12" cy="12" r="9"/></svg>
-    </div>
-    <h3>위치 정보 사용 안내</h3>
-    <p>가장 가까운 건설기초안전교육 기관을 찾기 위해 현재 위치가 필요합니다.</p>
-    <div class="lc-note">
-      📍 위치 정보는 가까운 교육기관 탐색 목적으로만 사용되며,<br>
-      서버에 저장되거나 제3자에게 제공되지 않습니다.
-    </div>
-    <div class="lc-btns">
-      <button class="lc-allow" id="lcAllow">위치 허용하기</button>
-      <button class="lc-deny"  id="lcDeny">취소</button>
-    </div>
-  </div>
-</div>
 
 <!-- Panel -->
 <div id="panel">
@@ -890,22 +850,9 @@ function selectCard(idx) {
   });
 }
 
-// ─── Location state ────────────────────────────────────────────────────────
-let _watchId = null;
-let _fallbackTimer = null;
-
-function _stopWatch() {
-  if (_watchId !== null) { navigator.geolocation.clearWatch(_watchId); _watchId = null; }
-}
-function _stopTimer() {
-  if (_fallbackTimer !== null) { clearTimeout(_fallbackTimer); _fallbackTimer = null; }
-}
-function _stopAll() { _stopWatch(); _stopTimer(); }
-
 // ─── 위치 성공 처리 ─────────────────────────────────────────────────────────
 function onLocationSuccess(pos) {
   userPos = { lat: pos.coords.latitude, lng: pos.coords.longitude };
-  resetBtn('위치 갱신');
 
   const dotSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="72" height="82" viewBox="0 0 72 82">
     <circle cx="36" cy="36" r="32" fill="rgba(6,105,247,0.12)" stroke="rgba(6,105,247,0.35)" stroke-width="1.5"/>
@@ -913,7 +860,7 @@ function onLocationSuccess(pos) {
     <circle cx="36" cy="36" r="17" fill="#0669F7"/>
     <circle cx="36" cy="36" r="6" fill="white"/>
     <rect x="8" y="60" width="56" height="18" rx="9" fill="#0669F7"/>
-    <text x="36" y="73" text-anchor="middle" font-family="sans-serif" font-size="10" font-weight="700" fill="white">내 위치</text>
+    <text x="36" y="73" text-anchor="middle" font-family="sans-serif" font-size="10" font-weight="700" fill="white">검색위치</text>
   </svg>`;
   const dotIcon = {
     url: `data:image/svg+xml;charset=utf-8,${encodeURIComponent(dotSvg)}`,
@@ -925,7 +872,7 @@ function onLocationSuccess(pos) {
     userMarker.setIcon(dotIcon);
     userMarker.setMap(map);
   } else {
-    userMarker = new google.maps.Marker({ position: userPos, map, title: '내 위치', zIndex: 9999, icon: dotIcon });
+    userMarker = new google.maps.Marker({ position: userPos, map, title: '검색 위치', zIndex: 9999, icon: dotIcon });
   }
 
   if (distCircle) distCircle.setMap(null);
@@ -934,85 +881,43 @@ function onLocationSuccess(pos) {
   applyFilters();
 }
 
-// ─── IP 위치 폴백 ───────────────────────────────────────────────────────────
-// HTTPS 전용 서비스만 사용 (ip-api.com 무료 플랜은 HTTP 전용이라 제외)
-async function useIpLocation(reason) {
-  const services = [
-    { url:'https://ipapi.co/json/',         getLat: d => d.latitude,  getLng: d => d.longitude, ok: d => !!d.latitude },
-    { url:'https://freeipapi.com/api/json', getLat: d => d.latitude,  getLng: d => d.longitude, ok: d => !!d.latitude },
-    { url:'https://ipwho.is/',              getLat: d => d.latitude,  getLng: d => d.longitude, ok: d => !!d.success && !!d.latitude },
-  ];
-  for (const svc of services) {
-    try {
-      const ctrl = new AbortController();
-      const t = setTimeout(() => ctrl.abort(), 5000);
-      const r = await fetch(svc.url, { signal: ctrl.signal });
-      clearTimeout(t);
-      const data = await r.json();
-      if (svc.ok(data)) {
-        onLocationSuccess({ coords: { latitude: svc.getLat(data), longitude: svc.getLng(data) } });
-        const msg = reason === 'denied'
-          ? '위치 권한이 없어 대략적 위치를 표시합니다. 정확한 위치는 권한 허용 후 위치 갱신을 눌러주세요.'
-          : '대략적인 위치를 표시합니다. 정확한 위치는 위치 갱신을 눌러주세요.';
-        showBanner(msg, 'info');
-        return;
-      }
-    } catch(e) { continue; }
-  }
-  resetBtn();
-  showBanner('위치를 가져올 수 없습니다. 기기 설정 > 위치 서비스를 확인해주세요.', 'error');
-}
+// ─── 주소 기반 주변 검색 (Google Geocoding API) ─────────────────────────────
+const GEOCODING_KEY = 'AIzaSyAYjES_dfbpGBJrCCUYTio-gqhW_418nWA';
 
-// ─── 위치 찾기 ─────────────────────────────────────────────────────────────
-function locateUser() {
-  const btn = document.getElementById('locateBtn');
-  btn.classList.add('locating');
-  btn.innerHTML = `<svg viewBox="0 0 24 24"><path d="M21 12a9 9 0 1 1-9-9"/></svg> 위치 파악 중...`;
-
-  if (!navigator.geolocation) {
-    resetBtn();
-    showBanner('이 브라우저는 위치 서비스를 지원하지 않습니다.', 'error');
+async function searchByAddress() {
+  const input = document.getElementById('addrInput');
+  const btn = document.getElementById('addrSearchBtn');
+  const addr = input.value.trim();
+  if (!addr) {
+    showBanner('주소를 입력해주세요.', 'error');
+    input.focus();
     return;
   }
+  btn.classList.add('searching');
+  btn.innerHTML = `<svg viewBox="0 0 24 24"><path d="M21 12a9 9 0 1 1-9-9"/></svg> 검색 중...`;
+  btn.disabled = true;
 
-  _stopAll(); // 이전 시도 완전 정리
+  function resetSearchBtn() {
+    btn.classList.remove('searching');
+    btn.innerHTML = `<svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg> 주변 검색`;
+    btn.disabled = false;
+  }
 
-  // 모바일 여부 (GPS 응답 시간 단축)
-  const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-
-  // GPS watchPosition 시작
-  _watchId = navigator.geolocation.watchPosition(
-    (pos) => {
-      console.log(`[GPS] 성공 lat=${pos.coords.latitude.toFixed(4)}, lng=${pos.coords.longitude.toFixed(4)}`);
-      _stopAll();
-      onLocationSuccess(pos);
-    },
-    (err) => {
-      console.log(`[GPS] 에러 code=${err.code} msg=${err.message}`);
-      if (err.code === 1) {
-        // 권한 거부 → GPS 중단 후 IP 위치로 폴백 (에러로 멈추지 않고 계속 작동)
-        _stopAll();
-        useIpLocation('denied');
-      }
-      // code 2(위치 불가) / code 3(timeout): watchPosition이 자동 재시도
-    },
-    { enableHighAccuracy: true, maximumAge: 0, timeout: 10000 }
-  );
-
-  // 모바일: 5초 / 데스크톱: 8초 후 GPS 미응답 → IP 폴백
-  const fallbackMs = isMobile ? 5000 : 8000;
-  _fallbackTimer = setTimeout(async () => {
-    _fallbackTimer = null;
-    _stopWatch();
-    console.log(`[위치] ${fallbackMs/1000}초 경과 → IP 폴백`);
-    await useIpLocation('timeout');
-  }, fallbackMs);
-}
-
-function resetBtn(label='내 위치 찾기') {
-  const btn = document.getElementById('locateBtn');
-  btn.classList.remove('locating');
-  btn.innerHTML = `<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/><circle cx="12" cy="12" r="9"/></svg> ${label}`;
+  try {
+    const url = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(addr)}&region=KR&language=ko&key=${GEOCODING_KEY}`;
+    const res = await fetch(url);
+    const data = await res.json();
+    resetSearchBtn();
+    if (data.status === 'OK' && data.results.length > 0) {
+      const loc = data.results[0].geometry.location;
+      onLocationSuccess({ coords: { latitude: loc.lat, longitude: loc.lng } });
+    } else {
+      showBanner('주소를 찾을 수 없습니다. 더 상세한 주소를 입력해주세요.', 'error');
+    }
+  } catch (e) {
+    resetSearchBtn();
+    showBanner('주소 검색 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.', 'error');
+  }
 }
 
 function drawDistCircle() {
@@ -1073,21 +978,9 @@ function closePanel() {
   document.body.style.overflow = '';
 }
 
-document.getElementById('locateBtn').addEventListener('click', () => {
-  // 이미 동의했거나 위치 갱신 중이면 바로 실행
-  if (localStorage.getItem('loc_consent') === '1' || userPos) {
-    locateUser();
-  } else {
-    document.getElementById('locConsent').classList.add('show');
-  }
-});
-document.getElementById('lcAllow').addEventListener('click', () => {
-  localStorage.setItem('loc_consent', '1');
-  document.getElementById('locConsent').classList.remove('show');
-  locateUser();
-});
-document.getElementById('lcDeny').addEventListener('click', () => {
-  document.getElementById('locConsent').classList.remove('show');
+document.getElementById('addrSearchBtn').addEventListener('click', searchByAddress);
+document.getElementById('addrInput').addEventListener('keydown', e => {
+  if (e.key === 'Enter') searchByAddress();
 });
 document.getElementById('menuToggle')?.addEventListener('click', openPanel);
 
