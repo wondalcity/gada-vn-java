@@ -66,6 +66,17 @@ export class ApplicationsRepository {
     return rows[0];
   }
 
+  async findWorkerUserIdByApplication(id: string): Promise<string | null> {
+    const { rows } = await this.db.query<{ user_id: string }>(
+      `SELECT u.id as user_id FROM app.job_applications a
+       JOIN app.worker_profiles wp ON a.worker_id = wp.id
+       JOIN auth.users u ON wp.user_id = u.id
+       WHERE a.id = $1`,
+      [id],
+    );
+    return rows[0]?.user_id ?? null;
+  }
+
   async updateStatus(id: string, managerUserId: string, status: string) {
     const { rows } = await this.db.query(
       `UPDATE app.job_applications a

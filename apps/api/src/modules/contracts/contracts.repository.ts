@@ -50,6 +50,23 @@ export class ContractsRepository {
     return parseInt(rows[0]?.count ?? '0') > 0;
   }
 
+  async findPartyUserIds(contractId: string): Promise<{ workerUserId: string | null; managerUserId: string | null }> {
+    const { rows } = await this.db.query<{ worker_user_id: string; manager_user_id: string }>(
+      `SELECT uw.id as worker_user_id, um.id as manager_user_id
+       FROM app.contracts c
+       JOIN app.worker_profiles wp ON c.worker_id = wp.id
+       JOIN app.manager_profiles mp ON c.manager_id = mp.id
+       JOIN auth.users uw ON wp.user_id = uw.id
+       JOIN auth.users um ON mp.user_id = um.id
+       WHERE c.id = $1`,
+      [contractId],
+    );
+    return {
+      workerUserId: rows[0]?.worker_user_id ?? null,
+      managerUserId: rows[0]?.manager_user_id ?? null,
+    };
+  }
+
   async create(data: {
     applicationId: string;
     jobId: string;

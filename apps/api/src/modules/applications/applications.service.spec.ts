@@ -2,6 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { NotFoundException, ConflictException } from '@nestjs/common';
 import { ApplicationsService } from './applications.service';
 import { ApplicationsRepository } from './applications.repository';
+import { NotificationsService } from '../notifications/notifications.service';
 
 const mockRepo = {
   findByWorkerAndJob: jest.fn(),
@@ -10,6 +11,11 @@ const mockRepo = {
   findById: jest.fn(),
   create: jest.fn(),
   updateStatus: jest.fn(),
+  findWorkerUserIdByApplication: jest.fn().mockResolvedValue(null),
+};
+
+const mockNotifications = {
+  send: jest.fn().mockResolvedValue(undefined),
 };
 
 describe('ApplicationsService', () => {
@@ -20,6 +26,7 @@ describe('ApplicationsService', () => {
       providers: [
         ApplicationsService,
         { provide: ApplicationsRepository, useValue: mockRepo },
+        { provide: NotificationsService, useValue: mockNotifications },
       ],
     }).compile();
 

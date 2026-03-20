@@ -29,7 +29,7 @@ export class AttendanceController {
   async updateAttendance(
     @Param('id') id: string,
     @CurrentUser() user: CurrentUserPayload,
-    @Body() body: { status: string; note?: string },
+    @Body() body: { status: string; notes?: string },
   ) {
     return this.attendanceService.update(id, user.id, body);
   }
@@ -40,7 +40,7 @@ export class AttendanceController {
   async bulkUpsertAttendance(
     @Param('jobId') jobId: string,
     @CurrentUser() user: CurrentUserPayload,
-    @Body() body: { records: Array<{ workerId: string; status: string; note?: string }> },
+    @Body() body: { records: Array<{ workerId: string; workDate: string; status: string; notes?: string }> },
   ) {
     return this.attendanceService.bulkUpsert(jobId, user.id, body.records);
   }

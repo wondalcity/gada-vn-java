@@ -1,9 +1,15 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, Logger } from '@nestjs/common';
 import { NotificationsRepository } from './notifications.repository';
+import { FirebaseService } from '../../common/firebase/firebase.service';
 
 @Injectable()
 export class NotificationsService {
-  constructor(private readonly repo: NotificationsRepository) {}
+  private readonly logger = new Logger(NotificationsService.name);
+
+  constructor(
+    private readonly repo: NotificationsRepository,
+    private readonly firebase: FirebaseService,
+  ) {}
 
   async findByUser(
     userId: string,
@@ -27,7 +33,10 @@ export class NotificationsService {
     return { updated: count };
   }
 
-  // Called internally by other services to send notifications
+  /**
+   * Store notification in DB and push via FCM if tokens are available.
+   * Never throws — FCM failures are non-fatal.
+   */
   async send(
     userId: string,
     type: string,
@@ -35,6 +44,28 @@ export class NotificationsService {
     body: string,
     data?: Record<string, unknown>,
   ) {
-    return this.repo.create(userId, type, title, body, data);
+    let sentViaFcm = false;
+    let fcmMessageId: string | undefined;
+
+    try {
+      const tokens = await this.repo.getFcmTokens(userId);
+      if (tokens.length > 0) {
+        const stringData = data
+          ? Object.fromEntries(Object.entries(data).map(([k, v]) => [k, String(v)]))
+          : undefined;
+
+        const result = await this.firebase.sendMulticastNotification(
+          tokens,
+          { title, body },
+          stringData,
+        );
+        sentViaFcm = result.successCount > 0;
+        fcmMessageId = result.responses.find((r) => r.success)?.messageId;
+      }
+    } catch (err) {
+      this.logger.warn(`FCM push failed for user ${userId}: ${err}`);
+    }
+
+    return this.repo.create(userId, type, title, body, data, sentViaFcm, fcmMessageId);
   }
 }
