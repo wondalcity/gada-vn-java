@@ -42,6 +42,8 @@ export interface Job {
   slug: string | null;
   publishedAt: Date | null;
   expiresAt: Date | null;
+  imageS3Keys: string[];
+  coverImageIdx: number;
   createdAt: Date;
   updatedAt: Date;
 }

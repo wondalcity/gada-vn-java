@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { DatabaseService } from '../../common/database/database.service';
 
-interface UserRow {
+export interface UserRow {
   id: string;
   firebase_uid: string;
   phone: string | null;

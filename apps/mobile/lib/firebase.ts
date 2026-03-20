@@ -2,9 +2,7 @@ import auth from '@react-native-firebase/auth';
 import * as SecureStore from 'expo-secure-store';
 import { api } from './api-client';
 
-export async function signInWithPhoneOtp(
-  phoneNumber: string,
-): Promise<ReturnType<typeof auth().signInWithPhoneNumber>> {
+export async function signInWithPhoneOtp(phoneNumber: string) {
   return auth().signInWithPhoneNumber(phoneNumber);
 }
 
