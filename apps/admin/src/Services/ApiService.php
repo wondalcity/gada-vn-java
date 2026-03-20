@@ -16,12 +16,14 @@ class ApiService
     {
         $this->baseUrl = rtrim($_ENV['API_BASE_URL'] ?? 'http://localhost:3001/v1', '/');
         $this->token = $_ENV['ADMIN_SERVICE_ACCOUNT_JWT'] ?? '';
+        $adminKey = $_ENV['ADMIN_SERVICE_KEY'] ?? '';
 
         $this->client = new Client([
             'base_uri' => $this->baseUrl . '/',
             'timeout' => 10,
             'headers' => [
                 'Authorization' => 'Bearer ' . $this->token,
+                'x-admin-key' => $adminKey,
                 'Content-Type' => 'application/json',
                 'Accept' => 'application/json',
             ],
