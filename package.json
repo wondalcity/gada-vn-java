@@ -1,0 +1,23 @@
+{
+  "name": "gada-vn",
+  "private": true,
+  "scripts": {
+    "build": "turbo build",
+    "dev": "turbo dev",
+    "lint": "turbo lint",
+    "type-check": "turbo type-check",
+    "test": "turbo test",
+    "db:migrate": "pnpm --filter @gada-vn/db migrate",
+    "db:seed": "pnpm --filter @gada-vn/db seed",
+    "db:reset": "pnpm --filter @gada-vn/db reset"
+  },
+  "devDependencies": {
+    "turbo": "^2.3.3",
+    "typescript": "^5.6.0"
+  },
+  "engines": {
+    "node": ">=20.0.0",
+    "pnpm": ">=9.0.0"
+  },
+  "packageManager": "pnpm@9.15.0"
+}

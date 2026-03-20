@@ -1,0 +1,23 @@
+{
+  "name": "@gada-vn/infra",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "build": "tsc",
+    "cdk": "cdk",
+    "deploy:dev": "cdk deploy --all --context env=dev",
+    "deploy:staging": "cdk deploy --all --context env=staging",
+    "deploy:prod": "cdk deploy --all --context env=production --require-approval broadening",
+    "synth": "cdk synth",
+    "diff": "cdk diff"
+  },
+  "dependencies": {
+    "aws-cdk-lib": "^2.176.0",
+    "constructs": "^10.4.2"
+  },
+  "devDependencies": {
+    "aws-cdk": "^2.176.0",
+    "typescript": "^5.6.0",
+    "@types/node": "^22.10.2"
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "name": "gada-vn/admin",
+  "description": "GADA VN Platform Admin Panel",
+  "type": "project",
+  "require": {
+    "php": "^8.2",
+    "guzzlehttp/guzzle": "^7.9",
+    "twig/twig": "^3.19",
+    "symfony/var-dumper": "^7.2"
+  },
+  "autoload": {
+    "psr-4": {
+      "GadaAdmin\\": "src/"
+    }
+  },
+  "config": {
+    "optimize-autoloader": true
+  }
+}

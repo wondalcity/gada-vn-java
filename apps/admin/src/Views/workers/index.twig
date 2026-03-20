@@ -1,0 +1,54 @@
+{% extends "layout.twig" %}
+
+{% block content %}
+<div class="mb-6 flex gap-3">
+    <form method="GET" action="/workers" class="flex gap-2 flex-1">
+        <input
+            type="text" name="search" value="{{ search }}"
+            placeholder="이름 또는 전화번호 검색..."
+            class="flex-1 border border-gray-300 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-400"
+        >
+        <button type="submit" class="bg-orange-500 text-white px-4 py-2 rounded-lg text-sm font-medium">검색</button>
+    </form>
+</div>
+
+<div class="bg-white rounded-2xl shadow-sm overflow-hidden">
+    {% if workers is iterable and workers|length > 0 %}
+    <table class="w-full">
+        <thead class="bg-gray-50">
+            <tr>
+                <th class="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase">이름</th>
+                <th class="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase">전화번호</th>
+                <th class="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase">지역</th>
+                <th class="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase">신분증 인증</th>
+                <th class="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase">가입일</th>
+                <th class="px-6 py-3"></th>
+            </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-100">
+            {% for worker in workers %}
+            <tr class="hover:bg-gray-50">
+                <td class="px-6 py-4 text-sm font-medium text-gray-900">{{ worker.full_name }}</td>
+                <td class="px-6 py-4 text-sm text-gray-600">{{ worker.phone ?? '-' }}</td>
+                <td class="px-6 py-4 text-sm text-gray-500">{{ worker.current_province ?? '-' }}</td>
+                <td class="px-6 py-4">
+                    <span class="px-2 py-1 text-xs rounded-full {{ worker.id_verified ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500' }}">
+                        {{ worker.id_verified ? '인증 완료' : '미인증' }}
+                    </span>
+                </td>
+                <td class="px-6 py-4 text-sm text-gray-400">{{ worker.created_at|date('Y.m.d') ?? '' }}</td>
+                <td class="px-6 py-4 text-right">
+                    <a href="/workers/{{ worker.id }}" class="text-orange-500 hover:underline text-sm">상세 →</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <div class="py-16 text-center text-gray-400">
+        <div class="text-4xl mb-3">👷</div>
+        <p>근로자가 없습니다</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

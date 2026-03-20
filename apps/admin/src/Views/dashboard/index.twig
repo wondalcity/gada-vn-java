@@ -1,0 +1,66 @@
+{% extends "layout.twig" %}
+
+{% block content %}
+<!-- Stats Grid -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+    {% set stat_cards = [
+        { label: '대기 중 관리자', value: stats.pending_managers ?? 0, icon: '⏳', color: 'yellow' },
+        { label: '총 근로자', value: stats.total_workers ?? 0, icon: '👷', color: 'blue' },
+        { label: '오늘 일자리', value: stats.today_jobs ?? 0, icon: '🏗️', color: 'green' },
+        { label: '이번 달 계약', value: stats.monthly_contracts ?? 0, icon: '📄', color: 'purple' },
+    ] %}
+
+    {% for card in stat_cards %}
+    <div class="bg-white rounded-2xl p-6 shadow-sm">
+        <div class="text-3xl mb-3">{{ card.icon }}</div>
+        <div class="text-2xl font-bold text-gray-900 mb-1">{{ card.value }}</div>
+        <div class="text-sm text-gray-500">{{ card.label }}</div>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- Pending Managers -->
+<div class="bg-white rounded-2xl shadow-sm overflow-hidden">
+    <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+        <h2 class="font-semibold text-gray-900">승인 대기 관리자</h2>
+        <a href="/managers?status=PENDING" class="text-sm text-orange-500 hover:underline">전체 보기 →</a>
+    </div>
+
+    {% if pending_managers is iterable and pending_managers|length > 0 %}
+    <table class="w-full">
+        <thead class="bg-gray-50">
+            <tr>
+                <th class="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">회사명</th>
+                <th class="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">담당자</th>
+                <th class="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">유형</th>
+                <th class="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">가입일</th>
+                <th class="px-6 py-3"></th>
+            </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-100">
+            {% for manager in pending_managers %}
+            <tr class="hover:bg-gray-50">
+                <td class="px-6 py-4 text-sm font-medium text-gray-900">{{ manager.company_name ?? '-' }}</td>
+                <td class="px-6 py-4 text-sm text-gray-600">{{ manager.representative_name }}</td>
+                <td class="px-6 py-4">
+                    <span class="px-2 py-1 text-xs rounded-full {{ manager.business_type == 'CORPORATE' ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-600' }}">
+                        {{ manager.business_type == 'CORPORATE' ? '법인' : '개인' }}
+                    </span>
+                </td>
+                <td class="px-6 py-4 text-sm text-gray-500">{{ manager.created_at|date('Y.m.d') }}</td>
+                <td class="px-6 py-4 text-right">
+                    <a href="/managers/{{ manager.id }}" class="text-orange-500 hover:underline text-sm font-medium">
+                        검토 →
+                    </a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <div class="py-12 text-center text-gray-400">
+        <p>대기 중인 관리자가 없습니다</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

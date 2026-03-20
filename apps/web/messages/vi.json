@@ -1,0 +1,36 @@
+{
+  "nav": {
+    "jobs": "Việc làm xây dựng",
+    "register_worker": "Đăng ký công nhân",
+    "register_manager": "Đăng ký nhà quản lý",
+    "download_app": "Tải ứng dụng"
+  },
+  "home": {
+    "hero_title": "Việc làm xây dựng tại Việt Nam",
+    "hero_subtitle": "Tìm việc làm xây dựng gần bạn nhất",
+    "search_placeholder": "Tìm kiếm khu vực hoặc nghề...",
+    "search_button": "Tìm kiếm",
+    "nearby_jobs": "Việc làm gần đây",
+    "today_jobs": "Việc làm hôm nay",
+    "app_download": "Tải ứng dụng"
+  },
+  "jobs": {
+    "title": "Việc làm xây dựng",
+    "daily_wage": "Lương ngày",
+    "work_date": "Ngày làm việc",
+    "deadline": "Hạn chót",
+    "slots": "{filled}/{total} người",
+    "benefits": "Phúc lợi",
+    "requirements": "Yêu cầu",
+    "apply_via_app": "Ứng tuyển qua ứng dụng",
+    "distance": "{km}km",
+    "posted_days_ago": "Đăng {days} ngày trước",
+    "open": "Đang tuyển",
+    "filled": "Đã đủ người",
+    "province": "Tỉnh/Thành phố"
+  },
+  "seo": {
+    "job_title_template": "Việc {siteName} | {dailyWage}VND | GADA VN",
+    "job_description_template": "Tuyển dụng xây dựng tại {siteName}, {address}. Ngày {workDate}. Lương {dailyWage}VND/ngày"
+  }
+}

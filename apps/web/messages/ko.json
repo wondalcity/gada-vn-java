@@ -1,0 +1,36 @@
+{
+  "nav": {
+    "jobs": "건설 일자리",
+    "register_worker": "근로자 등록",
+    "register_manager": "관리자 등록",
+    "download_app": "앱 다운로드"
+  },
+  "home": {
+    "hero_title": "베트남 건설 현장 일자리",
+    "hero_subtitle": "가장 가까운 건설 일자리를 찾아보세요",
+    "search_placeholder": "지역 또는 직종 검색...",
+    "search_button": "검색",
+    "nearby_jobs": "주변 일자리",
+    "today_jobs": "오늘의 일자리",
+    "app_download": "앱 다운로드"
+  },
+  "jobs": {
+    "title": "건설 일자리",
+    "daily_wage": "일 노임",
+    "work_date": "근무일",
+    "deadline": "마감일",
+    "slots": "{filled}/{total}명",
+    "benefits": "베네핏",
+    "requirements": "요구사항",
+    "apply_via_app": "앱에서 지원하기",
+    "distance": "{km}km",
+    "posted_days_ago": "{days}일 전 등록",
+    "open": "모집 중",
+    "filled": "마감",
+    "province": "지역"
+  },
+  "seo": {
+    "job_title_template": "{siteName} 건설 일자리 | {dailyWage}VND | 가다 VN",
+    "job_description_template": "{address} 위치 {siteName}에서 {workDate} 건설 일자리를 모집합니다. 일 노임 {dailyWage}VND"
+  }
+}

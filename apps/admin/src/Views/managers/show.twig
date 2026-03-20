@@ -1,0 +1,87 @@
+{% extends "layout.twig" %}
+
+{% block content %}
+<div class="max-w-3xl">
+    <a href="/managers" class="text-gray-400 hover:text-gray-600 text-sm mb-6 inline-block">← 목록으로</a>
+
+    <div class="bg-white rounded-2xl shadow-sm p-8 mb-6">
+        <div class="flex items-center justify-between mb-6">
+            <h2 class="text-xl font-bold text-gray-900">{{ manager.company_name ?? '개인사업자' }}</h2>
+            {% if manager.approval_status == 'PENDING' %}
+                <span class="px-3 py-1 text-sm rounded-full bg-yellow-100 text-yellow-700 font-medium">대기 중</span>
+            {% elseif manager.approval_status == 'APPROVED' %}
+                <span class="px-3 py-1 text-sm rounded-full bg-green-100 text-green-700 font-medium">승인됨</span>
+            {% else %}
+                <span class="px-3 py-1 text-sm rounded-full bg-red-100 text-red-700 font-medium">거부됨</span>
+            {% endif %}
+        </div>
+
+        <dl class="grid grid-cols-2 gap-4">
+            {% set fields = {
+                '사업자 유형': manager.business_type == 'CORPORATE' ? '법인' : '개인',
+                '담당자': manager.representative_name,
+                '전화번호': manager.contact_phone ?? '-',
+                '주소': manager.contact_address ?? '-',
+                '사업자등록번호': manager.business_reg_number ?? '-',
+                '가입일': manager.created_at ?? '-',
+            } %}
+            {% for label, value in fields %}
+            <div>
+                <dt class="text-xs font-medium text-gray-400 mb-1">{{ label }}</dt>
+                <dd class="text-sm text-gray-900">{{ value }}</dd>
+            </div>
+            {% endfor %}
+        </dl>
+    </div>
+
+    {% if manager.approval_status == 'PENDING' %}
+    <div class="flex gap-4" x-data="{ showRejectModal: false }">
+        <!-- Approve -->
+        <form method="POST" action="/managers/{{ manager.id }}/approve" class="flex-1">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+            <button
+                type="submit"
+                onclick="return confirm('이 관리자를 승인하시겠습니까?')"
+                class="w-full bg-green-500 hover:bg-green-600 text-white font-semibold py-3 rounded-xl transition-colors"
+            >
+                ✅ 승인
+            </button>
+        </form>
+
+        <!-- Reject trigger -->
+        <button
+            @click="showRejectModal = true"
+            class="flex-1 bg-red-50 hover:bg-red-100 text-red-600 font-semibold py-3 rounded-xl border border-red-200 transition-colors"
+        >
+            ❌ 거부
+        </button>
+
+        <!-- Reject Modal -->
+        <div x-show="showRejectModal" x-cloak class="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+            <div class="bg-white rounded-2xl p-8 w-full max-w-md mx-4">
+                <h3 class="text-lg font-bold mb-4">거부 사유 입력</h3>
+                <form method="POST" action="/managers/{{ manager.id }}/reject">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                    <textarea
+                        name="reason" required
+                        rows="4"
+                        class="w-full border border-gray-300 rounded-lg p-3 text-sm mb-4 focus:outline-none focus:ring-2 focus:ring-red-300"
+                        placeholder="거부 사유를 입력하세요..."
+                    ></textarea>
+                    <div class="flex gap-3">
+                        <button type="button" @click="showRejectModal = false"
+                            class="flex-1 border border-gray-300 text-gray-600 py-2.5 rounded-lg text-sm font-medium">
+                            취소
+                        </button>
+                        <button type="submit"
+                            class="flex-1 bg-red-500 text-white py-2.5 rounded-lg text-sm font-medium hover:bg-red-600">
+                            거부 확인
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,58 @@
+{
+  "name": "@gada-vn/mobile",
+  "version": "0.1.0",
+  "private": true,
+  "main": "expo-router/entry",
+  "scripts": {
+    "dev": "expo start",
+    "android": "expo run:android",
+    "ios": "expo run:ios",
+    "build": "expo export",
+    "lint": "eslint app --ext .ts,.tsx",
+    "type-check": "tsc --noEmit",
+    "test": "jest"
+  },
+  "dependencies": {
+    "expo": "~51.0.0",
+    "expo-router": "~3.5.0",
+    "expo-status-bar": "~1.12.1",
+    "expo-image": "~1.12.12",
+    "expo-location": "~17.0.1",
+    "expo-notifications": "~0.28.15",
+    "expo-image-picker": "~15.0.7",
+    "expo-secure-store": "~13.0.2",
+    "@react-native-firebase/app": "^20.5.0",
+    "@react-native-firebase/auth": "^20.5.0",
+    "@react-native-firebase/messaging": "^20.5.0",
+    "react": "18.2.0",
+    "react-native": "0.74.5",
+    "react-native-maps": "1.14.0",
+    "react-native-reanimated": "~3.10.1",
+    "react-native-gesture-handler": "~2.16.1",
+    "react-native-safe-area-context": "4.10.5",
+    "react-native-screens": "3.31.1",
+    "react-native-signature-canvas": "^4.7.2",
+    "zustand": "^5.0.2",
+    "i18next": "^23.16.8",
+    "react-i18next": "^15.4.0",
+    "@react-native-async-storage/async-storage": "1.23.1"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.25.2",
+    "@types/react": "~18.2.0",
+    "@types/react-native": "~0.73.0",
+    "typescript": "^5.6.0",
+    "jest": "^29.7.0",
+    "jest-expo": "~51.0.0",
+    "@testing-library/react-native": "^12.9.0",
+    "@types/jest": "^29.5.14",
+    "eslint": "^9.0.0",
+    "eslint-config-expo": "~8.0.0"
+  },
+  "jest": {
+    "preset": "jest-expo",
+    "moduleNameMapper": {
+      "^@gada-vn/core(.*)$": "<rootDir>/../../packages/core/src$1"
+    }
+  }
+}

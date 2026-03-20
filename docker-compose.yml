@@ -1,0 +1,99 @@
+version: '3.9'
+
+services:
+  # PostgreSQL 16 with PostGIS
+  postgres:
+    image: postgis/postgis:16-3.4-alpine
+    container_name: gada-vn-postgres
+    environment:
+      POSTGRES_DB: gada_vn
+      POSTGRES_USER: gadaadmin
+      POSTGRES_PASSWORD: localpassword
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U gadaadmin -d gada_vn"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Redis 7
+  redis:
+    image: redis:7-alpine
+    container_name: gada-vn-redis
+    ports:
+      - "6379:6379"
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # NestJS API
+  api:
+    build:
+      context: ./apps/api
+      dockerfile: Dockerfile
+      target: development
+    container_name: gada-vn-api
+    environment:
+      NODE_ENV: development
+      PORT: 3001
+      DATABASE_URL: postgresql://gadaadmin:localpassword@postgres:5432/gada_vn
+      REDIS_URL: redis://redis:6379
+    ports:
+      - "3001:3001"
+    volumes:
+      - ./apps/api/src:/app/src
+      - ./packages/core/src:/packages/core/src
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    command: nest start --watch
+
+  # Next.js Web
+  web:
+    build:
+      context: ./apps/web
+      dockerfile: Dockerfile
+      target: development
+    container_name: gada-vn-web
+    environment:
+      NODE_ENV: development
+      INTERNAL_API_URL: http://api:3001/v1
+      NEXT_PUBLIC_WEB_URL: http://localhost:3000
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./apps/web:/app
+      - /app/node_modules
+      - /app/.next
+    depends_on:
+      - api
+
+  # PHP Admin
+  admin:
+    build:
+      context: ./apps/admin
+      dockerfile: Dockerfile
+    container_name: gada-vn-admin
+    environment:
+      APP_ENV: development
+      API_BASE_URL: http://api:3001/v1
+    ports:
+      - "8080:80"
+    volumes:
+      - ./apps/admin:/app
+    depends_on:
+      - api
+
+volumes:
+  postgres_data:
+  redis_data:

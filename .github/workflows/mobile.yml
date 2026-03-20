@@ -1,0 +1,58 @@
+name: Mobile Build (EAS)
+
+on:
+  push:
+    branches: [main, staging]
+    paths:
+      - 'apps/mobile/**'
+      - 'packages/core/**'
+  workflow_dispatch:
+    inputs:
+      platform:
+        description: 'Platform'
+        required: true
+        default: 'all'
+        type: choice
+        options: [all, ios, android]
+      profile:
+        description: 'Build profile'
+        required: true
+        default: 'preview'
+        type: choice
+        options: [preview, production]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Setup EAS
+        uses: expo/expo-github-action@v8
+        with:
+          eas-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+
+      - name: Determine build profile
+        run: |
+          if [ "${{ github.ref }}" == "refs/heads/main" ]; then
+            echo "BUILD_PROFILE=production" >> $GITHUB_ENV
+          else
+            echo "BUILD_PROFILE=preview" >> $GITHUB_ENV
+          fi
+          echo "PLATFORM=${{ github.event.inputs.platform || 'all' }}" >> $GITHUB_ENV
+
+      - name: Build
+        working-directory: apps/mobile
+        run: eas build --platform ${{ env.PLATFORM }} --profile ${{ env.BUILD_PROFILE }} --non-interactive

@@ -1,0 +1,133 @@
+import i18n from 'i18next';
+import { initReactI18next } from 'react-i18next';
+
+const ko = {
+  common: {
+    loading: '로딩 중...',
+    error: '오류가 발생했습니다',
+    retry: '다시 시도',
+    save: '저장',
+    cancel: '취소',
+    confirm: '확인',
+    back: '뒤로',
+    next: '다음',
+    done: '완료',
+  },
+  auth: {
+    phone_placeholder: '전화번호',
+    otp_title: '인증번호 입력',
+    otp_sent: '인증번호가 전송되었습니다',
+    login: '로그인',
+    register: '회원가입',
+    facebook_login: '페이스북으로 로그인',
+  },
+  jobs: {
+    apply_button: '지원하기',
+    applied_button: '지원완료',
+    closed_button: '마감',
+    daily_wage: '일 노임',
+    work_date: '근무일',
+    distance: '{{km}}km',
+    benefits: '베네핏',
+    requirements: '요구사항',
+    slots: '{{filled}}/{{total}}명 고용',
+    today: '오늘',
+    nearby: '근처 일자리',
+    filters: {
+      distance: '거리 순',
+      wage: '급여 순',
+      benefit: '베넷핏 순',
+    },
+  },
+  profile: {
+    title: '프로필',
+    edit: '편집',
+    experience: '건설 현장 경험',
+    id_verification: '신분증 인증',
+    signature: '서명',
+    bank_info: '은행 계좌',
+    settings: '설정',
+    logout: '로그아웃',
+    delete_account: '계정 삭제',
+    language: '언어 설정',
+    push_notifications: '푸시 수신 여부',
+    terms: '이용약관',
+    privacy: '개인정보보호방침',
+  },
+  notifications: {
+    title: '알림',
+    job_applied: '건설 현장 지원',
+    job_accepted: '건설 현장 지원 완료',
+    job_matched: '건설 현장 매칭',
+  },
+};
+
+const vi = {
+  common: {
+    loading: 'Đang tải...',
+    error: 'Đã xảy ra lỗi',
+    retry: 'Thử lại',
+    save: 'Lưu',
+    cancel: 'Hủy',
+    confirm: 'Xác nhận',
+    back: 'Quay lại',
+    next: 'Tiếp theo',
+    done: 'Hoàn tất',
+  },
+  auth: {
+    phone_placeholder: 'Số điện thoại',
+    otp_title: 'Nhập mã xác minh',
+    otp_sent: 'Mã xác minh đã được gửi',
+    login: 'Đăng nhập',
+    register: 'Đăng ký',
+    facebook_login: 'Đăng nhập bằng Facebook',
+  },
+  jobs: {
+    apply_button: 'Ứng tuyển',
+    applied_button: 'Đã ứng tuyển',
+    closed_button: 'Hết chỗ',
+    daily_wage: 'Lương ngày',
+    work_date: 'Ngày làm việc',
+    distance: '{{km}}km',
+    benefits: 'Phúc lợi',
+    requirements: 'Yêu cầu',
+    slots: '{{filled}}/{{total}} người',
+    today: 'Hôm nay',
+    nearby: 'Việc làm gần đây',
+    filters: {
+      distance: 'Gần nhất',
+      wage: 'Lương cao nhất',
+      benefit: 'Phúc lợi tốt nhất',
+    },
+  },
+  profile: {
+    title: 'Hồ sơ',
+    edit: 'Chỉnh sửa',
+    experience: 'Kinh nghiệm công trình',
+    id_verification: 'Xác minh CMND',
+    signature: 'Chữ ký',
+    bank_info: 'Tài khoản ngân hàng',
+    settings: 'Cài đặt',
+    logout: 'Đăng xuất',
+    delete_account: 'Xóa tài khoản',
+    language: 'Ngôn ngữ',
+    push_notifications: 'Thông báo đẩy',
+    terms: 'Điều khoản sử dụng',
+    privacy: 'Chính sách bảo mật',
+  },
+  notifications: {
+    title: 'Thông báo',
+    job_applied: 'Đã ứng tuyển',
+    job_accepted: 'Ứng tuyển thành công',
+    job_matched: 'Đã ghép đôi',
+  },
+};
+
+i18n.use(initReactI18next).init({
+  resources: { ko: { translation: ko }, vi: { translation: vi } },
+  lng: 'ko',
+  fallbackLng: 'ko',
+  interpolation: { escapeValue: false },
+});
+
+export default i18n;
