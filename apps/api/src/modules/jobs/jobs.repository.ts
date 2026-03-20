@@ -113,6 +113,18 @@ export class JobsRepository {
     return rows[0];
   }
 
+  async findByManager(managerId: string) {
+    const { rows } = await this.db.query(
+      `SELECT j.*, s.name as site_name, s.address
+       FROM app.jobs j
+       JOIN app.construction_sites s ON j.site_id = s.id
+       WHERE j.manager_id = $1
+       ORDER BY j.work_date DESC`,
+      [managerId],
+    );
+    return rows;
+  }
+
   async softDelete(id: string, managerId: string) {
     await this.db.query(
       `UPDATE app.jobs SET status = 'CANCELLED', updated_at = NOW()

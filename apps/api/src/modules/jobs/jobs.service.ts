@@ -44,6 +44,11 @@ export class JobsService {
     return job;
   }
 
+  async getMyJobs(userId: string) {
+    const managerId = await this.repo.getManagerIdByUserId(userId);
+    return this.repo.findByManager(managerId);
+  }
+
   async createJob(userId: string, dto: CreateJobDto) {
     const managerId = await this.repo.getManagerIdByUserId(userId);
     const job = await this.repo.create(managerId, dto);

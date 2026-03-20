@@ -22,6 +22,12 @@ export class JobsController {
     return this.jobsService.listJobs(query);
   }
 
+  @Get('mine')
+  @Roles('MANAGER')
+  async getMyJobs(@CurrentUser() user: CurrentUserPayload) {
+    return this.jobsService.getMyJobs(user.id);
+  }
+
   @Get('date/:date')
   @Public()
   async getDailyFeed(@Param('date') date: string, @Query() query: JobListQueryDto) {

@@ -45,6 +45,16 @@ export class ApplicationsController {
     return this.applicationsService.findByJob(jobId, user.id);
   }
 
+  // Alias: GET /applications/job/:jobId (mobile-friendly path)
+  @Get('applications/job/:jobId')
+  @Roles('MANAGER')
+  async getJobApplicationsAlias(
+    @Param('jobId') jobId: string,
+    @CurrentUser() user: CurrentUserPayload,
+  ) {
+    return this.applicationsService.findByJob(jobId, user.id);
+  }
+
   // Manager updates application status (ACCEPTED / REJECTED)
   @Put('applications/:id/status')
   @Roles('MANAGER')
