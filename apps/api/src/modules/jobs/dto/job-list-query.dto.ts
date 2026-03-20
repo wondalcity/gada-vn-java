@@ -29,6 +29,10 @@ export class JobListQueryDto {
   tradeId?: number;
 
   @IsOptional()
+  @IsString()
+  province?: string;
+
+  @IsOptional()
   @Type(() => Number)
   @IsNumber()
   @Min(1)

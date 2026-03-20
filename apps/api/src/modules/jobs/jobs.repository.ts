@@ -32,6 +32,11 @@ export class JobsRepository {
       params.push(query.tradeId);
     }
 
+    if (query.province) {
+      sql += ` AND s.province = $${paramIdx++}`;
+      params.push(query.province);
+    }
+
     if (lat && lng) {
       sql += ` ORDER BY distance_km ASC`;
     } else {

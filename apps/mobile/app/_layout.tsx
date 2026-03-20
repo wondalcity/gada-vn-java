@@ -16,6 +16,7 @@ export default function RootLayout() {
         }}
       >
         <Stack.Screen name="(auth)" options={{ headerShown: false }} />
+        <Stack.Screen name="(auth)/role" options={{ title: '역할 선택', headerShown: true }} />
         <Stack.Screen name="(worker)" options={{ headerShown: false }} />
         <Stack.Screen name="(manager)" options={{ headerShown: false }} />
       </Stack>

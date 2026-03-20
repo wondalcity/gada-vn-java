@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { Redirect } from 'expo-router';
 import { View, ActivityIndicator, StyleSheet } from 'react-native';
 import { useAuthStore } from '../store/auth.store';
@@ -6,7 +6,7 @@ import auth from '@react-native-firebase/auth';
 import { syncAuthToken } from '../lib/firebase';
 
 export default function Index() {
-  const { isAuthenticated, isLoading, role, setUser, clearUser, setLoading } = useAuthStore();
+  const { isAuthenticated, isLoading, role, isNew, setUser, setNew, clearUser } = useAuthStore();
 
   useEffect(() => {
     const unsubscribe = auth().onAuthStateChanged(async (firebaseUser) => {
@@ -16,6 +16,7 @@ export default function Index() {
           if (result) {
             const user = result.user as { id: string; role: 'WORKER' | 'MANAGER' };
             setUser(user.id, user.role);
+            if (result.isNew) setNew(true);
           }
         } catch {
           clearUser();
@@ -36,6 +37,7 @@ export default function Index() {
   }
 
   if (!isAuthenticated) return <Redirect href="/(auth)/phone" />;
+  if (isNew) return <Redirect href="/(auth)/role" />;
   if (role === 'MANAGER') return <Redirect href="/(manager)" />;
   return <Redirect href="/(worker)" />;
 }
