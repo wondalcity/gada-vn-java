@@ -7,7 +7,7 @@ export class ApplicationsRepository {
 
   async findByWorkerAndJob(userId: string, jobId: string) {
     const { rows } = await this.db.query(
-      `SELECT a.* FROM app.applications a
+      `SELECT a.* FROM app.job_applications a
        JOIN app.worker_profiles wp ON a.worker_id = wp.id
        WHERE wp.user_id = $1 AND a.job_id = $2`,
       [userId, jobId],
@@ -17,7 +17,7 @@ export class ApplicationsRepository {
 
   async findById(id: string) {
     const { rows } = await this.db.query(
-      'SELECT * FROM app.applications WHERE id = $1',
+      'SELECT * FROM app.job_applications WHERE id = $1',
       [id],
     );
     return rows[0] || null;
@@ -28,7 +28,7 @@ export class ApplicationsRepository {
     const { rows } = await this.db.query(
       `SELECT a.*, j.title as job_title, j.work_date, j.daily_wage,
               s.name as site_name, s.address
-       FROM app.applications a
+       FROM app.job_applications a
        JOIN app.worker_profiles wp ON a.worker_id = wp.id
        JOIN app.jobs j ON a.job_id = j.id
        JOIN app.construction_sites s ON j.site_id = s.id
@@ -42,14 +42,14 @@ export class ApplicationsRepository {
 
   async findByJobId(jobId: string, managerUserId: string) {
     const { rows } = await this.db.query(
-      `SELECT a.*, wp.full_name as worker_name, wp.rating as worker_rating,
-              wp.completed_jobs
-       FROM app.applications a
+      `SELECT a.*, wp.full_name as worker_name,
+              wp.experience_months, wp.current_province
+       FROM app.job_applications a
        JOIN app.worker_profiles wp ON a.worker_id = wp.id
        JOIN app.jobs j ON a.job_id = j.id
        JOIN app.manager_profiles mp ON j.manager_id = mp.id
        WHERE a.job_id = $1 AND mp.user_id = $2
-       ORDER BY wp.rating DESC`,
+       ORDER BY a.applied_at ASC`,
       [jobId, managerUserId],
     );
     return rows;
@@ -57,7 +57,7 @@ export class ApplicationsRepository {
 
   async create(userId: string, jobId: string, _data: Record<string, unknown>) {
     const { rows } = await this.db.query(
-      `INSERT INTO app.applications (worker_id, job_id, status, applied_at)
+      `INSERT INTO app.job_applications (worker_id, job_id, status, applied_at)
        SELECT wp.id, $2, 'PENDING', NOW()
        FROM app.worker_profiles wp WHERE wp.user_id = $1
        RETURNING *`,
@@ -68,8 +68,8 @@ export class ApplicationsRepository {
 
   async updateStatus(id: string, managerUserId: string, status: string) {
     const { rows } = await this.db.query(
-      `UPDATE app.applications a
-       SET status = $2, reviewed_at = NOW()
+      `UPDATE app.job_applications a
+       SET status = $2, reviewed_at = NOW(), reviewed_by = mp.id
        FROM app.jobs j
        JOIN app.manager_profiles mp ON j.manager_id = mp.id
        WHERE a.id = $1

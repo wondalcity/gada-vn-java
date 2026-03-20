@@ -2,6 +2,14 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { NotFoundException } from '@nestjs/common';
 import { JobsService } from './jobs.service';
 import { JobsRepository } from './jobs.repository';
+import { CacheService } from '../../common/cache/cache.service';
+
+const mockCacheService = {
+  get: jest.fn().mockResolvedValue(null),
+  set: jest.fn().mockResolvedValue(undefined),
+  del: jest.fn().mockResolvedValue(undefined),
+  delPattern: jest.fn().mockResolvedValue(undefined),
+};
 
 const mockJobsRepository = {
   findMany: jest.fn(),
@@ -21,11 +29,14 @@ describe('JobsService', () => {
       providers: [
         JobsService,
         { provide: JobsRepository, useValue: mockJobsRepository },
+        { provide: CacheService, useValue: mockCacheService },
       ],
     }).compile();
 
     service = module.get<JobsService>(JobsService);
     jest.clearAllMocks();
+    // restore cache miss default after clearAllMocks
+    mockCacheService.get.mockResolvedValue(null);
   });
 
   describe('getJobById', () => {

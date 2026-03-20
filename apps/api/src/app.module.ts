@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { DatabaseModule } from './common/database/database.module';
+import { CacheModule } from './common/cache/cache.module';
 import { FirebaseModule } from './common/firebase/firebase.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { WorkersModule } from './modules/workers/workers.module';
@@ -16,6 +17,7 @@ import { FilesModule } from './modules/files/files.module';
   imports: [
     ConfigModule.forRoot({ isGlobal: true, envFilePath: '.env.local' }),
     DatabaseModule,
+    CacheModule,
     FirebaseModule,
     AuthModule,
     WorkersModule,

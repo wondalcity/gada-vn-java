@@ -6,12 +6,27 @@ export class ContractsService {
   constructor(private readonly repo: ContractsRepository) {}
 
   async generate(managerUserId: string, applicationId: string) {
-    // Verify manager owns the job application
-    const application = await this.repo.findApplicationWithJob(applicationId, managerUserId);
+    const application = await this.repo.findAcceptedApplication(applicationId, managerUserId);
     if (!application) {
       throw new NotFoundException('Application not found or unauthorized');
     }
-    return this.repo.create(applicationId, application);
+
+    // Build simple HTML contract template
+    const contractHtml = `<html><body>
+      <h1>근로계약서</h1>
+      <p>일자리: ${application.job_title}</p>
+      <p>근무일: ${application.work_date}</p>
+      <p>일당: ${application.daily_wage} VND</p>
+      <p>근로자: ${application.worker_name}</p>
+    </body></html>`;
+
+    return this.repo.create({
+      applicationId,
+      jobId: application.job_id as string,
+      workerId: application.worker_id as string,
+      managerId: application.manager_profile_id as string,
+      contractHtml,
+    });
   }
 
   async findById(id: string, userId: string) {
@@ -32,6 +47,6 @@ export class ContractsService {
     const isWorker = await this.repo.isWorkerPartyToContract(id, workerUserId);
     if (!isWorker) throw new ForbiddenException('Not authorized to sign this contract');
 
-    return this.repo.sign(id, workerUserId, signatureData);
+    return this.repo.sign(id, workerUserId, signatureData ?? '');
   }
 }
