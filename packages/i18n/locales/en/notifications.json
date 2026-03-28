@@ -1,0 +1,13 @@
+{
+  "title": "Notifications",
+  "empty": "No notifications yet.",
+  "mark_all_read": "Mark All as Read",
+  "types": {
+    "application_status": "Application update: {job_title}",
+    "contract_ready": "Contract ready to sign: {job_title}",
+    "attendance_recorded": "Your attendance has been recorded.",
+    "manager_approved": "Your manager registration has been approved.",
+    "manager_rejected": "Your manager registration was rejected: {reason}",
+    "hire_cancelled": "Your employment has been cancelled: {job_title}"
+  }
+}

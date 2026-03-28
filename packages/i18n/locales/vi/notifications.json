@@ -1,0 +1,13 @@
+{
+  "title": "Thông báo",
+  "empty": "Không có thông báo nào.",
+  "mark_all_read": "Đánh dấu tất cả đã đọc",
+  "types": {
+    "application_status": "Kết quả ứng tuyển: {job_title}",
+    "contract_ready": "Hợp đồng đã sẵn sàng: {job_title}",
+    "attendance_recorded": "Chấm công đã được ghi nhận.",
+    "manager_approved": "Đăng ký quản lý đã được duyệt.",
+    "manager_rejected": "Đăng ký quản lý bị từ chối: {reason}",
+    "hire_cancelled": "Hợp đồng lao động đã bị hủy: {job_title}"
+  }
+}

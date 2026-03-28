@@ -1,0 +1,46 @@
+{
+  "app_name": "GADA VN",
+  "nav": {
+    "jobs": "일자리 찾기",
+    "login": "로그인",
+    "register": "회원가입",
+    "profile": "프로필",
+    "notifications": "알림",
+    "logout": "로그아웃"
+  },
+  "button": {
+    "save": "저장",
+    "cancel": "취소",
+    "submit": "제출",
+    "back": "뒤로",
+    "next": "다음",
+    "close": "닫기",
+    "upload": "업로드",
+    "apply": "지원하기",
+    "withdraw": "지원 취소",
+    "sign": "서명하기"
+  },
+  "status": {
+    "pending": "검토 중",
+    "approved": "승인됨",
+    "rejected": "반려됨",
+    "active": "활성",
+    "closed": "마감",
+    "draft": "임시저장"
+  },
+  "error": {
+    "generic": "오류가 발생했습니다. 다시 시도해 주세요.",
+    "not_found": "찾을 수 없습니다.",
+    "unauthorized": "로그인이 필요합니다.",
+    "forbidden": "권한이 없습니다."
+  },
+  "pagination": {
+    "page": "{page} / {total} 페이지",
+    "showing": "{count}개 표시 중"
+  },
+  "locale": {
+    "ko": "한국어",
+    "vi": "Tiếng Việt",
+    "en": "English"
+  }
+}

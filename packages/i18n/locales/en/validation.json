@@ -1,0 +1,10 @@
+{
+  "required": "{field} is required.",
+  "min_length": "{field} must be at least {min} characters.",
+  "max_length": "{field} must not exceed {max} characters.",
+  "invalid_phone": "Please enter a valid Vietnamese phone number. (e.g. +84 xxx xxx xxxx)",
+  "invalid_email": "Please enter a valid email address.",
+  "password_mismatch": "Passwords do not match.",
+  "file_too_large": "File size must be under {max}MB.",
+  "invalid_file_type": "Only {types} files are allowed."
+}

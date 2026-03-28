@@ -1,0 +1,59 @@
+{
+  "home": {
+    "greeting": "Hello, {name}",
+    "pending_contracts": "Contracts Awaiting Signature",
+    "active_jobs": "Active Jobs"
+  },
+  "profile": {
+    "title": "My Profile",
+    "name": "Full Name",
+    "phone": "Phone Number",
+    "email": "Email",
+    "id_document": {
+      "title": "Identity Document",
+      "upload": "Upload ID",
+      "front": "Front",
+      "back": "Back",
+      "status": {
+        "pending": "Under Review",
+        "verified": "Verified",
+        "rejected": "Rejected"
+      }
+    },
+    "signature": {
+      "title": "Signature",
+      "draw": "Draw Signature",
+      "clear": "Clear",
+      "save": "Save Signature",
+      "missing": "No signature on file. Please add a signature to sign contracts."
+    },
+    "experience": {
+      "title": "Work Experience",
+      "add": "Add Experience",
+      "company": "Company Name",
+      "role": "Role",
+      "period": "Period",
+      "delete_confirm": "Are you sure you want to delete this?"
+    }
+  },
+  "applications": {
+    "title": "My Applications",
+    "empty": "You haven't applied to any jobs yet.",
+    "status": {
+      "pending": "Under Review",
+      "accepted": "Accepted",
+      "rejected": "Rejected",
+      "withdrawn": "Withdrawn",
+      "expired": "Expired"
+    },
+    "withdraw_confirm": "Are you sure you want to withdraw this application?"
+  },
+  "contracts": {
+    "title": "Contracts",
+    "empty": "No contracts found.",
+    "sign": "Sign Contract",
+    "signed": "Signed",
+    "download": "Download",
+    "no_signature": "Please add a signature to your profile first."
+  }
+}

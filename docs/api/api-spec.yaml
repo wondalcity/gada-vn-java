@@ -1,0 +1,2497 @@
+openapi: 3.1.0
+
+info:
+  title: GADA VN API
+  version: 1.0.0
+  description: |
+    REST API for the GADA VN construction worker marketplace.
+    All endpoints are served by the Laravel application (`apps/admin-laravel`).
+
+    ## Authentication
+    Protected endpoints require a Firebase ID Token in the `Authorization` header:
+    ```
+    Authorization: Bearer <firebase_id_token>
+    ```
+    The token is verified server-side via Firebase Admin SDK.
+    On first login the server upserts the user record automatically.
+
+    ## Response Envelope
+    Every response (success or error) is wrapped:
+    ```json
+    { "statusCode": 200, "data": { ... } }
+    { "statusCode": 200, "data": [ ... ], "meta": { "page": 1, "limit": 20, "total": 85 } }
+    { "statusCode": 422, "message": "Validation failed", "errors": { "phone": ["Required"] } }
+    ```
+
+    ## Access Levels
+    - 🔓 **Public** — no authentication required
+    - 🔐 **Authenticated** — any logged-in user
+    - 👷 **Worker** — authenticated user (all users are workers by default)
+    - 🏗️ **Manager** — approved manager (`user_roles.role = manager`, `status = active`)
+    - 🛡️ **Admin** — platform admin
+
+  contact:
+    name: GADA VN Engineering
+    email: dev@gada.vn
+
+servers:
+  - url: https://api.gada.vn/api/v1
+    description: Production
+  - url: http://localhost:8000/api/v1
+    description: Local development
+
+tags:
+  - name: Auth
+    description: Authentication — OTP, password, Facebook login, logout
+  - name: Account
+    description: Current user account — profile, locale, deletion
+  - name: Worker Profile
+    description: Worker-side profile management
+  - name: Manager Registration
+    description: Business registration and approval status
+  - name: Public
+    description: Public SEO/GEO endpoints — no auth required
+  - name: Sites
+    description: Construction site management (manager)
+  - name: Jobs
+    description: Job posting management (manager + worker)
+  - name: Applications
+    description: Job application lifecycle
+  - name: Hires
+    description: Hire records
+  - name: Attendance
+    description: Daily attendance and work-time recording
+  - name: Contracts
+    description: Employment contract generation and signing
+  - name: Notifications
+    description: In-app and push notification management
+  - name: Devices
+    description: FCM token registration
+  - name: Admin
+    description: Platform administration
+
+# ─────────────────────────────────────────────────────────────
+# SECURITY SCHEMES
+# ─────────────────────────────────────────────────────────────
+components:
+  securitySchemes:
+    FirebaseBearer:
+      type: http
+      scheme: bearer
+      bearerFormat: Firebase ID Token
+
+  # ─────────────────────────────────────────────────────────────
+  # REUSABLE SCHEMAS
+  # ─────────────────────────────────────────────────────────────
+  schemas:
+
+    # ── Envelope ──────────────────────────────────────────────
+    SuccessEnvelope:
+      type: object
+      properties:
+        statusCode: { type: integer, example: 200 }
+        data:       { type: object }
+
+    PaginatedEnvelope:
+      type: object
+      properties:
+        statusCode: { type: integer, example: 200 }
+        data:       { type: array,  items: {} }
+        meta:
+          type: object
+          properties:
+            page:       { type: integer, example: 1 }
+            limit:      { type: integer, example: 20 }
+            total:      { type: integer, example: 85 }
+            totalPages: { type: integer, example: 5 }
+
+    ErrorEnvelope:
+      type: object
+      properties:
+        statusCode: { type: integer, example: 422 }
+        message:    { type: string,  example: "Validation failed" }
+        errors:
+          type: object
+          additionalProperties:
+            type: array
+            items: { type: string }
+          example: { "phone": ["The phone field is required."] }
+
+    # ── Auth ──────────────────────────────────────────────────
+    AuthUser:
+      type: object
+      properties:
+        id:            { type: string, format: uuid }
+        firebaseUid:   { type: string, example: "abc123xyz" }
+        email:         { type: string, format: email, nullable: true }
+        phone:         { type: string, nullable: true, example: "+84901234567" }
+        name:          { type: string, example: "Nguyễn Văn A" }
+        photoUrl:      { type: string, nullable: true, example: "https://cdn.gada.vn/..." }
+        locale:        { type: string, enum: [ko, vi, en], example: ko }
+        roles:
+          type: array
+          items: { type: string, enum: [worker, manager, admin] }
+          example: [worker]
+        managerStatus: { type: string, nullable: true, enum: [pending, approved, rejected, revoked], example: null }
+        isActive:      { type: boolean, example: true }
+        createdAt:     { type: string, format: date-time }
+
+    # ── Worker ────────────────────────────────────────────────
+    WorkerProfile:
+      type: object
+      properties:
+        id:                   { type: string, format: uuid }
+        userId:               { type: string, format: uuid }
+        dateOfBirth:          { type: string, format: date, nullable: true, example: "1990-05-15" }
+        gender:               { type: string, nullable: true, enum: [male, female, other] }
+        nationality:          { type: string, nullable: true, example: "Vietnamese" }
+        currentProvinceId:    { type: integer, nullable: true, example: 1 }
+        currentProvinceName:  { type: string, nullable: true, example: "Hà Nội" }
+        preferredProvinceIds: { type: array, items: { type: integer }, example: [1, 2] }
+        primaryTradeId:       { type: integer, nullable: true, example: 5 }
+        primaryTradeName:     { type: string, nullable: true, example: "Thợ hồ" }
+        yearsOfExperience:    { type: integer, example: 3 }
+        level:                { type: integer, minimum: 1, maximum: 5, example: 2 }
+        idDocumentStatus:     { type: string, nullable: true, enum: [pending, verified, rejected] }
+        hasSignature:         { type: boolean, example: false }
+        profileCompletedAt:   { type: string, format: date-time, nullable: true }
+
+    WorkerExperience:
+      type: object
+      properties:
+        id:          { type: string, format: uuid }
+        tradeId:     { type: integer, nullable: true }
+        tradeName:   { type: string, nullable: true, example: "Thợ điện" }
+        role:        { type: string, nullable: true, example: "Thợ chính" }
+        siteName:    { type: string, nullable: true, example: "Dự án River Gate" }
+        companyName: { type: string, nullable: true }
+        startDate:   { type: string, format: date, example: "2022-01-01" }
+        endDate:     { type: string, format: date, nullable: true }
+        isCurrent:   { type: boolean, example: false }
+        description: { type: string, nullable: true }
+
+    # ── Manager ────────────────────────────────────────────────
+    ManagerProfile:
+      type: object
+      properties:
+        id:                       { type: string, format: uuid }
+        userId:                   { type: string, format: uuid }
+        businessName:             { type: string, example: "Xây dựng Hưng Phát Co., Ltd" }
+        businessRegistrationNumber: { type: string, nullable: true, example: "0123456789" }
+        businessType:             { type: string, enum: [individual, corporation], example: corporation }
+        representativeName:       { type: string, example: "Trần Văn B" }
+        representativePhone:      { type: string, nullable: true, example: "+84912345678" }
+        businessAddress:          { type: string, nullable: true }
+        businessDocUrl:           { type: string, nullable: true, description: "Presigned S3 URL, 15min TTL" }
+        approvalStatus:           { type: string, enum: [pending, approved, rejected, revoked] }
+        submittedAt:              { type: string, format: date-time }
+        reviewedAt:               { type: string, format: date-time, nullable: true }
+        rejectionReason:          { type: string, nullable: true }
+
+    # ── Site ──────────────────────────────────────────────────
+    Site:
+      type: object
+      properties:
+        id:          { type: string, format: uuid }
+        name:        { type: string, example: "Khu đô thị Vinhomes Grand Park" }
+        slug:        { type: string, example: "khu-do-thi-vinhomes-grand-park" }
+        description: { type: string, nullable: true }
+        provinceId:  { type: integer, example: 2 }
+        provinceName:{ type: string, example: "TP. Hồ Chí Minh" }
+        address:     { type: string, nullable: true, example: "Long Bình, TP. Thủ Đức" }
+        location:
+          type: object
+          nullable: true
+          properties:
+            lat: { type: number, example: 10.8231 }
+            lng: { type: number, example: 106.6297 }
+        startDate:   { type: string, format: date, example: "2026-04-01" }
+        endDate:     { type: string, format: date, nullable: true, example: "2026-12-31" }
+        status:      { type: string, enum: [draft, active, closed, archived], example: active }
+        coverImageUrl: { type: string, nullable: true }
+        jobsCount:   { type: integer, example: 3 }
+        createdAt:   { type: string, format: date-time }
+
+    # ── Job ───────────────────────────────────────────────────
+    Job:
+      type: object
+      properties:
+        id:           { type: string, format: uuid }
+        siteId:       { type: string, format: uuid }
+        siteName:     { type: string, example: "Vinhomes Grand Park" }
+        provinceId:   { type: integer, example: 2 }
+        provinceName: { type: string, example: "TP. Hồ Chí Minh" }
+        title:        { type: string, example: "Tuyển thợ hồ" }
+        tradeId:      { type: integer, example: 5 }
+        tradeName:    { type: string, example: "Thợ hồ" }
+        headcount:    { type: integer, example: 20 }
+        acceptedCount:{ type: integer, example: 3 }
+        wageAmount:   { type: integer, example: 450000, description: "VND per day" }
+        wageType:     { type: string, enum: [daily, hourly, monthly], example: daily }
+        startDate:    { type: string, format: date, example: "2026-04-01" }
+        endDate:      { type: string, format: date, example: "2026-06-30" }
+        workStartTime:{ type: string, nullable: true, example: "07:30" }
+        workEndTime:  { type: string, nullable: true, example: "17:00" }
+        description:  { type: string, nullable: true }
+        status:       { type: string, enum: [draft, open, filled, closed], example: open }
+        slug:         { type: string, example: "tuyen-tho-ho-vinhomes-grand-park-2026-04" }
+        requirements: { type: array, items: { $ref: '#/components/schemas/JobRequirement' } }
+        benefits:     { type: array, items: { $ref: '#/components/schemas/JobBenefit' } }
+        applicationsCount: { type: integer, example: 12 }
+        applicationStatus:
+          type: string
+          nullable: true
+          description: "Current user's application status (null if not applied)"
+          enum: [pending, accepted, rejected, withdrawn, expired]
+        createdAt:    { type: string, format: date-time }
+
+    JobRequirement:
+      type: object
+      properties:
+        id:             { type: string, format: uuid }
+        requirementType:{ type: string, example: certification }
+        description:    { type: string, example: "Chứng chỉ nghề xây dựng" }
+        isMandatory:    { type: boolean, example: true }
+
+    JobBenefit:
+      type: object
+      properties:
+        id:          { type: string, format: uuid }
+        benefitType: { type: string, example: meal }
+        description: { type: string, example: "Hỗ trợ cơm trưa tại công trường" }
+
+    JobShift:
+      type: object
+      properties:
+        id:         { type: string, format: uuid }
+        jobId:      { type: string, format: uuid }
+        shiftDate:  { type: string, format: date, example: "2026-04-07" }
+        startTime:  { type: string, nullable: true, example: "07:30" }
+        endTime:    { type: string, nullable: true, example: "17:00" }
+        headcount:  { type: integer, nullable: true }
+        status:     { type: string, enum: [scheduled, in_progress, completed, cancelled] }
+
+    # ── Application ────────────────────────────────────────────
+    Application:
+      type: object
+      properties:
+        id:            { type: string, format: uuid }
+        jobId:         { type: string, format: uuid }
+        jobTitle:      { type: string, example: "Tuyển thợ hồ" }
+        siteName:      { type: string, example: "Vinhomes Grand Park" }
+        workerUserId:  { type: string, format: uuid }
+        workerName:    { type: string, example: "Nguyễn Văn A" }
+        status:        { type: string, enum: [pending, accepted, rejected, withdrawn, expired] }
+        coverNote:     { type: string, nullable: true }
+        appliedAt:     { type: string, format: date-time }
+        reviewedAt:    { type: string, format: date-time, nullable: true }
+        rejectionReason:{ type: string, nullable: true }
+
+    # ── Hire ──────────────────────────────────────────────────
+    Hire:
+      type: object
+      properties:
+        id:              { type: string, format: uuid }
+        applicationId:   { type: string, format: uuid }
+        jobId:           { type: string, format: uuid }
+        jobTitle:        { type: string }
+        siteName:        { type: string }
+        workerUserId:    { type: string, format: uuid }
+        workerName:      { type: string }
+        managerUserId:   { type: string, format: uuid }
+        status:          { type: string, enum: [active, completed, cancelled, no_show] }
+        dailyWageVnd:    { type: integer, example: 450000 }
+        hiredAt:         { type: string, format: date-time }
+        cancelledAt:     { type: string, format: date-time, nullable: true }
+        cancellationReason: { type: string, nullable: true }
+        hasContract:     { type: boolean, example: true }
+        contractStatus:  { type: string, nullable: true, enum: [pending, worker_signed, fully_signed, voided] }
+
+    # ── Attendance ────────────────────────────────────────────
+    AttendanceRecord:
+      type: object
+      properties:
+        id:             { type: string, format: uuid }
+        hireId:         { type: string, format: uuid }
+        workerUserId:   { type: string, format: uuid }
+        workerName:     { type: string, example: "Nguyễn Văn A" }
+        attendanceDate: { type: string, format: date, example: "2026-04-07" }
+        status:         { type: string, enum: [present, absent, half_day, late, excused] }
+        checkInTime:    { type: string, nullable: true, example: "07:35" }
+        checkOutTime:   { type: string, nullable: true, example: "17:10" }
+        hoursWorked:    { type: number, format: float, nullable: true, example: 9.5 }
+        wageAmount:     { type: integer, nullable: true, example: 450000 }
+
+    # ── Contract ──────────────────────────────────────────────
+    Contract:
+      type: object
+      properties:
+        id:               { type: string, format: uuid }
+        hireId:           { type: string, format: uuid }
+        status:           { type: string, enum: [pending, worker_signed, fully_signed, voided] }
+        pdfUrl:           { type: string, nullable: true, description: "Presigned URL, 15min TTL" }
+        signedPdfUrl:     { type: string, nullable: true, description: "Presigned URL, 15min TTL" }
+        workerSignedAt:   { type: string, format: date-time, nullable: true }
+        managerSignedAt:  { type: string, format: date-time, nullable: true }
+        issuedAt:         { type: string, format: date-time }
+        workerName:       { type: string }
+        jobTitle:         { type: string }
+        siteName:         { type: string }
+        wageAmount:       { type: integer }
+        startDate:        { type: string, format: date }
+        endDate:          { type: string, format: date }
+
+    # ── Notification ──────────────────────────────────────────
+    Notification:
+      type: object
+      properties:
+        id:             { type: string, format: uuid }
+        type:           { type: string, example: application_status }
+        title:          { type: string, example: "지원 결과 알림" }
+        body:           { type: string, example: "귀하의 지원이 수락되었습니다." }
+        payload:        { type: object, example: { applicationId: "uuid-here", status: "accepted" } }
+        readAt:         { type: string, format: date-time, nullable: true }
+        createdAt:      { type: string, format: date-time }
+
+    # ── Pagination params (reusable) ──────────────────────────
+    PaginationParams:
+      type: object
+      properties:
+        page:  { in: query, schema: { type: integer, default: 1 } }
+        limit: { in: query, schema: { type: integer, default: 20, maximum: 100 } }
+
+  # ─────────────────────────────────────────────────────────────
+  # REUSABLE PARAMETERS
+  # ─────────────────────────────────────────────────────────────
+  parameters:
+    PageParam:
+      name: page
+      in: query
+      schema: { type: integer, default: 1, minimum: 1 }
+    LimitParam:
+      name: limit
+      in: query
+      schema: { type: integer, default: 20, minimum: 1, maximum: 100 }
+    JobIdParam:
+      name: jobId
+      in: path
+      required: true
+      schema: { type: string, format: uuid }
+    SiteIdParam:
+      name: siteId
+      in: path
+      required: true
+      schema: { type: string, format: uuid }
+    ApplicationIdParam:
+      name: applicationId
+      in: path
+      required: true
+      schema: { type: string, format: uuid }
+    HireIdParam:
+      name: hireId
+      in: path
+      required: true
+      schema: { type: string, format: uuid }
+    ContractIdParam:
+      name: contractId
+      in: path
+      required: true
+      schema: { type: string, format: uuid }
+
+  # ─────────────────────────────────────────────────────────────
+  # REUSABLE RESPONSES
+  # ─────────────────────────────────────────────────────────────
+  responses:
+    Unauthorized:
+      description: Missing or invalid Firebase token
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorEnvelope' }
+          example: { statusCode: 401, message: "Unauthenticated." }
+
+    Forbidden:
+      description: Authenticated but insufficient role or ownership
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorEnvelope' }
+          example: { statusCode: 403, message: "This action is unauthorized." }
+
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorEnvelope' }
+          example: { statusCode: 404, message: "Resource not found." }
+
+    UnprocessableEntity:
+      description: Validation failed
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorEnvelope' }
+
+    Conflict:
+      description: Business logic conflict (duplicate, state violation)
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorEnvelope' }
+
+# ═══════════════════════════════════════════════════════════════
+# PATHS
+# ═══════════════════════════════════════════════════════════════
+paths:
+
+  # ─────────────────────────────────────────────────────────────
+  # AUTH
+  # ─────────────────────────────────────────────────────────────
+
+  /auth/otp/send:
+    post:
+      tags: [Auth]
+      summary: Send OTP to phone number
+      description: |
+        🔓 **Public**
+        Triggers Firebase SMS OTP to the given phone number.
+        Rate limit: 5 requests per phone per 15 minutes.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [phone]
+              properties:
+                phone:
+                  type: string
+                  example: "+84901234567"
+                  description: "E.164 format. Supported country codes: +84 (VN), +82 (KR)"
+            example:
+              phone: "+84901234567"
+      responses:
+        "200":
+          description: OTP sent successfully
+          content:
+            application/json:
+              example:
+                statusCode: 200
+                data:
+                  message: "OTP sent"
+                  expiresInSeconds: 600
+        "422":
+          $ref: '#/components/responses/UnprocessableEntity'
+        "429":
+          description: Rate limit exceeded
+          content:
+            application/json:
+              example:
+                statusCode: 429
+                message: "Too many attempts. Try again in 15 minutes."
+
+  /auth/otp/verify:
+    post:
+      tags: [Auth]
+      summary: Verify OTP and get Firebase custom token
+      description: |
+        🔓 **Public**
+        Verifies the OTP against Firebase. Returns a Firebase custom token
+        which the client exchanges for a Firebase ID token.
+        On first login: user record is created automatically after `/auth/register`.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [phone, otp]
+              properties:
+                phone: { type: string, example: "+84901234567" }
+                otp:   { type: string, example: "123456", minLength: 6, maxLength: 6 }
+            example:
+              phone: "+84901234567"
+              otp:   "123456"
+      responses:
+        "200":
+          description: OTP verified
+          content:
+            application/json:
+              example:
+                statusCode: 200
+                data:
+                  customToken: "eyJhbGci..."
+                  isNewUser: true
+        "400":
+          description: Invalid or expired OTP
+          content:
+            application/json:
+              example:
+                statusCode: 400
+                message: "OTP expired. Request a new one."
+
+  /auth/register:
+    post:
+      tags: [Auth]
+      summary: Complete registration after first OTP login
+      description: |
+        🔐 **Authenticated** (Firebase ID token required — obtained after OTP verify)
+        Called once when `isNewUser = true` to set the user's name, email and password.
+        Creates `auth.users` + `auth.user_roles` (worker) + `app.worker_profiles`.
+      security:
+        - FirebaseBearer: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name]
+              properties:
+                name:     { type: string, example: "Nguyễn Văn A", minLength: 2, maxLength: 150 }
+                email:    { type: string, format: email, example: "nguyen@example.com" }
+                password: { type: string, format: password, minLength: 8, example: "S3cur3P@ss" }
+            example:
+              name: "Nguyễn Văn A"
+              email: "nguyen@example.com"
+              password: "S3cur3P@ss"
+      responses:
+        "201":
+          description: User created
+          content:
+            application/json:
+              example:
+                statusCode: 201
+                data:
+                  user:
+                    id: "550e8400-e29b-41d4-a716-446655440000"
+                    name: "Nguyễn Văn A"
+                    email: "nguyen@example.com"
+                    phone: "+84901234567"
+                    locale: "ko"
+                    roles: ["worker"]
+                    managerStatus: null
+        "409":
+          $ref: '#/components/responses/Conflict'
+
+  /auth/login:
+    post:
+      tags: [Auth]
+      summary: Email + password login
+      description: |
+        🔓 **Public**
+        Authenticates via Firebase `signInWithEmailAndPassword`.
+        Returns Firebase ID token (client-side) — this endpoint validates credentials
+        and returns the server-side user record.
+        Max 5 failed attempts before 15-minute lockout.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password]
+              properties:
+                email:    { type: string, format: email }
+                password: { type: string, format: password }
+            example:
+              email: "nguyen@example.com"
+              password: "S3cur3P@ss"
+      responses:
+        "200":
+          description: Login successful — attach Firebase ID token to subsequent requests
+          content:
+            application/json:
+              example:
+                statusCode: 200
+                data:
+                  user:
+                    id: "550e8400-e29b-41d4-a716-446655440000"
+                    name: "Nguyễn Văn A"
+                    roles: ["worker"]
+                    managerStatus: null
+        "401":
+          description: Invalid credentials
+          content:
+            application/json:
+              example:
+                statusCode: 401
+                message: "Invalid email or password."
+        "429":
+          description: Too many failed attempts
+
+  /auth/social/facebook:
+    post:
+      tags: [Auth]
+      summary: Facebook social login
+      description: |
+        🔓 **Public**
+        Receives the Firebase ID token obtained from `signInWithPopup(FacebookAuthProvider)` on the client.
+        Server upserts user record and returns the GADA user object.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [firebaseIdToken]
+              properties:
+                firebaseIdToken: { type: string, description: "Firebase ID token from Facebook OAuth flow" }
+            example:
+              firebaseIdToken: "eyJhbGci..."
+      responses:
+        "200":
+          description: Login or first-time registration successful
+          content:
+            application/json:
+              example:
+                statusCode: 200
+                data:
+                  user:
+                    id: "550e8400-e29b-41d4-a716-446655440000"
+                    name: "Nguyen Van A"
+                    email: "nguyen@facebook.example"
+                    roles: ["worker"]
+                  isNewUser: false
+
+  /auth/logout:
+    post:
+      tags: [Auth]
+      summary: Logout (revoke Firebase refresh token)
+      description: |
+        🔐 **Authenticated**
+        Calls Firebase Admin `revokeRefreshTokens` for the user.
+        All sessions on all devices are invalidated.
+      security:
+        - FirebaseBearer: []
+      responses:
+        "200":
+          description: Logged out
+          content:
+            application/json:
+              example:
+                statusCode: 200
+                data: { message: "Logged out successfully." }
+        "401":
+          $ref: '#/components/responses/Unauthorized'
+
+  # ─────────────────────────────────────────────────────────────
+  # ACCOUNT
+  # ─────────────────────────────────────────────────────────────
+
+  /me:
+    get:
+      tags: [Account]
+      summary: Get current user
+      description: 🔐 **Authenticated**
+      security:
+        - FirebaseBearer: []
+      responses:
+        "200":
+          description: Current user record with role flags
+          content:
+            application/json:
+              example:
+                statusCode: 200
+                data:
+                  id: "550e8400-e29b-41d4-a716-446655440000"
+                  name: "Nguyễn Văn A"
+                  email: "nguyen@example.com"
+                  phone: "+84901234567"
+                  locale: "vi"
+                  roles: ["worker", "manager"]
+                  managerStatus: "approved"
+        "401":
+          $ref: '#/components/responses/Unauthorized'
+
+  /me/locale:
+    patch:
+      tags: [Account]
+      summary: Update preferred language
+      description: |
+        🔐 **Authenticated**
+        Updates the user's preferred locale. Affects notification language and API response language.
+      security:
+        - FirebaseBearer: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [locale]
+              properties:
+                locale:
+                  type: string
+                  enum: [ko, vi, en]
+                  example: vi
+            example:
+              locale: vi
+      responses:
+        "200":
+          description: Locale updated
+          content:
+            application/json:
+              example:
+                statusCode: 200
+                data: { locale: "vi" }
+        "422":
+          $ref: '#/components/responses/UnprocessableEntity'
+
+  /me/account:
+    delete:
+      tags: [Account]
+      summary: Delete own account (soft delete)
+      description: |
+        🔐 **Authenticated**
+        Soft-deletes the user account (`deleted_at = NOW()`, `is_active = false`).
+        Firebase account is also disabled. ID document images are queued for S3 deletion (GDPR).
+        This action cannot be reversed by the user — admin only.
+      security:
+        - FirebaseBearer: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [confirmPhrase]
+              properties:
+                confirmPhrase:
+                  type: string
+                  description: "User must type 'DELETE' to confirm"
+                  example: "DELETE"
+      responses:
+        "200":
+          description: Account deletion initiated
+          content:
+            application/json:
+              example:
+                statusCode: 200
+                data: { message: "Account scheduled for deletion." }
+        "422":
+          $ref: '#/components/responses/UnprocessableEntity'
+
+  # ─────────────────────────────────────────────────────────────
+  # WORKER PROFILE
+  # ─────────────────────────────────────────────────────────────
+
+  /worker/profile:
+    get:
+      tags: [Worker Profile]
+      summary: Get own worker profile
+      description: 👷 **Worker**
+      security:
+        - FirebaseBearer: []
+      responses:
+        "200":
+          description: Worker profile
+          content:
+            application/json:
+              example:
+                statusCode: 200
+                data:
+                  id: "uuid"
+                  userId: "uuid"
+                  dateOfBirth: "1992-08-20"
+                  gender: "male"
+                  nationality: "Vietnamese"
+                  currentProvinceId: 1
+                  currentProvinceName: "Hà Nội"
+                  preferredProvinceIds: [1, 2]
+                  primaryTradeId: 5
+                  primaryTradeName: "Thợ hồ"
+                  yearsOfExperience: 4
+                  level: 2
+                  idDocumentStatus: "verified"
+                  hasSignature: true
+                  profileCompletedAt: "2026-01-15T09:00:00Z"
+
+    put:
+      tags: [Worker Profile]
+      summary: Update worker profile
+      description: 👷 **Worker**
+      security:
+        - FirebaseBearer: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                dateOfBirth:          { type: string, format: date }
+                gender:               { type: string, enum: [male, female, other] }
+                nationality:          { type: string }
+                currentProvinceId:    { type: integer }
+                preferredProvinceIds: { type: array, items: { type: integer } }
+                primaryTradeId:       { type: integer }
+                secondaryTradeIds:    { type: array, items: { type: integer } }
+                yearsOfExperience:    { type: integer, minimum: 0 }
+                emergencyContactName: { type: string }
+                emergencyContactPhone:{ type: string }
+                bio:                  { type: string }
+            example:
+              dateOfBirth: "1992-08-20"
+              currentProvinceId: 1
+              preferredProvinceIds: [1, 2]
+              primaryTradeId: 5
+              yearsOfExperience: 4
+      responses:
+        "200":
+          description: Profile updated
+        "422":
+          $ref: '#/components/responses/UnprocessableEntity'
+
+  /worker/profile/id-documents:
+    post:
+      tags: [Worker Profile]
+      summary: Upload identity document images
+      description: |
+        👷 **Worker**
+        Accepts `multipart/form-data`. Max 10 MB per file. JPEG/PNG only.
+        Files are uploaded to S3 and keys stored in `auth.identity_documents`.
+        Status set to `pending` (requires admin verification — Phase 2 auto-verify).
+      security:
+        - FirebaseBearer: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [docType, frontImage]
+              properties:
+                docType:    { type: string, enum: [national_id, passport, citizen_card] }
+                frontImage: { type: string, format: binary, description: "Max 10 MB, JPEG/PNG" }
+                backImage:  { type: string, format: binary, description: "Max 10 MB, JPEG/PNG (optional for passport)" }
+      responses:
+        "201":
+          description: Documents uploaded
+          content:
+            application/json:
+              example:
+                statusCode: 201
+                data:
+                  id: "uuid"
+                  docType: "national_id"
+                  status: "pending"
+        "413":
+          description: File size exceeds 10 MB
+        "422":
+          $ref: '#/components/responses/UnprocessableEntity'
+
+  /worker/profile/signature:
+    post:
+      tags: [Worker Profile]
+      summary: Upload drawn signature
+      description: |
+        👷 **Worker**
+        Accepts `multipart/form-data` with a PNG file (canvas export).
+        Previous signature is marked `is_current = false`.
+      security:
+        - FirebaseBearer: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [signature]
+              properties:
+                signature: { type: string, format: binary, description: "PNG, max 2 MB" }
+      responses:
+        "201":
+          description: Signature saved
+          content:
+            application/json:
+              example:
+                statusCode: 201
+                data:
+                  id: "uuid"
+                  isCurrent: true
+                  createdAt: "2026-03-21T10:00:00Z"
+
+  /worker/experiences:
+    get:
+      tags: [Worker Profile]
+      summary: List own work experiences
+      description: 👷 **Worker**
+      security:
+        - FirebaseBearer: []
+      responses:
+        "200":
+          description: Experience list
+          content:
+            application/json:
+              example:
+                statusCode: 200
+                data:
+                  - id: "uuid"
+                    tradeName: "Thợ điện"
+                    role: "Thợ chính"
+                    siteName: "Dự án River Gate"
+                    startDate: "2022-01-01"
+                    endDate: "2023-06-30"
+                    isCurrent: false
+
+    post:
+      tags: [Worker Profile]
+      summary: Add work experience entry
+      description: 👷 **Worker**
+      security:
+        - FirebaseBearer: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [startDate]
+              properties:
+                tradeId:     { type: integer }
+                role:        { type: string }
+                siteName:    { type: string }
+                companyName: { type: string }
+                startDate:   { type: string, format: date }
+                endDate:     { type: string, format: date, nullable: true }
+                isCurrent:   { type: boolean }
+                description: { type: string }
+            example:
+              tradeId: 5
+              role: "Thợ chính"
+              siteName: "Dự án River Gate"
+              startDate: "2022-01-01"
+              endDate: "2023-06-30"
+              isCurrent: false
+      responses:
+        "201":
+          description: Experience added
+
+  /worker/experiences/{experienceId}:
+    put:
+      tags: [Worker Profile]
+      summary: Update work experience entry
+      description: 👷 **Worker** — own only
+      security:
+        - FirebaseBearer: []
+      parameters:
+        - name: experienceId
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                role:        { type: string }
+                siteName:    { type: string }
+                endDate:     { type: string, format: date }
+                isCurrent:   { type: boolean }
+                description: { type: string }
+      responses:
+        "200":
+          description: Experience updated
+        "403":
+          $ref: '#/components/responses/Forbidden'
+        "404":
+          $ref: '#/components/responses/NotFound'
+
+    delete:
+      tags: [Worker Profile]
+      summary: Delete work experience entry
+      description: 👷 **Worker** — own only
+      security:
+        - FirebaseBearer: []
+      parameters:
+        - name: experienceId
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        "200":
+          description: Experience deleted
+        "403":
+          $ref: '#/components/responses/Forbidden'
+
+  # ─────────────────────────────────────────────────────────────
+  # MANAGER REGISTRATION
+  # ─────────────────────────────────────────────────────────────
+
+  /manager/register:
+    post:
+      tags: [Manager Registration]
+      summary: Submit business registration
+      description: |
+        🔐 **Authenticated** (any user — worker role sufficient)
+        Creates `app.manager_profiles` with `approval_status = pending`.
+        Also creates `ops.admin_approvals` record.
+        If user already has a pending or approved registration, returns 409.
+        A rejected registration can be re-submitted — creates a new row.
+      security:
+        - FirebaseBearer: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [businessName, representativeName, businessDoc]
+              properties:
+                businessName:             { type: string, example: "Xây dựng Hưng Phát" }
+                businessRegistrationNumber: { type: string, example: "0123456789" }
+                businessType:             { type: string, enum: [individual, corporation], example: corporation }
+                representativeName:       { type: string, example: "Trần Văn B" }
+                representativePhone:      { type: string, example: "+84912345678" }
+                businessAddress:          { type: string }
+                businessDoc:              { type: string, format: binary, description: "PDF or image, max 10 MB" }
+      responses:
+        "201":
+          description: Registration submitted
+          content:
+            application/json:
+              example:
+                statusCode: 201
+                data:
+                  id: "uuid"
+                  approvalStatus: "pending"
+                  submittedAt: "2026-03-21T10:00:00Z"
+        "409":
+          description: Already has active/pending registration
+          content:
+            application/json:
+              example:
+                statusCode: 409
+                message: "You already have a pending or approved registration."
+
+  /manager/registration/status:
+    get:
+      tags: [Manager Registration]
+      summary: Get own manager registration status
+      description: 🔐 **Authenticated**
+      security:
+        - FirebaseBearer: []
+      responses:
+        "200":
+          description: Current registration
+          content:
+            application/json:
+              example:
+                statusCode: 200
+                data:
+                  approvalStatus: "pending"
+                  submittedAt: "2026-03-21T10:00:00Z"
+                  reviewedAt: null
+                  rejectionReason: null
+        "404":
+          description: No registration submitted yet
+          content:
+            application/json:
+              example:
+                statusCode: 404
+                data: null
+
+  # ─────────────────────────────────────────────────────────────
+  # PUBLIC SEO ENDPOINTS
+  # ─────────────────────────────────────────────────────────────
+
+  /public/jobs:
+    get:
+      tags: [Public]
+      summary: Public job listing (SSG/ISR)
+      description: |
+        🔓 **Public** — No auth required
+        Used by Next.js SSG/ISR. Returns open jobs ordered by `start_date ASC`.
+        Includes schema.org `JobPosting` structured-data-friendly field names.
+      parameters:
+        - name: provinceId
+          in: query
+          schema: { type: integer }
+          description: Filter by province
+        - name: tradeId
+          in: query
+          schema: { type: integer }
+          description: Filter by trade
+        - name: startDateFrom
+          in: query
+          schema: { type: string, format: date }
+        - name: startDateTo
+          in: query
+          schema: { type: string, format: date }
+        - name: locale
+          in: query
+          schema: { type: string, enum: [ko, vi, en], default: ko }
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/LimitParam'
+      responses:
+        "200":
+          description: Paginated job list
+          content:
+            application/json:
+              example:
+                statusCode: 200
+                data:
+                  - id: "uuid"
+                    slug: "tuyen-tho-ho-vinhomes-2026-04"
+                    title: "Tuyển thợ hồ"
+                    siteName: "Vinhomes Grand Park"
+                    provinceName: "TP. Hồ Chí Minh"
+                    tradeName: "Thợ hồ"
+                    headcount: 20
+                    wageAmount: 450000
+                    wageType: "daily"
+                    startDate: "2026-04-01"
+                    endDate: "2026-06-30"
+                    status: "open"
+                meta:
+                  page: 1
+                  limit: 20
+                  total: 45
+                  totalPages: 3
+
+  /public/jobs/{slug}:
+    get:
+      tags: [Public]
+      summary: Public job detail (SSR)
+      description: |
+        🔓 **Public** — No auth required
+        Used by Next.js SSR for job detail pages. Includes full job info, site info,
+        requirements, and benefits for structured data rendering.
+      parameters:
+        - name: slug
+          in: path
+          required: true
+          schema: { type: string, example: "tuyen-tho-ho-vinhomes-2026-04" }
+        - name: locale
+          in: query
+          schema: { type: string, enum: [ko, vi, en], default: ko }
+      responses:
+        "200":
+          description: Full job detail
+          content:
+            application/json:
+              example:
+                statusCode: 200
+                data:
+                  id: "uuid"
+                  slug: "tuyen-tho-ho-vinhomes-2026-04"
+                  title: "Tuyển thợ hồ"
+                  description: "Cần 20 thợ hồ có kinh nghiệm..."
+                  tradeId: 5
+                  tradeName: "Thợ hồ"
+                  headcount: 20
+                  wageAmount: 450000
+                  wageType: "daily"
+                  startDate: "2026-04-01"
+                  endDate: "2026-06-30"
+                  workStartTime: "07:30"
+                  workEndTime: "17:00"
+                  status: "open"
+                  site:
+                    id: "uuid"
+                    name: "Vinhomes Grand Park"
+                    slug: "vinhomes-grand-park"
+                    provinceName: "TP. Hồ Chí Minh"
+                    address: "Long Bình, TP. Thủ Đức"
+                    location: { lat: 10.8231, lng: 106.6297 }
+                  requirements:
+                    - description: "Có chứng chỉ nghề"
+                      isMandatory: true
+                  benefits:
+                    - benefitType: "meal"
+                      description: "Hỗ trợ cơm trưa"
+        "404":
+          $ref: '#/components/responses/NotFound'
+
+  /public/sites/{slug}:
+    get:
+      tags: [Public]
+      summary: Public site detail (SSR)
+      description: 🔓 **Public** — No auth required
+      parameters:
+        - name: slug
+          in: path
+          required: true
+          schema: { type: string }
+        - name: locale
+          in: query
+          schema: { type: string, enum: [ko, vi, en], default: ko }
+      responses:
+        "200":
+          description: Site detail with open jobs
+          content:
+            application/json:
+              example:
+                statusCode: 200
+                data:
+                  id: "uuid"
+                  name: "Vinhomes Grand Park"
+                  description: "Dự án khu đô thị lớn nhất TP.HCM"
+                  provinceName: "TP. Hồ Chí Minh"
+                  address: "Long Bình, TP. Thủ Đức"
+                  location: { lat: 10.8231, lng: 106.6297 }
+                  startDate: "2026-04-01"
+                  images: [{ url: "https://cdn.gada.vn/...", isCover: true }]
+                  openJobs:
+                    - { id: "uuid", title: "Tuyển thợ hồ", headcount: 20, wageAmount: 450000 }
+
+  /public/provinces:
+    get:
+      tags: [Public]
+      summary: List all provinces
+      description: 🔓 **Public** — Reference data for filters and forms
+      parameters:
+        - name: locale
+          in: query
+          schema: { type: string, enum: [ko, vi, en], default: ko }
+      responses:
+        "200":
+          description: Province list
+          content:
+            application/json:
+              example:
+                statusCode: 200
+                data:
+                  - { id: 1, code: "HN", name: "Hà Nội" }
+                  - { id: 2, code: "HCM", name: "TP. Hồ Chí Minh" }
+
+  /public/trades:
+    get:
+      tags: [Public]
+      summary: List all construction trades
+      description: 🔓 **Public** — Reference data for filters and forms
+      parameters:
+        - name: locale
+          in: query
+          schema: { type: string, enum: [ko, vi, en], default: ko }
+      responses:
+        "200":
+          description: Trade list
+          content:
+            application/json:
+              example:
+                statusCode: 200
+                data:
+                  - { id: 1, code: "masonry", name: "Thợ hồ", category: "Xây dựng" }
+                  - { id: 2, code: "electrical", name: "Thợ điện", category: "Kỹ thuật" }
+
+  # ─────────────────────────────────────────────────────────────
+  # SITES (Manager)
+  # ─────────────────────────────────────────────────────────────
+
+  /manager/sites:
+    get:
+      tags: [Sites]
+      summary: List own sites
+      description: 🏗️ **Manager**
+      security:
+        - FirebaseBearer: []
+      parameters:
+        - name: status
+          in: query
+          schema: { type: string, enum: [draft, active, closed, archived] }
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/LimitParam'
+      responses:
+        "200":
+          description: Sites list
+        "403":
+          $ref: '#/components/responses/Forbidden'
+
+    post:
+      tags: [Sites]
+      summary: Create site
+      description: 🏗️ **Manager**
+      security:
+        - FirebaseBearer: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name, provinceId]
+              properties:
+                name:        { type: string, example: "Khu dân cư Phú Mỹ Hưng" }
+                description: { type: string }
+                provinceId:  { type: integer, example: 2 }
+                address:     { type: string }
+                location:
+                  type: object
+                  properties:
+                    lat: { type: number }
+                    lng: { type: number }
+                startDate:   { type: string, format: date }
+                endDate:     { type: string, format: date }
+            example:
+              name: "Khu dân cư Phú Mỹ Hưng"
+              provinceId: 2
+              address: "Quận 7, TP. Hồ Chí Minh"
+              location: { lat: 10.7289, lng: 106.7211 }
+              startDate: "2026-05-01"
+              endDate: "2027-01-31"
+      responses:
+        "201":
+          description: Site created
+          content:
+            application/json:
+              example:
+                statusCode: 201
+                data:
+                  id: "uuid"
+                  slug: "khu-dan-cu-phu-my-hung"
+                  status: "draft"
+        "422":
+          $ref: '#/components/responses/UnprocessableEntity'
+
+  /manager/sites/{siteId}:
+    get:
+      tags: [Sites]
+      summary: Get site detail
+      description: 🏗️ **Manager** — own site only
+      security:
+        - FirebaseBearer: []
+      parameters:
+        - $ref: '#/components/parameters/SiteIdParam'
+      responses:
+        "200":
+          description: Site detail
+        "403":
+          $ref: '#/components/responses/Forbidden'
+        "404":
+          $ref: '#/components/responses/NotFound'
+
+    put:
+      tags: [Sites]
+      summary: Update site
+      description: 🏗️ **Manager** — own site only
+      security:
+        - FirebaseBearer: []
+      parameters:
+        - $ref: '#/components/parameters/SiteIdParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:        { type: string }
+                description: { type: string }
+                address:     { type: string }
+                location:    { type: object }
+                startDate:   { type: string, format: date }
+                endDate:     { type: string, format: date }
+      responses:
+        "200":
+          description: Site updated
+        "403":
+          $ref: '#/components/responses/Forbidden'
+
+  /manager/sites/{siteId}/status:
+    patch:
+      tags: [Sites]
+      summary: Update site status
+      description: 🏗️ **Manager** — own site; allowed transitions — draft→active, active→closed, closed→archived
+      security:
+        - FirebaseBearer: []
+      parameters:
+        - $ref: '#/components/parameters/SiteIdParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [status]
+              properties:
+                status: { type: string, enum: [active, closed, archived] }
+            example:
+              status: "active"
+      responses:
+        "200":
+          description: Status updated
+        "409":
+          description: Invalid status transition
+
+  /manager/sites/{siteId}/images:
+    post:
+      tags: [Sites]
+      summary: Upload site image
+      description: 🏗️ **Manager** — own site; max 8 images per site
+      security:
+        - FirebaseBearer: []
+      parameters:
+        - $ref: '#/components/parameters/SiteIdParam'
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [image]
+              properties:
+                image:     { type: string, format: binary, description: "Max 10 MB, JPEG/PNG" }
+                isCover:   { type: boolean, default: false }
+                sortOrder: { type: integer }
+      responses:
+        "201":
+          description: Image uploaded
+
+  # ─────────────────────────────────────────────────────────────
+  # JOBS
+  # ─────────────────────────────────────────────────────────────
+
+  /manager/sites/{siteId}/jobs:
+    get:
+      tags: [Jobs]
+      summary: List jobs under a site
+      description: 🏗️ **Manager** — own site only
+      security:
+        - FirebaseBearer: []
+      parameters:
+        - $ref: '#/components/parameters/SiteIdParam'
+        - name: status
+          in: query
+          schema: { type: string, enum: [draft, open, filled, closed] }
+      responses:
+        "200":
+          description: Job list
+
+    post:
+      tags: [Jobs]
+      summary: Create job posting
+      description: 🏗️ **Manager** — own site only
+      security:
+        - FirebaseBearer: []
+      parameters:
+        - $ref: '#/components/parameters/SiteIdParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [titleKo, tradeId, headcount, wageAmount, startDate, endDate]
+              properties:
+                titleKo:        { type: string, example: "목수 구인" }
+                titleVi:        { type: string, example: "Tuyển thợ mộc" }
+                titleEn:        { type: string, example: "Carpenter Needed" }
+                descriptionKo:  { type: string }
+                descriptionVi:  { type: string }
+                tradeId:        { type: integer, example: 3 }
+                headcount:      { type: integer, example: 10 }
+                wageAmount:     { type: integer, example: 500000 }
+                wageType:       { type: string, enum: [daily, hourly, monthly], example: daily }
+                startDate:      { type: string, format: date, example: "2026-04-01" }
+                endDate:        { type: string, format: date, example: "2026-07-31" }
+                workStartTime:  { type: string, example: "07:30" }
+                workEndTime:    { type: string, example: "17:00" }
+                requirements:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      requirementType: { type: string }
+                      descriptionKo:   { type: string }
+                      descriptionVi:   { type: string }
+                      isMandatory:     { type: boolean }
+                benefits:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      benefitType:   { type: string }
+                      descriptionKo: { type: string }
+                      descriptionVi: { type: string }
+            example:
+              titleKo: "목수 구인"
+              titleVi: "Tuyển thợ mộc"
+              tradeId: 3
+              headcount: 10
+              wageAmount: 500000
+              wageType: "daily"
+              startDate: "2026-04-01"
+              endDate: "2026-07-31"
+              workStartTime: "07:30"
+              workEndTime: "17:00"
+              requirements:
+                - requirementType: "experience"
+                  descriptionKo: "경력 2년 이상"
+                  descriptionVi: "Kinh nghiệm 2 năm trở lên"
+                  isMandatory: true
+              benefits:
+                - benefitType: "meal"
+                  descriptionKo: "점심 제공"
+                  descriptionVi: "Hỗ trợ cơm trưa"
+      responses:
+        "201":
+          description: Job created (status = draft)
+          content:
+            application/json:
+              example:
+                statusCode: 201
+                data:
+                  id: "uuid"
+                  slug: "tuyen-tho-moc-phu-my-hung-2026-04"
+                  status: "draft"
+        "422":
+          $ref: '#/components/responses/UnprocessableEntity'
+
+  /manager/jobs/{jobId}:
+    get:
+      tags: [Jobs]
+      summary: Get job detail (manager view)
+      description: 🏗️ **Manager** — own job only
+      security:
+        - FirebaseBearer: []
+      parameters:
+        - $ref: '#/components/parameters/JobIdParam'
+      responses:
+        "200":
+          description: Full job detail with applicant stats
+
+    put:
+      tags: [Jobs]
+      summary: Update job posting
+      description: |
+        🏗️ **Manager** — own job only.
+        Only allowed when `status = draft` or `status = open`.
+      security:
+        - FirebaseBearer: []
+      parameters:
+        - $ref: '#/components/parameters/JobIdParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                titleKo:       { type: string }
+                titleVi:       { type: string }
+                descriptionKo: { type: string }
+                descriptionVi: { type: string }
+                headcount:     { type: integer }
+                wageAmount:    { type: integer }
+                endDate:       { type: string, format: date }
+      responses:
+        "200":
+          description: Job updated
+        "409":
+          description: Cannot edit a closed or filled job
+
+  /manager/jobs/{jobId}/status:
+    patch:
+      tags: [Jobs]
+      summary: Update job status
+      description: |
+        🏗️ **Manager** — own job. Allowed transitions: `draft→open`, `open→closed`.
+        Status changes to `filled` are automated by the system when `accepted_count >= headcount`.
+      security:
+        - FirebaseBearer: []
+      parameters:
+        - $ref: '#/components/parameters/JobIdParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [status]
+              properties:
+                status: { type: string, enum: [open, closed] }
+            example:
+              status: "open"
+      responses:
+        "200":
+          description: Status updated
+
+  /manager/jobs/{jobId}/shifts:
+    get:
+      tags: [Jobs]
+      summary: List job shifts
+      description: 🏗️ **Manager** — own job; or 👷 **Worker** (for hired workers on this job)
+      security:
+        - FirebaseBearer: []
+      parameters:
+        - $ref: '#/components/parameters/JobIdParam'
+        - name: from
+          in: query
+          schema: { type: string, format: date }
+        - name: to
+          in: query
+          schema: { type: string, format: date }
+      responses:
+        "200":
+          description: Shift list
+
+    post:
+      tags: [Jobs]
+      summary: Create job shift
+      description: 🏗️ **Manager** — own job
+      security:
+        - FirebaseBearer: []
+      parameters:
+        - $ref: '#/components/parameters/JobIdParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [shiftDate]
+              properties:
+                shiftDate:  { type: string, format: date, example: "2026-04-07" }
+                startTime:  { type: string, example: "07:30" }
+                endTime:    { type: string, example: "17:00" }
+                headcount:  { type: integer, nullable: true }
+                notesKo:    { type: string }
+                notesVi:    { type: string }
+            example:
+              shiftDate: "2026-04-07"
+              startTime: "07:30"
+              endTime: "17:00"
+      responses:
+        "201":
+          description: Shift created
+        "409":
+          description: Shift already exists for this date
+
+  # ─────────────────────────────────────────────────────────────
+  # APPLICATIONS
+  # ─────────────────────────────────────────────────────────────
+
+  /jobs/{jobId}/apply:
+    post:
+      tags: [Applications]
+      summary: Apply to a job
+      description: |
+        👷 **Worker**
+        One application per worker per job (enforced by DB unique constraint).
+        Job must have `status = open`.
+      security:
+        - FirebaseBearer: []
+      parameters:
+        - $ref: '#/components/parameters/JobIdParam'
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                coverNote: { type: string, maxLength: 500 }
+            example:
+              coverNote: "Tôi có 5 năm kinh nghiệm thợ hồ, có thể bắt đầu ngay."
+      responses:
+        "201":
+          description: Application submitted
+          content:
+            application/json:
+              example:
+                statusCode: 201
+                data:
+                  id: "uuid"
+                  status: "pending"
+                  appliedAt: "2026-03-21T10:00:00Z"
+        "409":
+          description: Already applied or job is full
+          content:
+            application/json:
+              example:
+                statusCode: 409
+                message: "You have already applied to this job."
+        "422":
+          description: Job not open
+
+  /worker/applications:
+    get:
+      tags: [Applications]
+      summary: List own applications
+      description: 👷 **Worker**
+      security:
+        - FirebaseBearer: []
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [pending, accepted, rejected, withdrawn, expired]
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/LimitParam'
+      responses:
+        "200":
+          description: Application list
+          content:
+            application/json:
+              example:
+                statusCode: 200
+                data:
+                  - id: "uuid"
+                    jobTitle: "Tuyển thợ hồ"
+                    siteName: "Vinhomes Grand Park"
+                    status: "accepted"
+                    appliedAt: "2026-03-15T09:00:00Z"
+                meta: { page: 1, limit: 20, total: 5, totalPages: 1 }
+
+  /worker/applications/{applicationId}:
+    delete:
+      tags: [Applications]
+      summary: Withdraw application
+      description: |
+        👷 **Worker** — own application only.
+        Only allowed when `status = pending`.
+      security:
+        - FirebaseBearer: []
+      parameters:
+        - $ref: '#/components/parameters/ApplicationIdParam'
+      responses:
+        "200":
+          description: Application withdrawn
+          content:
+            application/json:
+              example:
+                statusCode: 200
+                data: { status: "withdrawn" }
+        "409":
+          description: Cannot withdraw — already accepted/rejected
+
+  /manager/jobs/{jobId}/applications:
+    get:
+      tags: [Applications]
+      summary: List applicants for a job
+      description: 🏗️ **Manager** — own job only
+      security:
+        - FirebaseBearer: []
+      parameters:
+        - $ref: '#/components/parameters/JobIdParam'
+        - name: status
+          in: query
+          schema: { type: string, enum: [pending, accepted, rejected] }
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/LimitParam'
+      responses:
+        "200":
+          description: Applicant list
+          content:
+            application/json:
+              example:
+                statusCode: 200
+                data:
+                  - id: "uuid"
+                    workerName: "Nguyễn Văn A"
+                    workerUserId: "uuid"
+                    status: "pending"
+                    primaryTradeName: "Thợ hồ"
+                    yearsOfExperience: 4
+                    idDocumentStatus: "verified"
+                    appliedAt: "2026-03-15T09:00:00Z"
+                meta: { page: 1, limit: 20, total: 12, totalPages: 1 }
+
+  /manager/applications/{applicationId}/accept:
+    patch:
+      tags: [Applications]
+      summary: Accept applicant (hire)
+      description: |
+        🏗️ **Manager** — application must belong to own job.
+        Creates `app.hires` record and queues contract generation job.
+        Sends FCM notification to worker.
+      security:
+        - FirebaseBearer: []
+      parameters:
+        - $ref: '#/components/parameters/ApplicationIdParam'
+      responses:
+        "200":
+          description: Application accepted; hire created
+          content:
+            application/json:
+              example:
+                statusCode: 200
+                data:
+                  applicationStatus: "accepted"
+                  hireId: "uuid"
+                  contractStatus: "pending"
+        "409":
+          description: Job headcount already filled
+
+  /manager/applications/{applicationId}/reject:
+    patch:
+      tags: [Applications]
+      summary: Reject applicant
+      description: 🏗️ **Manager** — application must belong to own job
+      security:
+        - FirebaseBearer: []
+      parameters:
+        - $ref: '#/components/parameters/ApplicationIdParam'
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                rejectionReason: { type: string, maxLength: 250 }
+      responses:
+        "200":
+          description: Application rejected
+          content:
+            application/json:
+              example:
+                statusCode: 200
+                data: { applicationStatus: "rejected" }
+
+  # ─────────────────────────────────────────────────────────────
+  # HIRES
+  # ─────────────────────────────────────────────────────────────
+
+  /worker/hires:
+    get:
+      tags: [Hires]
+      summary: List own hires (worker view)
+      description: 👷 **Worker**
+      security:
+        - FirebaseBearer: []
+      parameters:
+        - name: status
+          in: query
+          schema: { type: string, enum: [active, completed, cancelled, no_show] }
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/LimitParam'
+      responses:
+        "200":
+          description: Hire list with contract status
+
+  /manager/hires:
+    get:
+      tags: [Hires]
+      summary: List hires for manager's jobs
+      description: 🏗️ **Manager**
+      security:
+        - FirebaseBearer: []
+      parameters:
+        - name: jobId
+          in: query
+          schema: { type: string, format: uuid }
+        - name: status
+          in: query
+          schema: { type: string }
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/LimitParam'
+      responses:
+        "200":
+          description: Hire list
+
+  /manager/hires/{hireId}/cancel:
+    patch:
+      tags: [Hires]
+      summary: Cancel a hire
+      description: 🏗️ **Manager** — own hire only; `status` must be `active`
+      security:
+        - FirebaseBearer: []
+      parameters:
+        - $ref: '#/components/parameters/HireIdParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [cancellationReason]
+              properties:
+                cancellationReason: { type: string, maxLength: 500 }
+            example:
+              cancellationReason: "프로젝트 일정이 변경되었습니다."
+      responses:
+        "200":
+          description: Hire cancelled; worker notified
+
+  # ─────────────────────────────────────────────────────────────
+  # ATTENDANCE
+  # ─────────────────────────────────────────────────────────────
+
+  /manager/jobs/{jobId}/attendance:
+    get:
+      tags: [Attendance]
+      summary: Get attendance records for a job
+      description: 🏗️ **Manager** — own job
+      security:
+        - FirebaseBearer: []
+      parameters:
+        - $ref: '#/components/parameters/JobIdParam'
+        - name: date
+          in: query
+          required: true
+          schema: { type: string, format: date, example: "2026-04-07" }
+          description: "Returns all hired workers for the job and their attendance status for this date"
+      responses:
+        "200":
+          description: Attendance list for the date
+          content:
+            application/json:
+              example:
+                statusCode: 200
+                data:
+                  date: "2026-04-07"
+                  workers:
+                    - hireId: "uuid"
+                      workerUserId: "uuid"
+                      workerName: "Nguyễn Văn A"
+                      status: "present"
+                      checkInTime: "07:35"
+                      checkOutTime: null
+                      hoursWorked: null
+                      wageAmount: 450000
+
+    put:
+      tags: [Attendance]
+      summary: Bulk upsert attendance records
+      description: |
+        🏗️ **Manager** — own job
+        Upserts attendance for all provided workers for the given date.
+        Existing records for the same (hireId, date) pair are overwritten.
+        Past-date records: allowed on the same day only. Admin required for corrections on past days.
+      security:
+        - FirebaseBearer: []
+      parameters:
+        - $ref: '#/components/parameters/JobIdParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [date, records]
+              properties:
+                date:
+                  type: string
+                  format: date
+                  example: "2026-04-07"
+                records:
+                  type: array
+                  items:
+                    type: object
+                    required: [hireId, status]
+                    properties:
+                      hireId:       { type: string, format: uuid }
+                      status:       { type: string, enum: [present, absent, half_day, late, excused] }
+                      checkInTime:  { type: string, example: "07:35", nullable: true }
+                      checkOutTime: { type: string, example: "17:10", nullable: true }
+                      hoursWorked:  { type: number, nullable: true, example: 9.5 }
+                      notes:        { type: string, nullable: true }
+            example:
+              date: "2026-04-07"
+              records:
+                - hireId: "uuid-1"
+                  status: "present"
+                  checkInTime: "07:35"
+                  checkOutTime: "17:10"
+                  hoursWorked: 9.5
+                - hireId: "uuid-2"
+                  status: "absent"
+      responses:
+        "200":
+          description: Attendance records saved
+          content:
+            application/json:
+              example:
+                statusCode: 200
+                data:
+                  savedCount: 2
+                  date: "2026-04-07"
+        "403":
+          description: Past-date edit not allowed (admin only)
+        "422":
+          $ref: '#/components/responses/UnprocessableEntity'
+
+  # ─────────────────────────────────────────────────────────────
+  # CONTRACTS
+  # ─────────────────────────────────────────────────────────────
+
+  /worker/contracts/{contractId}:
+    get:
+      tags: [Contracts]
+      summary: Get contract detail and PDF URL (worker)
+      description: |
+        👷 **Worker** — own contract only.
+        Returns presigned S3 URL valid for 15 minutes.
+      security:
+        - FirebaseBearer: []
+      parameters:
+        - $ref: '#/components/parameters/ContractIdParam'
+      responses:
+        "200":
+          description: Contract detail
+          content:
+            application/json:
+              example:
+                statusCode: 200
+                data:
+                  id: "uuid"
+                  status: "pending"
+                  pdfUrl: "https://cdn.gada.vn/contracts/...?X-Amz-Expires=900"
+                  signedPdfUrl: null
+                  workerSignedAt: null
+                  managerSignedAt: null
+                  workerName: "Nguyễn Văn A"
+                  jobTitle: "Tuyển thợ mộc"
+                  siteName: "Vinhomes Grand Park"
+                  wageAmount: 500000
+                  startDate: "2026-04-01"
+                  endDate: "2026-07-31"
+                  issuedAt: "2026-03-21T10:00:00Z"
+
+  /worker/contracts/{contractId}/sign:
+    post:
+      tags: [Contracts]
+      summary: Worker signs contract
+      description: |
+        👷 **Worker** — own contract only.
+        Requires that the worker has a current signature on file (`auth.signatures`).
+        Updates contract status to `worker_signed`. Regenerates PDF with worker signature.
+        Notifies manager.
+      security:
+        - FirebaseBearer: []
+      parameters:
+        - $ref: '#/components/parameters/ContractIdParam'
+      responses:
+        "200":
+          description: Contract signed
+          content:
+            application/json:
+              example:
+                statusCode: 200
+                data:
+                  contractStatus: "worker_signed"
+                  workerSignedAt: "2026-03-21T11:00:00Z"
+        "409":
+          description: Contract already signed or voided
+          content:
+            application/json:
+              example:
+                statusCode: 409
+                message: "Contract already signed."
+        "422":
+          description: No signature on file
+          content:
+            application/json:
+              example:
+                statusCode: 422
+                message: "Please add your signature in your profile before signing."
+
+  /manager/contracts/{contractId}:
+    get:
+      tags: [Contracts]
+      summary: Get contract detail (manager)
+      description: 🏗️ **Manager** — contract must be for own job
+      security:
+        - FirebaseBearer: []
+      parameters:
+        - $ref: '#/components/parameters/ContractIdParam'
+      responses:
+        "200":
+          description: Contract detail
+
+  # ─────────────────────────────────────────────────────────────
+  # NOTIFICATIONS
+  # ─────────────────────────────────────────────────────────────
+
+  /notifications:
+    get:
+      tags: [Notifications]
+      summary: List notifications
+      description: 🔐 **Authenticated**
+      security:
+        - FirebaseBearer: []
+      parameters:
+        - name: unreadOnly
+          in: query
+          schema: { type: boolean, default: false }
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/LimitParam'
+      responses:
+        "200":
+          description: Notification list
+          content:
+            application/json:
+              example:
+                statusCode: 200
+                data:
+                  - id: "uuid"
+                    type: "application_status"
+                    title: "지원 결과"
+                    body: "귀하의 지원이 수락되었습니다."
+                    payload: { applicationId: "uuid", status: "accepted" }
+                    readAt: null
+                    createdAt: "2026-03-21T10:00:00Z"
+                meta: { page: 1, limit: 20, total: 8, totalPages: 1, unreadCount: 3 }
+
+  /notifications/{notificationId}/read:
+    patch:
+      tags: [Notifications]
+      summary: Mark notification as read
+      description: 🔐 **Authenticated** — own notification only
+      security:
+        - FirebaseBearer: []
+      parameters:
+        - name: notificationId
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        "200":
+          description: Marked as read
+
+  /notifications/read-all:
+    post:
+      tags: [Notifications]
+      summary: Mark all notifications as read
+      description: 🔐 **Authenticated**
+      security:
+        - FirebaseBearer: []
+      responses:
+        "200":
+          description: All notifications marked read
+          content:
+            application/json:
+              example:
+                statusCode: 200
+                data: { updatedCount: 5 }
+
+  # ─────────────────────────────────────────────────────────────
+  # DEVICES (FCM Token)
+  # ─────────────────────────────────────────────────────────────
+
+  /devices/fcm-token:
+    put:
+      tags: [Devices]
+      summary: Register or refresh FCM push token
+      description: |
+        🔐 **Authenticated**
+        Upserts the device token for push notifications.
+        Called on app launch and when Firebase refreshes the token.
+      security:
+        - FirebaseBearer: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [token, platform]
+              properties:
+                token:    { type: string, description: "Firebase Cloud Messaging device token" }
+                platform: { type: string, enum: [ios, android, web], example: android }
+            example:
+              token: "fcm-token-abc123..."
+              platform: "android"
+      responses:
+        "200":
+          description: Token registered
+
+    delete:
+      tags: [Devices]
+      summary: Remove FCM token (on logout)
+      description: 🔐 **Authenticated**
+      security:
+        - FirebaseBearer: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [token]
+              properties:
+                token: { type: string }
+      responses:
+        "200":
+          description: Token removed
+
+  # ─────────────────────────────────────────────────────────────
+  # ADMIN
+  # ─────────────────────────────────────────────────────────────
+
+  /admin/manager-approvals:
+    get:
+      tags: [Admin]
+      summary: List manager approval queue
+      description: 🛡️ **Admin**
+      security:
+        - FirebaseBearer: []
+      parameters:
+        - name: status
+          in: query
+          schema: { type: string, enum: [pending, approved, rejected], default: pending }
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/LimitParam'
+      responses:
+        "200":
+          description: Approval queue
+          content:
+            application/json:
+              example:
+                statusCode: 200
+                data:
+                  - id: "uuid"
+                    requesterName: "Trần Văn B"
+                    requesterPhone: "+84912345678"
+                    businessName: "Xây dựng Hưng Phát"
+                    businessRegistrationNumber: "0123456789"
+                    submittedAt: "2026-03-20T09:00:00Z"
+                    status: "pending"
+
+  /admin/manager-approvals/{approvalId}:
+    get:
+      tags: [Admin]
+      summary: Get approval detail with document URL
+      description: 🛡️ **Admin**
+      security:
+        - FirebaseBearer: []
+      parameters:
+        - name: approvalId
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        "200":
+          description: Approval detail
+          content:
+            application/json:
+              example:
+                statusCode: 200
+                data:
+                  id: "uuid"
+                  businessName: "Xây dựng Hưng Phát"
+                  representativeName: "Trần Văn B"
+                  businessDocUrl: "https://cdn.gada.vn/business-docs/...?X-Amz-Expires=900"
+                  status: "pending"
+                  requester:
+                    id: "uuid"
+                    name: "Trần Văn B"
+                    phone: "+84912345678"
+                    email: "tranb@example.com"
+
+  /admin/manager-approvals/{approvalId}/approve:
+    patch:
+      tags: [Admin]
+      summary: Approve manager registration
+      description: |
+        🛡️ **Admin**
+        Sets `manager_profiles.approval_status = approved`.
+        Inserts `auth.user_roles` row with `role = manager`.
+        Sends FCM + in-app notification to user.
+      security:
+        - FirebaseBearer: []
+      parameters:
+        - name: approvalId
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                reviewNote: { type: string }
+      responses:
+        "200":
+          description: Manager approved
+          content:
+            application/json:
+              example:
+                statusCode: 200
+                data:
+                  approvalStatus: "approved"
+                  managerUserId: "uuid"
+
+  /admin/manager-approvals/{approvalId}/reject:
+    patch:
+      tags: [Admin]
+      summary: Reject manager registration
+      description: |
+        🛡️ **Admin**
+        Sets `approval_status = rejected`. Rejection reason is required.
+        Sends FCM + in-app notification to user.
+      security:
+        - FirebaseBearer: []
+      parameters:
+        - name: approvalId
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [rejectionReason]
+              properties:
+                rejectionReason: { type: string, example: "사업자등록증이 불분명합니다." }
+            example:
+              rejectionReason: "사업자등록증이 불분명합니다."
+      responses:
+        "200":
+          description: Registration rejected
+
+  /admin/users:
+    get:
+      tags: [Admin]
+      summary: List all users
+      description: 🛡️ **Admin**
+      security:
+        - FirebaseBearer: []
+      parameters:
+        - name: search
+          in: query
+          schema: { type: string }
+          description: Search by name, email, or phone
+        - name: role
+          in: query
+          schema: { type: string, enum: [worker, manager, admin] }
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/LimitParam'
+      responses:
+        "200":
+          description: Paginated user list
+
+  /admin/users/{userId}:
+    get:
+      tags: [Admin]
+      summary: Get user detail
+      description: 🛡️ **Admin**
+      security:
+        - FirebaseBearer: []
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        "200":
+          description: User detail with roles, profile, and recent activity
+
+    delete:
+      tags: [Admin]
+      summary: Soft-delete user account
+      description: |
+        🛡️ **Admin**
+        Sets `deleted_at`, `is_active = false`. Disables Firebase account.
+        Does not hard-delete; GDPR data purge is a separate async job.
+      security:
+        - FirebaseBearer: []
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [reason]
+              properties:
+                reason: { type: string }
+      responses:
+        "200":
+          description: User soft-deleted
+        "403":
+          description: Cannot delete admin accounts via this endpoint
+
+  /admin/sites/{siteId}/deactivate:
+    patch:
+      tags: [Admin]
+      summary: Deactivate any site
+      description: 🛡️ **Admin**
+      security:
+        - FirebaseBearer: []
+      parameters:
+        - $ref: '#/components/parameters/SiteIdParam'
+      responses:
+        "200":
+          description: Site deactivated
+
+  /admin/jobs/{jobId}/close:
+    patch:
+      tags: [Admin]
+      summary: Force-close any job
+      description: 🛡️ **Admin**
+      security:
+        - FirebaseBearer: []
+      parameters:
+        - $ref: '#/components/parameters/JobIdParam'
+      responses:
+        "200":
+          description: Job closed
+
+  /admin/translations:
+    get:
+      tags: [Admin]
+      summary: Get all i18n translations
+      description: 🛡️ **Admin**
+      security:
+        - FirebaseBearer: []
+      parameters:
+        - name: locale
+          in: query
+          schema: { type: string, enum: [ko, vi, en] }
+        - name: search
+          in: query
+          schema: { type: string }
+      responses:
+        "200":
+          description: Translation key-value pairs
+          content:
+            application/json:
+              example:
+                statusCode: 200
+                data:
+                  - key: "jobs.apply_button"
+                    ko: "지원하기"
+                    vi: "Ứng tuyển"
+                    en: "Apply"
+                  - key: "jobs.wage_per_day"
+                    ko: "일급"
+                    vi: "Lương ngày"
+                    en: "Daily wage"
+
+    put:
+      tags: [Admin]
+      summary: Update i18n translations (batch)
+      description: 🛡️ **Admin**
+      security:
+        - FirebaseBearer: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [translations]
+              properties:
+                translations:
+                  type: array
+                  items:
+                    type: object
+                    required: [key, locale, value]
+                    properties:
+                      key:    { type: string, example: "jobs.apply_button" }
+                      locale: { type: string, enum: [ko, vi, en] }
+                      value:  { type: string, example: "Ứng tuyển ngay" }
+            example:
+              translations:
+                - key: "jobs.apply_button"
+                  locale: "vi"
+                  value: "Ứng tuyển ngay"
+      responses:
+        "200":
+          description: Translations updated
+          content:
+            application/json:
+              example:
+                statusCode: 200
+                data: { updatedCount: 1 }

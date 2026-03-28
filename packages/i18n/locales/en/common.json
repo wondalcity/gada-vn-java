@@ -1,0 +1,46 @@
+{
+  "app_name": "GADA VN",
+  "nav": {
+    "jobs": "Find Jobs",
+    "login": "Log In",
+    "register": "Sign Up",
+    "profile": "Profile",
+    "notifications": "Notifications",
+    "logout": "Log Out"
+  },
+  "button": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "submit": "Submit",
+    "back": "Back",
+    "next": "Next",
+    "close": "Close",
+    "upload": "Upload",
+    "apply": "Apply",
+    "withdraw": "Withdraw Application",
+    "sign": "Sign Contract"
+  },
+  "status": {
+    "pending": "Under Review",
+    "approved": "Approved",
+    "rejected": "Rejected",
+    "active": "Active",
+    "closed": "Closed",
+    "draft": "Draft"
+  },
+  "error": {
+    "generic": "An error occurred. Please try again.",
+    "not_found": "Not found.",
+    "unauthorized": "Please log in to continue.",
+    "forbidden": "You do not have permission to access this."
+  },
+  "pagination": {
+    "page": "Page {page} of {total}",
+    "showing": "Showing {count} items"
+  },
+  "locale": {
+    "ko": "한국어",
+    "vi": "Tiếng Việt",
+    "en": "English"
+  }
+}

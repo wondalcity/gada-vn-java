@@ -1,0 +1,57 @@
+{
+  "home": {
+    "title": "Bảng điều khiển quản lý",
+    "total_workers": "Tổng số công nhân",
+    "open_jobs": "Tin tuyển dụng đang mở",
+    "pending_applicants": "Ứng viên chờ xét duyệt"
+  },
+  "registration": {
+    "title": "Đăng ký doanh nghiệp",
+    "status_title": "Trạng thái đăng ký",
+    "fields": {
+      "company_name": "Tên công ty",
+      "business_number": "Mã số doanh nghiệp",
+      "address": "Địa chỉ",
+      "doc_upload": "Giấy phép kinh doanh"
+    },
+    "submit": "Gửi đăng ký",
+    "resubmit": "Gửi lại",
+    "status": {
+      "pending": "Đang xét duyệt",
+      "approved": "Đã duyệt — Có thể sử dụng chức năng quản lý",
+      "rejected": "Bị từ chối — Có thể gửi lại",
+      "revoked": "Đã thu hồi quyền truy cập"
+    }
+  },
+  "sites": {
+    "title": "Danh sách công trình",
+    "create": "Thêm công trình",
+    "empty": "Chưa có công trình nào."
+  },
+  "jobs": {
+    "title": "Danh sách tin tuyển dụng",
+    "create": "Đăng tin tuyển dụng",
+    "empty": "Chưa có tin tuyển dụng nào.",
+    "applicants": "{count} ứng viên"
+  },
+  "applicants": {
+    "title": "Danh sách ứng viên",
+    "accept": "Trúng tuyển",
+    "reject": "Từ chối",
+    "accept_confirm": "Bạn có chắc muốn chấp nhận ứng viên này?",
+    "reject_confirm": "Bạn có chắc muốn từ chối ứng viên này?",
+    "reject_reason": "Lý do từ chối"
+  },
+  "attendance": {
+    "title": "Quản lý chấm công",
+    "date": "Ngày",
+    "worker": "Công nhân",
+    "status": {
+      "present": "Có mặt",
+      "absent": "Vắng mặt",
+      "late": "Đi muộn"
+    },
+    "hours": "Số giờ làm",
+    "save": "Lưu"
+  }
+}

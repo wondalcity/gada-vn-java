@@ -1,0 +1,46 @@
+{
+  "app_name": "GADA VN",
+  "nav": {
+    "jobs": "Tìm việc làm",
+    "login": "Đăng nhập",
+    "register": "Đăng ký",
+    "profile": "Hồ sơ",
+    "notifications": "Thông báo",
+    "logout": "Đăng xuất"
+  },
+  "button": {
+    "save": "Lưu",
+    "cancel": "Hủy",
+    "submit": "Gửi",
+    "back": "Quay lại",
+    "next": "Tiếp theo",
+    "close": "Đóng",
+    "upload": "Tải lên",
+    "apply": "Ứng tuyển",
+    "withdraw": "Rút đơn",
+    "sign": "Ký hợp đồng"
+  },
+  "status": {
+    "pending": "Đang xét duyệt",
+    "approved": "Đã duyệt",
+    "rejected": "Bị từ chối",
+    "active": "Đang hoạt động",
+    "closed": "Đã đóng",
+    "draft": "Bản nháp"
+  },
+  "error": {
+    "generic": "Đã có lỗi xảy ra. Vui lòng thử lại.",
+    "not_found": "Không tìm thấy.",
+    "unauthorized": "Vui lòng đăng nhập.",
+    "forbidden": "Bạn không có quyền truy cập."
+  },
+  "pagination": {
+    "page": "Trang {page} / {total}",
+    "showing": "Đang hiển thị {count} mục"
+  },
+  "locale": {
+    "ko": "한국어",
+    "vi": "Tiếng Việt",
+    "en": "English"
+  }
+}

@@ -1,0 +1,50 @@
+{
+  "listing": {
+    "meta": {
+      "title": "Việc làm xây dựng tại Việt Nam | GADA VN",
+      "description": "Tìm kiếm việc làm tại các công trình xây dựng trên toàn quốc."
+    },
+    "heading": "Việc làm xây dựng",
+    "filter": {
+      "province": "Tỉnh / Thành phố",
+      "trade": "Nghề",
+      "date": "Ngày",
+      "all_provinces": "Tất cả tỉnh thành",
+      "all_trades": "Tất cả nghề",
+      "reset": "Đặt lại"
+    },
+    "sort": {
+      "latest": "Mới nhất",
+      "wage_high": "Lương cao nhất"
+    },
+    "empty": "Không có việc làm phù hợp với điều kiện tìm kiếm.",
+    "count": "{count} việc làm"
+  },
+  "detail": {
+    "meta": {
+      "title": "{title} | GADA VN"
+    },
+    "apply": "Ứng tuyển",
+    "applied": "Đã ứng tuyển",
+    "wage": "Lương {amount} VND/ngày",
+    "headcount": "Số lượng tuyển: {count} người",
+    "period": "Thời gian làm việc: {start} – {end}",
+    "trade": "Nghề",
+    "requirements": "Yêu cầu",
+    "benefits": "Phúc lợi",
+    "site": "Thông tin công trình"
+  },
+  "province": {
+    "meta": {
+      "title": "Việc làm xây dựng tại {province} | GADA VN",
+      "description": "Danh sách việc làm tại các công trình xây dựng ở {province}."
+    },
+    "heading": "Việc làm xây dựng tại {province}"
+  },
+  "apply": {
+    "success": "Ứng tuyển thành công.",
+    "already_applied": "Bạn đã ứng tuyển vị trí này rồi.",
+    "job_closed": "Tin tuyển dụng đã đóng.",
+    "login_required": "Vui lòng đăng nhập để ứng tuyển."
+  }
+}

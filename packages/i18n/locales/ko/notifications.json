@@ -1,0 +1,13 @@
+{
+  "title": "알림",
+  "empty": "알림이 없습니다.",
+  "mark_all_read": "모두 읽음 처리",
+  "types": {
+    "application_status": "지원 결과: {job_title}",
+    "contract_ready": "계약서가 준비되었습니다: {job_title}",
+    "attendance_recorded": "출근 기록이 등록되었습니다.",
+    "manager_approved": "매니저 등록이 승인되었습니다.",
+    "manager_rejected": "매니저 등록이 반려되었습니다: {reason}",
+    "hire_cancelled": "고용이 취소되었습니다: {job_title}"
+  }
+}

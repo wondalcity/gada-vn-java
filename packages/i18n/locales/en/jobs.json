@@ -1,0 +1,50 @@
+{
+  "listing": {
+    "meta": {
+      "title": "Construction Jobs in Vietnam | GADA VN",
+      "description": "Browse construction site jobs across Vietnam."
+    },
+    "heading": "Construction Jobs",
+    "filter": {
+      "province": "Province",
+      "trade": "Trade",
+      "date": "Date",
+      "all_provinces": "All Provinces",
+      "all_trades": "All Trades",
+      "reset": "Reset Filters"
+    },
+    "sort": {
+      "latest": "Latest",
+      "wage_high": "Highest Wage"
+    },
+    "empty": "No jobs match your search criteria.",
+    "count": "{count} jobs"
+  },
+  "detail": {
+    "meta": {
+      "title": "{title} | GADA VN"
+    },
+    "apply": "Apply Now",
+    "applied": "Applied",
+    "wage": "{amount} VND / day",
+    "headcount": "Positions available: {count}",
+    "period": "Work period: {start} – {end}",
+    "trade": "Trade",
+    "requirements": "Requirements",
+    "benefits": "Benefits",
+    "site": "Site Information"
+  },
+  "province": {
+    "meta": {
+      "title": "Construction Jobs in {province} | GADA VN",
+      "description": "Construction site job listings in {province}."
+    },
+    "heading": "Construction Jobs in {province}"
+  },
+  "apply": {
+    "success": "Application submitted successfully.",
+    "already_applied": "You have already applied for this job.",
+    "job_closed": "This job is no longer accepting applications.",
+    "login_required": "Please log in to apply."
+  }
+}

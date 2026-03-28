@@ -1,0 +1,28 @@
+/* GADA VN — Design token CSS custom properties */
+:root {
+  --color-primary: #0669F7;
+  --color-primary-on: #FFFFFF;
+  --color-primary-container: #C1DAFF;
+  --color-secondary: #FDBC08;
+  --color-tertiary: #00C800;
+  --color-error: #ED1C24;
+  --color-surface: #FFFFFF;
+  --color-on-surface: #25282A;
+  --color-on-surface-variant: #7A7B7A;
+  --color-outline: #DDDDDD;
+  --color-disabled: #B2B2B2;
+  --font-sans: 'Noto Sans KR', 'Noto Sans', system-ui, sans-serif;
+  --radius-sm: 4px;
+  --radius-full: 24px;
+  --touch-target: 44px;
+  --app-max-width: 480px;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  font-family: var(--font-sans);
+  color: var(--color-on-surface);
+  background-color: var(--color-surface);
+  -webkit-font-smoothing: antialiased;
+}

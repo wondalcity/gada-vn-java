@@ -1,0 +1,10 @@
+{
+  "required": "{field} 항목을 입력해 주세요.",
+  "min_length": "{field}는 최소 {min}자 이상이어야 합니다.",
+  "max_length": "{field}는 최대 {max}자까지 입력 가능합니다.",
+  "invalid_phone": "올바른 베트남 전화번호를 입력해 주세요. (예: +84 xxx xxx xxxx)",
+  "invalid_email": "올바른 이메일 주소를 입력해 주세요.",
+  "password_mismatch": "비밀번호가 일치하지 않습니다.",
+  "file_too_large": "파일 크기는 {max}MB 이하여야 합니다.",
+  "invalid_file_type": "{types} 형식만 업로드 가능합니다."
+}

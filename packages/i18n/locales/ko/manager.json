@@ -1,0 +1,57 @@
+{
+  "home": {
+    "title": "매니저 대시보드",
+    "total_workers": "총 근무자",
+    "open_jobs": "진행 중인 공고",
+    "pending_applicants": "검토 대기 지원자"
+  },
+  "registration": {
+    "title": "사업자 등록",
+    "status_title": "등록 상태",
+    "fields": {
+      "company_name": "회사명",
+      "business_number": "사업자번호",
+      "address": "주소",
+      "doc_upload": "사업자등록증"
+    },
+    "submit": "등록 신청",
+    "resubmit": "재신청",
+    "status": {
+      "pending": "검토 중",
+      "approved": "승인됨 — 매니저 기능 사용 가능",
+      "rejected": "반려됨 — 재신청 가능",
+      "revoked": "권한 취소됨"
+    }
+  },
+  "sites": {
+    "title": "현장 목록",
+    "create": "현장 등록",
+    "empty": "등록된 현장이 없습니다."
+  },
+  "jobs": {
+    "title": "공고 목록",
+    "create": "공고 등록",
+    "empty": "등록된 공고가 없습니다.",
+    "applicants": "지원자 {count}명"
+  },
+  "applicants": {
+    "title": "지원자 목록",
+    "accept": "합격",
+    "reject": "불합격",
+    "accept_confirm": "합격 처리하시겠습니까?",
+    "reject_confirm": "불합격 처리하시겠습니까?",
+    "reject_reason": "불합격 사유"
+  },
+  "attendance": {
+    "title": "출퇴근 관리",
+    "date": "날짜",
+    "worker": "근무자",
+    "status": {
+      "present": "출근",
+      "absent": "결근",
+      "late": "지각"
+    },
+    "hours": "근무시간",
+    "save": "저장"
+  }
+}

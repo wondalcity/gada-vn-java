@@ -1,0 +1,59 @@
+{
+  "home": {
+    "greeting": "Xin chào, {name}",
+    "pending_contracts": "Hợp đồng chờ ký",
+    "active_jobs": "Công việc đang thực hiện"
+  },
+  "profile": {
+    "title": "Hồ sơ của tôi",
+    "name": "Họ và tên",
+    "phone": "Số điện thoại",
+    "email": "Email",
+    "id_document": {
+      "title": "Giấy tờ tùy thân",
+      "upload": "Tải lên giấy tờ",
+      "front": "Mặt trước",
+      "back": "Mặt sau",
+      "status": {
+        "pending": "Đang xét duyệt",
+        "verified": "Đã xác minh",
+        "rejected": "Bị từ chối"
+      }
+    },
+    "signature": {
+      "title": "Chữ ký",
+      "draw": "Vẽ chữ ký",
+      "clear": "Xóa",
+      "save": "Lưu chữ ký",
+      "missing": "Bạn chưa có chữ ký. Vui lòng đăng ký để ký hợp đồng."
+    },
+    "experience": {
+      "title": "Kinh nghiệm",
+      "add": "Thêm kinh nghiệm",
+      "company": "Tên công ty",
+      "role": "Vị trí",
+      "period": "Thời gian",
+      "delete_confirm": "Bạn có chắc muốn xóa?"
+    }
+  },
+  "applications": {
+    "title": "Đơn ứng tuyển",
+    "empty": "Bạn chưa ứng tuyển vị trí nào.",
+    "status": {
+      "pending": "Đang xét duyệt",
+      "accepted": "Đã trúng tuyển",
+      "rejected": "Không trúng tuyển",
+      "withdrawn": "Đã rút đơn",
+      "expired": "Hết hạn"
+    },
+    "withdraw_confirm": "Bạn có chắc muốn rút đơn ứng tuyển?"
+  },
+  "contracts": {
+    "title": "Hợp đồng",
+    "empty": "Không có hợp đồng nào.",
+    "sign": "Ký hợp đồng",
+    "signed": "Đã ký",
+    "download": "Tải xuống",
+    "no_signature": "Vui lòng đăng ký chữ ký trước."
+  }
+}

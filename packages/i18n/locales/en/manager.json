@@ -1,0 +1,57 @@
+{
+  "home": {
+    "title": "Manager Dashboard",
+    "total_workers": "Total Workers",
+    "open_jobs": "Open Job Listings",
+    "pending_applicants": "Applicants Awaiting Review"
+  },
+  "registration": {
+    "title": "Business Registration",
+    "status_title": "Registration Status",
+    "fields": {
+      "company_name": "Company Name",
+      "business_number": "Business Registration Number",
+      "address": "Address",
+      "doc_upload": "Business License Document"
+    },
+    "submit": "Submit Registration",
+    "resubmit": "Resubmit",
+    "status": {
+      "pending": "Under Review",
+      "approved": "Approved — Manager features available",
+      "rejected": "Rejected — You may resubmit",
+      "revoked": "Access Revoked"
+    }
+  },
+  "sites": {
+    "title": "My Sites",
+    "create": "Add Site",
+    "empty": "No sites registered yet."
+  },
+  "jobs": {
+    "title": "Job Listings",
+    "create": "Post a Job",
+    "empty": "No job listings yet.",
+    "applicants": "{count} applicants"
+  },
+  "applicants": {
+    "title": "Applicant List",
+    "accept": "Accept",
+    "reject": "Reject",
+    "accept_confirm": "Are you sure you want to accept this applicant?",
+    "reject_confirm": "Are you sure you want to reject this applicant?",
+    "reject_reason": "Reason for Rejection"
+  },
+  "attendance": {
+    "title": "Attendance Management",
+    "date": "Date",
+    "worker": "Worker",
+    "status": {
+      "present": "Present",
+      "absent": "Absent",
+      "late": "Late"
+    },
+    "hours": "Hours Worked",
+    "save": "Save"
+  }
+}

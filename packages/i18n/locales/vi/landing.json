@@ -1,0 +1,40 @@
+{
+  "hero": {
+    "title": "Kết nối công trình xây dựng Việt Nam",
+    "subtitle": "Nền tảng kết nối công nhân xây dựng lành nghề với các công trình uy tín",
+    "cta_worker": "Tìm việc làm",
+    "cta_manager": "Tuyển dụng nhân lực"
+  },
+  "stats": {
+    "jobs": "{count} việc làm",
+    "workers": "{count} công nhân đã đăng ký",
+    "provinces": "{count} tỉnh thành"
+  },
+  "features": {
+    "title": "Tại sao chọn GADA VN?",
+    "items": [
+      {
+        "title": "Tuyển dụng nhanh chóng",
+        "desc": "Từ ứng tuyển đến nhận việc trong ngày"
+      },
+      {
+        "title": "Hợp đồng điện tử",
+        "desc": "Ký hợp đồng ngay trên điện thoại"
+      },
+      {
+        "title": "Thông báo tức thì",
+        "desc": "Nhận kết quả trúng/không trúng tuyển ngay lập tức"
+      }
+    ]
+  },
+  "provinces": {
+    "title": "Việc làm theo tỉnh thành",
+    "view_all": "Xem tất cả"
+  },
+  "footer": {
+    "about": "Giới thiệu",
+    "terms": "Điều khoản sử dụng",
+    "privacy": "Chính sách bảo mật",
+    "contact": "Liên hệ"
+  }
+}

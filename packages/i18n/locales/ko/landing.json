@@ -1,0 +1,40 @@
+{
+  "hero": {
+    "title": "베트남 건설 현장을 연결합니다",
+    "subtitle": "숙련된 건설 근로자와 신뢰할 수 있는 현장을 연결하는 플랫폼",
+    "cta_worker": "일자리 찾기",
+    "cta_manager": "인력 채용하기"
+  },
+  "stats": {
+    "jobs": "{count}개 일자리",
+    "workers": "{count}명 등록 근로자",
+    "provinces": "{count}개 지역"
+  },
+  "features": {
+    "title": "왜 GADA VN인가요?",
+    "items": [
+      {
+        "title": "빠른 채용",
+        "desc": "지원부터 고용까지 당일 처리"
+      },
+      {
+        "title": "전자 계약",
+        "desc": "스마트폰으로 계약서 서명"
+      },
+      {
+        "title": "실시간 알림",
+        "desc": "합격/불합격 즉시 알림"
+      }
+    ]
+  },
+  "provinces": {
+    "title": "지역별 일자리",
+    "view_all": "전체 보기"
+  },
+  "footer": {
+    "about": "회사 소개",
+    "terms": "이용약관",
+    "privacy": "개인정보처리방침",
+    "contact": "문의하기"
+  }
+}

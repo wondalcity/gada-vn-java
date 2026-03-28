@@ -1,0 +1,10 @@
+{
+  "required": "Vui lòng nhập {field}.",
+  "min_length": "{field} phải có ít nhất {min} ký tự.",
+  "max_length": "{field} không được vượt quá {max} ký tự.",
+  "invalid_phone": "Vui lòng nhập số điện thoại Việt Nam hợp lệ. (Ví dụ: +84 xxx xxx xxxx)",
+  "invalid_email": "Vui lòng nhập địa chỉ email hợp lệ.",
+  "password_mismatch": "Mật khẩu không khớp.",
+  "file_too_large": "Kích thước tệp phải nhỏ hơn {max}MB.",
+  "invalid_file_type": "Chỉ chấp nhận định dạng {types}."
+}

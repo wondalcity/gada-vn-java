@@ -1,0 +1,50 @@
+{
+  "listing": {
+    "meta": {
+      "title": "베트남 건설 일자리 | GADA VN",
+      "description": "베트남 전국 건설 현장 일자리를 찾아보세요."
+    },
+    "heading": "건설 일자리",
+    "filter": {
+      "province": "지역",
+      "trade": "직종",
+      "date": "날짜",
+      "all_provinces": "전체 지역",
+      "all_trades": "전체 직종",
+      "reset": "초기화"
+    },
+    "sort": {
+      "latest": "최신순",
+      "wage_high": "급여 높은순"
+    },
+    "empty": "조건에 맞는 일자리가 없습니다.",
+    "count": "{count}개의 일자리"
+  },
+  "detail": {
+    "meta": {
+      "title": "{title} | GADA VN"
+    },
+    "apply": "지원하기",
+    "applied": "지원 완료",
+    "wage": "일당 {amount} VND",
+    "headcount": "모집 인원: {count}명",
+    "period": "근무 기간: {start} ~ {end}",
+    "trade": "직종",
+    "requirements": "자격 요건",
+    "benefits": "복리후생",
+    "site": "현장 정보"
+  },
+  "province": {
+    "meta": {
+      "title": "{province} 건설 일자리 | GADA VN",
+      "description": "{province} 지역 건설 현장 일자리 목록입니다."
+    },
+    "heading": "{province} 건설 일자리"
+  },
+  "apply": {
+    "success": "지원이 완료되었습니다.",
+    "already_applied": "이미 지원한 일자리입니다.",
+    "job_closed": "마감된 일자리입니다.",
+    "login_required": "지원하려면 로그인이 필요합니다."
+  }
+}

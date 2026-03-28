@@ -1,0 +1,40 @@
+{
+  "hero": {
+    "title": "Connecting Vietnam's Construction Industry",
+    "subtitle": "The platform that connects skilled construction workers with trusted job sites",
+    "cta_worker": "Find Jobs",
+    "cta_manager": "Hire Workers"
+  },
+  "stats": {
+    "jobs": "{count} jobs",
+    "workers": "{count} registered workers",
+    "provinces": "{count} provinces"
+  },
+  "features": {
+    "title": "Why GADA VN?",
+    "items": [
+      {
+        "title": "Fast Hiring",
+        "desc": "From application to hire in a single day"
+      },
+      {
+        "title": "Digital Contracts",
+        "desc": "Sign contracts directly on your phone"
+      },
+      {
+        "title": "Instant Notifications",
+        "desc": "Get accepted or rejected results immediately"
+      }
+    ]
+  },
+  "provinces": {
+    "title": "Jobs by Province",
+    "view_all": "View All"
+  },
+  "footer": {
+    "about": "About Us",
+    "terms": "Terms of Service",
+    "privacy": "Privacy Policy",
+    "contact": "Contact Us"
+  }
+}

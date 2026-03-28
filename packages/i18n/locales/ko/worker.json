@@ -1,0 +1,59 @@
+{
+  "home": {
+    "greeting": "안녕하세요, {name}님",
+    "pending_contracts": "서명 대기 계약서",
+    "active_jobs": "진행 중인 일자리"
+  },
+  "profile": {
+    "title": "내 프로필",
+    "name": "이름",
+    "phone": "휴대폰",
+    "email": "이메일",
+    "id_document": {
+      "title": "신분증",
+      "upload": "신분증 업로드",
+      "front": "앞면",
+      "back": "뒷면",
+      "status": {
+        "pending": "검토 중",
+        "verified": "인증 완료",
+        "rejected": "반려됨"
+      }
+    },
+    "signature": {
+      "title": "서명",
+      "draw": "서명 그리기",
+      "clear": "지우기",
+      "save": "서명 저장",
+      "missing": "서명이 없습니다. 계약서 서명을 위해 등록해 주세요."
+    },
+    "experience": {
+      "title": "경력",
+      "add": "경력 추가",
+      "company": "회사명",
+      "role": "직무",
+      "period": "기간",
+      "delete_confirm": "삭제하시겠습니까?"
+    }
+  },
+  "applications": {
+    "title": "지원 현황",
+    "empty": "지원한 일자리가 없습니다.",
+    "status": {
+      "pending": "검토 중",
+      "accepted": "합격",
+      "rejected": "불합격",
+      "withdrawn": "지원 취소",
+      "expired": "만료"
+    },
+    "withdraw_confirm": "지원을 취소하시겠습니까?"
+  },
+  "contracts": {
+    "title": "계약서",
+    "empty": "계약서가 없습니다.",
+    "sign": "서명하기",
+    "signed": "서명 완료",
+    "download": "다운로드",
+    "no_signature": "서명을 먼저 등록해 주세요."
+  }
+}
