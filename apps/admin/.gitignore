@@ -1,0 +1,5 @@
+
+# Gradle build outputs
+.gradle/
+build/
+!src/main/resources/static/.gitkeep

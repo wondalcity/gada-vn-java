@@ -1,0 +1,19 @@
+server:
+  port: ${PORT:8080}
+  servlet:
+    session:
+      tracking-modes: cookie
+
+spring:
+  application:
+    name: gada-admin
+  security:
+    user:
+      name: ignored  # We use custom auth
+
+gada:
+  admin:
+    username: ${ADMIN_USERNAME:admin}
+    password-hash: ${ADMIN_PASSWORD_HASH:}
+    api-base-url: ${API_BASE_URL:http://localhost:7001/v1}
+    api-admin-key: ${ADMIN_SERVICE_KEY:}
