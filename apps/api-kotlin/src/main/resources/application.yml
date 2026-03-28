@@ -1,0 +1,58 @@
+server:
+  port: ${PORT:7001}
+  servlet:
+    context-path: /v1
+
+spring:
+  application:
+    name: gada-api
+  profiles:
+    active: ${SPRING_PROFILES_ACTIVE:default}
+  datasource:
+    url: ${DATABASE_URL:jdbc:postgresql://localhost:5432/gada}
+    username: ${DATABASE_USER:postgres}
+    password: ${DATABASE_PASSWORD:}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 20
+      minimum-idle: 2
+      connection-timeout: 30000
+      idle-timeout: 30000
+      max-lifetime: 1800000
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
+      timeout: 2000ms
+      lettuce:
+        pool:
+          max-active: 8
+          max-idle: 8
+          min-idle: 0
+  jackson:
+    default-property-inclusion: NON_NULL
+    serialization:
+      write-dates-as-timestamps: false
+
+gada:
+  firebase:
+    credentials-path: ${FIREBASE_SERVICE_ACCOUNT_PATH:firebase-service-account.json}
+    project-id: ${FIREBASE_PROJECT_ID:}
+    web-api-key: ${FIREBASE_WEB_API_KEY:}
+  admin:
+    service-key: ${ADMIN_SERVICE_KEY:local-dev-admin-service-key-000000000000}
+  aws:
+    region: ${AWS_REGION:ap-southeast-1}
+    bucket: ${AWS_S3_BUCKET:gada-uploads}
+    cdn-domain: ${CDN_DOMAIN:}
+    access-key-id: ${AWS_ACCESS_KEY_ID:}
+    secret-access-key: ${AWS_SECRET_ACCESS_KEY:}
+  otp:
+    fixed-code: ${OTP_FIXED_CODE:}
+
+logging:
+  level:
+    vn.gada: DEBUG
+    org.springframework.security: INFO
+    com.zaxxer.hikari: WARN
