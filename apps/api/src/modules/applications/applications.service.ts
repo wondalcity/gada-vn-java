@@ -25,6 +25,14 @@ export class ApplicationsService {
     return this.repo.findByJobId(jobId, managerUserId);
   }
 
+  async hire(id: string, managerUserId: string) {
+    return this.updateStatus(id, managerUserId, 'ACCEPTED');
+  }
+
+  async reject(id: string, managerUserId: string) {
+    return this.updateStatus(id, managerUserId, 'REJECTED');
+  }
+
   async updateStatus(id: string, managerUserId: string, status: string) {
     const application = await this.repo.findById(id);
     if (!application) throw new NotFoundException(`Application ${id} not found`);

@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { ManagersRepository } from './managers.repository';
 
 @Injectable()
@@ -6,12 +6,17 @@ export class ManagersService {
   constructor(private readonly repo: ManagersRepository) {}
 
   async register(userId: string, data: Record<string, unknown>) {
-    return this.repo.create(userId, data);
+    // Upsert: if already exists, update (re-apply)
+    return this.repo.upsert(userId, data);
+  }
+
+  async getRegistrationStatus(userId: string) {
+    return this.repo.findRegistrationStatus(userId);
   }
 
   async getProfile(userId: string) {
     const profile = await this.repo.findByUserId(userId);
-    if (!profile) throw new NotFoundException('Manager profile not found');
+    if (!profile) return null;
     return profile;
   }
 

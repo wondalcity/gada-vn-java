@@ -1,4 +1,4 @@
-import { Controller, Get, Put, Body, UseGuards } from '@nestjs/common';
+import { Controller, Get, Put, Body, Query, UseGuards } from '@nestjs/common';
 import { FirebaseAuthGuard } from '../../common/guards/firebase-auth.guard';
 import { Roles } from '../../common/decorators/roles.decorator';
 import { RolesGuard } from '../../common/guards/roles.guard';
@@ -23,5 +23,20 @@ export class WorkersController {
     @Body() body: Record<string, unknown>,
   ) {
     return this.workersService.updateProfile(user.id, body);
+  }
+
+  @Get('hires')
+  @Roles('WORKER')
+  async getMyHires(@CurrentUser() user: CurrentUserPayload) {
+    return this.workersService.getHires(user.id);
+  }
+
+  @Get('attendance')
+  @Roles('WORKER')
+  async getMyAttendance(
+    @CurrentUser() user: CurrentUserPayload,
+    @Query('jobId') jobId?: string,
+  ) {
+    return this.workersService.getAttendance(user.id, jobId);
   }
 }

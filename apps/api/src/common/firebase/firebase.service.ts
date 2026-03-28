@@ -23,6 +23,25 @@ export class FirebaseService implements OnModuleInit {
     return this.app.auth().verifyIdToken(token);
   }
 
+  async createCustomToken(uid: string, claims?: Record<string, unknown>): Promise<string> {
+    return this.app.auth().createCustomToken(uid, claims);
+  }
+
+  async revokeRefreshTokens(uid: string): Promise<void> {
+    await this.app.auth().revokeRefreshTokens(uid);
+  }
+
+  async getOrCreateUserByPhone(phone: string): Promise<{ uid: string; isNew: boolean }> {
+    try {
+      const user = await this.app.auth().getUserByPhoneNumber(phone);
+      return { uid: user.uid, isNew: false };
+    } catch {
+      // User doesn't exist — create one
+      const newUser = await this.app.auth().createUser({ phoneNumber: phone });
+      return { uid: newUser.uid, isNew: true };
+    }
+  }
+
   async sendPushNotification(
     token: string,
     notification: { title: string; body: string },

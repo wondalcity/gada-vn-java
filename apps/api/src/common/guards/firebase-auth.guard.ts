@@ -33,6 +33,25 @@ export class FirebaseAuthGuard implements CanActivate {
 
     const token = authHeader.split(' ')[1];
 
+    // Dev mode: accept dev_<userId> tokens without Firebase verification
+    if (token.startsWith('dev_')) {
+      const userId = token.slice(4); // remove 'dev_' prefix
+      const { rows: devRows } = await this.db.query<{ id: string; role: string; status: string }>(
+        'SELECT id, role, status FROM auth.users WHERE id = $1',
+        [userId],
+      );
+      if (devRows.length === 0) throw new UnauthorizedException('Dev user not found');
+      if (devRows[0].status === 'SUSPENDED') throw new UnauthorizedException('Account suspended');
+      request.user = {
+        id: devRows[0].id,
+        firebaseUid: userId,
+        role: devRows[0].role,
+        phone: null,
+        email: null,
+      };
+      return true;
+    }
+
     try {
       const decoded = await this.firebase.verifyIdToken(token);
 
