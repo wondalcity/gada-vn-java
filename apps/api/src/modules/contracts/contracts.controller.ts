@@ -23,6 +23,15 @@ export class ContractsController {
     return this.contractsService.generate(user.id, body.applicationId);
   }
 
+  // Worker fetches their own contracts
+  @Get('mine')
+  @Roles('WORKER')
+  async getMyContracts(
+    @CurrentUser() user: CurrentUserPayload,
+  ) {
+    return this.contractsService.findByWorker(user.id);
+  }
+
   // Worker or Manager retrieves a contract by ID
   @Get(':id')
   async getContract(

@@ -1,15 +1,7 @@
-import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { NextIntlClientProvider } from 'next-intl'
-import { getMessages, getLocale } from 'next-intl/server'
-import Script from 'next/script'
+import { getMessages } from 'next-intl/server'
 import { routing, type Locale } from '../../i18n/routing'
-import '../globals.css'
-
-const GA_ID = 'G-ELTGZMYGJD'
-
-// Font loading deferred to concrete implementation
-// import { Noto_Sans_KR, Noto_Sans } from 'next/font/google'
 
 interface LocaleLayoutProps {
   children: React.ReactNode
@@ -30,26 +22,8 @@ export default async function LocaleLayout({ children, params }: LocaleLayoutPro
   const messages = await getMessages()
 
   return (
-    <html lang={locale} suppressHydrationWarning>
-      <head>
-        <Script
-          src={`https://www.googletagmanager.com/gtag/js?id=${GA_ID}`}
-          strategy="afterInteractive"
-        />
-        <Script id="gtag-init" strategy="afterInteractive">
-          {`
-            window.dataLayer = window.dataLayer || [];
-            function gtag(){dataLayer.push(arguments);}
-            gtag('js', new Date());
-            gtag('config', '${GA_ID}');
-          `}
-        </Script>
-      </head>
-      <body>
-        <NextIntlClientProvider messages={messages}>
-          {children}
-        </NextIntlClientProvider>
-      </body>
-    </html>
+    <NextIntlClientProvider messages={messages}>
+      {children}
+    </NextIntlClientProvider>
   )
 }

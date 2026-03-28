@@ -1,5 +1,5 @@
 import {
-  Controller, Get, Post, Put,
+  Controller, Get, Post, Put, Delete,
   Param, Body, Query, UseGuards,
 } from '@nestjs/common';
 import { ApplicationsService } from './applications.service';
@@ -22,6 +22,16 @@ export class ApplicationsController {
     @Body() body: Record<string, unknown>,
   ) {
     return this.applicationsService.apply(user.id, jobId, body);
+  }
+
+  // Worker withdraws (cancels) a PENDING application
+  @Delete('applications/:id')
+  @Roles('WORKER')
+  async withdrawApplication(
+    @Param('id') id: string,
+    @CurrentUser() user: CurrentUserPayload,
+  ) {
+    return this.applicationsService.withdraw(id, user.id);
   }
 
   // Worker fetches their own applications

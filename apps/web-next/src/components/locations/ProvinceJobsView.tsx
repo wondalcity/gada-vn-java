@@ -115,11 +115,11 @@ export function ProvinceJobsView({
         </div>
         <ProvinceGrid
           provinces={[
-            { code: 'HN', nameVi: 'Hà Nội', nameEn: 'Hanoi', slug: 'ha-noi' },
-            { code: 'HCM', nameVi: 'Hồ Chí Minh', nameEn: 'Ho Chi Minh City', slug: 'ho-chi-minh-city' },
-            { code: 'DN', nameVi: 'Đà Nẵng', nameEn: 'Da Nang', slug: 'da-nang' },
-            { code: 'HP', nameVi: 'Hải Phòng', nameEn: 'Hai Phong', slug: 'hai-phong' },
-            { code: 'BD', nameVi: 'Bình Dương', nameEn: 'Binh Duong', slug: 'binh-duong' },
+            { code: 'HN', nameVi: 'Hà Nội', nameEn: 'Hanoi', slug: 'hn' },
+            { code: 'HCM', nameVi: 'Hồ Chí Minh', nameEn: 'Ho Chi Minh City', slug: 'hcm' },
+            { code: 'DN', nameVi: 'Đà Nẵng', nameEn: 'Da Nang', slug: 'dn' },
+            { code: 'HP', nameVi: 'Hải Phòng', nameEn: 'Hai Phong', slug: 'hp' },
+            { code: 'BD', nameVi: 'Bình Dương', nameEn: 'Binh Duong', slug: 'bd' },
           ].filter(p => p.slug !== province.slug)}
           locale={locale}
         />

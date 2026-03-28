@@ -60,23 +60,23 @@ const TAB_DESCRIPTIONS: Record<Tab, string> = {
 
 function NavIcon({ tab }: { tab: Tab }) {
   if (tab === 'basic') return (
-    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
+    <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
   )
   if (tab === 'experience') return (
-    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
+    <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
   )
   if (tab === 'address') return (
-    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+    <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
   )
   if (tab === 'bank') return (
-    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" /></svg>
+    <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" /></svg>
   )
   if (tab === 'id') return (
-    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V5a2 2 0 114 0v1m-4 0a2 2 0 104 0m-5 8a2 2 0 100-4 2 2 0 000 4zm0 0c1.306 0 2.417.835 2.83 2M9 14a3.001 3.001 0 00-2.83 2M15 11h3m-3 4h2" /></svg>
+    <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V5a2 2 0 114 0v1m-4 0a2 2 0 104 0m-5 8a2 2 0 100-4 2 2 0 000 4zm0 0c1.306 0 2.417.835 2.83 2M9 14a3.001 3.001 0 00-2.83 2M15 11h3m-3 4h2" /></svg>
   )
   // signature
   return (
-    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
+    <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
   )
 }
 
@@ -817,14 +817,11 @@ function ProfileCompletionBar({ profile }: { profile: WorkerProfile }) {
   const done = checks.filter(Boolean).length
   const pct = Math.round((done / checks.length) * 100)
   return (
-    <div className="mb-5">
-      <div className="flex items-center justify-between mb-1">
-        <p className="text-xs font-medium text-[#25282A]">프로필 완성도</p>
-        <p className="text-xs font-semibold text-[#0669F7]">{pct}%</p>
-      </div>
-      <div className="h-1.5 bg-[#F2F4F5] rounded-full overflow-hidden">
+    <div className="flex items-center gap-3">
+      <div className="flex-1 h-1.5 bg-[#F2F4F5] rounded-full overflow-hidden">
         <div className="h-full bg-[#0669F7] rounded-full transition-all duration-500" style={{ width: `${pct}%` }} />
       </div>
+      <p className="text-xs font-semibold text-[#0669F7] shrink-0">프로필 {pct}%</p>
     </div>
   )
 }
@@ -880,7 +877,6 @@ export default function WorkerProfileTabs({ locale: _locale }: { locale: string 
         if (res?.data) {
           const p: WorkerProfile = res.data
           if (!p.full_name) {
-            // Empty profile — show demo data
             setProfile(DEMO_PROFILE)
             setIsDemo(true)
           } else {
@@ -907,126 +903,95 @@ export default function WorkerProfileTabs({ locale: _locale }: { locale: string 
     setToast({ message: '저장되었습니다', type: 'success' })
   }
 
+  if (loading) {
+    return (
+      <div className="py-6">
+        <h1 className="text-xl font-bold text-[#25282A] mb-6">프로필 관리</h1>
+        <div className="bg-white rounded-2xl border border-[#EFF1F5] p-6 shadow-sm">
+          <Skeleton />
+        </div>
+      </div>
+    )
+  }
+
+  if (!profile) {
+    return (
+      <div className="py-6 text-center text-[#98A2B2] text-sm">프로필 정보를 불러올 수 없습니다.</div>
+    )
+  }
+
   return (
-    <div className="max-w-[1760px] mx-auto px-4 md:px-8 py-6 md:py-10">
+    <div>
       {toast && <Toast message={toast.message} type={toast.type} />}
 
-      {loading ? (
-        <div className="max-w-lg"><Skeleton /></div>
-      ) : !profile ? (
-        <div className="text-center py-12 text-[#98A2B2] text-sm">프로필 정보를 불러올 수 없습니다.</div>
-      ) : (
-        <>
+      {/* Page header */}
+      <div className="py-6">
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <div className="flex items-center gap-2.5">
+              <h1 className="text-xl font-bold text-[#25282A]">프로필 관리</h1>
+              {isDemo && (
+                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-700 border border-amber-200">
+                  데모 데이터
+                </span>
+              )}
+            </div>
+            <p className="text-xs text-[#98A2B2] mt-1">{TAB_DESCRIPTIONS[activeTab]}</p>
+          </div>
+          {/* Completion bar — desktop inline */}
+          <div className="hidden md:block w-52 pt-1">
+            <ProfileCompletionBar profile={profile} />
+          </div>
+        </div>
+        {/* Completion bar — mobile */}
+        <div className="md:hidden mt-3">
+          <ProfileCompletionBar profile={profile} />
+        </div>
+      </div>
+
+      {/* Tab bar — sticky below app bar */}
+      <div
+        className="sticky z-10 bg-white border-b border-[#EFF1F5]"
+        style={{ top: 'var(--app-bar-height, 56px)' }}
+      >
+        <div className="flex overflow-x-auto scrollbar-hide gap-1">
+          {TABS.map(tab => (
+            <button
+              key={tab.id}
+              type="button"
+              onClick={() => setActiveTab(tab.id)}
+              className={`flex-shrink-0 flex items-center gap-1.5 px-4 py-3 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${
+                activeTab === tab.id
+                  ? 'border-[#0669F7] text-[#0669F7]'
+                  : 'border-transparent text-[#7A7B7A] hover:text-[#25282A]'
+              }`}
+            >
+              <NavIcon tab={tab.id} />
+              {tab.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Content card */}
+      <div className="py-4">
         {isDemo && (
-          <div className="mb-4 px-3 py-2 rounded-lg bg-amber-50 border border-amber-200 flex items-center gap-2 text-xs text-amber-700 max-w-lg">
+          <div className="mb-4 px-3 py-2 rounded-xl bg-amber-50 border border-amber-200 flex items-center gap-2 text-xs text-amber-700">
             <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
             데모 데이터입니다. 실제 정보를 입력하고 저장하면 반영됩니다.
           </div>
         )}
-        <div className="md:grid md:grid-cols-[280px_1fr] md:gap-10 md:items-start">
-
-          {/* ── Sidebar ── */}
-          <aside>
-            {/* Mobile: profile summary + 2-row tab grid */}
-            <div className="md:hidden mb-4">
-              <div className="flex items-center gap-3 mb-4 p-3 bg-white rounded-2xl" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
-                <div className="w-10 h-10 rounded-full bg-[#E6F0FE] flex items-center justify-center text-lg font-bold text-[#0669F7] shrink-0">
-                  {(profile.full_name ?? '?')[0]?.toUpperCase()}
-                </div>
-                <div>
-                  <p className="font-semibold text-[#25282A] text-sm">{profile.full_name || '이름 미입력'}</p>
-                  <p className="text-xs text-[#98A2B2] mt-0.5">{profile.phone ?? profile.email ?? ''}</p>
-                </div>
-              </div>
-              <div className="mb-3"><ProfileCompletionBar profile={profile} /></div>
-              <div className="bg-[#F2F4F5] rounded-xl p-1 grid grid-cols-3 gap-0.5 mb-0.5">
-                {TABS.slice(0, 3).map(tab => (
-                  <button key={tab.id} type="button" onClick={() => setActiveTab(tab.id)}
-                    className={`py-2 rounded-lg text-xs font-medium transition-all ${activeTab === tab.id ? 'bg-white text-[#0669F7] shadow-sm' : 'text-[#98A2B2]'}`}>
-                    {tab.label}
-                  </button>
-                ))}
-              </div>
-              <div className="bg-[#F2F4F5] rounded-xl p-1 grid grid-cols-3 gap-0.5">
-                {TABS.slice(3).map(tab => (
-                  <button key={tab.id} type="button" onClick={() => setActiveTab(tab.id)}
-                    className={`py-2 rounded-lg text-xs font-medium transition-all ${activeTab === tab.id ? 'bg-white text-[#0669F7] shadow-sm' : 'text-[#98A2B2]'}`}>
-                    {tab.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Desktop: sticky LNB */}
-            <div className="hidden md:block sticky" style={{ top: 'calc(var(--app-bar-height, 56px) + 24px)' }}>
-              <h1 className="text-2xl font-bold text-[#25282A] mb-6">계정 관리</h1>
-
-              {/* Profile summary */}
-              <div className="flex items-center gap-3 mb-3 p-4 bg-white rounded-2xl" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
-                <div className="w-12 h-12 rounded-full bg-[#E6F0FE] flex items-center justify-center text-xl font-bold text-[#0669F7] shrink-0">
-                  {(profile.full_name ?? '?')[0]?.toUpperCase()}
-                </div>
-                <div className="min-w-0">
-                  <p className="font-semibold text-[#25282A]">{profile.full_name || '이름 미입력'}</p>
-                  <p className="text-xs text-[#98A2B2] mt-0.5 truncate">
-                    {profile.phone ?? profile.email ?? ''}
-                    {profile.trade_name_ko ? ` · ${profile.trade_name_ko}` : ''}
-                  </p>
-                </div>
-              </div>
-
-              {/* Completion */}
-              <div className="mb-4 p-4 bg-white rounded-2xl" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
-                <ProfileCompletionBar profile={profile} />
-              </div>
-
-              {/* Nav links */}
-              <nav className="space-y-0.5">
-                {TABS.map(tab => (
-                  <button
-                    key={tab.id}
-                    type="button"
-                    onClick={() => setActiveTab(tab.id)}
-                    className={`w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-sm font-medium text-left transition-colors ${
-                      activeTab === tab.id
-                        ? 'bg-[#E6F0FE] text-[#0669F7]'
-                        : 'text-[#25282A] hover:bg-[#F2F4F5]'
-                    }`}
-                  >
-                    <NavIcon tab={tab.id} />
-                    {tab.label}
-                  </button>
-                ))}
-              </nav>
-            </div>
-          </aside>
-
-          {/* ── Content area ── */}
-          <div className="bg-white rounded-2xl" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
-            <div className="p-5 md:p-8">
-              {/* Section header (desktop only) */}
-              <div className="hidden md:block mb-6">
-                <h2 className="text-xl font-bold text-[#25282A]">
-                  {TABS.find(t => t.id === activeTab)?.label}
-                </h2>
-                <p className="text-sm text-[#98A2B2] mt-1">{TAB_DESCRIPTIONS[activeTab]}</p>
-                <hr className="border-[#EFF1F5] mt-5" />
-              </div>
-
-              {activeTab === 'basic'      && <BasicTab profile={profile} onSaved={handleSaved} />}
-              {activeTab === 'experience' && <ExperienceTab profile={profile} onSaved={handleSaved} />}
-              {activeTab === 'address'    && <AddressTab profile={profile} onSaved={handleSaved} />}
-              {activeTab === 'bank'       && <BankTab profile={profile} onSaved={handleSaved} />}
-              {activeTab === 'id'         && <IdTab profile={profile} onSaved={handleSaved} />}
-              {activeTab === 'signature'  && <SignatureTab profile={profile} onSaved={handleSaved} />}
-            </div>
-          </div>
-
+        <div className="bg-white rounded-2xl border border-[#EFF1F5] shadow-sm p-5 md:p-8">
+          {activeTab === 'basic'      && <BasicTab profile={profile} onSaved={handleSaved} />}
+          {activeTab === 'experience' && <ExperienceTab profile={profile} onSaved={handleSaved} />}
+          {activeTab === 'address'    && <AddressTab profile={profile} onSaved={handleSaved} />}
+          {activeTab === 'bank'       && <BankTab profile={profile} onSaved={handleSaved} />}
+          {activeTab === 'id'         && <IdTab profile={profile} onSaved={handleSaved} />}
+          {activeTab === 'signature'  && <SignatureTab profile={profile} onSaved={handleSaved} />}
         </div>
-        </>
-      )}
+      </div>
     </div>
   )
 }

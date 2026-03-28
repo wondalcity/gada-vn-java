@@ -33,16 +33,16 @@ const PROVINCE_THEMES: Record<string, {
   icon: string
   region: string
 }> = {
-  'ha-noi':      { gradient: 'from-[#1A1A2E] to-[#16213E]', icon: '🏛️', region: '홍강 델타' },
-  'ho-chi-minh': { gradient: 'from-[#0F3460] to-[#533483]', icon: '🌆', region: '동남부' },
-  'da-nang':     { gradient: 'from-[#0A3D62] to-[#1289A7]', icon: '🌊', region: '남중부' },
-  'hai-phong':   { gradient: 'from-[#006266] to-[#1289A7]', icon: '⚓', region: '홍강 델타' },
-  'can-tho':     { gradient: 'from-[#1B6CA8] to-[#006266]', icon: '🛶', region: '메콩 델타' },
-  'binh-duong':  { gradient: 'from-[#6A3093] to-[#A044FF]', icon: '🏭', region: '동남부' },
-  'dong-nai':    { gradient: 'from-[#134E5E] to-[#71B280]', icon: '🌿', region: '동남부' },
-  'quang-ninh':  { gradient: 'from-[#1565C0] to-[#42A5F5]', icon: '⛰️', region: '동북부' },
-  'ba-ria-vung-tau': { gradient: 'from-[#E65C00] to-[#F9D423]', icon: '🛢️', region: '동남부' },
-  'long-an':     { gradient: 'from-[#1D8348] to-[#27AE60]', icon: '🌾', region: '메콩 델타' },
+  'hn':    { gradient: 'from-[#1A1A2E] to-[#16213E]', icon: '🏛️', region: '홍강 델타' },
+  'hcm':   { gradient: 'from-[#0F3460] to-[#533483]', icon: '🌆', region: '동남부' },
+  'dn':    { gradient: 'from-[#0A3D62] to-[#1289A7]', icon: '🌊', region: '남중부' },
+  'hp':    { gradient: 'from-[#006266] to-[#1289A7]', icon: '⚓', region: '홍강 델타' },
+  'ct':    { gradient: 'from-[#1B6CA8] to-[#006266]', icon: '🛶', region: '메콩 델타' },
+  'bd':    { gradient: 'from-[#6A3093] to-[#A044FF]', icon: '🏭', region: '동남부' },
+  'dn-t':  { gradient: 'from-[#134E5E] to-[#71B280]', icon: '🌿', region: '동남부' },
+  'qni':   { gradient: 'from-[#1565C0] to-[#42A5F5]', icon: '⛰️', region: '동북부' },
+  'br-vt': { gradient: 'from-[#E65C00] to-[#F9D423]', icon: '🛢️', region: '동남부' },
+  'la':    { gradient: 'from-[#1D8348] to-[#27AE60]', icon: '🌾', region: '메콩 델타' },
 }
 
 // Region-based fallback gradients keyed by province slug prefix
@@ -76,7 +76,7 @@ export default async function LocationsPage({ params }: Props) {
   const provinces = await fetchProvinces(locale).catch(() => [])
 
   // Pin major provinces first
-  const PINNED = ['ha-noi', 'ho-chi-minh', 'da-nang', 'hai-phong', 'can-tho']
+  const PINNED = ['hn', 'hcm', 'dn', 'hp', 'ct']
   const sorted = [
     ...PINNED.map(slug => provinces.find(p => p.slug === slug)).filter(Boolean),
     ...provinces.filter(p => !PINNED.includes(p.slug)),

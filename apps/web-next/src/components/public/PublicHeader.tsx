@@ -1,22 +1,17 @@
 import { Link } from '@/components/navigation'
 import PublicHeaderSearch from './PublicHeaderSearch'
 import { PublicHeaderAuthMenu } from './PublicHeaderAuthMenu'
+import { LocationsDropdown } from './LocationsDropdown'
 import type { AuthUser } from '@/lib/auth/server'
+import type { Province } from '@/lib/api/public'
 
 interface Props {
   locale: string
   user?: AuthUser | null
+  provinces?: Province[]
 }
 
-const TOP_PROVINCES = [
-  { nameKo: '하노이',  slug: 'ha-noi' },
-  { nameKo: '호치민',  slug: 'ho-chi-minh-city' },
-  { nameKo: '다낭',    slug: 'da-nang' },
-  { nameKo: '하이퐁',  slug: 'hai-phong' },
-  { nameKo: '빈즈엉',  slug: 'binh-duong' },
-]
-
-export function PublicHeader({ locale, user }: Props) {
+export function PublicHeader({ locale, user, provinces = [] }: Props) {
   return (
     <header className="sticky top-0 z-50 bg-white border-b border-[#DDDDDD] shadow-sm">
       <div className="max-w-[1760px] mx-auto px-4 sm:px-6 xl:px-20 h-14 flex items-center justify-between gap-4">
@@ -29,30 +24,7 @@ export function PublicHeader({ locale, user }: Props) {
         {/* Nav (desktop) */}
         <nav className="hidden md:flex items-center gap-6 text-sm font-medium text-[#25282A]">
           <Link href="/jobs" className="hover:text-[#0669F7] transition-colors">공고 목록</Link>
-          <div className="relative group">
-            <button className="hover:text-[#0669F7] transition-colors flex items-center gap-1">
-              지역별 공고
-              <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-              </svg>
-            </button>
-            <div className="absolute top-full left-0 mt-1 bg-white rounded-md shadow-lg border border-[#DDDDDD] py-1 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all w-36 z-50">
-              {TOP_PROVINCES.map(p => (
-                <Link
-                  key={p.slug}
-                  href={`/locations/${p.slug}`}
-                  className="block px-4 py-2 text-sm hover:bg-[#F5F7FA] hover:text-[#0669F7]"
-                >
-                  {p.nameKo}
-                </Link>
-              ))}
-              <div className="border-t border-[#DDDDDD] mt-1 pt-1">
-                <Link href="/locations" className="block px-4 py-2 text-sm text-[#7A7B7A] hover:text-[#0669F7]">
-                  전체 지역 보기 →
-                </Link>
-              </div>
-            </div>
-          </div>
+          <LocationsDropdown locale={locale} provinces={provinces} />
         </nav>
 
         {/* Search + Auth */}
@@ -60,7 +32,6 @@ export function PublicHeader({ locale, user }: Props) {
           <PublicHeaderSearch locale={locale} />
           {user ? (
             <>
-              {/* Notification bell */}
               <Link
                 href="/worker/notifications"
                 className="w-9 h-9 flex items-center justify-center rounded-full hover:bg-[#EFF1F5] transition-colors"

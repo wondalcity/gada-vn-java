@@ -43,12 +43,12 @@ export default function PublicHeaderSearch({ locale }: PublicHeaderSearchProps) 
         fetch(`${API_BASE}/public/trades?locale=ko`),
       ]);
       if (provincesRes.ok) {
-        const data = await provincesRes.json();
-        setProvinces(data);
+        const body = await provincesRes.json();
+        setProvinces(body.data ?? []);
       }
       if (tradesRes.ok) {
-        const data = await tradesRes.json();
-        setTrades(data);
+        const body = await tradesRes.json();
+        setTrades(body.data ?? []);
       }
       setDataFetched(true);
     } catch {

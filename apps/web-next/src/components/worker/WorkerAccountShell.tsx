@@ -2,7 +2,6 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { useState } from 'react'
 
 interface Props {
   locale: string
@@ -12,19 +11,12 @@ interface Props {
   children: React.ReactNode
 }
 
-interface SubItem {
-  key: string
-  label: string
-  href: (locale: string) => string
-}
-
 interface NavItem {
   key: string
   label: string
   href: (locale: string) => string
   exact?: boolean
   icon: React.ReactNode
-  subItems?: SubItem[]
 }
 
 const NAV_ITEMS: NavItem[] = [
@@ -88,11 +80,6 @@ const NAV_ITEMS: NavItem[] = [
         <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
       </svg>
     ),
-    subItems: [
-      { key: 'profile-id',         label: '신분증 인증',   href: (locale) => `/${locale}/worker/profile/id` },
-      { key: 'profile-experience', label: '경력 사항',     href: (locale) => `/${locale}/worker/profile/experience` },
-      { key: 'profile-signature',  label: '전자 서명',     href: (locale) => `/${locale}/worker/profile/signature` },
-    ],
   },
   {
     key: 'notifications',
@@ -108,9 +95,6 @@ const NAV_ITEMS: NavItem[] = [
 
 export default function WorkerAccountShell({ locale, userName, userPhone, isManager, children }: Props) {
   const pathname = usePathname()
-  const [profileExpanded, setProfileExpanded] = useState(() =>
-    pathname.startsWith(`/${locale}/worker/profile`)
-  )
 
   const displayName = userName ?? userPhone ?? '근로자'
   const initial = displayName.charAt(0).toUpperCase()
@@ -119,10 +103,6 @@ export default function WorkerAccountShell({ locale, userName, userPhone, isMana
     const href = item.href(locale)
     if (item.exact) return pathname === href
     return pathname.startsWith(href)
-  }
-
-  function isSubItemActive(sub: SubItem): boolean {
-    return pathname.startsWith(sub.href(locale))
   }
 
   // Mobile: section label derived from current path
@@ -139,28 +119,6 @@ export default function WorkerAccountShell({ locale, userName, userPhone, isMana
               {currentSection.icon}
             </span>
             <h2 className="text-base font-bold text-[#25282A]">{currentSection.label}</h2>
-            {/* Sub-items for profile */}
-            {currentSection.subItems && (
-              <div className="flex gap-1 ml-auto overflow-x-auto scrollbar-hide">
-                {currentSection.subItems.map((sub) => {
-                  const subActive = isSubItemActive(sub)
-                  return (
-                    <Link
-                      key={sub.key}
-                      href={sub.href(locale) as never}
-                      className={`flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all ${
-                        subActive
-                          ? 'bg-[#0669F7] text-white'
-                          : 'bg-white text-[#4B5563] border border-[#EFF1F5]'
-                      }`}
-                    >
-                      <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${subActive ? 'bg-white' : 'bg-[#D1D5DB]'}`} />
-                      {sub.label}
-                    </Link>
-                  )
-                })}
-              </div>
-            )}
           </div>
         )}
       </div>
@@ -197,14 +155,12 @@ export default function WorkerAccountShell({ locale, userName, userPhone, isMana
           <nav className="bg-white rounded-2xl border border-[#EFF1F5] overflow-hidden shadow-sm">
             {NAV_ITEMS.map((item, idx) => {
               const active = isItemActive(item)
-              const hasSubItems = item.subItems && item.subItems.length > 0
-              const isExpanded = item.key === 'profile' ? profileExpanded : false
               const isLast = idx === NAV_ITEMS.length - 1
 
               return (
                 <div key={item.key}>
                   {/* Main nav row */}
-                  <div className={`relative flex items-center group ${!isLast && !isExpanded ? 'border-b border-[#EFF1F5]' : ''}`}>
+                  <div className={`relative flex items-center group ${!isLast ? 'border-b border-[#EFF1F5]' : ''}`}>
                     {/* Active left accent bar */}
                     {active && (
                       <div className="absolute left-0 top-1 bottom-1 w-[3px] rounded-r-full bg-[#0669F7]" />
@@ -212,9 +168,6 @@ export default function WorkerAccountShell({ locale, userName, userPhone, isMana
 
                     <Link
                       href={item.href(locale) as never}
-                      onClick={() => {
-                        if (hasSubItems) setProfileExpanded(true)
-                      }}
                       className={`flex-1 flex items-center gap-3 pl-5 pr-3 py-3 text-sm font-medium transition-colors ${
                         active
                           ? 'bg-[#EEF5FF] text-[#0669F7]'
@@ -226,55 +179,7 @@ export default function WorkerAccountShell({ locale, userName, userPhone, isMana
                       </span>
                       <span className="flex-1">{item.label}</span>
                     </Link>
-
-                    {/* Sub-menu toggle button (for items with sub-items) */}
-                    {hasSubItems && (
-                      <button
-                        onClick={() => setProfileExpanded((v) => !v)}
-                        className={`pr-3 pl-1 py-3 shrink-0 transition-colors ${
-                          active ? 'text-[#0669F7]' : 'text-[#98A2B2] hover:text-[#4B5563]'
-                        }`}
-                        aria-label="Toggle sub-menu"
-                      >
-                        <svg
-                          className={`w-4 h-4 transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`}
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                          strokeWidth={2}
-                        >
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-                        </svg>
-                      </button>
-                    )}
                   </div>
-
-                  {/* Sub-items */}
-                  {hasSubItems && isExpanded && (
-                    <div className={`bg-[#F7F8FA] ${!isLast ? 'border-b border-[#EFF1F5]' : ''}`}>
-                      {item.subItems!.map((sub, sIdx) => {
-                        const subActive = isSubItemActive(sub)
-                        const isSubLast = sIdx === item.subItems!.length - 1
-                        return (
-                          <Link
-                            key={sub.key}
-                            href={sub.href(locale) as never}
-                            className={`relative flex items-center gap-2.5 pl-10 pr-4 py-2.5 text-xs font-medium transition-colors ${
-                              !isSubLast ? 'border-b border-[#EFF1F5]' : ''
-                            } ${
-                              subActive
-                                ? 'text-[#0669F7] bg-[#EEF5FF]'
-                                : 'text-[#6B7280] hover:text-[#25282A] hover:bg-[#F0F1F3]'
-                            }`}
-                          >
-                            {/* Sub-item dot indicator */}
-                            <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${subActive ? 'bg-[#0669F7]' : 'bg-[#D1D5DB]'}`} />
-                            {sub.label}
-                          </Link>
-                        )
-                      })}
-                    </div>
-                  )}
                 </div>
               )
             })}

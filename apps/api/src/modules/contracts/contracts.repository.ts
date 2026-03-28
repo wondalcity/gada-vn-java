@@ -21,9 +21,62 @@ export class ContractsRepository {
     return rows[0] || null;
   }
 
+  async findByWorkerUserId(userId: string) {
+    const { rows } = await this.db.query(
+      `SELECT
+         c.id,
+         c.status,
+         c.worker_signed_at           AS "workerSignedAt",
+         c.created_at                 AS "createdAt",
+         j.title                      AS "jobTitle",
+         j.work_date                  AS "workDate",
+         j.daily_wage::INTEGER        AS "dailyWage",
+         s.name                       AS "siteName",
+         mp.representative_name       AS "managerName"
+       FROM app.contracts c
+       JOIN app.jobs j ON c.job_id = j.id
+       JOIN app.construction_sites s ON j.site_id = s.id
+       JOIN app.worker_profiles wp ON c.worker_id = wp.id
+       JOIN app.manager_profiles mp ON c.manager_id = mp.id
+       WHERE wp.user_id = $1
+       ORDER BY c.created_at DESC`,
+      [userId],
+    );
+    return rows;
+  }
+
   async findById(id: string) {
     const { rows } = await this.db.query(
-      'SELECT * FROM app.contracts WHERE id = $1',
+      `SELECT
+         c.id,
+         c.status,
+         c.contract_html              AS "contractHtml",
+         c.worker_signed_at           AS "workerSignedAt",
+         c.manager_signed_at          AS "managerSignedAt",
+         c.worker_signature_s3_key    AS "workerSigUrl",
+         c.manager_signature_s3_key   AS "managerSigUrl",
+         c.contract_pdf_s3_key        AS "downloadUrl",
+         c.created_at                 AS "createdAt",
+         j.title                      AS "jobTitle",
+         j.work_date                  AS "workDate",
+         j.daily_wage::INTEGER        AS "dailyWage",
+         j.start_time                 AS "startTime",
+         j.end_time                   AS "endTime",
+         j.slots_total                AS "slotsTotal",
+         s.name                       AS "siteName",
+         s.address                    AS "siteAddress",
+         wp.full_name                 AS "workerName",
+         uw.phone                     AS "workerPhone",
+         mp.representative_name       AS "managerName",
+         um.phone                     AS "managerPhone"
+       FROM app.contracts c
+       JOIN app.jobs j ON c.job_id = j.id
+       JOIN app.construction_sites s ON j.site_id = s.id
+       JOIN app.worker_profiles wp ON c.worker_id = wp.id
+       JOIN auth.users uw ON wp.user_id = uw.id
+       JOIN app.manager_profiles mp ON c.manager_id = mp.id
+       JOIN auth.users um ON mp.user_id = um.id
+       WHERE c.id = $1`,
       [id],
     );
     return rows[0] || null;
@@ -89,10 +142,11 @@ export class ContractsRepository {
       `UPDATE app.contracts c
        SET worker_signature_s3_key = $2,
            worker_signed_at = NOW(),
-           status = 'FULLY_SIGNED',
+           status = 'PENDING_MANAGER_SIGN',
            updated_at = NOW()
        FROM app.worker_profiles wp
        WHERE c.id = $1 AND c.worker_id = wp.id AND wp.user_id = $3
+         AND c.status = 'PENDING_WORKER_SIGN'
        RETURNING c.*`,
       [contractId, signatureS3Key, workerUserId],
     );

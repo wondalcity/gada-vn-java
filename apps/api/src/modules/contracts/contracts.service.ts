@@ -56,6 +56,10 @@ export class ContractsService {
     return contract;
   }
 
+  async findByWorker(userId: string) {
+    return this.repo.findByWorkerUserId(userId);
+  }
+
   async sign(id: string, workerUserId: string, signatureData?: string) {
     const contract = await this.repo.findById(id);
     if (!contract) throw new NotFoundException(`Contract ${id} not found`);

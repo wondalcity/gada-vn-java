@@ -342,18 +342,31 @@ export default function JobsMapView({
     })
   }, [onBoundsChange])
 
+  const flyToJob = useCallback((job: PublicJob) => {
+    if (job.siteLat == null || job.siteLng == null || !mapRef.current) return
+    // fitBounds handles zoom + center atomically (panTo + setZoom conflict in Google Maps)
+    const DELTA = 0.004 // ~400m per side → approx zoom 15
+    const bounds = new window.google.maps.LatLngBounds(
+      { lat: job.siteLat - DELTA, lng: job.siteLng - DELTA },
+      { lat: job.siteLat + DELTA, lng: job.siteLng + DELTA },
+    )
+    mapRef.current.fitBounds(bounds, 0)
+  }, [])
+
   const handleCardClick = useCallback((job: PublicJob) => {
     const isAlreadySelected = job.id === selectedJobId
     setSelectedJobId(isAlreadySelected ? null : job.id)
-    if (!isAlreadySelected && job.siteLat != null && job.siteLng != null && mapRef.current) {
-      mapRef.current.panTo({ lat: job.siteLat, lng: job.siteLng })
-    }
-  }, [selectedJobId])
+    if (!isAlreadySelected) flyToJob(job)
+  }, [selectedJobId, flyToJob])
 
   const handleMarkerSelect = useCallback((id: string | null) => {
     setSelectedJobId(id)
-    if (id) setSheetExpanded(true)
-  }, [])
+    if (id) {
+      setSheetExpanded(true)
+      const job = jobs.find(j => j.id === id)
+      if (job) flyToJob(job)
+    }
+  }, [jobs, flyToJob])
 
   // Scroll selected card into view
   useEffect(() => {

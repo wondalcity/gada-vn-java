@@ -9,6 +9,12 @@ export class ApplicationsService {
     private readonly notifications: NotificationsService,
   ) {}
 
+  async withdraw(id: string, userId: string) {
+    const result = await this.repo.withdrawByWorker(id, userId);
+    if (!result) throw new NotFoundException(`Application ${id} not found or cannot be withdrawn`);
+    return result;
+  }
+
   async apply(userId: string, jobId: string, data: Record<string, unknown>) {
     const existing = await this.repo.findByWorkerAndJob(userId, jobId);
     if (existing) {

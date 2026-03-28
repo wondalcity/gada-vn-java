@@ -112,7 +112,7 @@ export default function WorkerApplicationsClient() {
       return
     }
     setIsLoading(true)
-    apiClient<WorkerApplication[]>('/worker/applications', { token: idToken })
+    apiClient<WorkerApplication[]>('/applications/mine', { token: idToken })
       .then(({ data }) => {
         if (data.length === 0) {
           setApplications(DEMO_APPLICATIONS)
@@ -151,7 +151,7 @@ export default function WorkerApplicationsClient() {
     const prev = applications
     setApplications(apps => apps.filter(a => a.id !== id))
     try {
-      const res = await fetch(`${API_BASE}/worker/applications/${id}`, {
+      const res = await fetch(`${API_BASE}/applications/${id}`, {
         method: 'DELETE',
         headers: { Authorization: `Bearer ${idToken}` },
       })
@@ -170,11 +170,11 @@ export default function WorkerApplicationsClient() {
 
   if (isLoading) {
     return (
-      <div className="max-w-2xl mx-auto px-4 py-6">
+      <div className="py-6">
         <h1 className="text-xl font-bold text-[#25282A] mb-6">지원 현황</h1>
         <div className="space-y-3">
           {[1, 2, 3].map(i => (
-            <div key={i} className="bg-white rounded-sm shadow-sm border border-[#DDDDDD] p-4 animate-pulse">
+            <div key={i} className="bg-white rounded-2xl border border-[#EFF1F5] p-4 animate-pulse shadow-sm">
               <div className="h-4 bg-gray-200 rounded w-2/3 mb-3" />
               <div className="h-3 bg-gray-200 rounded w-1/2 mb-2" />
               <div className="h-3 bg-gray-200 rounded w-1/3" />
@@ -187,7 +187,7 @@ export default function WorkerApplicationsClient() {
 
   if (error) {
     return (
-      <div className="max-w-2xl mx-auto px-4 py-6">
+      <div className="py-6">
         <h1 className="text-xl font-bold text-[#25282A] mb-6">지원 현황</h1>
         <p className="text-[#ED1C24] text-sm">{error}</p>
       </div>
@@ -195,8 +195,8 @@ export default function WorkerApplicationsClient() {
   }
 
   return (
-    <div className="max-w-2xl mx-auto">
-      <div className="px-4 py-6 flex items-center gap-3">
+    <div>
+      <div className="py-6 flex items-center gap-3">
         <h1 className="text-xl font-bold text-[#25282A]">지원 현황</h1>
         {isDemo && (
           <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-700 border border-amber-200">
@@ -206,8 +206,8 @@ export default function WorkerApplicationsClient() {
       </div>
 
       {/* Tab filter bar */}
-      <div className="sticky top-0 z-10 bg-white border-b border-[#DDDDDD]">
-        <div className="flex overflow-x-auto scrollbar-hide px-4 gap-1">
+      <div className="sticky z-10 bg-white border-b border-[#EFF1F5]" style={{ top: 'var(--app-bar-height, 56px)' }}>
+        <div className="flex overflow-x-auto scrollbar-hide gap-1">
           {(Object.keys(TAB_LABELS) as TabKey[]).map(tab => (
             <button
               key={tab}
@@ -233,32 +233,32 @@ export default function WorkerApplicationsClient() {
       </div>
 
       {/* Application list */}
-      <div className="px-4 py-4 space-y-3">
+      <div className="py-4 space-y-3">
         {filtered.length === 0 ? (
-          <div className="py-16 text-center">
+          <div className="py-16 text-center bg-white rounded-2xl border border-[#EFF1F5]">
             <p className="text-[#7A7B7A] text-sm">해당 상태의 지원 내역이 없습니다</p>
           </div>
         ) : (
           filtered.map(app => {
             const statusConfig = STATUS_CONFIG[app.status]
             return (
-              <div key={app.id} className="bg-white rounded-sm shadow-sm border border-[#DDDDDD] p-4 relative">
+              <div key={app.id} className="bg-white rounded-2xl shadow-sm border border-[#EFF1F5] p-4 relative">
                 {/* Status badge */}
                 <span className={`absolute top-4 right-4 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${statusConfig.className}`}>
                   {statusConfig.label}
                 </span>
 
                 {/* Job title */}
-                <p className="font-semibold text-[#25282A] text-sm pr-20">{app.jobTitle}</p>
+                <p className="font-semibold text-[#25282A] text-sm pr-24">{app.jobTitle}</p>
 
                 {/* Site & Date */}
-                <p className="text-xs text-[#7A7B7A] mt-1">{app.siteName} · {formatDate(app.workDate)}</p>
+                <p className="text-xs text-[#98A2B2] mt-1">{app.siteName} · {formatDate(app.workDate)}</p>
 
                 {/* Wage */}
-                <p className="text-sm font-medium text-[#0669F7] mt-1">{formatVND(app.dailyWage)}</p>
+                <p className="text-sm font-semibold text-[#0669F7] mt-1">{formatVND(app.dailyWage)}</p>
 
                 {/* Applied date */}
-                <p className="text-xs text-[#7A7B7A] mt-2">지원일: {formatDate(app.appliedAt)}</p>
+                <p className="text-xs text-[#98A2B2] mt-2">지원일: {formatDate(app.appliedAt)}</p>
 
                 {/* Actions */}
                 <div className="mt-3">
@@ -267,7 +267,7 @@ export default function WorkerApplicationsClient() {
                       type="button"
                       onClick={() => setConfirmWithdrawId(app.id)}
                       disabled={withdrawingId === app.id}
-                      className="px-5 py-2.5 rounded-full border border-[#DDDDDD] text-[#25282A] font-medium text-sm disabled:opacity-40"
+                      className="px-5 py-2 rounded-full border border-[#DDDDDD] text-[#25282A] font-medium text-sm disabled:opacity-40 hover:border-[#0669F7] hover:text-[#0669F7] transition-colors"
                     >
                       {withdrawingId === app.id ? '취소 중...' : '지원 취소'}
                     </button>

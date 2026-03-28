@@ -26,8 +26,17 @@ export class ApplicationsRepository {
   async findByWorkerUserId(userId: string, page: number, limit: number) {
     const offset = (page - 1) * limit;
     const { rows } = await this.db.query(
-      `SELECT a.*, j.title as job_title, j.work_date, j.daily_wage,
-              s.name as site_name, s.address
+      `SELECT
+         a.id,
+         a.job_id       AS "jobId",
+         j.title        AS "jobTitle",
+         s.id           AS "siteId",
+         s.name         AS "siteName",
+         j.work_date    AS "workDate",
+         j.daily_wage::INTEGER AS "dailyWage",
+         a.status,
+         a.applied_at   AS "appliedAt",
+         a.notes
        FROM app.job_applications a
        JOIN app.worker_profiles wp ON a.worker_id = wp.id
        JOIN app.jobs j ON a.job_id = j.id
@@ -75,6 +84,21 @@ export class ApplicationsRepository {
       [id],
     );
     return rows[0]?.user_id ?? null;
+  }
+
+  async withdrawByWorker(id: string, userId: string) {
+    const { rows } = await this.db.query(
+      `UPDATE app.job_applications a
+       SET status = 'WITHDRAWN', updated_at = NOW()
+       FROM app.worker_profiles wp
+       WHERE a.id = $1
+         AND a.worker_id = wp.id
+         AND wp.user_id = $2
+         AND a.status = 'PENDING'
+       RETURNING a.*`,
+      [id, userId],
+    );
+    return rows[0] || null;
   }
 
   async updateStatus(id: string, managerUserId: string, status: string) {

@@ -2,6 +2,7 @@ export type ContractStatus = 'PENDING_WORKER_SIGN' | 'PENDING_MANAGER_SIGN' | 'F
 
 export interface Contract {
   id: string
+  contractHtml?: string | null
   status: ContractStatus
   jobTitle: string
   siteName: string
