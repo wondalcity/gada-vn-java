@@ -1,0 +1,402 @@
+'use client'
+
+import * as React from 'react'
+import Link from 'next/link'
+import { useRouter } from 'next/navigation'
+import { getSessionCookie } from '@/lib/auth/session'
+import ConfirmModal from '@/components/manager/ConfirmModal'
+
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'https://api.gada.vn/api/v1'
+
+interface Props {
+  jobId: string
+  slug: string
+  locale: string
+  jobStatus: string
+  expiresAt?: string
+  isLoggedIn?: boolean
+  initialApplicationId?: string
+  initialApplicationStatus?: string
+  initialNotes?: string
+}
+
+type Phase =
+  | 'idle'          // not yet applied
+  | 'confirming'    // showing apply form (with optional note)
+  | 'applying'      // POST in progress
+  | 'applied'       // successfully applied — management panel
+  | 'editing_note'  // editing the note inline
+  | 'saving_note'   // PUT in progress
+  | 'withdrawing'   // DELETE in progress
+  | 'error'         // apply/withdraw error
+
+const ERROR_MESSAGES: Record<string, string> = {
+  ALREADY_APPLIED: '이미 지원한 공고입니다',
+  JOB_FULL: '모집이 완료되었습니다',
+  JOB_NOT_OPEN: '마감된 공고입니다',
+}
+
+const STATUS_LABEL: Record<string, { label: string; className: string }> = {
+  APPLIED:   { label: '검토중',   className: 'bg-yellow-50 text-yellow-700 border-yellow-200' },
+  HIRED:     { label: '합격',     className: 'bg-green-50 text-green-700 border-green-200' },
+  COMPLETED: { label: '계약완료', className: 'bg-blue-50 text-[#0669F7] border-blue-200' },
+  REJECTED:  { label: '불합격',   className: 'bg-red-50 text-[#D81A48] border-red-200' },
+  WITHDRAWN: { label: '취소됨',   className: 'bg-gray-100 text-[#98A2B2] border-[#EFF1F5]' },
+}
+
+export default function ApplyButton({
+  jobId, slug, locale, jobStatus, expiresAt,
+  isLoggedIn = false,
+  initialApplicationId, initialApplicationStatus, initialNotes,
+}: Props) {
+  // isLoggedIn is determined server-side and passed as prop to avoid
+  // hydration mismatch (getSessionCookie() returns null during SSR).
+  // Actual token is read inside event handlers where document is available.
+  const router = useRouter()
+
+  const [phase, setPhase] = React.useState<Phase>(initialApplicationId ? 'applied' : 'idle')
+  const [appId, setAppId] = React.useState(initialApplicationId)
+  const [appStatus, setAppStatus] = React.useState(initialApplicationStatus ?? '')
+  const [note, setNote] = React.useState(initialNotes ?? '')
+  const [draftNote, setDraftNote] = React.useState(initialNotes ?? '')
+  const [errorMsg, setErrorMsg] = React.useState('')
+  const [showWithdrawConfirm, setShowWithdrawConfirm] = React.useState(false)
+
+  const isExpired = expiresAt ? new Date(expiresAt) < new Date() : false
+  const isJobOpen = jobStatus === 'OPEN' && !isExpired
+
+  // Can cancel: only while APPLIED (검토중) and job still OPEN
+  const canWithdraw = isJobOpen && appStatus === 'APPLIED'
+
+  // ── Apply ────────────────────────────────────────────────────────
+  async function handleApply() {
+    const idToken = getSessionCookie()
+    if (!idToken) {
+      router.push(`/${locale}/login?redirect=/${locale}/jobs/${slug}`)
+      return
+    }
+    setPhase('applying')
+    setErrorMsg('')
+    try {
+      const res = await fetch(`${API_BASE}/jobs/${jobId}/apply`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${idToken}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ notes: note.trim() || undefined }),
+      })
+      if (res.status === 201) {
+        const body = await res.json()
+        setAppId(body?.data?.id)
+        setAppStatus('APPLIED')
+        setPhase('applied')
+        return
+      }
+      const body = await res.json()
+      const code = body.code ?? body.error ?? ''
+      setErrorMsg(ERROR_MESSAGES[code] ?? body.message ?? '지원 중 오류가 발생했습니다')
+      setPhase('error')
+    } catch {
+      setErrorMsg('지원 중 오류가 발생했습니다')
+      setPhase('error')
+    }
+  }
+
+  // ── Save note ────────────────────────────────────────────────────
+  async function handleSaveNote() {
+    const idToken = getSessionCookie()
+    if (!idToken || !appId) return
+    setPhase('saving_note')
+    try {
+      const res = await fetch(`${API_BASE}/applications/${appId}/note`, {
+        method: 'PUT',
+        headers: { Authorization: `Bearer ${idToken}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ notes: draftNote.trim() }),
+      })
+      if (res.ok) {
+        setNote(draftNote.trim())
+        setPhase('applied')
+      } else {
+        setPhase('applied')
+      }
+    } catch {
+      setPhase('applied')
+    }
+  }
+
+  // ── Withdraw ─────────────────────────────────────────────────────
+  async function handleWithdraw() {
+    const idToken = getSessionCookie()
+    if (!idToken || !appId) return
+    setPhase('withdrawing')
+    try {
+      const res = await fetch(`${API_BASE}/applications/${appId}`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${idToken}` },
+      })
+      if (res.ok || res.status === 200) {
+        // Reset — worker can re-apply
+        setAppId(undefined)
+        setAppStatus('')
+        setNote('')
+        setDraftNote('')
+        setPhase('idle')
+        return
+      }
+      const body = await res.json().catch(() => ({}))
+      setErrorMsg(body.message ?? '취소 중 오류가 발생했습니다')
+      setPhase('applied')
+    } catch {
+      setErrorMsg('취소 중 오류가 발생했습니다')
+      setPhase('applied')
+    }
+  }
+
+  // ════════════════════════════════════════════════════════════════
+  // Render helpers
+  // ════════════════════════════════════════════════════════════════
+
+  const statusBadge = appStatus ? STATUS_LABEL[appStatus] : null
+
+  // Sticky bar: sits ABOVE the tab bar using CSS variable, falls back to bottom:0 on public pages
+  const stickyClass = 'fixed left-0 right-0 p-4 bg-white border-t border-[#EFF1F5] shadow-lg z-40'
+  const stickyStyle = { bottom: 'calc(var(--tab-bar-height, 0px) + env(safe-area-inset-bottom, 0px))' }
+
+  // Management panel (shown after applying)
+  function renderAppliedPanel(sticky = false) {
+    const base = sticky ? stickyClass : 'mt-6 bg-white rounded-2xl p-5'
+    const baseStyle = sticky ? stickyStyle : { boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }
+
+    if (phase === 'editing_note' || phase === 'saving_note') {
+      return (
+        <div className={base} style={sticky ? stickyStyle : baseStyle}>
+          <p className="text-xs text-[#98A2B2] mb-1.5 font-medium">관리자에게 메시지 수정</p>
+          <textarea
+            value={draftNote}
+            onChange={e => setDraftNote(e.target.value)}
+            rows={3}
+            maxLength={200}
+            placeholder="간단한 자기소개나 경력을 적어보세요 (선택사항)"
+            className="w-full text-sm border border-[#EFF1F5] rounded-2xl px-3 py-2 resize-none focus:outline-none focus:ring-2 focus:ring-[#0669F7]/30 mb-4"
+          />
+          <div className="flex gap-3">
+            <button
+              type="button"
+              onClick={() => { setDraftNote(note); setPhase('applied') }}
+              className="flex-1 h-14 rounded-2xl bg-[#EFF1F5] text-[#25282A] text-sm font-bold"
+            >
+              취소
+            </button>
+            <button
+              type="button"
+              onClick={handleSaveNote}
+              disabled={phase === 'saving_note'}
+              className="flex-1 h-14 rounded-2xl bg-[#0669F7] text-white text-sm font-bold disabled:opacity-50"
+            >
+              {phase === 'saving_note' ? '저장 중...' : '저장'}
+            </button>
+          </div>
+        </div>
+      )
+    }
+
+    return (
+      <div className={base} style={sticky ? stickyStyle : baseStyle}>
+        {/* Status row */}
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-2">
+            <svg className="w-4 h-4 text-green-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <span className="text-sm font-bold text-[#25282A]">신청완료됨</span>
+          </div>
+          {statusBadge && (
+            <span className={`text-xs font-bold px-2.5 py-1 rounded-full border ${statusBadge.className}`}>
+              {statusBadge.label}
+            </span>
+          )}
+        </div>
+
+        {/* Note preview */}
+        {note && (
+          <div className="flex items-start justify-between gap-2 mb-4 bg-[#F2F4F5] rounded-2xl px-3 py-3">
+            <p className="text-xs text-[#98A2B2] leading-relaxed flex-1">{note}</p>
+            {canWithdraw && (
+              <button
+                type="button"
+                onClick={() => { setDraftNote(note); setPhase('editing_note') }}
+                className="shrink-0 text-xs text-[#0669F7] font-bold"
+              >
+                수정
+              </button>
+            )}
+          </div>
+        )}
+
+        {/* Action buttons */}
+        <div className="flex flex-col gap-3">
+          <Link
+            href={`/${locale}/worker/applications`}
+            className="text-center h-14 flex items-center justify-center rounded-2xl bg-[#E6F0FE] text-[#0669F7] text-sm font-bold hover:bg-[#D6E8FE] transition-colors"
+          >
+            지원 현황 보기
+          </Link>
+
+          {canWithdraw && (
+            <div className={`flex gap-3 ${sticky ? '' : 'flex-row'}`}>
+              <button
+                type="button"
+                onClick={() => setShowWithdrawConfirm(true)}
+                disabled={phase === 'withdrawing'}
+                className={`flex-1 rounded-2xl bg-[#FDE8EE] text-[#D81A48] text-sm font-bold hover:bg-[#FCD0DC] transition-colors disabled:opacity-40 ${sticky ? 'h-14' : 'h-11'}`}
+              >
+                {phase === 'withdrawing' ? '취소 중...' : '지원 취소'}
+              </button>
+
+              {!note && (
+                <button
+                  type="button"
+                  onClick={() => setPhase('editing_note')}
+                  className={`flex-1 rounded-2xl bg-[#EFF1F5] text-[#98A2B2] text-sm font-bold hover:bg-[#E4E8EE] transition-colors ${sticky ? 'h-14' : 'h-11'}`}
+                >
+                  + 메시지 추가
+                </button>
+              )}
+            </div>
+          )}
+        </div>
+
+        {errorMsg && <p className="text-xs text-[#D81A48] mt-3 text-center">{errorMsg}</p>}
+      </div>
+    )
+  }
+
+  // Apply form with optional note
+  function renderApplyForm(sticky = false) {
+    const base = sticky ? stickyClass : 'mt-6 bg-white rounded-2xl p-5 flex flex-col gap-4'
+    const baseStyle = sticky ? stickyStyle : { boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }
+    const isLoading = phase === 'applying'
+
+    if (phase === 'confirming') {
+      return (
+        <div className={base} style={sticky ? stickyStyle : baseStyle}>
+          <p className="text-xs text-[#98A2B2] font-medium">관리자에게 메시지 (선택사항)</p>
+          <textarea
+            value={note}
+            onChange={e => setNote(e.target.value)}
+            rows={3}
+            maxLength={200}
+            placeholder="간단한 자기소개나 경력을 적어보세요"
+            className="w-full text-sm border border-[#EFF1F5] rounded-2xl px-3 py-3 resize-none focus:outline-none focus:ring-2 focus:ring-[#0669F7]/30"
+          />
+          <div className="flex gap-3">
+            <button
+              type="button"
+              onClick={() => setPhase('idle')}
+              className="flex-1 h-14 rounded-2xl bg-[#EFF1F5] text-[#25282A] text-sm font-bold"
+            >
+              취소
+            </button>
+            <button
+              type="button"
+              onClick={handleApply}
+              className="flex-1 h-14 rounded-2xl bg-[#0669F7] text-white text-sm font-bold"
+            >
+              신청하기
+            </button>
+          </div>
+        </div>
+      )
+    }
+
+    return (
+      <div className={base} style={sticky ? stickyStyle : baseStyle}>
+        <button
+          type="button"
+          onClick={() => setPhase('confirming')}
+          disabled={isLoading}
+          className={`${sticky ? 'w-full' : ''} h-14 px-5 rounded-2xl bg-[#0669F7] text-white font-bold text-sm disabled:opacity-40 flex items-center justify-center gap-2`}
+        >
+          {isLoading && (
+            <svg className="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
+            </svg>
+          )}
+          지원하기
+        </button>
+        {phase === 'error' && <p className={`text-sm text-[#D81A48] ${sticky ? 'text-center mt-2' : ''}`}>{errorMsg}</p>}
+      </div>
+    )
+  }
+
+  // ════════════════════════════════════════════════════════════════
+  // Guest
+  // ════════════════════════════════════════════════════════════════
+  if (!isLoggedIn) {
+    const loginBtn = (sticky: boolean) => (
+      <div
+        className={sticky ? stickyClass : 'mt-6'}
+        style={sticky ? stickyStyle : undefined}
+      >
+        <button
+          type="button"
+          onClick={() => router.push(`/${locale}/login?redirect=/${locale}/jobs/${slug}`)}
+          className={`${sticky ? 'w-full' : ''} h-14 px-5 rounded-2xl bg-[#0669F7] text-white font-bold text-sm`}
+        >
+          로그인 후 지원하기
+        </button>
+      </div>
+    )
+    return <>{loginBtn(false)}{loginBtn(true)}</>
+  }
+
+  // ════════════════════════════════════════════════════════════════
+  // Job closed/expired
+  // ════════════════════════════════════════════════════════════════
+  if (!isJobOpen && phase !== 'applied') {
+    const closedBtn = (sticky: boolean) => (
+      <div
+        className={sticky ? stickyClass : 'mt-6'}
+        style={sticky ? stickyStyle : undefined}
+      >
+        <button type="button" disabled
+          className={`${sticky ? 'w-full' : ''} h-14 px-5 rounded-2xl bg-[#0669F7] text-white font-bold text-sm disabled:opacity-40`}
+        >
+          {isExpired ? '지원 마감' : '마감된 공고입니다'}
+        </button>
+      </div>
+    )
+    return <>{closedBtn(false)}{closedBtn(true)}</>
+  }
+
+  // ════════════════════════════════════════════════════════════════
+  // Applied — management panel
+  // ════════════════════════════════════════════════════════════════
+  if (phase === 'applied' || phase === 'editing_note' || phase === 'saving_note' || phase === 'withdrawing') {
+    return (
+      <>
+        <div className="hidden md:block">{renderAppliedPanel(false)}</div>
+        <div className="md:hidden">{renderAppliedPanel(true)}</div>
+        <ConfirmModal
+          isOpen={showWithdrawConfirm}
+          title="지원 취소"
+          message="지원을 취소하시겠습니까? 취소 후에는 다시 지원할 수 있습니다."
+          confirmLabel="취소하기"
+          confirmVariant="danger"
+          onConfirm={() => { setShowWithdrawConfirm(false); handleWithdraw() }}
+          onCancel={() => setShowWithdrawConfirm(false)}
+          isLoading={phase === 'withdrawing'}
+        />
+      </>
+    )
+  }
+
+  // ════════════════════════════════════════════════════════════════
+  // Idle / confirming / applying / error
+  // ════════════════════════════════════════════════════════════════
+  return (
+    <>
+      <div className="hidden md:block">{renderApplyForm(false)}</div>
+      <div className="md:hidden">{renderApplyForm(true)}</div>
+    </>
+  )
+}

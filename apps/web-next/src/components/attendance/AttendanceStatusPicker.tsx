@@ -1,0 +1,91 @@
+'use client'
+
+import * as React from 'react'
+import type { AttendanceStatus } from '@/types/attendance'
+
+interface Props {
+  value: AttendanceStatus
+  onChange: (s: AttendanceStatus) => void
+  disabled?: boolean
+}
+
+const OPTIONS: {
+  status: AttendanceStatus
+  label: string
+  selectedClass: string
+  icon: React.ReactNode
+}[] = [
+  {
+    status: 'ATTENDED',
+    label: '출근',
+    selectedClass: 'border-green-500 bg-green-50 text-green-700',
+    icon: (
+      <svg className="w-4 h-4" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+        <polyline points="2,8 6,12 14,4" />
+      </svg>
+    ),
+  },
+  {
+    status: 'HALF_DAY',
+    label: '반차',
+    selectedClass: 'border-yellow-500 bg-yellow-50 text-yellow-700',
+    icon: (
+      <svg className="w-4 h-4" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+        <path d="M8 2a6 6 0 0 0 0 12V2z" />
+        <circle cx="8" cy="8" r="6" fill="none" stroke="currentColor" strokeWidth="1.5" />
+      </svg>
+    ),
+  },
+  {
+    status: 'ABSENT',
+    label: '결근',
+    selectedClass: 'border-[#D81A48] bg-red-50 text-[#D81A48]',
+    icon: (
+      <svg className="w-4 h-4" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" aria-hidden="true">
+        <line x1="3" y1="3" x2="13" y2="13" />
+        <line x1="13" y1="3" x2="3" y2="13" />
+      </svg>
+    ),
+  },
+  {
+    status: 'PENDING',
+    label: '미확인',
+    selectedClass: 'border-[#EFF1F5] bg-gray-100 text-[#98A2B2]',
+    icon: (
+      <svg className="w-4 h-4" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" aria-hidden="true">
+        <circle cx="8" cy="8" r="6" />
+        <line x1="8" y1="5" x2="8" y2="9" />
+        <circle cx="8" cy="11.5" r="0.5" fill="currentColor" />
+      </svg>
+    ),
+  },
+]
+
+export default function AttendanceStatusPicker({ value, onChange, disabled }: Props) {
+  return (
+    <div className="flex gap-2" role="group" aria-label="출근 상태 선택">
+      {OPTIONS.map(({ status, label, selectedClass, icon }) => {
+        const isSelected = value === status
+        return (
+          <button
+            key={status}
+            type="button"
+            onClick={() => !disabled && onChange(status)}
+            disabled={disabled}
+            aria-pressed={isSelected}
+            className={[
+              'flex-1 py-3 rounded-2xl text-sm font-medium border-2 transition-all flex flex-col items-center gap-1',
+              isSelected
+                ? selectedClass
+                : 'border-[#EFF1F5] text-[#98A2B2] hover:border-gray-400',
+              disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer',
+            ].join(' ')}
+          >
+            {icon}
+            <span>{label}</span>
+          </button>
+        )
+      })}
+    </div>
+  )
+}

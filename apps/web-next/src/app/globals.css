@@ -1,0 +1,155 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+
+/* GADA VN Design Tokens */
+:root {
+  /* Brand */
+  --color-primary: #0669F7;
+  --color-primary-on: #FFFFFF;
+  --color-primary-container: #E6F0FE;
+  --color-secondary: #FDBC08;
+  --color-tertiary: #00C800;
+  --color-error: #D81A48;
+
+  /* Surface */
+  --color-surface: #FFFFFF;
+  --color-surface-variant: #F2F4F5;
+  --color-on-surface: #25282A;
+  --color-on-surface-variant: #98A2B2;
+
+  /* Outline / Divider */
+  --color-outline: #EFF1F5;
+  --color-divider: #EFF1F5;
+
+  /* Utility */
+  --color-disabled: #DBDFE9;
+
+  /* Typography */
+  --font-sans: var(--font-nunito, 'Nunito Sans'), var(--font-noto-kr, 'Noto Sans KR'), system-ui, sans-serif;
+
+  /* Radii */
+  --radius-sm: 4px;
+  --radius-md: 16px;
+  --radius-lg: 24px;
+  --radius-full: 9999px;
+
+  /* Touch */
+  --touch-target: 44px;
+  --app-max-width: 480px;
+
+  /* App chrome heights */
+  --app-bar-height: 56px;
+  --tab-bar-height: 64px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: var(--font-sans);
+  color: var(--color-on-surface);
+  background-color: var(--color-surface);
+  -webkit-font-smoothing: antialiased;
+  /* Prevent rubber-band bounce on iOS when not needed */
+  overscroll-behavior-y: none;
+}
+
+/* ── Safe-area utilities ─────────────────────────────────────── */
+
+/* App bar: sticks to top, accounts for status bar on iOS */
+.app-bar {
+  padding-top: env(safe-area-inset-top, 0px);
+}
+
+/* Tab bar: sticks to bottom, accounts for home indicator on iOS */
+.tab-bar {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+/* Main content area: offset below app bar + above tab bar */
+.main-content {
+  padding-top: calc(var(--app-bar-height) + env(safe-area-inset-top, 0px));
+  padding-bottom: calc(var(--tab-bar-height) + env(safe-area-inset-bottom, 0px));
+  min-height: 100dvh;
+}
+
+/* Just bottom padding for bottom nav (e.g. manager layout) */
+.pb-nav {
+  padding-bottom: calc(var(--tab-bar-height) + env(safe-area-inset-bottom, 0px));
+}
+
+/* Variant: no bottom nav (e.g. desktop or fullscreen modals) */
+.main-content-no-nav {
+  padding-top: calc(var(--app-bar-height) + env(safe-area-inset-top, 0px));
+  min-height: 100dvh;
+}
+
+/* Disable tap highlight on interactive elements */
+a, button {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Map bottom sheet slide-up animation */
+@keyframes slideUpSheet {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Mobile touch feedback ──────────────────────────────── */
+
+/* Prevent text selection on tap */
+.no-select {
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+/* Scrollbar hide utility */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+/* Momentum scrolling on iOS */
+.scroll-touch {
+  -webkit-overflow-scrolling: touch;
+}
+
+/* ── Page entrance animation ─────────────────────────────── */
+@keyframes fadeSlideUp {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.animate-page {
+  animation: fadeSlideUp 0.2s ease-out;
+}
+
+/* ── Tab bar indicator pill ──────────────────────────────── */
+/* Active tab pill: pill indicator behind icon */
+.tab-indicator {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 4px;
+  height: 4px;
+  border-radius: 2px;
+  background: currentColor;
+}
+
+/* ── Card press effect ───────────────────────────────────── */
+@media (hover: none) {
+  .press-effect {
+    transition: transform 0.1s ease, opacity 0.1s ease;
+  }
+  .press-effect:active {
+    transform: scale(0.97);
+    opacity: 0.85;
+  }
+}

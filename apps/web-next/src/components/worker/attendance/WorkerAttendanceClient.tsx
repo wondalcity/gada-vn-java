@@ -1,0 +1,292 @@
+'use client'
+
+import * as React from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
+import { getSessionCookie } from '@/lib/auth/session'
+import type { WorkerAttendanceRecord, AttendanceStatus } from '@/types/attendance'
+import { STATUS_LABELS, STATUS_COLORS, formatHoursWorked } from '@/lib/attendance'
+
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'https://api.gada.vn/api/v1'
+
+const DEMO_RECORDS: WorkerAttendanceRecord[] = [
+  {
+    id: 'att-1',
+    jobId: 'djob-1',
+    jobTitle: '전기 배선 작업',
+    siteName: '롯데몰 하노이 지하 1층 공사',
+    workDate: '2026-03-24',
+    status: 'ATTENDED',
+    checkInTime: '07:05',
+    checkOutTime: '17:10',
+    hoursWorked: 10.08,
+  },
+  {
+    id: 'att-2',
+    jobId: 'djob-1',
+    jobTitle: '전기 배선 작업',
+    siteName: '롯데몰 하노이 지하 1층 공사',
+    workDate: '2026-03-25',
+    status: 'ATTENDED',
+    checkInTime: '07:00',
+    checkOutTime: '17:00',
+    hoursWorked: 10,
+  },
+  {
+    id: 'att-3',
+    jobId: 'djob-4',
+    jobTitle: '철근 조립 — 3층 골조',
+    siteName: '광명역 복합쇼핑몰 신축',
+    workDate: '2026-03-20',
+    status: 'HALF_DAY',
+    checkInTime: '07:00',
+    checkOutTime: '12:00',
+    hoursWorked: 5,
+    notes: '개인 사정으로 조기 퇴근',
+  },
+  {
+    id: 'att-4',
+    jobId: 'djob-4',
+    jobTitle: '철근 조립 — 3층 골조',
+    siteName: '광명역 복합쇼핑몰 신축',
+    workDate: '2026-03-21',
+    status: 'ABSENT',
+    notes: '병가',
+  },
+  {
+    id: 'att-5',
+    jobId: 'djob-4',
+    jobTitle: '철근 조립 — 3층 골조',
+    siteName: '광명역 복합쇼핑몰 신축',
+    workDate: '2026-03-22',
+    status: 'ATTENDED',
+    checkInTime: '07:00',
+    checkOutTime: '17:00',
+    hoursWorked: 10,
+  },
+  {
+    id: 'att-6',
+    jobId: 'djob-3',
+    jobTitle: '잡부 — 자재 운반',
+    siteName: '인천 송도 물류센터',
+    workDate: '2026-03-19',
+    status: 'ATTENDED',
+    checkInTime: '08:00',
+    checkOutTime: '17:00',
+    hoursWorked: 9,
+  },
+]
+
+type Tab = 'all' | AttendanceStatus
+
+const TABS: { key: Tab; label: string }[] = [
+  { key: 'all',      label: '전체' },
+  { key: 'ATTENDED', label: '출근' },
+  { key: 'ABSENT',   label: '결근' },
+  { key: 'HALF_DAY', label: '반차' },
+]
+
+function formatWorkDate(dateStr: string): string {
+  return new Intl.DateTimeFormat('ko-KR', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+    weekday: 'short',
+  }).format(new Date(dateStr))
+}
+
+export default function WorkerAttendanceClient() {
+  const idToken = getSessionCookie()
+  const searchParams = useSearchParams()
+  const jobIdFilter = searchParams.get('jobId')
+
+  const [records, setRecords] = React.useState<WorkerAttendanceRecord[]>([])
+  const [isLoading, setIsLoading] = React.useState(true)
+  const [error, setError] = React.useState<string | null>(null)
+  const [activeTab, setActiveTab] = React.useState<Tab>('all')
+
+  React.useEffect(() => {
+    if (!idToken) { setIsLoading(false); return }
+    setIsLoading(true)
+    setError(null)
+    const url = jobIdFilter
+      ? `${API_BASE}/workers/attendance?jobId=${jobIdFilter}`
+      : `${API_BASE}/workers/attendance`
+    fetch(url, {
+      headers: { Authorization: `Bearer ${idToken}` },
+    })
+      .then(async res => {
+        if (!res.ok) {
+          const body = await res.json().catch(() => ({}))
+          throw new Error(body.message ?? '근무 이력을 불러올 수 없습니다')
+        }
+        return res.json()
+      })
+      .then(body => {
+        const data: WorkerAttendanceRecord[] = body.data ?? body
+        setRecords(Array.isArray(data) ? data : [])
+      })
+      .catch(() => setRecords([]))  // fall back to demo on error
+      .finally(() => setIsLoading(false))
+  }, [idToken, jobIdFilter])
+
+  const isDemo = records.length === 0 && !error && !isLoading
+  const displayRecords = isDemo ? DEMO_RECORDS : records
+
+  const filteredRecords = activeTab === 'all'
+    ? displayRecords
+    : displayRecords.filter(r => r.status === activeTab)
+
+  const totalDays = displayRecords.length
+  const attendedDays = displayRecords.filter(r => r.status === 'ATTENDED').length
+  const absentDays = displayRecords.filter(r => r.status === 'ABSENT').length
+  const halfDayDays = displayRecords.filter(r => r.status === 'HALF_DAY').length
+
+  return (
+    <div className="max-w-[1760px] mx-auto px-4 pb-10">
+      {/* Header */}
+      <div className="py-5 flex items-center gap-3">
+        <h1 className="text-xl font-bold text-[#25282A]">근무 이력</h1>
+        {isDemo && (
+          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-700 border border-amber-200">
+            데모 데이터
+          </span>
+        )}
+        {jobIdFilter && (
+          <p className="text-xs text-[#98A2B2] mt-1">특정 일자리 필터링 중</p>
+        )}
+      </div>
+
+      {/* Stats row */}
+      {!isLoading && !error && (
+        <div className="grid grid-cols-3 gap-3 mb-4">
+          {[
+            { label: '출근', value: attendedDays, cls: 'text-green-700' },
+            { label: '결근', value: absentDays, cls: 'text-[#D81A48]' },
+            { label: '반차', value: halfDayDays, cls: 'text-yellow-700' },
+          ].map(({ label, value, cls }) => (
+            <div key={label} className="bg-white rounded-2xl shadow-sm border border-[#EFF1F5] px-4 py-3 text-center">
+              <p className={`text-2xl font-bold ${cls}`}>{value}</p>
+              <p className="text-xs text-[#98A2B2] mt-0.5">{label}</p>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Tabs */}
+      <div className="flex border-b border-[#EFF1F5] mb-4">
+        {TABS.map(tab => (
+          <button
+            key={tab.key}
+            type="button"
+            onClick={() => setActiveTab(tab.key)}
+            className={[
+              'flex-1 py-2.5 text-sm font-medium border-b-2 transition-colors',
+              activeTab === tab.key
+                ? 'border-[#0669F7] text-[#0669F7]'
+                : 'border-transparent text-[#98A2B2] hover:text-[#25282A]',
+            ].join(' ')}
+          >
+            {tab.label}
+            {tab.key !== 'all' && (
+              <span className="ml-1 text-xs">
+                ({displayRecords.filter(r => r.status === tab.key).length})
+              </span>
+            )}
+          </button>
+        ))}
+      </div>
+
+      {/* Content */}
+      {isLoading ? (
+        <div className="space-y-3">
+          {[1, 2, 3].map(i => (
+            <div key={i} className="bg-white rounded-2xl shadow-sm border border-[#EFF1F5] p-4 animate-pulse">
+              <div className="h-4 bg-gray-200 rounded w-1/2 mb-2" />
+              <div className="h-3 bg-gray-200 rounded w-1/3 mb-2" />
+              <div className="h-3 bg-gray-200 rounded w-2/3" />
+            </div>
+          ))}
+        </div>
+      ) : error ? (
+        <div className="py-12 text-center">
+          <p className="text-[#D81A48] text-sm mb-3">{error}</p>
+          <button
+            type="button"
+            onClick={() => window.location.reload()}
+            className="px-4 py-2 rounded-2xl border border-[#EFF1F5] text-sm text-[#25282A] hover:border-[#0669F7] transition-colors"
+          >
+            다시 시도
+          </button>
+        </div>
+      ) : filteredRecords.length === 0 ? (
+        <div className="py-16 text-center">
+          <svg className="w-14 h-14 text-[#EFF1F5] mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5}
+              d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+          </svg>
+          <p className="text-[#25282A] text-sm font-semibold mb-1">근무 이력이 없습니다</p>
+          <p className="text-[#98A2B2] text-xs">
+            {activeTab === 'all'
+              ? '합격 후 현장에 출근하면 여기에 기록됩니다'
+              : `${STATUS_LABELS[activeTab as AttendanceStatus] ?? activeTab} 이력이 없습니다`}
+          </p>
+        </div>
+      ) : (
+        <>
+          <div className="space-y-3">
+            {filteredRecords.map(record => (
+              <div key={record.id} className="bg-white rounded-2xl shadow-sm border border-[#EFF1F5] p-4">
+                {/* Date + status */}
+                <div className="flex items-start justify-between mb-2">
+                  <p className="font-semibold text-[#25282A] text-sm">
+                    {formatWorkDate(record.workDate)}
+                  </p>
+                  <span
+                    className={[
+                      'inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium border flex-shrink-0',
+                      STATUS_COLORS[record.status],
+                    ].join(' ')}
+                  >
+                    {STATUS_LABELS[record.status]}
+                  </span>
+                </div>
+
+                {/* Job/site info */}
+                {(record.jobTitle || record.siteName) && (
+                  <p className="text-xs text-[#98A2B2] mb-1.5">
+                    {record.jobTitle}
+                    {record.siteName && ` · ${record.siteName}`}
+                  </p>
+                )}
+
+                {/* Time info */}
+                {(record.checkInTime || record.checkOutTime) && (
+                  <p className="text-xs text-[#25282A]">
+                    {record.checkInTime ?? '--:--'}
+                    {' – '}
+                    {record.checkOutTime ?? '--:--'}
+                    {record.hoursWorked != null && (
+                      <span className="text-[#98A2B2]"> ({formatHoursWorked(record.hoursWorked)})</span>
+                    )}
+                  </p>
+                )}
+
+                {/* Notes */}
+                {record.notes && (
+                  <p className="text-xs text-[#98A2B2] mt-1.5 italic">{record.notes}</p>
+                )}
+              </div>
+            ))}
+          </div>
+
+          {/* Summary footer */}
+          <div className="mt-6 pt-4 border-t border-[#EFF1F5]">
+            <p className="text-xs text-[#98A2B2] text-center">
+              총 {totalDays}일 중 출근 {attendedDays}일 (결근 {absentDays}일, 반차 {halfDayDays}일)
+            </p>
+          </div>
+        </>
+      )}
+    </div>
+  )
+}
