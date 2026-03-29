@@ -49,6 +49,45 @@ export class AdminService {
     return this.repo.updateManagerProfile(id, data);
   }
 
+  // ── Worker management ─────────────────────────────────────────────────────
+
+  async listWorkers(search: string, limit: number) {
+    const [data, total] = await Promise.all([
+      this.repo.findWorkers(search, limit),
+      this.repo.countWorkers(search),
+    ]);
+    return { data, total };
+  }
+
+  async getWorker(id: string) {
+    const worker = await this.repo.findWorkerById(id);
+    if (!worker) throw new NotFoundException(`Worker ${id} not found`);
+    return worker;
+  }
+
+  async getWorkerTradeSkills(id: string) {
+    return this.repo.findWorkerTradeSkills(id);
+  }
+
+  async getAllTrades() {
+    return this.repo.findAllTrades();
+  }
+
+  async updateWorker(id: string, data: Record<string, unknown>) {
+    const worker = await this.repo.findWorkerById(id);
+    if (!worker) throw new NotFoundException(`Worker ${id} not found`);
+    return this.repo.updateWorkerProfile(id, data);
+  }
+
+  async updateWorkerTradeSkills(id: string, skills: { tradeId: number; years: number }[]) {
+    return this.repo.replaceWorkerTradeSkills(id, skills);
+  }
+
+  async promoteWorkerToManager(data: Record<string, unknown>) {
+    if (!data.userId) throw new NotFoundException('userId is required');
+    return this.repo.promoteWorker(data as Parameters<typeof this.repo.promoteWorker>[0]);
+  }
+
   // ── Notification management ───────────────────────────────────────────────
 
   async searchUsers(search: string, role: string, limit = 30) {

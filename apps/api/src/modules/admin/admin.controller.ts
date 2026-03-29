@@ -52,6 +52,52 @@ export class AdminController {
     return this.adminService.updateManagerProfile(id, body);
   }
 
+  @Post('managers/promote-worker')
+  async promoteWorker(@Body() body: Record<string, unknown>) {
+    return this.adminService.promoteWorkerToManager(body);
+  }
+
+  // ── Worker management ────────────────────────────────────────────────────
+
+  @Get('workers')
+  async listWorkers(
+    @Query('search') search = '',
+    @Query('limit', new DefaultValuePipe(20), ParseIntPipe) limit: number,
+  ) {
+    return this.adminService.listWorkers(search, limit);
+  }
+
+  @Get('trades')
+  async listTrades() {
+    return this.adminService.getAllTrades();
+  }
+
+  @Get('workers/:id')
+  async getWorker(@Param('id') id: string) {
+    return this.adminService.getWorker(id);
+  }
+
+  @Get('workers/:id/trade-skills')
+  async getWorkerTradeSkills(@Param('id') id: string) {
+    return this.adminService.getWorkerTradeSkills(id);
+  }
+
+  @Put('workers/:id')
+  async updateWorker(
+    @Param('id') id: string,
+    @Body() body: Record<string, unknown>,
+  ) {
+    return this.adminService.updateWorker(id, body);
+  }
+
+  @Put('workers/:id/trade-skills')
+  async updateWorkerTradeSkills(
+    @Param('id') id: string,
+    @Body() body: { skills: { tradeId: number; years: number }[] },
+  ) {
+    return this.adminService.updateWorkerTradeSkills(id, body.skills ?? []);
+  }
+
   // ── Notification management ───────────────────────────────────────────────
 
   /** Search users for notification targeting */

@@ -4,6 +4,7 @@ import { api } from '../lib/api'
 
 interface Worker {
   id: string
+  user_id: string
   full_name: string
   date_of_birth: string
   gender: string
@@ -31,6 +32,12 @@ interface Worker {
   lng: number | null
   created_at: string
   trade_name_ko: string
+  is_manager: boolean
+  manager_profile_id?: string | null
+  manager_approval_status?: string | null
+  manager_company_name?: string | null
+  manager_representative_name?: string | null
+  manager_approved_at?: string | null
 }
 
 interface TradeSkill {
@@ -48,13 +55,14 @@ interface Trade {
   name_vi: string
 }
 
-type TabKey = 'basic' | 'docs' | 'bank' | 'trades' | 'misc'
+type TabKey = 'basic' | 'docs' | 'bank' | 'trades' | 'manager' | 'misc'
 
 const TABS: { key: TabKey; label: string }[] = [
   { key: 'basic', label: '기본 정보' },
   { key: 'docs', label: '신분증 / 서류' },
   { key: 'bank', label: '은행 / 결제' },
   { key: 'trades', label: '직종 / 기술' },
+  { key: 'manager', label: '관리자' },
   { key: 'misc', label: '기타' },
 ]
 
@@ -195,7 +203,12 @@ export default function WorkerDetail() {
           {worker.full_name[0]?.toUpperCase()}
         </div>
         <div className="flex-1">
-          <h2 className="text-xl font-bold text-gray-900">{worker.full_name}</h2>
+          <div className="flex items-center gap-2">
+            <h2 className="text-xl font-bold text-gray-900">{worker.full_name}</h2>
+            {worker.is_manager && (
+              <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-[#FDBC08]/20 text-yellow-700">관리자</span>
+            )}
+          </div>
           <p className="text-sm text-gray-500">{worker.phone ?? '-'}</p>
         </div>
         <span className={`px-3 py-1 rounded-full text-xs font-medium ${
@@ -387,6 +400,48 @@ export default function WorkerDetail() {
           </>
         )}
 
+        {/* 관리자 정보 */}
+        {tab === 'manager' && (
+          <>
+            {worker.is_manager ? (
+              <>
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="px-3 py-1 rounded-full text-sm font-semibold bg-[#FDBC08]/20 text-yellow-700">관리자 활성</span>
+                  {worker.manager_approved_at && (
+                    <span className="text-xs text-gray-400">({new Date(worker.manager_approved_at).toLocaleDateString('ko-KR')} 승인)</span>
+                  )}
+                </div>
+                {worker.manager_company_name && (
+                  <ReadOnlyField label="회사명" value={worker.manager_company_name} />
+                )}
+                {worker.manager_representative_name && (
+                  <ReadOnlyField label="담당자명" value={worker.manager_representative_name} />
+                )}
+                {worker.manager_profile_id && (
+                  <div className="pt-2">
+                    <a
+                      href={`/managers/${worker.manager_profile_id}`}
+                      className="inline-block text-sm text-[#0669F7] hover:underline font-medium"
+                    >
+                      관리자 프로필 상세 보기 →
+                    </a>
+                  </div>
+                )}
+              </>
+            ) : (
+              <div className="py-6 text-center">
+                <p className="text-sm text-gray-400 mb-4">이 근로자는 관리자 권한이 없습니다.</p>
+                <a
+                  href={`/managers/promote?workerId=${worker.id}`}
+                  className="inline-block px-5 py-2.5 bg-[#0669F7] text-white text-sm font-semibold rounded-2xl hover:bg-[#0550C4] transition-colors"
+                >
+                  관리자로 지정하기 →
+                </a>
+              </div>
+            )}
+          </>
+        )}
+
         {/* 기타 */}
         {tab === 'misc' && (
           <>
@@ -447,7 +502,7 @@ function ImageField({ label, url }: { label: string; url: string | null | undefi
           <img src={url} alt={label} className="max-w-xs rounded border border-[#EFF1F5] hover:opacity-90 transition-opacity" />
         </a>
       ) : (
-        <div className="inline-block px-3 py-1.5 bg-[#EFF1F5] text-[#98A2B2]00 text-xs rounded-2xl border border-[#EFF1F5]">미등록</div>
+        <div className="inline-block px-3 py-1.5 bg-[#EFF1F5] text-[#98A2B2] text-xs rounded-2xl border border-[#EFF1F5]">미등록</div>
       )}
     </div>
   )

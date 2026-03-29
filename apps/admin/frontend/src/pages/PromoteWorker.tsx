@@ -194,7 +194,7 @@ export default function PromoteWorker() {
                   {w.id_verified ? (
                     <span className="px-2 py-0.5 text-xs rounded-full bg-green-100 text-green-700">신분증 인증</span>
                   ) : (
-                    <span className="px-2 py-0.5 text-xs rounded-full bg-[#EFF1F5] text-[#98A2B2]00">미인증</span>
+                    <span className="px-2 py-0.5 text-xs rounded-full bg-[#EFF1F5] text-[#98A2B2]">미인증</span>
                   )}
                   <span className="text-[#0669F7] text-xs">선택 →</span>
                 </div>

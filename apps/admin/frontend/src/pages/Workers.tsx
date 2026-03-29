@@ -10,6 +10,7 @@ interface Worker {
   current_province?: string
   id_verified: boolean
   created_at: string
+  is_manager?: boolean
 }
 
 export default function Workers() {
@@ -91,7 +92,7 @@ export default function Workers() {
           <table className="w-full">
             <thead className="bg-[#F2F4F5]">
               <tr>
-                {['이름', '전화번호', '지역', '신분증 인증', '가입일', ''].map((h) => (
+                {['이름', '전화번호', '지역', '신분증 인증', '권한', '가입일', ''].map((h) => (
                   <th key={h} className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase">{h}</th>
                 ))}
               </tr>
@@ -103,9 +104,16 @@ export default function Workers() {
                   <td className="px-6 py-4 text-sm text-gray-600">{w.phone ?? '-'}</td>
                   <td className="px-6 py-4 text-sm text-gray-500">{w.current_province ?? '-'}</td>
                   <td className="px-6 py-4">
-                    <span className={`px-2 py-1 text-xs rounded-full ${w.id_verified ? 'bg-green-100 text-green-700' : 'bg-[#EFF1F5] text-[#98A2B2]00'}`}>
+                    <span className={`px-2 py-1 text-xs rounded-full ${w.id_verified ? 'bg-green-100 text-green-700' : 'bg-[#EFF1F5] text-[#98A2B2]'}`}>
                       {w.id_verified ? '인증 완료' : '미인증'}
                     </span>
+                  </td>
+                  <td className="px-6 py-4">
+                    {w.is_manager ? (
+                      <span className="px-2 py-1 text-xs rounded-full bg-[#FDBC08]/20 text-yellow-700 font-medium">관리자</span>
+                    ) : (
+                      <span className="px-2 py-1 text-xs rounded-full bg-[#EFF1F5] text-[#98A2B2]">근로자</span>
+                    )}
                   </td>
                   <td className="px-6 py-4 text-sm text-gray-400">{new Date(w.created_at).toLocaleDateString('ko-KR')}</td>
                   <td className="px-6 py-4 text-right">
