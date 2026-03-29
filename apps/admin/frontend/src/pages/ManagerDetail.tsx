@@ -152,7 +152,7 @@ export default function ManagerDetail() {
   const statusClass =
     manager.approval_status === 'APPROVED' ? 'bg-green-100 text-green-700' :
     manager.approval_status === 'REJECTED' ? 'bg-[#FDE8EE] text-[#D81A48]' :
-    manager.approval_status === 'REVOKED' ? 'bg-[#EFF1F5] text-[#98A2B2]00' :
+    manager.approval_status === 'REVOKED' ? 'bg-[#EFF1F5] text-[#98A2B2]' :
     'bg-yellow-100 text-yellow-700'
 
   return (
@@ -212,7 +212,7 @@ export default function ManagerDetail() {
               권한 해제
             </button>
           )}
-          {manager.approval_status === 'REJECTED' && (
+          {(manager.approval_status === 'REJECTED' || manager.approval_status === 'REVOKED') && (
             <button
               onClick={approve}
               disabled={processing}
@@ -385,7 +385,7 @@ function ImageField({ label, url }: { label: string; url: string | null | undefi
           <img src={url} alt={label} className="max-w-xs rounded border border-[#EFF1F5] hover:opacity-90 transition-opacity" />
         </a>
       ) : (
-        <div className="inline-block px-3 py-1.5 bg-[#EFF1F5] text-[#98A2B2]00 text-xs rounded-2xl border border-[#EFF1F5]">미등록</div>
+        <div className="inline-block px-3 py-1.5 bg-[#EFF1F5] text-[#98A2B2] text-xs rounded-2xl border border-[#EFF1F5]">미등록</div>
       )}
     </div>
   )

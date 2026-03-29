@@ -37,6 +37,18 @@ export class AdminService {
     return this.repo.rejectManager(id, reason);
   }
 
+  async revokeManager(id: string) {
+    const manager = await this.repo.findManagerById(id);
+    if (!manager) throw new NotFoundException(`Manager ${id} not found`);
+    return this.repo.revokeManager(id);
+  }
+
+  async updateManagerProfile(id: string, data: Record<string, unknown>) {
+    const manager = await this.repo.findManagerById(id);
+    if (!manager) throw new NotFoundException(`Manager ${id} not found`);
+    return this.repo.updateManagerProfile(id, data);
+  }
+
   // ── Notification management ───────────────────────────────────────────────
 
   async searchUsers(search: string, role: string, limit = 30) {

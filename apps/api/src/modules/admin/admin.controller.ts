@@ -1,5 +1,5 @@
 import {
-  Controller, Get, Post, Delete, Param, Body, Query, UseGuards,
+  Controller, Get, Post, Put, Delete, Param, Body, Query, UseGuards,
   ParseIntPipe, DefaultValuePipe,
 } from '@nestjs/common';
 import { AdminService } from './admin.service';
@@ -37,6 +37,19 @@ export class AdminController {
     @Body() body: { reason?: string },
   ) {
     return this.adminService.rejectManager(id, body.reason ?? '');
+  }
+
+  @Post('managers/:id/revoke')
+  async revokeManager(@Param('id') id: string) {
+    return this.adminService.revokeManager(id);
+  }
+
+  @Put('managers/:id')
+  async updateManagerProfile(
+    @Param('id') id: string,
+    @Body() body: Record<string, unknown>,
+  ) {
+    return this.adminService.updateManagerProfile(id, body);
   }
 
   // ── Notification management ───────────────────────────────────────────────

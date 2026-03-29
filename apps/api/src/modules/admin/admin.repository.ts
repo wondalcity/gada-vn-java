@@ -159,4 +159,56 @@ export class AdminRepository {
     );
     return rows[0];
   }
+
+  async revokeManager(id: string) {
+    const { rows } = await this.db.query(
+      `UPDATE app.manager_profiles
+       SET approval_status = 'REVOKED', updated_at = NOW()
+       WHERE id = $1 RETURNING *`,
+      [id],
+    );
+    const profile = rows[0];
+    if (profile) {
+      // Downgrade user role back to WORKER
+      await this.db.query(
+        `UPDATE auth.users SET role = 'WORKER', updated_at = NOW() WHERE id = $1`,
+        [profile.user_id],
+      );
+    }
+    return profile;
+  }
+
+  async updateManagerProfile(id: string, data: Record<string, unknown>) {
+    const { rows } = await this.db.query(
+      `UPDATE app.manager_profiles SET
+         business_type       = COALESCE($2, business_type),
+         company_name        = COALESCE($3, company_name),
+         representative_name = COALESCE($4, representative_name),
+         representative_dob  = COALESCE($5::DATE, representative_dob),
+         representative_gender = COALESCE($6, representative_gender),
+         contact_phone       = COALESCE($7, contact_phone),
+         contact_address     = COALESCE($8, contact_address),
+         province            = COALESCE($9, province),
+         business_reg_number = COALESCE($10, business_reg_number),
+         first_site_name     = COALESCE($11, first_site_name),
+         first_site_address  = COALESCE($12, first_site_address),
+         updated_at          = NOW()
+       WHERE id = $1 RETURNING *`,
+      [
+        id,
+        data.businessType ?? null,
+        data.companyName ?? null,
+        data.representativeName ?? null,
+        data.representativeDob ?? null,
+        data.representativeGender ?? null,
+        data.contactPhone ?? null,
+        data.contactAddress ?? null,
+        data.province ?? null,
+        data.businessRegNumber ?? null,
+        data.firstSiteName ?? null,
+        data.firstSiteAddress ?? null,
+      ],
+    );
+    return rows[0];
+  }
 }

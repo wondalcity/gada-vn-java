@@ -104,6 +104,12 @@ export class AuthRepository {
     );
     if (!rows[0]) return null;
     const r = rows[0];
+    const managerStatusMap: Record<string, 'pending' | 'active' | 'rejected'> = {
+      PENDING: 'pending',
+      APPROVED: 'active',
+      REJECTED: 'rejected',
+      REVOKED: 'rejected',
+    };
     return {
       id: r.id,
       firebaseUid: r.firebase_uid,
@@ -111,12 +117,13 @@ export class AuthRepository {
       phone: r.phone,
       email: r.email,
       locale: 'ko' as const,
+      role: r.role,
       status: r.status,
       isWorker: r.role === 'WORKER',
       isManager: r.role === 'MANAGER',
       isAdmin: r.role === 'ADMIN',
-      managerStatus: r.manager_status || null,
-      roles: [{ role: r.role, status: 'active', grantedAt: r.created_at }],
+      managerStatus: r.manager_status ? (managerStatusMap[r.manager_status] ?? null) : null,
+      roles: [r.role],
     };
   }
 

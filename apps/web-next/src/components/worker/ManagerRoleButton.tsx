@@ -23,14 +23,13 @@ export function ManagerRoleButton({ initialManagerStatus }: Props) {
 
     setStatus('loading')
     try {
-      const res = await fetch(`${API_BASE}/auth/request-manager`, {
+      const res = await fetch(`${API_BASE}/managers/register`, {
         method: 'POST',
         headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({}),
       })
       if (res.ok) {
-        const body = await res.json()
-        if (body?.data?.alreadyManager) setStatus('active')
-        else setStatus('pending') // { pending: true }
+        setStatus('pending')
       } else {
         setStatus('idle')
       }
