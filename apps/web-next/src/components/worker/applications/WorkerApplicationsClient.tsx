@@ -242,7 +242,7 @@ export default function WorkerApplicationsClient() {
           filtered.map(app => {
             const statusConfig = STATUS_CONFIG[app.status]
             return (
-              <div key={app.id} className="bg-white rounded-2xl shadow-sm border border-[#EFF1F5] p-4 relative">
+              <div key={app.id} className="press-effect bg-white rounded-2xl shadow-sm border border-[#EFF1F5] p-4 relative">
                 {/* Status badge */}
                 <span className={`absolute top-4 right-4 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${statusConfig.className}`}>
                   {statusConfig.label}

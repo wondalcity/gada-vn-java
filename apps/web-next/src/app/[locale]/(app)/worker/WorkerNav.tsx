@@ -74,8 +74,8 @@ export default function WorkerNav({ locale }: Props) {
       style={{ boxShadow: '0 -2px 16px rgba(0,0,0,0.06)' }}
     >
       <div
-        className="flex w-full mx-auto"
-        style={{ maxWidth: '640px', height: 'var(--tab-bar-height)' }}
+        className="flex w-full"
+        style={{ height: 'var(--tab-bar-height)' }}
       >
         {tabs.map((tab) => (
           <Link

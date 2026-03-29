@@ -39,7 +39,7 @@ export function JobCard({ job, locale, basePath = '/jobs' }: Props) {
   return (
     <Link
       href={`${basePath}/${job.slug}`}
-      className="group flex flex-col h-full bg-white rounded-2xl overflow-hidden transition-all hover:shadow-lg"
+      className="press-effect group flex flex-col h-full bg-white rounded-2xl overflow-hidden transition-all hover:shadow-lg"
       style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}
     >
       {/* Cover image / gradient placeholder */}

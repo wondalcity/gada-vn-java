@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import type { AuthUser } from '@/lib/auth/server'
 import { PublicHeaderAuthMenu } from '@/components/public/PublicHeaderAuthMenu'
 import ManagerSearchModal from '@/components/manager/ManagerSearchModal'
@@ -12,9 +12,30 @@ interface Props {
   user?: AuthUser | null
 }
 
+const MANAGER_ROOT_PATHS = (locale: string) => new Set([
+  `/${locale}/manager`,
+  `/${locale}/manager/sites`,
+  `/${locale}/manager/jobs`,
+  `/${locale}/manager/hires`,
+  `/${locale}/manager/contracts`,
+])
+
+function getManagerPageTitle(pathname: string, locale: string): string {
+  if (pathname.startsWith(`/${locale}/manager/sites/`) && pathname.includes('/jobs/new')) return '공고 등록'
+  if (pathname.startsWith(`/${locale}/manager/sites/`)) return '현장 상세'
+  if (pathname.startsWith(`/${locale}/manager/jobs/`) && pathname.endsWith('/edit')) return '공고 수정'
+  if (pathname.startsWith(`/${locale}/manager/jobs/`)) return '공고 상세'
+  if (pathname.startsWith(`/${locale}/manager/hires/`)) return '채용 상세'
+  if (pathname.startsWith(`/${locale}/manager/contracts/`)) return '계약서'
+  return ''
+}
+
 export function ManagerAppBar({ locale, user }: Props) {
   const pathname = usePathname()
+  const router = useRouter()
   const [searchOpen, setSearchOpen] = useState(false)
+  const isRootPage = MANAGER_ROOT_PATHS(locale).has(pathname)
+  const pageTitle = isRootPage ? '' : getManagerPageTitle(pathname, locale)
 
   function navClass(href: string, exact = false) {
     const active = exact ? pathname === href : pathname.startsWith(href)
@@ -31,16 +52,34 @@ export function ManagerAppBar({ locale, user }: Props) {
         className="flex items-center justify-between px-4 sm:px-6 xl:px-20 mx-auto max-w-[1760px]"
         style={{ height: 'var(--app-bar-height)' }}
       >
-        {/* Logo — mobile: manager home / desktop: landing page */}
-        <Link
-          href={`/${locale}/manager`}
-          className="md:hidden flex items-center gap-1.5 shrink-0"
-        >
-          <span className="text-xl font-black text-[#0669F7] tracking-tight">GADA</span>
-          <span className="text-[10px] font-semibold bg-[#FDBC08] px-1.5 py-0.5 rounded-full leading-none text-[#25282A]">
-            관리자
-          </span>
-        </Link>
+        {/* Mobile: back button on sub-pages, logo on root pages */}
+        {isRootPage ? (
+          <Link
+            href={`/${locale}/manager`}
+            className="md:hidden flex items-center gap-1.5 shrink-0"
+          >
+            <span className="text-xl font-black text-[#0669F7] tracking-tight">GADA</span>
+            <span className="text-[10px] font-semibold bg-[#FDBC08] px-1.5 py-0.5 rounded-full leading-none text-[#25282A]">
+              관리자
+            </span>
+          </Link>
+        ) : (
+          <div className="md:hidden flex items-center gap-1 shrink-0">
+            <button
+              type="button"
+              onClick={() => router.back()}
+              aria-label="뒤로가기"
+              className="w-9 h-9 flex items-center justify-center rounded-full hover:bg-[#EFF1F5] transition-colors -ml-1"
+            >
+              <svg className="w-5 h-5 text-[#25282A]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+              </svg>
+            </button>
+            {pageTitle && (
+              <span className="text-base font-semibold text-[#25282A]">{pageTitle}</span>
+            )}
+          </div>
+        )}
         <Link
           href={'/' as never}
           className="hidden md:flex items-center gap-2 shrink-0"

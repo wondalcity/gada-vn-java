@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import type { AuthUser } from '@/lib/auth/server'
 import type { Province } from '@/lib/api/public'
 import { PublicHeaderAuthMenu } from '@/components/public/PublicHeaderAuthMenu'
@@ -14,8 +14,27 @@ interface Props {
   provinces?: Province[]
 }
 
+const WORKER_ROOT_PATHS = (locale: string) => new Set([
+  `/${locale}/worker`,
+  `/${locale}/worker/jobs`,
+  `/${locale}/worker/applications`,
+  `/${locale}/worker/attendance`,
+  `/${locale}/worker/profile`,
+])
+
+function getPageTitle(pathname: string, locale: string): string {
+  if (pathname.startsWith(`/${locale}/worker/jobs/`)) return '공고 상세'
+  if (pathname.startsWith(`/${locale}/worker/contracts/`)) return '계약서'
+  if (pathname.startsWith(`/${locale}/worker/contracts`)) return '계약 목록'
+  if (pathname.startsWith(`/${locale}/worker/notifications`)) return '알림'
+  return ''
+}
+
 export function WorkerAppBar({ locale, user, provinces = [] }: Props) {
   const pathname = usePathname()
+  const router = useRouter()
+  const isRootPage = WORKER_ROOT_PATHS(locale).has(pathname)
+  const pageTitle = isRootPage ? '' : getPageTitle(pathname, locale)
 
   function navClass(href: string) {
     const isJobsLink = href.endsWith('/worker/jobs')
@@ -34,16 +53,34 @@ export function WorkerAppBar({ locale, user, provinces = [] }: Props) {
         className="flex items-center justify-between px-4 sm:px-6 xl:px-20 mx-auto max-w-[1760px]"
         style={{ height: 'var(--app-bar-height)' }}
       >
-        {/* Logo */}
-        <Link
-          href={`/${locale}/worker`}
-          className="md:hidden flex items-center gap-1.5 shrink-0"
-        >
-          <span className="text-xl font-black text-[#0669F7] tracking-tight">GADA</span>
-          <span className="text-[10px] font-semibold text-white bg-[#0669F7] px-1.5 py-0.5 rounded-full leading-none">
-            근로자
-          </span>
-        </Link>
+        {/* Mobile: back button on sub-pages, logo on root pages */}
+        {isRootPage ? (
+          <Link
+            href={`/${locale}/worker`}
+            className="md:hidden flex items-center gap-1.5 shrink-0"
+          >
+            <span className="text-xl font-black text-[#0669F7] tracking-tight">GADA</span>
+            <span className="text-[10px] font-semibold text-white bg-[#0669F7] px-1.5 py-0.5 rounded-full leading-none">
+              근로자
+            </span>
+          </Link>
+        ) : (
+          <div className="md:hidden flex items-center gap-1 shrink-0">
+            <button
+              type="button"
+              onClick={() => router.back()}
+              aria-label="뒤로가기"
+              className="w-9 h-9 flex items-center justify-center rounded-full hover:bg-[#EFF1F5] transition-colors -ml-1"
+            >
+              <svg className="w-5 h-5 text-[#25282A]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+              </svg>
+            </button>
+            {pageTitle && (
+              <span className="text-base font-semibold text-[#25282A]">{pageTitle}</span>
+            )}
+          </div>
+        )}
         <Link
           href={'/' as never}
           className="hidden md:flex items-center gap-2 shrink-0"
