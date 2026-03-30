@@ -8,6 +8,7 @@ import { apiClient } from '@/lib/api/client'
 import { useSignatureCanvas } from '@/hooks/useSignatureCanvas'
 import type { Contract } from '@/types/contract'
 import { CONTRACT_STATUS_LABELS, CONTRACT_STATUS_COLORS } from '@/types/contract'
+import { ContractDocument, ContractDownloadButton } from '@/components/contracts/ContractDocument'
 
 function formatVND(n: number): string {
   return new Intl.NumberFormat('ko-KR').format(n) + ' ₫'
@@ -123,6 +124,75 @@ function SignaturePad({
   )
 }
 
+const DEMO_CONTRACT_MAP: Record<string, Contract> = {
+  'demo-ctr-1': {
+    id: 'demo-ctr-1',
+    status: 'PENDING_WORKER_SIGN',
+    jobTitle: '전기 배선 작업',
+    siteName: '롯데몰 하노이 지하 1층 공사',
+    siteAddress: '54 Liễu Giai, Ngọc Khánh, Ba Đình, Hà Nội',
+    workDate: '2026-03-28',
+    startTime: '07:30',
+    endTime: '17:30',
+    slotsTotal: 4,
+    dailyWage: 700000,
+    workerName: '홍길동',
+    workerPhone: '0901 234 567',
+    managerName: 'Kim Soo-jin',
+    managerPhone: '0912 345 678',
+    downloadUrl: null,
+    workerSigUrl: null,
+    managerSigUrl: null,
+    workerSignedAt: null,
+    managerSignedAt: null,
+    createdAt: '2026-03-22T10:00:00Z',
+  },
+  'demo-ctr-2': {
+    id: 'demo-ctr-2',
+    status: 'FULLY_SIGNED',
+    jobTitle: '철근 조립 — 3층 골조',
+    siteName: '광명역 복합쇼핑몰 신축',
+    siteAddress: '1 Hoàng Ngân, Trung Hòa, Cầu Giấy, Hà Nội',
+    workDate: '2026-03-25',
+    startTime: '07:00',
+    endTime: '17:00',
+    slotsTotal: 6,
+    dailyWage: 620000,
+    workerName: '홍길동',
+    workerPhone: '0901 234 567',
+    managerName: 'Lee Yeon-soo',
+    managerPhone: '0988 765 432',
+    downloadUrl: null,
+    workerSigUrl: null,
+    managerSigUrl: null,
+    workerSignedAt: '2026-03-16T14:00:00Z',
+    managerSignedAt: '2026-03-17T09:30:00Z',
+    createdAt: '2026-03-15T08:00:00Z',
+  },
+  'demo-ctr-3': {
+    id: 'demo-ctr-3',
+    status: 'PENDING_MANAGER_SIGN',
+    jobTitle: '잡부 — 자재 운반',
+    siteName: '인천 송도 물류센터',
+    siteAddress: '100 Phạm Hùng, Mỹ Đình, Nam Từ Liêm, Hà Nội',
+    workDate: '2026-03-30',
+    startTime: '08:00',
+    endTime: '17:00',
+    slotsTotal: 10,
+    dailyWage: 410000,
+    workerName: '홍길동',
+    workerPhone: '0901 234 567',
+    managerName: 'Park Joon-ho',
+    managerPhone: '0976 543 210',
+    downloadUrl: null,
+    workerSigUrl: null,
+    managerSigUrl: null,
+    workerSignedAt: '2026-03-25T11:00:00Z',
+    managerSignedAt: null,
+    createdAt: '2026-03-24T09:00:00Z',
+  },
+}
+
 interface Props {
   contractId: string
 }
@@ -131,12 +201,19 @@ export default function WorkerContractDetailClient({ contractId }: Props) {
   const { idToken } = useAuth()
   const params = useParams()
   const locale = (params?.locale as string) ?? 'ko'
-  const [contract, setContract] = React.useState<Contract | null>(null)
-  const [isLoading, setIsLoading] = React.useState(true)
-  const [error, setError] = React.useState<string | null>(null)
+  const documentRef = React.useRef<HTMLDivElement>(null)
+  const isDemo = contractId.startsWith('demo-')
+  const [contract, setContract] = React.useState<Contract | null>(
+    isDemo ? (DEMO_CONTRACT_MAP[contractId] ?? null) : null
+  )
+  const [isLoading, setIsLoading] = React.useState(!isDemo)
+  const [error, setError] = React.useState<string | null>(
+    isDemo && !DEMO_CONTRACT_MAP[contractId] ? '계약서를 찾을 수 없습니다.' : null
+  )
   const [successMessage, setSuccessMessage] = React.useState<string | null>(null)
 
   const load = React.useCallback(() => {
+    if (isDemo) return
     if (!idToken) return
     setIsLoading(true)
     setError(null)
@@ -144,13 +221,13 @@ export default function WorkerContractDetailClient({ contractId }: Props) {
       .then(({ data }) => setContract(data))
       .catch(() => setError('계약서를 불러올 수 없습니다.'))
       .finally(() => setIsLoading(false))
-  }, [contractId, idToken])
+  }, [contractId, idToken, isDemo])
 
   React.useEffect(() => { load() }, [load])
 
   function handleSignSuccess() {
     setSuccessMessage('서명이 완료되었습니다! 사업주 서명을 기다리고 있습니다.')
-    load()
+    if (!isDemo) load()
   }
 
   if (isLoading) {
@@ -226,21 +303,21 @@ export default function WorkerContractDetailClient({ contractId }: Props) {
         </div>
       )}
 
-      {/* Contract HTML content */}
-      {contract.contractHtml && (
-        <div className="bg-white rounded-2xl border border-[#EFF1F5] shadow-sm overflow-hidden">
-          <div className="px-4 py-3 border-b border-[#EFF1F5] flex items-center gap-2">
+      {/* Contract document */}
+      <div className="bg-white rounded-2xl border border-[#EFF1F5] shadow-sm overflow-hidden">
+        <div className="px-4 py-3 border-b border-[#EFF1F5] flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2">
             <svg className="w-4 h-4 text-[#0669F7]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
             </svg>
             <span className="text-sm font-semibold text-[#25282A]">근로계약서</span>
           </div>
-          <div
-            className="p-5 text-sm text-[#25282A] leading-relaxed prose prose-sm max-w-none"
-            dangerouslySetInnerHTML={{ __html: contract.contractHtml }}
-          />
+          <ContractDownloadButton documentRef={documentRef} contractId={contract.id} />
         </div>
-      )}
+        <div className="overflow-x-auto">
+          <ContractDocument contract={contract} documentRef={documentRef} />
+        </div>
+      </div>
 
       {/* Contract info card */}
       <div className="bg-white rounded-2xl shadow-sm border border-[#EFF1F5] p-4 space-y-3">
@@ -281,6 +358,11 @@ export default function WorkerContractDetailClient({ contractId }: Props) {
               <div className="border border-[#EFF1F5] rounded-xl p-2 bg-[#FAFCFF]">
                 <img src={contract.workerSigUrl} alt="근로자 서명" className="max-h-20 object-contain mx-auto" />
               </div>
+            ) : contract.workerSignedAt ? (
+              <div className="border border-green-200 rounded-xl h-20 flex flex-col items-center justify-center bg-green-50">
+                <span className="text-2xl">✅</span>
+                <p className="text-xs text-green-700 font-semibold mt-1">서명 완료</p>
+              </div>
             ) : (
               <div className="border-2 border-dashed border-[#E5E7EB] rounded-xl h-20 flex items-center justify-center">
                 <p className="text-xs text-[#98A2B2]">서명 필요</p>
@@ -294,9 +376,14 @@ export default function WorkerContractDetailClient({ contractId }: Props) {
           </div>
           <div>
             <p className="text-xs text-[#98A2B2] mb-2 font-medium">사업주 서명</p>
-            {contract.managerSigUrl ? (
+            {(contract.companySigUrl ?? contract.managerSigUrl) ? (
               <div className="border border-[#EFF1F5] rounded-xl p-2 bg-[#FAFCFF]">
-                <img src={contract.managerSigUrl} alt="사업주 서명" className="max-h-20 object-contain mx-auto" />
+                <img src={(contract.companySigUrl ?? contract.managerSigUrl)!} alt="사업주 서명" className="max-h-20 object-contain mx-auto" />
+              </div>
+            ) : contract.managerSignedAt ? (
+              <div className="border border-green-200 rounded-xl h-20 flex flex-col items-center justify-center bg-green-50">
+                <span className="text-2xl">✅</span>
+                <p className="text-xs text-green-700 font-semibold mt-1">서명 완료</p>
               </div>
             ) : (
               <div className="border-2 border-dashed border-[#E5E7EB] rounded-xl h-20 flex items-center justify-center">
@@ -319,17 +406,6 @@ export default function WorkerContractDetailClient({ contractId }: Props) {
         </div>
       )}
 
-      {/* Download button — only when fully signed */}
-      {contract.status === 'FULLY_SIGNED' && contract.downloadUrl && (
-        <button
-          type="button"
-          onClick={() => window.open(contract.downloadUrl!, '_blank')}
-          className="w-full py-3 rounded-full bg-[#0669F7] text-white font-semibold text-sm hover:bg-blue-700 transition-colors flex items-center justify-center gap-2"
-        >
-          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
-          계약서 다운로드
-        </button>
-      )}
     </div>
   )
 }

@@ -16,6 +16,10 @@ export interface Contract {
   workerPhone?: string | null
   managerName?: string | null
   managerPhone?: string | null
+  companyName?: string | null
+  companyContactName?: string | null
+  companyContactPhone?: string | null
+  companySigUrl?: string | null
   downloadUrl: string | null
   workerSigUrl: string | null
   managerSigUrl: string | null

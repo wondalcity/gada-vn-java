@@ -633,20 +633,106 @@ export class AdminRepository {
     return rows[0];
   }
 
+  // ── Construction company management ─────────────────────────────────────────
+
+  async findCompanies() {
+    const { rows } = await this.db.query(
+      `SELECT cc.id, cc.name, cc.business_reg_no, cc.contact_name, cc.contact_phone, cc.contact_email,
+              cc.signature_s3_key, cc.business_reg_cert_s3_key, cc.created_at,
+              COUNT(cs.id) AS site_count
+       FROM app.construction_companies cc
+       LEFT JOIN app.construction_sites cs ON cs.company_id = cc.id
+       GROUP BY cc.id
+       ORDER BY cc.created_at DESC`,
+    );
+    return rows.map((r) => ({
+      ...r,
+      site_count: parseInt(r.site_count) || 0,
+      signature_url: cdnUrl(r.signature_s3_key),
+      business_reg_cert_url: cdnUrl(r.business_reg_cert_s3_key),
+    }));
+  }
+
+  async findCompanyById(id: string) {
+    const { rows } = await this.db.query(
+      `SELECT cc.*, COUNT(cs.id) AS site_count
+       FROM app.construction_companies cc
+       LEFT JOIN app.construction_sites cs ON cs.company_id = cc.id
+       WHERE cc.id = $1
+       GROUP BY cc.id`,
+      [id],
+    );
+    if (!rows[0]) return null;
+    return {
+      ...rows[0],
+      site_count: parseInt(rows[0].site_count) || 0,
+      signature_url: cdnUrl(rows[0].signature_s3_key),
+      business_reg_cert_url: cdnUrl(rows[0].business_reg_cert_s3_key),
+    };
+  }
+
+  async createCompany(data: Record<string, unknown>) {
+    const { rows } = await this.db.query(
+      `INSERT INTO app.construction_companies
+         (name, business_reg_no, contact_name, contact_phone, contact_email, signature_s3_key, business_reg_cert_s3_key)
+       VALUES ($1, $2, $3, $4, $5, $6, $7)
+       RETURNING *`,
+      [
+        data.name, data.businessRegNo ?? null, data.contactName ?? null,
+        data.contactPhone ?? null, data.contactEmail ?? null,
+        data.signatureS3Key ?? null, data.businessRegCertS3Key ?? null,
+      ],
+    );
+    return rows[0];
+  }
+
+  async updateCompany(id: string, data: Record<string, unknown>) {
+    const { rows } = await this.db.query(
+      `UPDATE app.construction_companies SET
+         name                     = COALESCE($2, name),
+         business_reg_no          = COALESCE($3, business_reg_no),
+         contact_name             = COALESCE($4, contact_name),
+         contact_phone            = COALESCE($5, contact_phone),
+         contact_email            = COALESCE($6, contact_email),
+         signature_s3_key         = COALESCE($7, signature_s3_key),
+         business_reg_cert_s3_key = COALESCE($8, business_reg_cert_s3_key),
+         updated_at               = NOW()
+       WHERE id = $1 RETURNING *`,
+      [
+        id,
+        data.name ?? null, data.businessRegNo ?? null, data.contactName ?? null,
+        data.contactPhone ?? null, data.contactEmail ?? null,
+        data.signatureS3Key ?? null, data.businessRegCertS3Key ?? null,
+      ],
+    );
+    return rows[0] ?? null;
+  }
+
+  async deleteCompany(id: string) {
+    const { rows } = await this.db.query(
+      `DELETE FROM app.construction_companies WHERE id = $1 RETURNING id`,
+      [id],
+    );
+    return rows[0] ?? null;
+  }
+
   // ── Site management ─────────────────────────────────────────────────────────
 
   async findSites() {
     const { rows } = await this.db.query(
       `SELECT cs.id, cs.name, cs.address, cs.province, cs.district, cs.status, cs.site_type, cs.created_at,
+              cs.company_id,
+              cc.name AS company_name,
               mp.representative_name AS manager_name,
               u.phone AS manager_phone,
               COUNT(DISTINCT j.id) AS job_count,
               COUNT(DISTINCT j.id) FILTER (WHERE j.status = 'OPEN') AS open_job_count
        FROM app.construction_sites cs
+       LEFT JOIN app.construction_companies cc ON cs.company_id = cc.id
        LEFT JOIN app.manager_profiles mp ON cs.manager_id = mp.id
        LEFT JOIN auth.users u ON mp.user_id = u.id
        LEFT JOIN app.jobs j ON j.site_id = cs.id
-       GROUP BY cs.id, mp.representative_name, u.phone
+       GROUP BY cs.id, cc.name, mp.representative_name, u.phone
        ORDER BY cs.created_at DESC`,
     );
     return rows.map((r) => ({
@@ -658,8 +744,12 @@ export class AdminRepository {
 
   async findSiteById(id: string) {
     const { rows } = await this.db.query(
-      `SELECT cs.*, mp.representative_name AS manager_name, u.phone AS manager_phone, mp.id AS manager_profile_id
+      `SELECT cs.*, cs.company_id,
+              cc.name AS company_name, cc.contact_name AS company_contact_name,
+              cc.contact_phone AS company_contact_phone, cc.signature_s3_key AS company_signature_s3_key,
+              mp.representative_name AS manager_name, u.phone AS manager_phone, mp.id AS manager_profile_id
        FROM app.construction_sites cs
+       LEFT JOIN app.construction_companies cc ON cs.company_id = cc.id
        LEFT JOIN app.manager_profiles mp ON cs.manager_id = mp.id
        LEFT JOIN auth.users u ON mp.user_id = u.id
        WHERE cs.id = $1`,
@@ -689,11 +779,12 @@ export class AdminRepository {
 
   async createSite(data: Record<string, unknown>) {
     const { rows } = await this.db.query(
-      `INSERT INTO app.construction_sites (manager_id, name, address, province, district, site_type, status)
-       VALUES ($1, $2, $3, $4, $5, $6, COALESCE($7, 'ACTIVE'))
+      `INSERT INTO app.construction_sites (manager_id, company_id, name, address, province, district, site_type, status)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, COALESCE($8, 'ACTIVE'))
        RETURNING *`,
       [
-        data.managerId, data.name, data.address, data.province,
+        data.managerId, data.companyId ?? null,
+        data.name, data.address, data.province,
         data.district ?? null, data.siteType ?? null, data.status ?? null,
       ],
     );
@@ -703,18 +794,20 @@ export class AdminRepository {
   async updateSite(id: string, data: Record<string, unknown>) {
     const { rows } = await this.db.query(
       `UPDATE app.construction_sites SET
-         name      = COALESCE($2, name),
-         address   = COALESCE($3, address),
-         province  = COALESCE($4, province),
-         district  = COALESCE($5, district),
-         site_type = COALESCE($6, site_type),
-         status    = COALESCE($7, status),
+         name       = COALESCE($2, name),
+         address    = COALESCE($3, address),
+         province   = COALESCE($4, province),
+         district   = COALESCE($5, district),
+         site_type  = COALESCE($6, site_type),
+         status     = COALESCE($7, status),
+         company_id = COALESCE($8, company_id),
          updated_at = NOW()
        WHERE id = $1 RETURNING *`,
       [
         id,
         data.name ?? null, data.address ?? null, data.province ?? null,
         data.district ?? null, data.siteType ?? null, data.status ?? null,
+        data.companyId ?? null,
       ],
     );
     return rows[0];

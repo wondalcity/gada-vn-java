@@ -1,4 +1,5 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import { AuthProvider } from './context/AuthContext'
 import Layout from './components/Layout'
 import Login from './pages/Login'
 import Dashboard from './pages/Dashboard'
@@ -11,14 +12,21 @@ import JobForm from './pages/JobForm'
 import JobDetail from './pages/JobDetail'
 import Notifications from './pages/Notifications'
 import Sites from './pages/Sites'
+import Companies from './pages/Companies'
 import PromoteWorker from './pages/PromoteWorker'
+import AdminUsers from './pages/AdminUsers'
+import AcceptInvite from './pages/AcceptInvite'
 
 export default function App() {
   return (
     <BrowserRouter>
       <Routes>
+        {/* Public routes — no auth required */}
         <Route path="/login" element={<Login />} />
-        <Route element={<Layout />}>
+        <Route path="/accept-invite" element={<AcceptInvite />} />
+
+        {/* Authenticated routes — wrapped in AuthProvider for permission context */}
+        <Route element={<AuthProvider><Layout /></AuthProvider>}>
           <Route index element={<Dashboard />} />
           <Route path="managers" element={<Managers />} />
           <Route path="managers/promote" element={<PromoteWorker />} />
@@ -31,7 +39,10 @@ export default function App() {
           <Route path="jobs/:id/edit" element={<JobForm />} />
           <Route path="sites" element={<Sites />} />
           <Route path="sites/:id" element={<Sites />} />
+          <Route path="companies" element={<Companies />} />
+          <Route path="companies/:id" element={<Companies />} />
           <Route path="notifications" element={<Notifications />} />
+          <Route path="admin-users" element={<AdminUsers />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Route>
       </Routes>

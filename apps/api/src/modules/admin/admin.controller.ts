@@ -1,6 +1,6 @@
 import {
   Controller, Get, Post, Put, Delete, Param, Body, Query, UseGuards,
-  ParseIntPipe, DefaultValuePipe,
+  ParseIntPipe, DefaultValuePipe, Headers,
 } from '@nestjs/common';
 import { AdminService } from './admin.service';
 import { AdminServiceKeyGuard } from './admin.guard';
@@ -57,6 +57,28 @@ export class AdminController {
     return this.adminService.promoteWorkerToManager(body);
   }
 
+  @Get('managers/:id/sites')
+  async getManagerSites(@Param('id') id: string) {
+    return this.adminService.getManagerSites(id);
+  }
+
+  @Post('managers/:id/sites/:siteId')
+  async assignManagerToSite(
+    @Param('id') id: string,
+    @Param('siteId') siteId: string,
+    @Headers('x-admin-email') adminEmail: string,
+  ) {
+    return this.adminService.assignManagerToSite(id, siteId, adminEmail);
+  }
+
+  @Delete('managers/:id/sites/:siteId')
+  async unassignManagerFromSite(
+    @Param('id') id: string,
+    @Param('siteId') siteId: string,
+  ) {
+    return this.adminService.unassignManagerFromSite(id, siteId);
+  }
+
   // ── Worker management ────────────────────────────────────────────────────
 
   @Get('workers')
@@ -96,6 +118,135 @@ export class AdminController {
     @Body() body: { skills: { tradeId: number; years: number }[] },
   ) {
     return this.adminService.updateWorkerTradeSkills(id, body.skills ?? []);
+  }
+
+  @Post('workers')
+  async createWorker(@Body() body: { phone: string; fullName: string }) {
+    return this.adminService.createWorker(body);
+  }
+
+  @Delete('workers/:id')
+  async deleteWorker(@Param('id') id: string) {
+    return this.adminService.deleteWorker(id);
+  }
+
+  // ── Job management ────────────────────────────────────────────────────────
+
+  @Get('jobs')
+  async listJobs(
+    @Query('status') status = '',
+    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
+    @Query('limit', new DefaultValuePipe(20), ParseIntPipe) limit: number,
+  ) {
+    return this.adminService.listJobs(status, page, limit);
+  }
+
+  @Post('jobs')
+  async createJob(@Body() body: Record<string, unknown>) {
+    return this.adminService.createJob(body);
+  }
+
+  @Get('jobs/:id/roster')
+  async getJobRoster(@Param('id') id: string) {
+    return this.adminService.getJobRoster(id);
+  }
+
+  @Get('jobs/:id')
+  async getJob(@Param('id') id: string) {
+    return this.adminService.getJob(id);
+  }
+
+  @Put('jobs/:id')
+  async updateJob(
+    @Param('id') id: string,
+    @Body() body: Record<string, unknown>,
+  ) {
+    return this.adminService.updateJob(id, body);
+  }
+
+  @Delete('jobs/:id')
+  async deleteJob(@Param('id') id: string) {
+    return this.adminService.deleteJob(id);
+  }
+
+  // ── Application status management ─────────────────────────────────────────
+
+  @Put('applications/:id/accept')
+  async acceptApplication(@Param('id') id: string) {
+    return this.adminService.acceptApplication(id);
+  }
+
+  @Put('applications/:id/reject')
+  async rejectApplication(
+    @Param('id') id: string,
+    @Body() body: { notes?: string },
+  ) {
+    return this.adminService.rejectApplication(id, body.notes);
+  }
+
+  @Put('applications/:id/reset')
+  async resetApplication(@Param('id') id: string) {
+    return this.adminService.resetApplication(id);
+  }
+
+  // ── Construction company management ──────────────────────────────────────
+
+  @Get('companies')
+  async listCompanies() {
+    return this.adminService.listCompanies();
+  }
+
+  @Get('companies/:id')
+  async getCompany(@Param('id') id: string) {
+    return this.adminService.getCompany(id);
+  }
+
+  @Post('companies')
+  async createCompany(@Body() body: Record<string, unknown>) {
+    return this.adminService.createCompany(body);
+  }
+
+  @Put('companies/:id')
+  async updateCompany(
+    @Param('id') id: string,
+    @Body() body: Record<string, unknown>,
+  ) {
+    return this.adminService.updateCompany(id, body);
+  }
+
+  @Delete('companies/:id')
+  async deleteCompany(@Param('id') id: string) {
+    return this.adminService.deleteCompany(id);
+  }
+
+  // ── Site management ───────────────────────────────────────────────────────
+
+  @Get('sites')
+  async listSites() {
+    return this.adminService.listSites();
+  }
+
+  @Post('sites')
+  async createSite(@Body() body: Record<string, unknown>) {
+    return this.adminService.createSite(body);
+  }
+
+  @Get('sites/:id')
+  async getSite(@Param('id') id: string) {
+    return this.adminService.getSite(id);
+  }
+
+  @Put('sites/:id')
+  async updateSite(
+    @Param('id') id: string,
+    @Body() body: Record<string, unknown>,
+  ) {
+    return this.adminService.updateSite(id, body);
+  }
+
+  @Delete('sites/:id')
+  async deleteSite(@Param('id') id: string) {
+    return this.adminService.deleteSite(id);
   }
 
   // ── Notification management ───────────────────────────────────────────────
@@ -158,5 +309,83 @@ export class AdminController {
   @Delete('notifications/schedules/:id')
   async cancelSchedule(@Param('id') id: string) {
     return this.adminService.cancelPushSchedule(id);
+  }
+
+  // ── Admin user management ─────────────────────────────────────────────────
+
+  /** Current admin user's profile & permissions (used by frontend on load) */
+  @Get('admin-users/me')
+  async getAdminMe(@Headers('x-admin-email') email: string) {
+    return this.adminService.getAdminUserMe(email);
+  }
+
+  /** Accept invite & set password (public endpoint — called before login) */
+  @Post('admin-users/accept-invite')
+  async acceptInvite(
+    @Body() body: { token: string; password: string; name?: string },
+  ) {
+    return this.adminService.acceptInvite(body.token, body.password, body.name);
+  }
+
+  /** List all admin users */
+  @Get('admin-users')
+  async listAdminUsers() {
+    return this.adminService.listAdminUsers();
+  }
+
+  /** Invite a new admin user */
+  @Post('admin-users/invite')
+  async inviteAdminUser(
+    @Headers('x-admin-email') inviterEmail: string,
+    @Body() body: {
+      email: string;
+      name?: string;
+      role: string;
+      permissions?: Record<string, boolean>;
+    },
+  ) {
+    return this.adminService.inviteAdminUser({ ...body, inviterEmail });
+  }
+
+  /** Update a user's menu permissions */
+  @Put('admin-users/:id/permissions')
+  async updateAdminPermissions(
+    @Param('id') id: string,
+    @Body() body: { permissions: Record<string, boolean> },
+  ) {
+    return this.adminService.updateAdminPermissions(id, body.permissions);
+  }
+
+  /** Change a user's role */
+  @Put('admin-users/:id/role')
+  async updateAdminRole(
+    @Param('id') id: string,
+    @Body() body: { role: string },
+  ) {
+    return this.adminService.updateAdminRole(id, body.role);
+  }
+
+  /** Superadmin resets another user's password */
+  @Post('admin-users/:id/reset-password')
+  async resetAdminPassword(
+    @Param('id') id: string,
+    @Body() body: { password: string },
+  ) {
+    return this.adminService.changeAdminPassword(id, body.password);
+  }
+
+  /** Change own password (requires old password verification) */
+  @Post('admin-users/me/change-password')
+  async changeOwnPassword(
+    @Headers('x-admin-email') email: string,
+    @Body() body: { oldPassword: string; newPassword: string },
+  ) {
+    return this.adminService.changeOwnPassword(email, body.oldPassword, body.newPassword);
+  }
+
+  /** Disable an admin user account */
+  @Delete('admin-users/:id')
+  async disableAdminUser(@Param('id') id: string) {
+    return this.adminService.disableAdminUser(id);
   }
 }

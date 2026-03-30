@@ -107,7 +107,7 @@ export function ContractDocument({ contract, documentRef }: Props) {
       if (!containerWidth) return
       const newScale = Math.min(1, containerWidth / DOC_WIDTH)
       inner.style.transform = `scale(${newScale})`
-      inner.style.transformOrigin = 'top left'
+      inner.style.transformOrigin = 'top center'
       outer.style.height = `${inner.offsetHeight * newScale}px`
     }
 
@@ -118,7 +118,7 @@ export function ContractDocument({ contract, documentRef }: Props) {
   }, [])
 
   return (
-    <div ref={outerRef} style={{ width: '100%', overflow: 'hidden' }}>
+    <div ref={outerRef} style={{ width: '100%', overflow: 'hidden', display: 'flex', justifyContent: 'center' }}>
       <div ref={scaleRef} style={{ width: `${DOC_WIDTH}px` }}>
         <div
           ref={documentRef}
@@ -212,10 +212,20 @@ export function ContractDocument({ contract, documentRef }: Props) {
           <Row label="성명" value={contract.workerName ?? '-'} />
           {contract.workerPhone && <Row label="연락처" value={contract.workerPhone} />}
 
-          {/* 사업주 정보 */}
+          {/* 사업주 정보 — 건설사 또는 담당 관리자 */}
           <SectionHeader>■ 사업주 정보 (을)</SectionHeader>
-          <Row label="성명" value={contract.managerName ?? '-'} />
-          {contract.managerPhone && <Row label="연락처" value={contract.managerPhone} />}
+          {contract.companyName ? (
+            <>
+              <Row label="건설사명" value={contract.companyName} />
+              {contract.companyContactName && <Row label="담당자" value={contract.companyContactName} />}
+              {contract.companyContactPhone && <Row label="연락처" value={contract.companyContactPhone} />}
+            </>
+          ) : (
+            <>
+              <Row label="성명" value={contract.managerName ?? '-'} />
+              {contract.managerPhone && <Row label="연락처" value={contract.managerPhone} />}
+            </>
+          )}
         </tbody>
       </table>
 
@@ -296,6 +306,11 @@ export function ContractDocument({ contract, documentRef }: Props) {
                     style={{ maxHeight: '64px', maxWidth: '100%', objectFit: 'contain' }}
                     crossOrigin="anonymous"
                   />
+                ) : contract.workerSignedAt ? (
+                  <div style={{ textAlign: 'center' }}>
+                    <div style={{ fontSize: '22px', color: '#1a4fa0' }}>✅</div>
+                    <span style={{ fontSize: '10px', color: '#1a4fa0', fontWeight: 700 }}>서명 완료</span>
+                  </div>
                 ) : (
                   <span style={{ fontSize: '11px', color: '#BBB', fontStyle: 'italic' }}>
                     서명 대기 중
@@ -311,7 +326,7 @@ export function ContractDocument({ contract, documentRef }: Props) {
             </div>
           </div>
 
-          {/* Manager signature box */}
+          {/* Manager/Company signature box */}
           <div style={{ flex: 1 }}>
             <div
               style={{
@@ -328,10 +343,13 @@ export function ContractDocument({ contract, documentRef }: Props) {
                 을 (사업주)
               </div>
               <div style={{ fontSize: '11px', color: '#666', marginBottom: '8px' }}>
-                성명: {contract.managerName ?? '_________________'}
+                {contract.companyName
+                  ? `건설사: ${contract.companyName}`
+                  : `성명: ${contract.managerName ?? '_________________'}`
+                }
               </div>
 
-              {/* Signature image or placeholder */}
+              {/* Company seal or manager signature or placeholder */}
               <div
                 style={{
                   flex: 1,
@@ -343,14 +361,19 @@ export function ContractDocument({ contract, documentRef }: Props) {
                   minHeight: '70px',
                 }}
               >
-                {contract.managerSigUrl ? (
+                {(contract.companySigUrl || contract.managerSigUrl) ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
-                    src={contract.managerSigUrl}
+                    src={(contract.companySigUrl ?? contract.managerSigUrl)!}
                     alt="사업주 서명"
                     style={{ maxHeight: '64px', maxWidth: '100%', objectFit: 'contain' }}
                     crossOrigin="anonymous"
                   />
+                ) : contract.managerSignedAt ? (
+                  <div style={{ textAlign: 'center' }}>
+                    <div style={{ fontSize: '22px', color: '#1a4fa0' }}>✅</div>
+                    <span style={{ fontSize: '10px', color: '#1a4fa0', fontWeight: 700 }}>서명 완료</span>
+                  </div>
                 ) : (
                   <span style={{ fontSize: '11px', color: '#BBB', fontStyle: 'italic' }}>
                     서명 대기 중

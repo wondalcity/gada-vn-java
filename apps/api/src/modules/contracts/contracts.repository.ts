@@ -46,6 +46,9 @@ export class ContractsRepository {
   }
 
   async findById(id: string) {
+    const CDN = process.env.CLOUDFRONT_URL ?? '';
+    const cdnUrl = (key: string | null) => key ? (CDN ? `${CDN}/${key}` : key) : null;
+
     const { rows } = await this.db.query(
       `SELECT
          c.id,
@@ -53,9 +56,9 @@ export class ContractsRepository {
          c.contract_html              AS "contractHtml",
          c.worker_signed_at           AS "workerSignedAt",
          c.manager_signed_at          AS "managerSignedAt",
-         c.worker_signature_s3_key    AS "workerSigUrl",
-         c.manager_signature_s3_key   AS "managerSigUrl",
-         c.contract_pdf_s3_key        AS "downloadUrl",
+         c.worker_signature_s3_key    AS "workerSigKey",
+         c.manager_signature_s3_key   AS "managerSigKey",
+         c.contract_pdf_s3_key        AS "downloadKey",
          c.created_at                 AS "createdAt",
          j.title                      AS "jobTitle",
          j.work_date                  AS "workDate",
@@ -68,10 +71,15 @@ export class ContractsRepository {
          wp.full_name                 AS "workerName",
          uw.phone                     AS "workerPhone",
          mp.representative_name       AS "managerName",
-         um.phone                     AS "managerPhone"
+         um.phone                     AS "managerPhone",
+         cc.name                      AS "companyName",
+         cc.contact_name              AS "companyContactName",
+         cc.contact_phone             AS "companyContactPhone",
+         cc.signature_s3_key          AS "companySigKey"
        FROM app.contracts c
        JOIN app.jobs j ON c.job_id = j.id
        JOIN app.construction_sites s ON j.site_id = s.id
+       LEFT JOIN app.construction_companies cc ON s.company_id = cc.id
        JOIN app.worker_profiles wp ON c.worker_id = wp.id
        JOIN auth.users uw ON wp.user_id = uw.id
        JOIN app.manager_profiles mp ON c.manager_id = mp.id
@@ -79,7 +87,15 @@ export class ContractsRepository {
        WHERE c.id = $1`,
       [id],
     );
-    return rows[0] || null;
+    if (!rows[0]) return null;
+    const r = rows[0];
+    return {
+      ...r,
+      workerSigUrl: cdnUrl(r.workerSigKey),
+      managerSigUrl: cdnUrl(r.managerSigKey),
+      downloadUrl: cdnUrl(r.downloadKey),
+      companySigUrl: cdnUrl(r.companySigKey),
+    };
   }
 
   async isUserPartyToContract(contractId: string, userId: string): Promise<boolean> {
@@ -137,7 +153,7 @@ export class ContractsRepository {
     return rows[0];
   }
 
-  async sign(contractId: string, workerUserId: string, signatureS3Key: string) {
+  async sign(contractId: string, workerUserId: string, signatureData: string) {
     const { rows } = await this.db.query(
       `UPDATE app.contracts c
        SET worker_signature_s3_key = $2,
@@ -148,8 +164,60 @@ export class ContractsRepository {
        WHERE c.id = $1 AND c.worker_id = wp.id AND wp.user_id = $3
          AND c.status = 'PENDING_WORKER_SIGN'
        RETURNING c.*`,
-      [contractId, signatureS3Key, workerUserId],
+      [contractId, signatureData, workerUserId],
     );
     return rows[0];
+  }
+
+  async isManagerPartyToContract(contractId: string, managerUserId: string): Promise<boolean> {
+    const { rows } = await this.db.query<{ count: string }>(
+      `SELECT COUNT(*) as count FROM app.contracts c
+       JOIN app.manager_profiles mp ON c.manager_id = mp.id
+       WHERE c.id = $1 AND mp.user_id = $2`,
+      [contractId, managerUserId],
+    );
+    return parseInt(rows[0]?.count ?? '0') > 0;
+  }
+
+  async managerSign(contractId: string, managerUserId: string, signatureData: string) {
+    const { rows } = await this.db.query(
+      `UPDATE app.contracts c
+       SET manager_signature_s3_key = $2,
+           manager_signed_at = NOW(),
+           status = 'FULLY_SIGNED',
+           updated_at = NOW()
+       FROM app.manager_profiles mp
+       WHERE c.id = $1 AND c.manager_id = mp.id AND mp.user_id = $3
+         AND c.status = 'PENDING_MANAGER_SIGN'
+       RETURNING c.*`,
+      [contractId, signatureData, managerUserId],
+    );
+    return rows[0];
+  }
+
+  async findByManagerUserId(userId: string) {
+    const { rows } = await this.db.query(
+      `SELECT
+         c.id,
+         c.status,
+         c.worker_signed_at,
+         c.created_at,
+         j.title        AS job_title,
+         j.work_date,
+         j.daily_wage::INTEGER AS daily_wage,
+         s.name         AS site_name,
+         wp.full_name   AS worker_name,
+         uw.phone       AS worker_phone
+       FROM app.contracts c
+       JOIN app.jobs j ON c.job_id = j.id
+       JOIN app.construction_sites s ON j.site_id = s.id
+       JOIN app.manager_profiles mp ON c.manager_id = mp.id
+       JOIN app.worker_profiles wp ON c.worker_id = wp.id
+       JOIN auth.users uw ON wp.user_id = uw.id
+       WHERE mp.user_id = $1
+       ORDER BY c.created_at DESC`,
+      [userId],
+    );
+    return rows;
   }
 }
