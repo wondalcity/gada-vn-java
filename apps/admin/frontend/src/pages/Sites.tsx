@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { api } from '../lib/api'
-import { DEMO_SITES } from '../lib/demo-data'
+import { DEMO_SITES, DEMO_COMPANIES } from '../lib/demo-data'
 
 interface Site {
   id: string
@@ -17,6 +17,9 @@ interface Site {
   manager_profile_id?: string
   company_id?: string
   company_name?: string
+  company_contact_name?: string
+  company_contact_phone?: string
+  company_contact_email?: string
   job_count: number
   open_job_count: number
 }
@@ -192,6 +195,7 @@ function SiteDetailPanel({
   onBack: () => void
   onDeleted: () => void
 }) {
+  const navigate = useNavigate()
   const [site, setSite] = useState<SiteDetail | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -206,8 +210,20 @@ function SiteDetailPanel({
       .then((data) => { setSite(data); setIsDemo(false) })
       .catch(() => {
         const demo = DEMO_SITES.find((s) => s.id === siteId)
-        if (demo) { setSite(demo as unknown as SiteDetail); setIsDemo(true) }
-        else setError('현장 정보를 불러올 수 없습니다')
+        if (demo) {
+          const company = demo.company_id
+            ? DEMO_COMPANIES.find(c => c.id === demo.company_id)
+            : undefined
+          setSite({
+            ...demo,
+            company_contact_name: company?.contact_name,
+            company_contact_phone: company?.contact_phone,
+            company_contact_email: company?.contact_email,
+          } as unknown as SiteDetail)
+          setIsDemo(true)
+        } else {
+          setError('현장 정보를 불러올 수 없습니다')
+        }
       })
       .finally(() => setLoading(false))
   }, [siteId])
@@ -311,7 +327,16 @@ function SiteDetailPanel({
           </div>
           <div>
             <span className="text-gray-500">건설사</span>
-            <p className="font-medium text-gray-900 mt-0.5">{(site as { company_name?: string }).company_name ?? '-'}</p>
+            {site.company_id ? (
+              <button
+                onClick={() => navigate(`/companies/${site.company_id}`)}
+                className="mt-0.5 flex items-center gap-1 font-medium text-[#0669F7] hover:underline"
+              >
+                🏢 {site.company_name}
+              </button>
+            ) : (
+              <p className="font-medium text-gray-400 mt-0.5">-</p>
+            )}
           </div>
           <div>
             <span className="text-gray-500">담당 관리자</span>
@@ -322,6 +347,33 @@ function SiteDetailPanel({
             <p className="font-medium text-gray-900 mt-0.5">{site.manager_phone ?? '-'}</p>
           </div>
         </div>
+
+        {/* 건설사 연락처 정보 */}
+        {site.company_id && (site.company_contact_name || site.company_contact_phone || site.company_contact_email) && (
+          <div className="mt-4 pt-4 border-t border-[#EFF1F5]">
+            <p className="text-xs font-semibold text-gray-400 uppercase mb-3">건설사 담당자 정보</p>
+            <div className="grid grid-cols-3 gap-4 text-sm">
+              {site.company_contact_name && (
+                <div>
+                  <span className="text-gray-500">담당자</span>
+                  <p className="font-medium text-gray-900 mt-0.5">{site.company_contact_name}</p>
+                </div>
+              )}
+              {site.company_contact_phone && (
+                <div>
+                  <span className="text-gray-500">전화번호</span>
+                  <p className="font-medium text-gray-900 mt-0.5">{site.company_contact_phone}</p>
+                </div>
+              )}
+              {site.company_contact_email && (
+                <div>
+                  <span className="text-gray-500">이메일</span>
+                  <p className="font-medium text-gray-900 mt-0.5">{site.company_contact_email}</p>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Jobs table */}

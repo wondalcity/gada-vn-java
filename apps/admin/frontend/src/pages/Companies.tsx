@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { api } from '../lib/api'
+import { DEMO_COMPANIES } from '../lib/demo-data'
 
 interface Company {
   id: string
@@ -119,7 +120,11 @@ function CompanyDetailPanel({
     setLoading(true)
     api.get<Company>(`/admin/companies/${companyId}`)
       .then(data => setCompany(data))
-      .catch(() => setError('건설사 정보를 불러올 수 없습니다'))
+      .catch(() => {
+        const demo = DEMO_COMPANIES.find(c => c.id === companyId)
+        if (demo) setCompany(demo as unknown as Company)
+        else setError('건설사 정보를 불러올 수 없습니다')
+      })
       .finally(() => setLoading(false))
   }, [companyId])
 
@@ -249,6 +254,7 @@ export default function Companies() {
   const navigate = useNavigate()
   const [companies, setCompanies] = useState<Company[]>([])
   const [loading, setLoading] = useState(true)
+  const [isDemo, setIsDemo] = useState(false)
   const [showCreate, setShowCreate] = useState(false)
   const [editCompany, setEditCompany] = useState<Company | null>(null)
   const [toast, setToast] = useState<string | null>(null)
@@ -257,8 +263,20 @@ export default function Companies() {
     if (id) return
     setLoading(true)
     api.get<Company[]>('/admin/companies')
-      .then(data => setCompanies(Array.isArray(data) ? data : []))
-      .catch(() => setCompanies([]))
+      .then(data => {
+        const arr = Array.isArray(data) ? data : []
+        if (arr.length === 0) {
+          setCompanies(DEMO_COMPANIES as unknown as Company[])
+          setIsDemo(true)
+        } else {
+          setCompanies(arr)
+          setIsDemo(false)
+        }
+      })
+      .catch(() => {
+        setCompanies(DEMO_COMPANIES as unknown as Company[])
+        setIsDemo(true)
+      })
       .finally(() => setLoading(false))
   }, [id])
 
@@ -334,6 +352,13 @@ export default function Companies() {
         </button>
       </div>
 
+      {isDemo && (
+        <div className="mb-4 flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-amber-50 border border-amber-200 text-sm text-amber-700">
+          <span className="font-semibold">데모 데이터</span>
+          <span className="text-amber-600">— API 연결 후 실제 데이터가 표시됩니다</span>
+        </div>
+      )}
+
       <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
         {loading ? (
           <div className="p-8 text-center text-gray-400 text-sm">로딩 중...</div>
@@ -376,8 +401,12 @@ export default function Companies() {
                   <td className="px-6 py-4 text-right">
                     <div className="flex gap-3 justify-end items-center">
                       <button onClick={() => navigate(`/companies/${c.id}`)} className="text-[#0669F7] hover:underline text-sm">상세</button>
-                      <button onClick={e => { e.stopPropagation(); setEditCompany(c) }} className="text-gray-400 hover:text-gray-700 text-sm">수정</button>
-                      <button onClick={e => { e.stopPropagation(); handleDelete(c) }} className="text-[#D81A48] text-sm">삭제</button>
+                      {!isDemo && (
+                        <>
+                          <button onClick={e => { e.stopPropagation(); setEditCompany(c) }} className="text-gray-400 hover:text-gray-700 text-sm">수정</button>
+                          <button onClick={e => { e.stopPropagation(); handleDelete(c) }} className="text-[#D81A48] text-sm">삭제</button>
+                        </>
+                      )}
                     </div>
                   </td>
                 </tr>
