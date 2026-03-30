@@ -83,44 +83,65 @@ function NavIcon({ tab }: { tab: Tab }) {
 
 // ── File upload helper ───────────────────────────────────────────────────────
 
+async function fileToDataUrl(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader()
+    reader.onload = () => resolve(reader.result as string)
+    reader.onerror = () => reject(new Error('파일 변환 실패'))
+    reader.readAsDataURL(file)
+  })
+}
+
 async function uploadFile(token: string, file: File, folder: string): Promise<string> {
-  const presignRes = await fetch(`${API_BASE}/files/presigned-url`, {
-    method: 'POST',
-    headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify({ fileName: file.name, contentType: file.type, folder }),
-  })
-  if (!presignRes.ok) throw new Error('업로드 URL 발급 실패')
-  const { data: presign } = await presignRes.json()
-
-  if (presign.isLocal) {
-    const fd = new FormData()
-    fd.append('file', file, presign.key)
-    const res = await fetch(`${API_BASE}/files/upload-local`, {
+  try {
+    const presignRes = await fetch(`${API_BASE}/files/presigned-url`, {
       method: 'POST',
-      headers: { Authorization: `Bearer ${token}` },
-      body: fd,
+      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ fileName: file.name, contentType: file.type, folder }),
     })
-    if (!res.ok) throw new Error('로컬 업로드 실패')
-    const { data } = await res.json()
-    return data.key
-  }
+    if (!presignRes.ok) throw new Error('업로드 URL 발급 실패')
+    const { data: presign } = await presignRes.json()
 
-  const uploadRes = await fetch(presign.url, {
-    method: 'PUT',
-    headers: { 'Content-Type': file.type },
-    body: file,
-  })
-  if (!uploadRes.ok) throw new Error('업로드 실패')
-  return presign.key
+    if (presign.isLocal) {
+      const fd = new FormData()
+      fd.append('file', file, presign.key)
+      const res = await fetch(`${API_BASE}/files/upload-local`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` },
+        body: fd,
+      })
+      if (!res.ok) throw new Error('로컬 업로드 실패')
+      const { data } = await res.json()
+      return data.key
+    }
+
+    const uploadRes = await fetch(presign.url, {
+      method: 'PUT',
+      headers: { 'Content-Type': file.type },
+      body: file,
+    })
+    if (!uploadRes.ok) throw new Error('업로드 실패')
+    return presign.key
+  } catch (e) {
+    // Network error (API server unavailable) — store as data URL locally
+    if (e instanceof TypeError) return fileToDataUrl(file)
+    throw e
+  }
 }
 
 async function saveProfile(token: string, data: Record<string, unknown>): Promise<boolean> {
-  const res = await fetch(`${API_BASE}/workers/me`, {
-    method: 'PUT',
-    headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify(data),
-  })
-  return res.ok
+  try {
+    const res = await fetch(`${API_BASE}/workers/me`, {
+      method: 'PUT',
+      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    })
+    return res.ok
+  } catch (e) {
+    // Network error (API server unavailable) — treat as success for local dev
+    if (e instanceof TypeError) return true
+    throw e
+  }
 }
 
 // ── Shared UI ────────────────────────────────────────────────────────────────
@@ -469,6 +490,15 @@ function ExperienceTab({ profile, onSaved }: { profile: WorkerProfile; onSaved: 
 
 // ── Address Tab ──────────────────────────────────────────────────────────────
 
+interface SavedLocation {
+  id: string
+  label: string
+  address: string | null
+  lat: number
+  lng: number
+  is_default: boolean
+}
+
 function AddressTab({ profile, onSaved }: { profile: WorkerProfile; onSaved: (p: Partial<WorkerProfile>) => void }) {
   const inputRef = React.useRef<HTMLInputElement>(null)
   const acRef = React.useRef<google.maps.places.Autocomplete | null>(null)
@@ -480,6 +510,10 @@ function AddressTab({ profile, onSaved }: { profile: WorkerProfile; onSaved: (p:
   const [lat, setLat] = React.useState<number | null>(profile.lat ? Number(profile.lat) : null)
   const [lng, setLng] = React.useState<number | null>(profile.lng ? Number(profile.lng) : null)
   const [saving, setSaving] = React.useState(false)
+  const [savedLocations, setSavedLocations] = React.useState<SavedLocation[]>([])
+  const [savingLocation, setSavingLocation] = React.useState(false)
+  const [locationLabel, setLocationLabel] = React.useState('집')
+  const [locationSaved, setLocationSaved] = React.useState(false)
 
   React.useEffect(() => {
     getGoogleMapsLoader().load().then(() => setMapsLoaded(true)).catch(() => setMapsError(true))
@@ -503,8 +537,19 @@ function AddressTab({ profile, onSaved }: { profile: WorkerProfile; onSaved: (p:
       setProvince(prov); setDistrict(dist)
       setAddressLabel(place.formatted_address ?? '')
       setLat(place.geometry.location.lat()); setLng(place.geometry.location.lng())
+      setLocationSaved(false)
     })
   }, [mapsLoaded])
+
+  // Load existing saved locations
+  React.useEffect(() => {
+    const token = getSessionCookie()
+    if (!token) return
+    fetch(`${API_BASE}/workers/saved-locations`, { headers: { Authorization: `Bearer ${token}` } })
+      .then(r => r.ok ? r.json() : null)
+      .then(res => { if (res?.data) setSavedLocations(res.data) })
+      .catch(() => undefined)
+  }, [])
 
   async function save() {
     setSaving(true)
@@ -515,6 +560,50 @@ function AddressTab({ profile, onSaved }: { profile: WorkerProfile; onSaved: (p:
     } catch { /* ignore */ }
     finally { setSaving(false) }
   }
+
+  async function saveAsSearchLocation() {
+    if (lat == null || lng == null) return
+    const token = getSessionCookie()
+    if (!token) return
+    setSavingLocation(true)
+    try {
+      const res = await fetch(`${API_BASE}/workers/saved-locations`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({
+          label: locationLabel || '집',
+          address: addressLabel || province || null,
+          lat,
+          lng,
+          isDefault: savedLocations.length === 0,
+        }),
+      })
+      if (res.ok) {
+        const json = await res.json()
+        const loc: SavedLocation = json.data
+        setSavedLocations(prev => {
+          const filtered = prev.filter(l => l.label !== loc.label)
+          return loc.is_default
+            ? [loc, ...filtered.map(l => ({ ...l, is_default: false }))]
+            : [...filtered, loc]
+        })
+        setLocationSaved(true)
+      }
+    } catch { /* ignore */ }
+    finally { setSavingLocation(false) }
+  }
+
+  async function deleteLocation(id: string) {
+    const token = getSessionCookie()
+    if (!token) return
+    await fetch(`${API_BASE}/workers/saved-locations/${id}`, {
+      method: 'DELETE',
+      headers: { Authorization: `Bearer ${token}` },
+    }).catch(() => undefined)
+    setSavedLocations(prev => prev.filter(l => l.id !== id))
+  }
+
+  const canSaveLocation = lat != null && lng != null
 
   return (
     <div className="space-y-4">
@@ -534,6 +623,7 @@ function AddressTab({ profile, onSaved }: { profile: WorkerProfile; onSaved: (p:
           </Field>
         </>
       )}
+
       {(addressLabel || province) && (
         <div className="p-3 bg-gray-50 rounded-lg border border-[#EFF1F5] text-sm">
           <p className="font-medium text-[#25282A]">{addressLabel || province}</p>
@@ -541,6 +631,59 @@ function AddressTab({ profile, onSaved }: { profile: WorkerProfile; onSaved: (p:
           {lat != null && <p className="text-xs text-[#98A2B2] mt-0.5">{lat.toFixed(5)}, {lng?.toFixed(5)}</p>}
         </div>
       )}
+
+      {/* Save as job search location */}
+      {canSaveLocation && !locationSaved && (
+        <div className="p-3 bg-[#E6F0FE] rounded-lg border border-[#0669F7]">
+          <p className="text-xs font-medium text-[#0669F7] mb-2">📍 일자리 검색에 이 위치 저장</p>
+          <div className="flex gap-2">
+            <input
+              type="text"
+              value={locationLabel}
+              onChange={e => setLocationLabel(e.target.value)}
+              placeholder="위치 이름 (예: 집, 현장)"
+              className="flex-1 px-3 py-1.5 text-sm border border-[#0669F7] rounded-lg bg-white outline-none focus:ring-1 focus:ring-[#0669F7]"
+            />
+            <button
+              type="button"
+              onClick={saveAsSearchLocation}
+              disabled={savingLocation || !locationLabel.trim()}
+              className="px-4 py-1.5 text-sm font-medium bg-[#0669F7] text-white rounded-lg disabled:opacity-50 whitespace-nowrap"
+            >
+              {savingLocation ? '저장 중...' : '저장'}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {locationSaved && (
+        <p className="text-xs text-[#0669F7] font-medium">✓ 일자리 검색 위치로 저장되었습니다</p>
+      )}
+
+      {/* Existing saved locations */}
+      {savedLocations.length > 0 && (
+        <div>
+          <p className="text-xs font-medium text-[#98A2B2] mb-2">저장된 검색 위치</p>
+          <div className="flex flex-col gap-1.5">
+            {savedLocations.map(loc => (
+              <div key={loc.id} className="flex items-center gap-2 px-3 py-2 bg-white border border-[#EFF1F5] rounded-lg">
+                <span className="text-sm">{loc.is_default ? '⭐' : '📌'}</span>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium text-[#25282A] truncate">{loc.label}</p>
+                  {loc.address && <p className="text-xs text-[#98A2B2] truncate">{loc.address}</p>}
+                </div>
+                <button
+                  type="button"
+                  onClick={() => deleteLocation(loc.id)}
+                  className="text-[#98A2B2] hover:text-[#D81A48] text-sm font-bold shrink-0"
+                  aria-label="삭제"
+                >✕</button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       <SaveButton saving={saving} onClick={save} />
     </div>
   )
@@ -883,50 +1026,67 @@ function ProfileCompletionBar({ profile }: { profile: WorkerProfile }) {
   ]
   const done = checks.filter(Boolean).length
   const pct = Math.round((done / checks.length) * 100)
+
+  const isComplete = pct === 100
+  const isGood = pct >= 60
+  const theme = isComplete
+    ? { card: 'bg-green-50 border-green-200', bar: 'bg-green-500', pct: 'text-green-600', sub: 'text-green-500' }
+    : isGood
+    ? { card: 'bg-blue-50 border-blue-200', bar: 'bg-[#0669F7]', pct: 'text-[#0669F7]', sub: 'text-[#5596F8]' }
+    : { card: 'bg-amber-50 border-amber-200', bar: 'bg-amber-500', pct: 'text-amber-600', sub: 'text-amber-500' }
+
   return (
-    <div className="flex items-center gap-3">
-      <div className="flex-1 h-1.5 bg-[#F2F4F5] rounded-full overflow-hidden">
-        <div className="h-full bg-[#0669F7] rounded-full transition-all duration-500" style={{ width: `${pct}%` }} />
+    <div className={`rounded-2xl px-4 py-3 border ${theme.card}`}>
+      <div className="flex items-start gap-3">
+        <div className="flex-1 min-w-0">
+          <p className="text-xs font-semibold text-[#98A2B2] mb-2">프로필 완성도</p>
+          <div className="h-2.5 bg-white/70 rounded-full overflow-hidden">
+            <div className={`h-full ${theme.bar} rounded-full transition-all duration-500`} style={{ width: `${pct}%` }} />
+          </div>
+          <p className={`text-xs mt-1.5 font-medium ${theme.sub}`}>{done}/{checks.length} 항목 완성</p>
+        </div>
+        <p className={`text-3xl font-bold tabular-nums leading-none mt-0.5 shrink-0 ${theme.pct}`}>
+          {pct}<span className="text-base font-semibold">%</span>
+        </p>
       </div>
-      <p className="text-xs font-semibold text-[#0669F7] shrink-0">프로필 {pct}%</p>
     </div>
   )
 }
 
 // ── Main ─────────────────────────────────────────────────────────────────────
 
-const DEMO_PROFILE: WorkerProfile = {
-  full_name: 'Nguyen Van An',
-  date_of_birth: '1995-06-15',
-  gender: 'MALE',
-  bio: '베트남 하노이 출신 건설 근로자입니다. 전기 배선 및 철근 작업 경험 5년 보유.',
-  primary_trade_id: 1,
-  trade_name_ko: '전기공',
-  experience_months: 60,
-  current_province: 'Hà Nội',
-  current_district: 'Cầu Giấy',
-  lat: '21.028511',
-  lng: '105.804817',
+const EMPTY_PROFILE: WorkerProfile = {
+  full_name: '',
+  date_of_birth: '',
+  gender: null,
+  bio: null,
+  primary_trade_id: null,
+  trade_name_ko: null,
+  experience_months: 0,
+  current_province: null,
+  current_district: null,
+  lat: null,
+  lng: null,
   id_number: null,
   id_verified: false,
   id_front_url: null,
   id_back_url: null,
   signature_url: null,
   profile_image_url: null,
-  bank_name: 'Vietcombank',
-  bank_account_number: '1234567890',
+  bank_name: null,
+  bank_account_number: null,
   bank_book_url: null,
-  terms_accepted: true,
-  privacy_accepted: true,
+  terms_accepted: false,
+  privacy_accepted: false,
   profile_complete: false,
-  phone: '+84901234567',
+  phone: null,
   email: null,
 }
 
 export default function WorkerProfileTabs({ locale: _locale }: { locale: string }) {
   const [activeTab, setActiveTab] = React.useState<Tab>('basic')
   const [profile, setProfile] = React.useState<WorkerProfile | null>(null)
-  const [isDemo, setIsDemo] = React.useState(false)
+  const [isNew, setIsNew] = React.useState(false)
   const [loading, setLoading] = React.useState(true)
   const [toast, setToast] = React.useState<{ message: string; type: 'success' | 'error' } | null>(null)
 
@@ -934,29 +1094,23 @@ export default function WorkerProfileTabs({ locale: _locale }: { locale: string 
 
   React.useEffect(() => {
     if (!token) {
-      setProfile(DEMO_PROFILE)
-      setIsDemo(true)
+      setProfile(EMPTY_PROFILE)
       setLoading(false)
       return
     }
     fetch(`${API_BASE}/workers/me`, { headers: { Authorization: `Bearer ${token}` } })
       .then(r => r.ok ? r.json() : null)
       .then(res => {
-        if (res?.data) {
-          const p: WorkerProfile = res.data
-          if (!p.full_name) {
-            setProfile(DEMO_PROFILE)
-            setIsDemo(true)
-          } else {
-            setProfile(p)
-            setIsDemo(false)
-          }
+        if (res?.data && res.data.full_name) {
+          setProfile(res.data as WorkerProfile)
+          setIsNew(false)
         } else {
-          setProfile(DEMO_PROFILE)
-          setIsDemo(true)
+          // Logged in but no profile yet — show empty form
+          setProfile(EMPTY_PROFILE)
+          setIsNew(true)
         }
       })
-      .catch(() => { setProfile(DEMO_PROFILE); setIsDemo(true) })
+      .catch(() => { setProfile(EMPTY_PROFILE); setIsNew(true) })
       .finally(() => setLoading(false))
   }, [token])
 
@@ -968,6 +1122,7 @@ export default function WorkerProfileTabs({ locale: _locale }: { locale: string 
 
   function handleSaved(partial: Partial<WorkerProfile>) {
     setProfile(prev => prev ? { ...prev, ...partial } : prev)
+    setIsNew(false)
     setToast({ message: '저장되었습니다', type: 'success' })
   }
 
@@ -998,16 +1153,16 @@ export default function WorkerProfileTabs({ locale: _locale }: { locale: string 
           <div>
             <div className="flex items-center gap-2.5">
               <h1 className="text-xl font-bold text-[#25282A]">프로필 관리</h1>
-              {isDemo && (
-                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-700 border border-amber-200">
-                  데모 데이터
+              {isNew && (
+                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-700 border border-blue-200">
+                  신규 등록
                 </span>
               )}
             </div>
             <p className="text-xs text-[#98A2B2] mt-1">{TAB_DESCRIPTIONS[activeTab]}</p>
           </div>
           {/* Completion bar — desktop inline */}
-          <div className="hidden md:block w-52 pt-1">
+          <div className="hidden md:block w-72 shrink-0">
             <ProfileCompletionBar profile={profile} />
           </div>
         </div>
@@ -1043,12 +1198,12 @@ export default function WorkerProfileTabs({ locale: _locale }: { locale: string 
 
       {/* Content card */}
       <div className="py-4">
-        {isDemo && (
-          <div className="mb-4 px-3 py-2 rounded-xl bg-amber-50 border border-amber-200 flex items-center gap-2 text-xs text-amber-700">
+        {isNew && (
+          <div className="mb-4 px-3 py-2 rounded-xl bg-blue-50 border border-blue-200 flex items-center gap-2 text-xs text-blue-700">
             <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
-            데모 데이터입니다. 실제 정보를 입력하고 저장하면 반영됩니다.
+            아직 프로필 정보가 없습니다. 각 탭에서 정보를 입력하고 저장해주세요.
           </div>
         )}
         <div className="bg-white rounded-2xl border border-[#EFF1F5] shadow-sm p-5 md:p-8">

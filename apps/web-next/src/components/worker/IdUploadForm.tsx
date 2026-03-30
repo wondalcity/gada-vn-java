@@ -273,7 +273,7 @@ export default function IdUploadForm({ locale }: { locale: string }) {
 
       {/* Loading overlay during upload */}
       {isUploading && (
-        <div className="fixed inset-0 bg-black/30 z-50 flex items-center justify-center">
+        <div className="fixed inset-0 bg-black/30 z-[60] flex items-center justify-center">
           <div className="bg-white rounded-2xl p-6 flex flex-col items-center gap-3 shadow-lg">
             <svg
               className="w-8 h-8 text-[#0669F7] animate-spin"

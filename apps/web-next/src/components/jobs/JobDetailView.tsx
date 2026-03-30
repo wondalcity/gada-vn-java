@@ -119,7 +119,7 @@ function Lightbox({
   }
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/95 flex flex-col items-center justify-center" onClick={onClose}>
+    <div className="fixed inset-0 z-[60] bg-black/95 flex flex-col items-center justify-center" onClick={onClose}>
       <div className="absolute top-0 inset-x-0 flex items-center justify-between px-4 py-3 bg-gradient-to-b from-black/60 to-transparent z-10" onClick={e => e.stopPropagation()}>
         <p className="text-white/80 text-sm font-medium truncate max-w-xs">{title}</p>
         <div className="flex items-center gap-3">

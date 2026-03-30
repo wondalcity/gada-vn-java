@@ -219,7 +219,7 @@ export default function IdDocumentsStep({ draft, onChange, onNext, idToken }: Id
 
       {/* Upload overlay */}
       {isUploading && (
-        <div className="fixed inset-0 bg-black/30 z-50 flex items-center justify-center">
+        <div className="fixed inset-0 bg-black/30 z-[60] flex items-center justify-center">
           <div className="bg-white rounded-2xl p-6 flex flex-col items-center gap-3 shadow-lg">
             <svg className="w-8 h-8 text-[#0669F7] animate-spin" fill="none" viewBox="0 0 24 24">
               <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />

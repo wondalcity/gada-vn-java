@@ -216,7 +216,7 @@ export default function WorkerApplicationsClient() {
               className={`flex-shrink-0 px-4 py-3 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${
                 activeTab === tab
                   ? 'border-[#0669F7] text-[#0669F7]'
-                  : 'border-transparent text-[#7A7B7A]'
+                  : 'border-transparent text-[#7A7B7A] hover:text-[#25282A]'
               }`}
             >
               {TAB_LABELS[tab]}

@@ -231,7 +231,7 @@ const styles = StyleSheet.create({
   doneRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.md, flexWrap: 'wrap' },
   hoursText: { ...Font.caption, color: 'rgba(255,255,255,0.85)', backgroundColor: 'rgba(255,255,255,0.2)', paddingHorizontal: 8, paddingVertical: 3, borderRadius: 12 },
 
-  sectionTitle: { ...Font.t4, color: Colors.onSurface, marginBottom: Spacing.sm, paddingHorizontal: 4 },
+  sectionTitle: { ...Font.t4, color: Colors.onSurface, marginBottom: Spacing.sm },
   list: { padding: Spacing.lg, gap: Spacing.md, paddingBottom: 32 },
 
   card: {

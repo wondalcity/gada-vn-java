@@ -262,7 +262,7 @@ export default function ManagerSearchModal({
     <div
       ref={overlayRef}
       onClick={handleBackdropClick}
-      className="fixed inset-0 z-50 flex items-end justify-center sm:items-center"
+      className="fixed inset-0 z-[60] flex items-end justify-center sm:items-center"
       style={{ backgroundColor: 'rgba(0,0,0,0.45)', backdropFilter: 'blur(4px)' }}
       aria-modal="true"
       role="dialog"

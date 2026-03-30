@@ -54,7 +54,6 @@ export function PublicHeaderAuthMenu({ locale, userName, isManager }: Props) {
         <div className="absolute right-0 top-full mt-2 w-52 bg-white rounded-2xl py-1 z-50" style={{ boxShadow: '0 8px 24px rgba(0,0,0,0.12)' }}>
           {/* User info */}
           <div className="px-4 py-2.5 border-b border-[#EFF1F5]">
-            <p className="text-xs text-[#98A2B2]">로그인된 계정</p>
             <p className="text-sm font-semibold text-[#25282A] truncate">{displayName}</p>
             {isPhoneName && userName && (
               <p className="text-xs text-[#98A2B2] truncate">{userName}</p>

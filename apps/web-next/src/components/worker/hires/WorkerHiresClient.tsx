@@ -114,7 +114,7 @@ export default function WorkerHiresClient() {
 
   if (isLoading) {
     return (
-      <div className="max-w-[1760px] mx-auto px-4 py-6">
+      <div className="py-6">
         <h1 className="text-xl font-bold text-[#25282A] mb-6">합격 내역</h1>
         <div className="space-y-3">
           {[1, 2, 3].map(i => (
@@ -131,7 +131,7 @@ export default function WorkerHiresClient() {
 
   if (error) {
     return (
-      <div className="max-w-[1760px] mx-auto px-4 py-6">
+      <div className="py-6">
         <h1 className="text-xl font-bold text-[#25282A] mb-6">합격 내역</h1>
         <p className="text-[#D81A48] text-sm">{error}</p>
       </div>
@@ -142,8 +142,8 @@ export default function WorkerHiresClient() {
   const displayHires = isDemo ? DEMO_HIRES : hires
 
   return (
-    <div className="max-w-[1760px] mx-auto px-4 py-6">
-      <div className="flex items-center gap-3 mb-6">
+    <div className="pb-10">
+      <div className="py-6 flex items-center gap-3">
         <h1 className="text-xl font-bold text-[#25282A]">합격 내역</h1>
         {isDemo && (
           <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-700 border border-amber-200">
@@ -153,7 +153,7 @@ export default function WorkerHiresClient() {
       </div>
 
       {displayHires.length === 0 ? (
-        <div className="py-16 text-center">
+        <div className="py-16 text-center bg-white rounded-2xl border border-[#EFF1F5] shadow-sm">
           <BuildingIllustration />
           <p className="text-[#98A2B2] text-sm font-medium">합격된 일자리가 없습니다</p>
           <p className="text-[#98A2B2] text-xs mt-1">지원한 공고에서 합격 소식을 기다려주세요</p>
@@ -208,6 +208,9 @@ export default function WorkerHiresClient() {
           ))}
         </div>
       )}
+      <div className="mt-6 pt-4 border-t border-[#EFF1F5]">
+        <p className="text-xs text-[#98A2B2] text-center">총 {displayHires.length}건의 합격 내역</p>
+      </div>
     </div>
   )
 }

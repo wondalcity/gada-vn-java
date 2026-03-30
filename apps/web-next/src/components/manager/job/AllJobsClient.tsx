@@ -306,7 +306,7 @@ function SitePickerModal({
 }) {
   return (
     <div
-      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/50 p-4"
+      className="fixed inset-0 z-[60] flex items-end sm:items-center justify-center bg-black/50 p-4"
       onClick={(e) => { if (e.target === e.currentTarget) onClose() }}
     >
       <div className="bg-white rounded-t-2xl sm:rounded-2xl w-full max-w-sm max-h-[70vh] flex flex-col shadow-xl">

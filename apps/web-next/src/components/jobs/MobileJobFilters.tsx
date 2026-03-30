@@ -25,6 +25,7 @@ interface Props {
   selectedRadius?: number
   selectedStatus?: string
   totalJobs: number
+  viewToggle?: React.ReactNode
 }
 
 const STATUS_OPTIONS = [
@@ -63,6 +64,7 @@ export function MobileJobFilters({
   selectedRadius = 30,
   selectedStatus,
   totalJobs,
+  viewToggle,
 }: Props) {
   const router = useRouter()
   const pathname = usePathname()
@@ -163,12 +165,46 @@ export function MobileJobFilters({
     <>
       {/* ── Sticky filter bar ─────────────────────────────────────────── */}
       <div
-        className="sticky z-30 bg-white border-b border-[#DDDDDD] px-3 py-2"
+        className="sticky z-30 bg-white border-b border-[#DDDDDD] px-3 py-2.5"
         style={{ top: 'calc(var(--app-bar-height) + env(safe-area-inset-top, 0px))' }}
       >
-        <div className="flex items-center gap-2">
-          {/* Scrollable chips area */}
-          <div className="flex items-center gap-1.5 overflow-x-auto min-w-0 flex-1 scrollbar-hide">
+        {/* Main row: 총 n개 공고 + 필터 (left) | 리스트/지도 (right) */}
+        <div className="flex items-center justify-between gap-2">
+          {/* Left: job count + filter button */}
+          <div className="flex items-center gap-2 min-w-0">
+            <p className="text-sm font-medium text-[#25282A] whitespace-nowrap shrink-0">
+              총 <span className="font-bold">{totalJobs.toLocaleString()}</span>개 공고
+              {geoActive && (
+                <span className="ml-1.5 text-xs text-[#0669F7] font-medium">· {selectedRadius}km</span>
+              )}
+            </p>
+            <button
+              type="button"
+              onClick={() => setDrawerOpen(true)}
+              className="relative flex items-center gap-1 px-2.5 py-1.5 rounded-full border border-[#DDDDDD] bg-white text-xs font-medium text-[#25282A] shrink-0"
+            >
+              <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                  d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2a1 1 0 01-.293.707L13 13.414V19a1 1 0 01-.553.894l-4 2A1 1 0 017 21v-7.586L3.293 6.707A1 1 0 013 6V4z" />
+              </svg>
+              필터
+              {activeFilterCount > 0 && (
+                <span className="absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full bg-[#0669F7] text-white text-[9px] font-bold flex items-center justify-center">
+                  {activeFilterCount}
+                </span>
+              )}
+            </button>
+          </div>
+
+          {/* Right: view toggle (리스트/지도) */}
+          {viewToggle && (
+            <div className="shrink-0">{viewToggle}</div>
+          )}
+        </div>
+
+        {/* Active filter chips row — only shown when filters are active */}
+        {activeFilterCount > 0 && (
+          <div className="flex items-center gap-1.5 mt-2 overflow-x-auto scrollbar-hide">
             {selectedProvince && (
               <FilterChip
                 label={selectedProvinceName ?? selectedProvince}
@@ -193,53 +229,20 @@ export function MobileJobFilters({
                 onRemove={() => updateParam('status', undefined)}
               />
             )}
-            {activeFilterCount === 0 && (
-              <span className="text-xs text-[#7A7B7A] whitespace-nowrap">필터를 설정해 공고를 찾으세요</span>
-            )}
-          </div>
-
-          {/* Right side controls */}
-          <div className="flex items-center gap-1.5 shrink-0">
-            {activeFilterCount > 0 && (
-              <button
-                type="button"
-                onClick={clearAll}
-                className="text-xs text-[#7A7B7A] whitespace-nowrap px-2 py-1"
-              >
-                초기화
-              </button>
-            )}
             <button
               type="button"
-              onClick={() => setDrawerOpen(true)}
-              className="relative flex items-center gap-1 px-3 py-1.5 rounded-full border border-[#DDDDDD] bg-white text-sm font-medium text-[#25282A]"
+              onClick={clearAll}
+              className="text-xs text-[#7A7B7A] whitespace-nowrap shrink-0 px-1"
             >
-              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                  d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2a1 1 0 01-.293.707L13 13.414V19a1 1 0 01-.553.894l-4 2A1 1 0 017 21v-7.586L3.293 6.707A1 1 0 013 6V4z" />
-              </svg>
-              필터
-              {activeFilterCount > 0 && (
-                <span className="absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full bg-[#0669F7] text-white text-[9px] font-bold flex items-center justify-center">
-                  {activeFilterCount}
-                </span>
-              )}
+              초기화
             </button>
           </div>
-        </div>
-
-        {/* Job count row */}
-        <p className="text-xs text-[#7A7B7A] mt-1.5">
-          총 <span className="font-medium text-[#25282A]">{totalJobs.toLocaleString()}</span>개 공고
-          {geoActive && (
-            <span className="ml-1.5 text-[#0669F7] font-medium">· 반경 {selectedRadius}km 내</span>
-          )}
-        </p>
+        )}
       </div>
 
       {/* ── Bottom drawer ──────────────────────────────────────────────── */}
       {drawerOpen && (
-        <div className="fixed inset-0 z-50 flex flex-col justify-end">
+        <div className="fixed inset-0 z-[60] flex flex-col justify-end">
           {/* Backdrop */}
           <div
             className="absolute inset-0 bg-black/40"
@@ -361,15 +364,15 @@ export function MobileJobFilters({
                 {geoError && <p className="text-xs text-[#ED1C24] mt-1.5">{geoError}</p>}
 
                 {!geoActive && savedLocations.length > 0 && (
-                  <div className="mt-2 grid grid-cols-2 gap-2">
+                  <div className="mt-2 flex flex-col gap-2">
                     {savedLocations.map(loc => (
                       <button
                         key={loc.id}
                         type="button"
-                        onClick={() => { setActiveLabel(loc.label); activateGeo(loc.lat, loc.lng, loc.label) }}
-                        className="flex items-center gap-1.5 px-3 py-2.5 text-xs border border-[#DDDDDD] rounded-xl bg-white hover:border-[#0669F7] truncate text-left"
+                        onClick={() => { setActiveLabel(loc.label); activateGeo(Number(loc.lat), Number(loc.lng), loc.label) }}
+                        className="w-full flex items-center gap-2 px-3 py-3 text-sm border border-[#DDDDDD] rounded-xl bg-white hover:border-[#0669F7] hover:text-[#0669F7] text-left transition-colors"
                       >
-                        <span className="shrink-0">{loc.is_default ? '⭐' : '📌'}</span>
+                        <span className="shrink-0 text-base">{loc.is_default ? '⭐' : '📌'}</span>
                         <span className="truncate">{loc.label}</span>
                       </button>
                     ))}

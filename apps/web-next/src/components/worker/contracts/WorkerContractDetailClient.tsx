@@ -193,6 +193,123 @@ const DEMO_CONTRACT_MAP: Record<string, Contract> = {
   },
 }
 
+function SignatureBox({
+  label,
+  signedAt,
+  sigUrl,
+  onView,
+  canSign,
+  onSignClick,
+}: {
+  label: string
+  signedAt: string | null
+  sigUrl?: string | null
+  onView: (url: string) => void
+  canSign?: boolean
+  onSignClick?: () => void
+}) {
+  const signed = !!signedAt
+  if (!signed && canSign && onSignClick) {
+    return (
+      <button
+        type="button"
+        onClick={onSignClick}
+        className="rounded-xl border-2 border-[#0669F7] bg-blue-50 p-3 flex flex-col items-center gap-2 min-h-[100px] justify-center hover:bg-blue-100 active:scale-[0.97] transition-all w-full"
+      >
+        <p className="text-xs font-semibold text-[#0669F7]">{label}</p>
+        <div className="w-10 h-10 rounded-full bg-[#0669F7] flex items-center justify-center shadow-sm">
+          <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
+        </div>
+        <p className="text-xs font-bold text-[#0669F7]">서명하기</p>
+      </button>
+    )
+  }
+  if (!signed) {
+    return (
+      <div className="rounded-xl border-2 border-dashed border-[#EFF1F5] p-3 flex flex-col items-center gap-2 min-h-[100px] justify-center">
+        <p className="text-xs font-medium text-[#98A2B2]">{label}</p>
+        <div className="w-10 h-10 rounded-full bg-[#F2F4F5] flex items-center justify-center">
+          <svg className="w-5 h-5 text-[#C8CBD0]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
+        </div>
+        <p className="text-xs text-[#C8CBD0]">서명 대기</p>
+      </div>
+    )
+  }
+  if (sigUrl) {
+    return (
+      <button
+        type="button"
+        onClick={() => onView(sigUrl)}
+        className="rounded-xl border-2 border-green-200 bg-green-50 p-3 flex flex-col items-center gap-1 min-h-[100px] justify-center hover:border-green-400 transition-colors w-full"
+      >
+        <p className="text-xs font-medium text-green-700">{label}</p>
+        <div className="w-full h-14 flex items-center justify-center overflow-hidden rounded-lg bg-white border border-green-100">
+          <img src={sigUrl} alt={label} className="max-h-full max-w-full object-contain p-1" />
+        </div>
+        <p className="text-xs text-green-600 flex items-center gap-1">
+          <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+          확인
+        </p>
+      </button>
+    )
+  }
+  return (
+    <div className="rounded-xl border-2 border-green-200 bg-green-50 p-3 flex flex-col items-center gap-2 min-h-[100px] justify-center">
+      <p className="text-xs font-medium text-green-700">{label}</p>
+      <div className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center">
+        <span className="text-2xl">✅</span>
+      </div>
+      <p className="text-xs text-green-600">서명 완료</p>
+    </div>
+  )
+}
+
+function SignatureStatusCard({ contract, onSignClick }: { contract: Contract; onSignClick?: () => void }) {
+  const [viewingUrl, setViewingUrl] = React.useState<string | null>(null)
+  const canWorkerSign = contract.status === 'PENDING_WORKER_SIGN'
+  return (
+    <>
+      {viewingUrl && (
+        <div
+          className="fixed inset-0 z-[60] flex items-center justify-center bg-black/70 backdrop-blur-sm p-4"
+          onClick={() => setViewingUrl(null)}
+        >
+          <div className="relative max-w-sm w-full bg-white rounded-2xl overflow-hidden shadow-2xl" onClick={e => e.stopPropagation()}>
+            <div className="px-4 py-3 border-b border-[#EFF1F5] flex items-center justify-between">
+              <p className="text-sm font-semibold text-[#25282A]">서명 이미지</p>
+              <button type="button" onClick={() => setViewingUrl(null)} className="w-7 h-7 rounded-full bg-[#F2F4F5] flex items-center justify-center text-[#98A2B2] hover:bg-[#EFF1F5]">
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+              </button>
+            </div>
+            <div className="p-4 bg-gray-50 flex items-center justify-center min-h-[160px]">
+              <img src={viewingUrl} alt="서명" className="max-w-full max-h-64 object-contain" />
+            </div>
+          </div>
+        </div>
+      )}
+      <div className="bg-white rounded-2xl shadow-sm border border-[#EFF1F5] p-4 space-y-3">
+        <p className="text-sm font-semibold text-[#25282A]">서명 현황</p>
+        <div className="grid grid-cols-2 gap-3">
+          <SignatureBox
+            label="근로자 서명"
+            signedAt={contract.workerSignedAt}
+            sigUrl={contract.workerSigUrl}
+            onView={setViewingUrl}
+            canSign={canWorkerSign}
+            onSignClick={canWorkerSign ? onSignClick : undefined}
+          />
+          <SignatureBox
+            label="사업주 서명"
+            signedAt={contract.managerSignedAt}
+            sigUrl={contract.companySigUrl ?? contract.managerSigUrl}
+            onView={setViewingUrl}
+          />
+        </div>
+      </div>
+    </>
+  )
+}
+
 interface Props {
   contractId: string
 }
@@ -211,6 +328,7 @@ export default function WorkerContractDetailClient({ contractId }: Props) {
     isDemo && !DEMO_CONTRACT_MAP[contractId] ? '계약서를 찾을 수 없습니다.' : null
   )
   const [successMessage, setSuccessMessage] = React.useState<string | null>(null)
+  const [showSignModal, setShowSignModal] = React.useState(false)
 
   const load = React.useCallback(() => {
     if (isDemo) return
@@ -226,6 +344,7 @@ export default function WorkerContractDetailClient({ contractId }: Props) {
   React.useEffect(() => { load() }, [load])
 
   function handleSignSuccess() {
+    setShowSignModal(false)
     setSuccessMessage('서명이 완료되었습니다! 사업주 서명을 기다리고 있습니다.')
     if (!isDemo) load()
   }
@@ -264,6 +383,33 @@ export default function WorkerContractDetailClient({ contractId }: Props) {
 
   return (
     <div className="py-6 space-y-4">
+      {/* Signature modal */}
+      {showSignModal && idToken && (
+        <div
+          className="fixed inset-0 z-[60] flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm"
+          onClick={() => setShowSignModal(false)}
+        >
+          <div
+            className="bg-white w-full sm:max-w-md rounded-t-3xl sm:rounded-2xl shadow-2xl overflow-hidden"
+            onClick={e => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between px-5 pt-5 pb-3">
+              <p className="text-base font-bold text-[#25282A]">근로자 서명</p>
+              <button
+                type="button"
+                onClick={() => setShowSignModal(false)}
+                className="w-8 h-8 rounded-full bg-[#F2F4F5] flex items-center justify-center text-[#98A2B2] hover:bg-[#EFF1F5] transition-colors"
+              >
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+              </button>
+            </div>
+            <div className="px-5 pb-8 sm:pb-5">
+              <SignaturePad contractId={contractId} token={idToken} onSuccess={handleSignSuccess} />
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Back nav */}
       <div className="flex items-center justify-between">
         <Link href={`/${locale}/worker/contracts` as never} className="inline-flex items-center gap-1.5 text-sm text-[#98A2B2] hover:text-[#25282A] transition-colors">
@@ -349,62 +495,7 @@ export default function WorkerContractDetailClient({ contractId }: Props) {
       </div>
 
       {/* Signature status */}
-      <div className="bg-white rounded-2xl shadow-sm border border-[#EFF1F5] p-4">
-        <p className="text-sm font-semibold text-[#25282A] mb-4">서명 현황</p>
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <p className="text-xs text-[#98A2B2] mb-2 font-medium">근로자 서명</p>
-            {contract.workerSigUrl ? (
-              <div className="border border-[#EFF1F5] rounded-xl p-2 bg-[#FAFCFF]">
-                <img src={contract.workerSigUrl} alt="근로자 서명" className="max-h-20 object-contain mx-auto" />
-              </div>
-            ) : contract.workerSignedAt ? (
-              <div className="border border-green-200 rounded-xl h-20 flex flex-col items-center justify-center bg-green-50">
-                <span className="text-2xl">✅</span>
-                <p className="text-xs text-green-700 font-semibold mt-1">서명 완료</p>
-              </div>
-            ) : (
-              <div className="border-2 border-dashed border-[#E5E7EB] rounded-xl h-20 flex items-center justify-center">
-                <p className="text-xs text-[#98A2B2]">서명 필요</p>
-              </div>
-            )}
-            {contract.workerSignedAt && (
-              <p className="text-[10px] text-[#98A2B2] mt-1 text-center">
-                {new Date(contract.workerSignedAt).toLocaleDateString('ko-KR')}
-              </p>
-            )}
-          </div>
-          <div>
-            <p className="text-xs text-[#98A2B2] mb-2 font-medium">사업주 서명</p>
-            {(contract.companySigUrl ?? contract.managerSigUrl) ? (
-              <div className="border border-[#EFF1F5] rounded-xl p-2 bg-[#FAFCFF]">
-                <img src={(contract.companySigUrl ?? contract.managerSigUrl)!} alt="사업주 서명" className="max-h-20 object-contain mx-auto" />
-              </div>
-            ) : contract.managerSignedAt ? (
-              <div className="border border-green-200 rounded-xl h-20 flex flex-col items-center justify-center bg-green-50">
-                <span className="text-2xl">✅</span>
-                <p className="text-xs text-green-700 font-semibold mt-1">서명 완료</p>
-              </div>
-            ) : (
-              <div className="border-2 border-dashed border-[#E5E7EB] rounded-xl h-20 flex items-center justify-center">
-                <p className="text-xs text-[#98A2B2]">서명 대기</p>
-              </div>
-            )}
-            {contract.managerSignedAt && (
-              <p className="text-[10px] text-[#98A2B2] mt-1 text-center">
-                {new Date(contract.managerSignedAt).toLocaleDateString('ko-KR')}
-              </p>
-            )}
-          </div>
-        </div>
-      </div>
-
-      {/* Signature pad — only when worker needs to sign */}
-      {contract.status === 'PENDING_WORKER_SIGN' && idToken && (
-        <div className="bg-white rounded-2xl shadow-sm border border-amber-200 p-4">
-          <SignaturePad contractId={contractId} token={idToken} onSuccess={handleSignSuccess} />
-        </div>
-      )}
+      <SignatureStatusCard contract={contract} onSignClick={() => setShowSignModal(true)} />
 
     </div>
   )

@@ -236,7 +236,7 @@ export default function SiteDetailClient({ siteId, locale }: SiteDetailClientPro
       {/* Lightbox */}
       {lightboxIdx !== null && (
         <div
-          className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-4"
+          className="fixed inset-0 z-[60] bg-black/90 flex items-center justify-center p-4"
           onClick={() => setLightboxIdx(null)}
         >
           <button

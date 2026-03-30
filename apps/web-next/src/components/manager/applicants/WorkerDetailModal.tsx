@@ -94,7 +94,7 @@ export default function WorkerDetailModal({
       />
 
       {/* Bottom sheet (mobile) / Centered modal (desktop) */}
-      <div className="fixed inset-0 z-50 flex flex-col justify-end md:items-center md:justify-center pointer-events-none">
+      <div className="fixed inset-0 z-[60] flex flex-col justify-end md:items-center md:justify-center pointer-events-none">
         <div className="bg-white rounded-t-[32px] md:rounded-2xl p-5 max-h-[85vh] overflow-y-auto w-full md:max-w-md pointer-events-auto" style={{ boxShadow: '0 -4px 20px rgba(0,0,0,0.08)' }}>
           {/* Handle bar (mobile) */}
           <div className="flex justify-center mb-3 md:hidden">

@@ -173,9 +173,11 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.surface,
     borderBottomWidth: 1,
     borderBottomColor: Colors.outline,
+    paddingHorizontal: Spacing.lg,
   },
   tab: {
-    flex: 1, alignItems: 'center', paddingVertical: 14,
+    paddingVertical: 14,
+    paddingHorizontal: Spacing.md,
     position: 'relative',
   },
   tabActive: {},
@@ -184,7 +186,7 @@ const styles = StyleSheet.create({
   tabCount: { color: Colors.onSurfaceVariant },
   tabCountActive: { color: Colors.primary },
   tabIndicator: {
-    position: 'absolute', bottom: 0, left: 16, right: 16,
+    position: 'absolute', bottom: 0, left: 0, right: 0,
     height: 2, borderRadius: 1, backgroundColor: Colors.primary,
   },
 
