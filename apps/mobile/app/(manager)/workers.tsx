@@ -56,7 +56,7 @@ export default function ManagerWorkersScreen() {
 
   const loadApplications = useCallback(async () => {
     try {
-      const data = await api.get<WorkerApplication[]>('/applications/for-manager');
+      const data = await api.get<WorkerApplication[]>('/manager/applications');
       setApplications(data);
     } catch {
       setApplications([]);
@@ -70,7 +70,7 @@ export default function ManagerWorkersScreen() {
 
   async function handleHire(applicationId: string) {
     try {
-      await api.post(`/applications/${applicationId}/hire`);
+      await api.patch(`/manager/applications/${applicationId}/accept`);
       loadApplications();
     } catch {
       Alert.alert('오류', '채용 처리에 실패했습니다.');
@@ -84,7 +84,7 @@ export default function ManagerWorkersScreen() {
         text: '거절', style: 'destructive',
         onPress: async () => {
           try {
-            await api.post(`/applications/${applicationId}/reject`);
+            await api.patch(`/manager/applications/${applicationId}/reject`);
             loadApplications();
           } catch {
             Alert.alert('오류', '거절 처리에 실패했습니다.');
@@ -254,7 +254,7 @@ const styles = StyleSheet.create({
   card: {
     backgroundColor: Colors.surface,
     borderRadius: Radius.md,
-    padding: Spacing.md,
+    padding: Spacing.lg,
     gap: Spacing.sm,
     shadowColor: Colors.shadowBlack,
     shadowOpacity: 0.06,

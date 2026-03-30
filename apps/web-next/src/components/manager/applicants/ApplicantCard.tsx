@@ -61,8 +61,12 @@ export default function ApplicantCard({ applicant, onOpenDetail, onQuickAccept, 
       onClick={handleCardClick}
     >
       {/* Avatar */}
-      <div className={`w-11 h-11 rounded-full flex-shrink-0 flex items-center justify-center text-sm font-bold ${avatarBg}`}>
-        {worker.name.charAt(0)}
+      <div className={`w-11 h-11 rounded-full flex-shrink-0 overflow-hidden flex items-center justify-center text-sm font-bold ${worker.profilePictureUrl ? '' : avatarBg}`}>
+        {worker.profilePictureUrl ? (
+          <img src={worker.profilePictureUrl} alt={worker.name} className="w-full h-full object-cover" />
+        ) : (
+          worker.name.charAt(0)
+        )}
       </div>
 
       {/* Info */}

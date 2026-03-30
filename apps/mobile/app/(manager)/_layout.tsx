@@ -7,6 +7,7 @@ export default function ManagerLayout() {
       screenOptions={{
         tabBarActiveTintColor: '#FF6B2C',
         tabBarInactiveTintColor: '#999',
+        tabBarStyle: { height: 60, paddingBottom: 8 },
         headerStyle: { backgroundColor: '#FF6B2C' },
         headerTintColor: '#fff',
       }}
@@ -14,9 +15,33 @@ export default function ManagerLayout() {
       <Tabs.Screen
         name="index"
         options={{
-          title: '일자리 관리',
+          title: '공고 관리',
+          tabBarLabel: '공고',
+          tabBarIcon: ({ color }) => <Text style={{ color, fontSize: 20 }}>📋</Text>,
+        }}
+      />
+      <Tabs.Screen
+        name="sites"
+        options={{
+          title: '현장 관리',
           tabBarLabel: '현장',
           tabBarIcon: ({ color }) => <Text style={{ color, fontSize: 20 }}>🏗️</Text>,
+        }}
+      />
+      <Tabs.Screen
+        name="workers"
+        options={{
+          title: '채용 관리',
+          tabBarLabel: '채용',
+          tabBarIcon: ({ color }) => <Text style={{ color, fontSize: 20 }}>👷</Text>,
+        }}
+      />
+      <Tabs.Screen
+        name="contracts"
+        options={{
+          title: '계약 관리',
+          tabBarLabel: '계약',
+          tabBarIcon: ({ color }) => <Text style={{ color, fontSize: 20 }}>📄</Text>,
         }}
       />
       <Tabs.Screen
@@ -27,14 +52,13 @@ export default function ManagerLayout() {
           tabBarIcon: ({ color }) => <Text style={{ color, fontSize: 20 }}>🔔</Text>,
         }}
       />
-      <Tabs.Screen
-        name="profile"
-        options={{
-          title: '프로필',
-          tabBarLabel: '프로필',
-          tabBarIcon: ({ color }) => <Text style={{ color, fontSize: 20 }}>👤</Text>,
-        }}
-      />
+      {/* Non-tab screens */}
+      <Tabs.Screen name="profile" options={{ href: null }} />
+      <Tabs.Screen name="jobs/[id]" options={{ href: null }} />
+      <Tabs.Screen name="jobs/[id]/attendance" options={{ href: null }} />
+      <Tabs.Screen name="jobs/create" options={{ href: null }} />
+      <Tabs.Screen name="contracts/[id]" options={{ href: null }} />
+      <Tabs.Screen name="register" options={{ href: null }} />
     </Tabs>
   );
 }

@@ -1,16 +1,36 @@
 import { Injectable } from '@nestjs/common';
 import { DatabaseService } from '../../common/database/database.service';
 
+const CDN = process.env.CLOUDFRONT_URL ?? '';
+function cdnUrl(key: string | null): string | null {
+  if (!key) return null;
+  return CDN ? `${CDN}/${key}` : key;
+}
+
 @Injectable()
 export class WorkersRepository {
   constructor(private readonly db: DatabaseService) {}
 
   async findByUserId(userId: string) {
     const { rows } = await this.db.query(
-      'SELECT * FROM app.worker_profiles WHERE user_id = $1',
+      `SELECT
+         wp.*,
+         t.name_ko AS trade_name_ko, t.name_vi AS trade_name_vi
+       FROM app.worker_profiles wp
+       LEFT JOIN ref.construction_trades t ON wp.primary_trade_id = t.id
+       WHERE wp.user_id = $1`,
       [userId],
     );
-    return rows[0] || null;
+    const row = rows[0];
+    if (!row) return null;
+    return {
+      ...row,
+      profile_image_url: cdnUrl(row.profile_picture_s3_key),
+      id_front_url: cdnUrl(row.id_front_s3_key),
+      id_back_url: cdnUrl(row.id_back_s3_key),
+      signature_url: cdnUrl(row.signature_s3_key),
+      bank_book_url: cdnUrl(row.bank_book_s3_key),
+    };
   }
 
   async findHiresByUserId(userId: string) {
@@ -57,16 +77,124 @@ export class WorkersRepository {
   }
 
   async updateByUserId(userId: string, data: Record<string, unknown>) {
+    // Build SET clauses dynamically — only update provided fields
+    const setClauses: string[] = ['updated_at = NOW()'];
+    const params: unknown[] = [userId];
+
+    function addField(column: string, value: unknown) {
+      params.push(value);
+      setClauses.push(`${column} = $${params.length}`);
+    }
+
+    if (data.fullName !== undefined)           addField('full_name', data.fullName || null);
+    if (data.dateOfBirth !== undefined)        addField('date_of_birth', data.dateOfBirth || null);
+    if (data.gender !== undefined)             addField('gender', data.gender || null);
+    if (data.bio !== undefined)                addField('bio', data.bio || null);
+    if (data.experienceMonths !== undefined)   addField('experience_months', data.experienceMonths ?? 0);
+    if (data.primaryTradeId !== undefined)     addField('primary_trade_id', data.primaryTradeId || null);
+    if (data.currentProvince !== undefined)    addField('current_province', data.currentProvince || null);
+    if (data.currentDistrict !== undefined)    addField('current_district', data.currentDistrict || null);
+    if (data.lat !== undefined)                addField('lat', data.lat ?? null);
+    if (data.lng !== undefined)                addField('lng', data.lng ?? null);
+    if (data.idNumber !== undefined)           addField('id_number', data.idNumber || null);
+    if (data.idFrontS3Key !== undefined)       addField('id_front_s3_key', data.idFrontS3Key || null);
+    if (data.idBackS3Key !== undefined)        addField('id_back_s3_key', data.idBackS3Key || null);
+    if (data.signatureS3Key !== undefined)     addField('signature_s3_key', data.signatureS3Key || null);
+    if (data.profilePictureS3Key !== undefined) addField('profile_picture_s3_key', data.profilePictureS3Key || null);
+    if (data.bankName !== undefined)           addField('bank_name', data.bankName || null);
+    if (data.bankAccountNumber !== undefined)  addField('bank_account_number', data.bankAccountNumber || null);
+    if (data.bankBookS3Key !== undefined)      addField('bank_book_s3_key', data.bankBookS3Key || null);
+
+    if (setClauses.length === 1) {
+      // Nothing to update except timestamp — return existing profile
+      return this.findByUserId(userId);
+    }
+
     const { rows } = await this.db.query(
+      `UPDATE app.worker_profiles
+       SET ${setClauses.join(', ')}
+       WHERE user_id = $1
+       RETURNING *`,
+      params,
+    );
+
+    if (rows[0]) return rows[0];
+
+    // Profile doesn't exist yet — create a minimal one
+    const { rows: inserted } = await this.db.query(
       `INSERT INTO app.worker_profiles (user_id, full_name, date_of_birth, experience_months)
-       VALUES ($1, $2, '1990-01-01', COALESCE($3, 0))
+       VALUES ($1, $2, COALESCE($3, '1990-01-01'::date), COALESCE($4, 0))
        ON CONFLICT (user_id) DO UPDATE
-         SET full_name = COALESCE($2, app.worker_profiles.full_name),
-             experience_months = COALESCE($3, app.worker_profiles.experience_months),
+         SET full_name = EXCLUDED.full_name,
              updated_at = NOW()
        RETURNING *`,
-      [userId, data.fullName, data.experienceMonths],
+      [userId, data.fullName ?? '', data.dateOfBirth ?? null, data.experienceMonths ?? 0],
     );
-    return rows[0];
+    return inserted[0];
+  }
+
+  // ── Trade skills ─────────────────────────────────────────────────────────
+
+  async findTradeSkillsByUserId(userId: string) {
+    const { rows } = await this.db.query(
+      `SELECT wts.trade_id, wts.years, t.name_ko, t.name_vi, t.code
+       FROM app.worker_trade_skills wts
+       JOIN app.worker_profiles wp ON wp.id = wts.worker_id
+       JOIN ref.construction_trades t ON t.id = wts.trade_id
+       WHERE wp.user_id = $1
+       ORDER BY wts.years DESC`,
+      [userId],
+    );
+    return rows;
+  }
+
+  async replaceTradeSkillsByUserId(
+    userId: string,
+    skills: { tradeId: number; years: number }[],
+  ) {
+    return this.db.transaction(async (client) => {
+      // Get the worker profile id
+      const { rows: wpRows } = await client.query(
+        'SELECT id FROM app.worker_profiles WHERE user_id = $1',
+        [userId],
+      );
+      if (!wpRows[0]) throw new Error('Worker profile not found');
+      const workerId = wpRows[0].id;
+
+      // Delete all existing skills
+      await client.query(
+        'DELETE FROM app.worker_trade_skills WHERE worker_id = $1',
+        [workerId],
+      );
+
+      // Insert new skills
+      if (skills.length > 0) {
+        const values = skills
+          .map((_, i) => `($1, $${i * 2 + 2}, $${i * 2 + 3})`)
+          .join(', ');
+        const params: unknown[] = [workerId];
+        for (const s of skills) {
+          params.push(s.tradeId, s.years);
+        }
+        await client.query(
+          `INSERT INTO app.worker_trade_skills (worker_id, trade_id, years) VALUES ${values}
+           ON CONFLICT (worker_id, trade_id) DO UPDATE SET years = EXCLUDED.years`,
+          params,
+        );
+      }
+
+      // Update primary_trade_id and experience_months from top skill
+      if (skills.length > 0) {
+        const top = skills.reduce((a, b) => (b.years > a.years ? b : a));
+        await client.query(
+          `UPDATE app.worker_profiles
+           SET primary_trade_id = $2, experience_months = $3, updated_at = NOW()
+           WHERE user_id = $1`,
+          [userId, top.tradeId, top.years * 12],
+        );
+      }
+
+      return this.findTradeSkillsByUserId(userId);
+    });
   }
 }

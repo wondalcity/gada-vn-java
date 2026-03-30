@@ -31,6 +31,7 @@ interface WorkerProfile {
   bank_name: string | null
   bank_account_number: string | null
   bank_book_url: string | null
+  profile_image_url: string | null
   terms_accepted: boolean
   privacy_accepted: boolean
   profile_complete: boolean
@@ -207,18 +208,45 @@ function BasicTab({ profile, onSaved }: { profile: WorkerProfile; onSaved: (p: P
   const [bio, setBio] = React.useState(profile.bio ?? '')
   const [saving, setSaving] = React.useState(false)
   const [error, setError] = React.useState('')
+  const [profileImageUrl, setProfileImageUrl] = React.useState<string | null>(profile.profile_image_url)
+  const [imageUploading, setImageUploading] = React.useState(false)
+  const [imageError, setImageError] = React.useState('')
+  const imageInputRef = React.useRef<HTMLInputElement>(null)
+
+  const token = getSessionCookie()
 
   const maxDate = React.useMemo(() => {
     const d = new Date(); d.setFullYear(d.getFullYear() - 15)
     return d.toISOString().split('T')[0]
   }, [])
 
+  async function handleProfileImage(file: File) {
+    setImageUploading(true); setImageError('')
+    try {
+      const key = await uploadFile(token!, file, 'worker-profile-pictures')
+      const ok = await saveProfile(token!, { profilePictureS3Key: key })
+      if (ok) {
+        const url = URL.createObjectURL(file)
+        setProfileImageUrl(url)
+        onSaved({ profile_image_url: url })
+      } else {
+        setImageError('이미지 저장에 실패했습니다')
+      }
+    } catch (e) {
+      setImageError(e instanceof Error ? e.message : '업로드에 실패했습니다')
+    } finally { setImageUploading(false) }
+  }
+
+  async function handleDeleteProfileImage() {
+    const ok = await saveProfile(token!, { profilePictureS3Key: null })
+    if (ok) { setProfileImageUrl(null); onSaved({ profile_image_url: null }) }
+  }
+
   async function save() {
     if (!fullName.trim()) { setError('이름을 입력해주세요'); return }
     if (!dob) { setError('생년월일을 입력해주세요'); return }
     if (!gender) { setError('성별을 선택해주세요'); return }
     setError(''); setSaving(true)
-    const token = getSessionCookie()
     try {
       const ok = await saveProfile(token!, { fullName: fullName.trim(), dateOfBirth: dob, gender, bio: bio.trim() || null })
       if (ok) onSaved({ full_name: fullName.trim(), date_of_birth: dob, gender: gender as 'MALE'|'FEMALE'|'OTHER', bio: bio.trim() || null })
@@ -229,6 +257,45 @@ function BasicTab({ profile, onSaved }: { profile: WorkerProfile; onSaved: (p: P
 
   return (
     <div className="space-y-4">
+      {/* Profile picture */}
+      <div className="flex items-center gap-4 pb-2">
+        <div className="relative shrink-0">
+          <div className="w-20 h-20 rounded-full bg-[#F2F4F5] border-2 border-[#EFF1F5] overflow-hidden flex items-center justify-center">
+            {profileImageUrl ? (
+              <img src={profileImageUrl} alt="프로필 사진" className="w-full h-full object-cover" />
+            ) : (
+              <svg className="w-8 h-8 text-[#C8CBD0]" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z" />
+              </svg>
+            )}
+          </div>
+          {imageUploading && (
+            <div className="absolute inset-0 rounded-full bg-black/40 flex items-center justify-center">
+              <svg className="w-5 h-5 text-white animate-spin" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+              </svg>
+            </div>
+          )}
+        </div>
+        <div className="flex flex-col gap-1.5">
+          <button type="button" onClick={() => imageInputRef.current?.click()} disabled={imageUploading}
+            className="px-4 py-2 rounded-full bg-[#0669F7] text-white text-xs font-medium disabled:opacity-40">
+            {profileImageUrl ? '사진 변경' : '사진 등록'}
+          </button>
+          {profileImageUrl && (
+            <button type="button" onClick={handleDeleteProfileImage}
+              className="px-4 py-2 rounded-full border border-[#D81A48] text-[#D81A48] text-xs font-medium">
+              사진 삭제
+            </button>
+          )}
+          <p className="text-xs text-[#98A2B2]">JPG, PNG, WebP (최대 10MB)</p>
+        </div>
+        <input ref={imageInputRef} type="file" accept="image/jpeg,image/png,image/webp" className="hidden"
+          onChange={e => { const f = e.target.files?.[0]; if (f) handleProfileImage(f) }} />
+      </div>
+      {imageError && <p className="text-xs text-[#D81A48]">{imageError}</p>}
+
       <Field label="이름 *">
         <input type="text" value={fullName} onChange={e => setFullName(e.target.value)} placeholder="이름" className={inputCls} />
       </Field>
@@ -845,6 +912,7 @@ const DEMO_PROFILE: WorkerProfile = {
   id_front_url: null,
   id_back_url: null,
   signature_url: null,
+  profile_image_url: null,
   bank_name: 'Vietcombank',
   bank_account_number: '1234567890',
   bank_book_url: null,

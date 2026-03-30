@@ -39,4 +39,19 @@ export class WorkersController {
   ) {
     return this.workersService.getAttendance(user.id, jobId);
   }
+
+  @Get('me/trade-skills')
+  @Roles('WORKER')
+  async getMyTradeSkills(@CurrentUser() user: CurrentUserPayload) {
+    return this.workersService.getTradeSkills(user.id);
+  }
+
+  @Put('me/trade-skills')
+  @Roles('WORKER')
+  async replaceMyTradeSkills(
+    @CurrentUser() user: CurrentUserPayload,
+    @Body() body: { skills: { tradeId: number; years: number }[] },
+  ) {
+    return this.workersService.replaceTradeSkills(user.id, body.skills ?? []);
+  }
 }

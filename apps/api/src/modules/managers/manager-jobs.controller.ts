@@ -218,6 +218,7 @@ export class ManagerJobsController {
               wp.id AS worker_id, wp.full_name AS worker_name,
               wp.experience_months, wp.id_verified,
               wp.signature_s3_key IS NOT NULL AS has_signature,
+              wp.profile_picture_s3_key,
               u.phone AS worker_phone,
               t.name_ko AS trade_name_ko, t.id AS trade_id
        FROM app.job_applications a
@@ -244,6 +245,7 @@ export class ManagerJobsController {
         tradeNameKo: r.trade_name_ko ?? undefined,
         idVerified: r.id_verified ?? false,
         hasSignature: r.has_signature === true,
+        profilePictureUrl: toImageUrl(r.profile_picture_s3_key) ?? undefined,
       },
     }));
 
@@ -326,6 +328,42 @@ export class ManagerJobsController {
     );
     const r = rows[0];
     return { success: true, slotsFilled: Number(r?.slots_filled), jobStatus: r?.status };
+  }
+
+  // ── All applications across all manager's jobs ─────────────────
+  @Get('applications')
+  async getAllApplications(@CurrentUser() user: CurrentUserPayload) {
+    const { rows } = await this.db.query(
+      `SELECT
+         a.id, a.status, a.applied_at,
+         j.id AS job_id, j.title AS job_title, j.work_date,
+         wp.id AS worker_id, wp.full_name AS worker_name,
+         wp.experience_months,
+         u.phone AS worker_phone,
+         t.name_ko AS trade_name_ko
+       FROM app.job_applications a
+       JOIN app.jobs j ON a.job_id = j.id
+       JOIN app.manager_profiles mp ON j.manager_id = mp.id
+       JOIN app.worker_profiles wp ON a.worker_id = wp.id
+       JOIN auth.users u ON wp.user_id = u.id
+       LEFT JOIN ref.construction_trades t ON t.id = wp.primary_trade_id
+       WHERE mp.user_id = $1
+         AND a.status != 'WITHDRAWN'
+       ORDER BY a.applied_at DESC`,
+      [user.id],
+    );
+    return rows.map((r) => ({
+      id: r.id,
+      status: r.status,
+      jobId: r.job_id,
+      jobTitle: r.job_title,
+      workDate: r.work_date,
+      workerId: r.worker_id,
+      workerName: r.worker_name ?? '',
+      workerPhone: r.worker_phone ?? '',
+      workerTrades: r.trade_name_ko ? [r.trade_name_ko] : [],
+      experienceYears: r.experience_months ? Math.floor(Number(r.experience_months) / 12) : undefined,
+    }));
   }
 
   // ── Attendance roster for a job on a date ─────────────────────

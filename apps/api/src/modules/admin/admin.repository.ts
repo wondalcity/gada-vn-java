@@ -240,9 +240,15 @@ export class AdminRepository {
   async findManagersPaginated(status: string, page: number, limit: number) {
     const offset = (page - 1) * limit;
     const { rows } = await this.db.query(
-      `SELECT mp.*, u.phone, u.created_at as user_created_at
+      `SELECT mp.*, u.phone, u.created_at as user_created_at,
+              wp.full_name AS worker_full_name,
+              (SELECT cs.name FROM app.manager_site_assignments msa
+               JOIN app.construction_sites cs ON cs.id = msa.site_id
+               WHERE msa.manager_id = mp.id
+               ORDER BY msa.assigned_at DESC LIMIT 1) AS site_name
        FROM app.manager_profiles mp
        JOIN auth.users u ON mp.user_id = u.id
+       LEFT JOIN app.worker_profiles wp ON wp.user_id = u.id
        WHERE mp.approval_status = $1
        ORDER BY mp.created_at DESC
        LIMIT $2 OFFSET $3`,
@@ -261,13 +267,51 @@ export class AdminRepository {
 
   async findManagerById(id: string) {
     const { rows } = await this.db.query(
-      `SELECT mp.*, u.phone, u.created_at as user_created_at
+      `SELECT mp.*, u.phone, u.created_at as user_created_at,
+              wp.full_name AS worker_full_name
        FROM app.manager_profiles mp
        JOIN auth.users u ON mp.user_id = u.id
+       LEFT JOIN app.worker_profiles wp ON wp.user_id = u.id
        WHERE mp.id = $1`,
       [id],
     );
     return rows[0] || null;
+  }
+
+  // ── Manager-site assignments (many-to-many) ──────────────────────────────
+
+  async findManagerSites(managerId: string) {
+    const { rows } = await this.db.query(
+      `SELECT cs.id, cs.name, cs.address, cs.province, cs.district,
+              cs.status, cs.site_type, msa.assigned_at
+       FROM app.manager_site_assignments msa
+       JOIN app.construction_sites cs ON cs.id = msa.site_id
+       WHERE msa.manager_id = $1
+       ORDER BY msa.assigned_at DESC`,
+      [managerId],
+    );
+    return rows;
+  }
+
+  async assignManagerToSite(managerId: string, siteId: string, assignedBy?: string) {
+    const { rows } = await this.db.query(
+      `INSERT INTO app.manager_site_assignments (manager_id, site_id, assigned_by)
+       VALUES ($1, $2, $3)
+       ON CONFLICT (manager_id, site_id) DO NOTHING
+       RETURNING *`,
+      [managerId, siteId, assignedBy ?? null],
+    );
+    return rows[0] ?? null;
+  }
+
+  async unassignManagerFromSite(managerId: string, siteId: string) {
+    const { rows } = await this.db.query(
+      `DELETE FROM app.manager_site_assignments
+       WHERE manager_id = $1 AND site_id = $2
+       RETURNING *`,
+      [managerId, siteId],
+    );
+    return rows[0] ?? null;
   }
 
   async approveManager(id: string) {
@@ -408,6 +452,447 @@ export class AdminRepository {
       );
     }
     return profile;
+  }
+
+  // ── Job management ─────────────────────────────────────────────────────────
+
+  async findJobs(status: string, page: number, limit: number) {
+    const offset = (page - 1) * limit;
+    const params: unknown[] = [];
+    let where = '';
+    if (status) {
+      params.push(status);
+      where = `AND j.status = $${params.length}`;
+    }
+    params.push(limit);
+    const limitIdx = params.length;
+    params.push(offset);
+    const offsetIdx = params.length;
+    const { rows } = await this.db.query(
+      `SELECT j.id, j.title, j.work_date, j.daily_wage, j.slots_total, j.slots_filled, j.status,
+              cs.name AS site_name
+       FROM app.jobs j
+       LEFT JOIN app.construction_sites cs ON j.site_id = cs.id
+       WHERE 1=1 ${where}
+       ORDER BY j.created_at DESC
+       LIMIT $${limitIdx} OFFSET $${offsetIdx}`,
+      params,
+    );
+    return rows;
+  }
+
+  async countJobs(status: string): Promise<number> {
+    const params: unknown[] = [];
+    let where = '';
+    if (status) {
+      params.push(status);
+      where = `WHERE j.status = $1`;
+    }
+    const { rows } = await this.db.query<{ count: string }>(
+      `SELECT COUNT(*) as count FROM app.jobs j ${where}`,
+      params,
+    );
+    return parseInt(rows[0]?.count ?? '0');
+  }
+
+  async findJobById(id: string) {
+    const { rows } = await this.db.query(
+      `SELECT j.*, cs.name AS site_name, cs.address, cs.province
+       FROM app.jobs j
+       LEFT JOIN app.construction_sites cs ON j.site_id = cs.id
+       WHERE j.id = $1`,
+      [id],
+    );
+    return rows[0] || null;
+  }
+
+  async createJob(data: Record<string, unknown>) {
+    const { rows: siteRows } = await this.db.query<{ manager_id: string }>(
+      'SELECT manager_id FROM app.construction_sites WHERE id = $1',
+      [data.siteId],
+    );
+    if (!siteRows[0]) throw new Error('Site not found');
+    const managerId = siteRows[0].manager_id;
+    const { rows } = await this.db.query(
+      `INSERT INTO app.jobs (site_id, manager_id, title, description, trade_id, work_date, start_time, end_time, daily_wage, slots_total, status)
+       VALUES ($1, $2, $3, $4, $5, $6::DATE, $7::TIME, $8::TIME, $9, $10, 'OPEN')
+       RETURNING *`,
+      [
+        data.siteId, managerId, data.title, data.description ?? null,
+        data.tradeId ?? null, data.workDate, data.startTime ?? null, data.endTime ?? null,
+        data.dailyWage, data.slotsTotal ?? 1,
+      ],
+    );
+    return rows[0];
+  }
+
+  async updateJob(id: string, data: Record<string, unknown>) {
+    const { rows } = await this.db.query(
+      `UPDATE app.jobs SET
+         title       = COALESCE($2, title),
+         description = COALESCE($3, description),
+         trade_id    = COALESCE($4::INT, trade_id),
+         work_date   = COALESCE($5::DATE, work_date),
+         start_time  = COALESCE($6::TIME, start_time),
+         end_time    = COALESCE($7::TIME, end_time),
+         daily_wage  = COALESCE($8, daily_wage),
+         slots_total = COALESCE($9::INT, slots_total),
+         status      = COALESCE($10, status),
+         updated_at  = NOW()
+       WHERE id = $1 RETURNING *`,
+      [
+        id,
+        data.title ?? null, data.description ?? null, data.tradeId ?? null,
+        data.workDate ?? null, data.startTime ?? null, data.endTime ?? null,
+        data.dailyWage ?? null, data.slotsTotal ?? null, data.status ?? null,
+      ],
+    );
+    return rows[0];
+  }
+
+  async cancelJob(id: string) {
+    const { rows } = await this.db.query(
+      `UPDATE app.jobs SET status = 'CANCELLED', updated_at = NOW() WHERE id = $1 RETURNING *`,
+      [id],
+    );
+    return rows[0];
+  }
+
+  async findJobRoster(jobId: string) {
+    const { rows: jobRows } = await this.db.query(
+      `SELECT j.*, cs.name AS site_name, cs.address, cs.province, mp.company_name
+       FROM app.jobs j
+       LEFT JOIN app.construction_sites cs ON j.site_id = cs.id
+       LEFT JOIN app.manager_profiles mp ON j.manager_id = mp.id
+       WHERE j.id = $1`,
+      [jobId],
+    );
+    const job = jobRows[0] || null;
+    if (!job) return { job: null, roster: [] };
+
+    const { rows } = await this.db.query(
+      `SELECT
+         ja.id AS application_id,
+         ja.status AS application_status,
+         ja.notes AS attendance_notes,
+         wp.full_name AS worker_name,
+         wp.id_verified,
+         u.phone AS worker_phone,
+         c.id AS contract_id,
+         c.status AS contract_status,
+         c.worker_signed_at,
+         c.manager_signed_at,
+         ar.id AS attendance_id,
+         ar.status AS attendance_status,
+         ar.check_in_time::TEXT AS check_in_time,
+         ar.check_out_time::TEXT AS check_out_time,
+         ar.hours_worked
+       FROM app.job_applications ja
+       JOIN app.worker_profiles wp ON ja.worker_id = wp.id
+       JOIN auth.users u ON wp.user_id = u.id
+       LEFT JOIN app.contracts c ON c.application_id = ja.id
+       LEFT JOIN app.attendance_records ar
+         ON ar.job_id = ja.job_id AND ar.worker_id = ja.worker_id
+       WHERE ja.job_id = $1
+       ORDER BY ja.applied_at ASC`,
+      [jobId],
+    );
+    return { job, roster: rows };
+  }
+
+  async getWorkerUserIdByApplication(applicationId: string): Promise<string | null> {
+    const { rows } = await this.db.query<{ user_id: string }>(
+      `SELECT u.id AS user_id FROM app.job_applications ja
+       JOIN app.worker_profiles wp ON ja.worker_id = wp.id
+       JOIN auth.users u ON wp.user_id = u.id
+       WHERE ja.id = $1`,
+      [applicationId],
+    );
+    return rows[0]?.user_id ?? null;
+  }
+
+  async updateApplicationStatus(id: string, status: string, notes?: string) {
+    const { rows } = await this.db.query(
+      `UPDATE app.job_applications
+       SET status = $2,
+           notes = CASE WHEN $3::TEXT IS NOT NULL THEN $3 ELSE notes END,
+           reviewed_at = NOW()
+       WHERE id = $1 RETURNING *`,
+      [id, status, notes ?? null],
+    );
+    return rows[0];
+  }
+
+  async resetApplication(id: string) {
+    const { rows } = await this.db.query(
+      `UPDATE app.job_applications
+       SET status = 'PENDING', notes = NULL, reviewed_at = NULL
+       WHERE id = $1 RETURNING *`,
+      [id],
+    );
+    return rows[0];
+  }
+
+  // ── Site management ─────────────────────────────────────────────────────────
+
+  async findSites() {
+    const { rows } = await this.db.query(
+      `SELECT cs.id, cs.name, cs.address, cs.province, cs.district, cs.status, cs.site_type, cs.created_at,
+              mp.representative_name AS manager_name,
+              u.phone AS manager_phone,
+              COUNT(DISTINCT j.id) AS job_count,
+              COUNT(DISTINCT j.id) FILTER (WHERE j.status = 'OPEN') AS open_job_count
+       FROM app.construction_sites cs
+       LEFT JOIN app.manager_profiles mp ON cs.manager_id = mp.id
+       LEFT JOIN auth.users u ON mp.user_id = u.id
+       LEFT JOIN app.jobs j ON j.site_id = cs.id
+       GROUP BY cs.id, mp.representative_name, u.phone
+       ORDER BY cs.created_at DESC`,
+    );
+    return rows.map((r) => ({
+      ...r,
+      job_count: parseInt(r.job_count) || 0,
+      open_job_count: parseInt(r.open_job_count) || 0,
+    }));
+  }
+
+  async findSiteById(id: string) {
+    const { rows } = await this.db.query(
+      `SELECT cs.*, mp.representative_name AS manager_name, u.phone AS manager_phone, mp.id AS manager_profile_id
+       FROM app.construction_sites cs
+       LEFT JOIN app.manager_profiles mp ON cs.manager_id = mp.id
+       LEFT JOIN auth.users u ON mp.user_id = u.id
+       WHERE cs.id = $1`,
+      [id],
+    );
+    if (!rows[0]) return null;
+    const { rows: jobRows } = await this.db.query(
+      `SELECT j.id, j.title, j.status, j.work_date, j.daily_wage, j.slots_total, j.slots_filled,
+              COUNT(a.id) AS application_count,
+              COUNT(a.id) FILTER (WHERE a.status IN ('ACCEPTED','CONTRACTED')) AS hired_count
+       FROM app.jobs j
+       LEFT JOIN app.job_applications a ON a.job_id = j.id
+       WHERE j.site_id = $1
+       GROUP BY j.id
+       ORDER BY j.created_at DESC`,
+      [id],
+    );
+    return {
+      ...rows[0],
+      jobs: jobRows.map((j) => ({
+        ...j,
+        application_count: parseInt(j.application_count) || 0,
+        hired_count: parseInt(j.hired_count) || 0,
+      })),
+    };
+  }
+
+  async createSite(data: Record<string, unknown>) {
+    const { rows } = await this.db.query(
+      `INSERT INTO app.construction_sites (manager_id, name, address, province, district, site_type, status)
+       VALUES ($1, $2, $3, $4, $5, $6, COALESCE($7, 'ACTIVE'))
+       RETURNING *`,
+      [
+        data.managerId, data.name, data.address, data.province,
+        data.district ?? null, data.siteType ?? null, data.status ?? null,
+      ],
+    );
+    return rows[0];
+  }
+
+  async updateSite(id: string, data: Record<string, unknown>) {
+    const { rows } = await this.db.query(
+      `UPDATE app.construction_sites SET
+         name      = COALESCE($2, name),
+         address   = COALESCE($3, address),
+         province  = COALESCE($4, province),
+         district  = COALESCE($5, district),
+         site_type = COALESCE($6, site_type),
+         status    = COALESCE($7, status),
+         updated_at = NOW()
+       WHERE id = $1 RETURNING *`,
+      [
+        id,
+        data.name ?? null, data.address ?? null, data.province ?? null,
+        data.district ?? null, data.siteType ?? null, data.status ?? null,
+      ],
+    );
+    return rows[0];
+  }
+
+  async deleteSite(id: string) {
+    // Try hard delete first; if constraints exist, soft delete to COMPLETED
+    try {
+      const { rows } = await this.db.query(
+        `DELETE FROM app.construction_sites WHERE id = $1 RETURNING id`,
+        [id],
+      );
+      return rows[0] ?? null;
+    } catch {
+      const { rows } = await this.db.query(
+        `UPDATE app.construction_sites SET status = 'COMPLETED', updated_at = NOW()
+         WHERE id = $1 RETURNING id`,
+        [id],
+      );
+      return rows[0] ?? null;
+    }
+  }
+
+  // ── Worker CRUD ─────────────────────────────────────────────────────────────
+
+  async createWorkerProfile(firebaseUid: string, phone: string, fullName: string) {
+    const { rows: userRows } = await this.db.query<{ id: string }>(
+      `INSERT INTO auth.users (firebase_uid, phone, role)
+       VALUES ($1, $2, 'WORKER')
+       ON CONFLICT (firebase_uid) DO UPDATE SET phone = EXCLUDED.phone, updated_at = NOW()
+       RETURNING id`,
+      [firebaseUid, phone],
+    );
+    const userId = userRows[0].id;
+    const { rows } = await this.db.query(
+      `INSERT INTO app.worker_profiles (user_id, full_name)
+       VALUES ($1, $2)
+       ON CONFLICT (user_id) DO UPDATE SET full_name = EXCLUDED.full_name, updated_at = NOW()
+       RETURNING *`,
+      [userId, fullName],
+    );
+    return rows[0];
+  }
+
+  async deleteWorkerProfile(id: string) {
+    const { rows } = await this.db.query(
+      `UPDATE auth.users u SET status = 'SUSPENDED', updated_at = NOW()
+       FROM app.worker_profiles wp
+       WHERE wp.id = $1 AND wp.user_id = u.id
+       RETURNING u.id`,
+      [id],
+    );
+    return rows[0] ?? null;
+  }
+
+  // ── Admin user management ────────────────────────────────────────────────────
+
+  async findAllAdminUsers() {
+    const { rows } = await this.db.query(
+      `SELECT id, email, name, role, permissions, status, invited_by, created_at, last_login_at
+       FROM ops.admin_users
+       ORDER BY created_at ASC`,
+    );
+    return rows;
+  }
+
+  async findAdminUserByEmail(email: string) {
+    const { rows } = await this.db.query(
+      `SELECT id, email, name, role, permissions, status, password_hash, created_at, last_login_at
+       FROM ops.admin_users WHERE email = $1`,
+      [email],
+    );
+    return rows[0] ?? null;
+  }
+
+  async findAdminUserByToken(token: string) {
+    const { rows } = await this.db.query(
+      `SELECT id, email, name, role, permissions, status, invite_expires_at
+       FROM ops.admin_users
+       WHERE invite_token = $1 AND status = 'INVITED' AND invite_expires_at > NOW()`,
+      [token],
+    );
+    return rows[0] ?? null;
+  }
+
+  async createAdminUser(data: {
+    email: string;
+    name?: string;
+    role: string;
+    permissions: Record<string, boolean>;
+    inviteToken: string;
+    invitedBy?: string;
+  }) {
+    const { rows } = await this.db.query(
+      `INSERT INTO ops.admin_users (email, name, role, permissions, status, invite_token, invite_expires_at, invited_by)
+       VALUES ($1, $2, $3, $4, 'INVITED', $5, NOW() + INTERVAL '7 days', $6)
+       RETURNING id, email, name, role, permissions, status, invite_token`,
+      [
+        data.email, data.name ?? null, data.role,
+        JSON.stringify(data.permissions),
+        data.inviteToken, data.invitedBy ?? null,
+      ],
+    );
+    return rows[0];
+  }
+
+  async acceptInvite(token: string, passwordHash: string, name?: string) {
+    const { rows } = await this.db.query(
+      `UPDATE ops.admin_users
+       SET password_hash = $2, name = COALESCE($3, name),
+           status = 'ACTIVE', invite_token = NULL, invite_expires_at = NULL,
+           last_login_at = NOW()
+       WHERE invite_token = $1 AND status = 'INVITED' AND invite_expires_at > NOW()
+       RETURNING id, email, name, role, permissions, status`,
+      [token, passwordHash, name ?? null],
+    );
+    return rows[0] ?? null;
+  }
+
+  async updateAdminUserPermissions(id: string, permissions: Record<string, boolean>) {
+    const { rows } = await this.db.query(
+      `UPDATE ops.admin_users SET permissions = $2 WHERE id = $1
+       RETURNING id, email, name, role, permissions, status`,
+      [id, JSON.stringify(permissions)],
+    );
+    return rows[0] ?? null;
+  }
+
+  async updateAdminUserRole(id: string, role: string) {
+    const { rows } = await this.db.query(
+      `UPDATE ops.admin_users SET role = $2 WHERE id = $1
+       RETURNING id, email, name, role, permissions, status`,
+      [id, role],
+    );
+    return rows[0] ?? null;
+  }
+
+  async updateAdminUserPassword(id: string, passwordHash: string) {
+    const { rows } = await this.db.query(
+      `UPDATE ops.admin_users SET password_hash = $2 WHERE id = $1 RETURNING id`,
+      [id, passwordHash],
+    );
+    return rows[0] ?? null;
+  }
+
+  async updateAdminUserStatus(id: string, status: string) {
+    const { rows } = await this.db.query(
+      `UPDATE ops.admin_users SET status = $2 WHERE id = $1
+       RETURNING id, email, name, role, permissions, status`,
+      [id, status],
+    );
+    return rows[0] ?? null;
+  }
+
+  async updateAdminUserLastLogin(email: string) {
+    await this.db.query(
+      `UPDATE ops.admin_users SET last_login_at = NOW() WHERE email = $1`,
+      [email],
+    );
+  }
+
+  async updateAdminUserName(id: string, name: string) {
+    const { rows } = await this.db.query(
+      `UPDATE ops.admin_users SET name = $2 WHERE id = $1 RETURNING id, email, name, role, permissions, status`,
+      [id, name],
+    );
+    return rows[0] ?? null;
+  }
+
+  async updateAdminUserReinvite(id: string, token: string) {
+    const { rows } = await this.db.query(
+      `UPDATE ops.admin_users
+       SET invite_token = $2, invite_expires_at = NOW() + INTERVAL '7 days', status = 'INVITED', password_hash = NULL
+       WHERE id = $1
+       RETURNING id, email, name, role, permissions, status, invite_token`,
+      [id, token],
+    );
+    return rows[0] ?? null;
   }
 
   async updateManagerProfile(id: string, data: Record<string, unknown>) {

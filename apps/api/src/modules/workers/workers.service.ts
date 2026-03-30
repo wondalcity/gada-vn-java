@@ -22,4 +22,12 @@ export class WorkersService {
   async getAttendance(userId: string, jobId?: string) {
     return this.repo.findAttendanceByUserId(userId, jobId);
   }
+
+  async getTradeSkills(userId: string) {
+    return this.repo.findTradeSkillsByUserId(userId);
+  }
+
+  async replaceTradeSkills(userId: string, skills: { tradeId: number; years: number }[]) {
+    return this.repo.replaceTradeSkillsByUserId(userId, skills);
+  }
 }

@@ -12,7 +12,7 @@ interface Site {
   name: string;
   address: string;
   province: string;
-  activeJobCount: number;
+  jobCount: number;
   status: 'ACTIVE' | 'INACTIVE';
 }
 
@@ -24,7 +24,7 @@ export default function ManagerSitesScreen() {
 
   const loadSites = useCallback(async () => {
     try {
-      const data = await api.get<Site[]>('/sites/mine');
+      const data = await api.get<Site[]>('/manager/sites');
       setSites(data);
     } catch {
       setSites([]);
@@ -67,7 +67,7 @@ export default function ManagerSitesScreen() {
           <TouchableOpacity
             style={styles.card}
             activeOpacity={0.7}
-            onPress={() => router.push({ pathname: '/(manager)/jobs/[id]', params: { id: item.id } })}
+            onPress={() => router.push({ pathname: '/(manager)/jobs/create', params: { siteId: item.id } })}
           >
             <View style={styles.cardTop}>
               <View style={styles.iconBox}>
@@ -89,9 +89,9 @@ export default function ManagerSitesScreen() {
                 </Text>
               </View>
             </View>
-            {item.activeJobCount > 0 && (
+            {item.jobCount > 0 && (
               <View style={styles.jobCountRow}>
-                <Text style={styles.jobCountText}>모집 중인 공고 {item.activeJobCount}개</Text>
+                <Text style={styles.jobCountText}>공고 {item.jobCount}개</Text>
               </View>
             )}
           </TouchableOpacity>
@@ -124,7 +124,7 @@ const styles = StyleSheet.create({
   card: {
     backgroundColor: Colors.surface,
     borderRadius: Radius.md,
-    padding: Spacing.md,
+    padding: Spacing.lg,
     gap: Spacing.sm,
     shadowColor: Colors.shadowBlack,
     shadowOpacity: 0.06,

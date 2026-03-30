@@ -52,7 +52,7 @@ export default function ManagerContractsScreen() {
 
   const loadContracts = useCallback(async () => {
     try {
-      const data = await api.get<Contract[]>('/contracts/mine');
+      const data = await api.get<Contract[]>('/contracts/mine-as-manager');
       setContracts(data);
     } catch {
       setContracts([]);
@@ -174,7 +174,7 @@ const styles = StyleSheet.create({
   card: {
     backgroundColor: Colors.surface,
     borderRadius: Radius.md,
-    padding: Spacing.md,
+    padding: Spacing.lg,
     gap: Spacing.sm,
     shadowColor: Colors.shadowBlack,
     shadowOpacity: 0.06,

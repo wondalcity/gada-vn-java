@@ -7,7 +7,9 @@ type Status = 'PENDING' | 'APPROVED' | 'REJECTED'
 interface Manager {
   id: string
   representative_name: string
+  worker_full_name?: string
   company_name?: string
+  site_name?: string
   business_type?: string
   phone?: string
   approval_status: Status
@@ -115,7 +117,7 @@ export default function Managers() {
           <table className="w-full">
             <thead className="bg-[#F2F4F5]">
               <tr>
-                {['회사명', '담당자', '유형', '상태', '가입일', ''].map((h) => (
+                {['근로자 이름', '전화번호', '현장명', '상태', '가입일', ''].map((h) => (
                   <th key={h} className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase">{h}</th>
                 ))}
               </tr>
@@ -123,12 +125,16 @@ export default function Managers() {
             <tbody className="divide-y divide-[#EFF1F5]">
               {managers.map((m) => (
                 <tr key={m.id} className="hover:bg-[#F2F4F5]">
-                  <td className="px-6 py-4 text-sm font-medium text-gray-900">{m.company_name ?? '-'}</td>
-                  <td className="px-6 py-4 text-sm text-gray-600">{m.representative_name}</td>
                   <td className="px-6 py-4">
-                    <span className="px-2 py-1 text-xs rounded-full bg-[#EFF1F5] text-[#98A2B2]00">
-                      {m.business_type === 'CORPORATE' ? '법인' : '개인'}
-                    </span>
+                    <div className="text-sm font-semibold text-gray-900">
+                      {m.worker_full_name ?? m.representative_name}
+                    </div>
+                    <div className="text-xs text-[#98A2B2] mt-0.5">{m.representative_name}</div>
+                  </td>
+                  <td className="px-6 py-4 text-sm text-gray-600">{m.phone ?? '-'}</td>
+                  <td className="px-6 py-4">
+                    <div className="text-sm text-gray-700">{m.site_name ?? '-'}</div>
+                    <div className="text-xs text-[#98A2B2] mt-0.5">{m.company_name ?? ''}</div>
                   </td>
                   <td className="px-6 py-4">
                     <span className={`px-2 py-1 text-xs rounded-full ${STATUS_BADGE[m.approval_status]}`}>
