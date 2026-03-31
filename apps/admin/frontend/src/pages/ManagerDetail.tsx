@@ -2,11 +2,26 @@ import { useEffect, useState } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import { api } from '../lib/api'
 
+function formatPhone(phone: string | null | undefined): string {
+  if (!phone) return '-'
+  const p = phone.trim()
+  if (p.startsWith('+84')) {
+    const d = p.slice(3)
+    if (d.length === 9) return `+84 ${d.slice(0, 2)}-${d.slice(2, 5)}-${d.slice(5)}`
+  }
+  if (p.startsWith('+82')) {
+    const d = p.slice(3)
+    if (d.length >= 9) return `+82 ${d.slice(0, 2)}-${d.slice(2, d.length - 4)}-${d.slice(d.length - 4)}`
+  }
+  return p
+}
+
 interface Manager {
   id: string
   business_type: string
   company_name: string
   representative_name: string
+  worker_full_name?: string
   representative_dob: string | null
   representative_gender: string | null
   business_reg_number: string | null
@@ -27,14 +42,45 @@ interface Manager {
   profile_picture_url?: string | null
 }
 
-type TabKey = 'basic' | 'site' | 'docs' | 'approval'
+interface AssignedSite {
+  id: string
+  name: string
+  address: string
+  province: string
+  district: string | null
+  status: string
+  site_type: string | null
+  assigned_at: string
+}
+
+interface SiteOption {
+  id: string
+  name: string
+  address: string
+  province: string
+  status: string
+}
+
+type TabKey = 'basic' | 'site' | 'docs' | 'approval' | 'sites'
 
 const TABS: { key: TabKey; label: string }[] = [
   { key: 'basic', label: '기본 정보' },
   { key: 'site', label: '사업장 정보' },
   { key: 'docs', label: '서류 확인' },
   { key: 'approval', label: '승인 정보' },
+  { key: 'sites', label: '현장 배정' },
 ]
+
+const SITE_STATUS_LABEL: Record<string, string> = {
+  ACTIVE: '운영 중',
+  PAUSED: '일시 중지',
+  COMPLETED: '완료',
+}
+const SITE_STATUS_CLASS: Record<string, string> = {
+  ACTIVE: 'bg-green-100 text-green-700',
+  PAUSED: 'bg-yellow-100 text-yellow-700',
+  COMPLETED: 'bg-[#EFF1F5] text-[#98A2B2]',
+}
 
 export default function ManagerDetail() {
   const { id } = useParams<{ id: string }>()
@@ -49,12 +95,35 @@ export default function ManagerDetail() {
   const [rejectReason, setRejectReason] = useState('')
   const [showRejectForm, setShowRejectForm] = useState(false)
 
+  // Site assignment state
+  const [assignedSites, setAssignedSites] = useState<AssignedSite[]>([])
+  const [allSites, setAllSites] = useState<SiteOption[]>([])
+  const [sitesLoading, setSitesLoading] = useState(false)
+  const [siteSearch, setSiteSearch] = useState('')
+  const [assigning, setAssigning] = useState(false)
+  const [unassigning, setUnassigning] = useState<string | null>(null)
+
   useEffect(() => {
     api.get<Manager>(`/admin/managers/${id}`)
       .then((m) => { setManager(m); setForm(m) })
       .catch(console.error)
       .finally(() => setLoading(false))
   }, [id])
+
+  useEffect(() => {
+    if (tab !== 'sites') return
+    setSitesLoading(true)
+    Promise.all([
+      api.get<AssignedSite[]>(`/admin/managers/${id}/sites`),
+      api.get<SiteOption[]>('/admin/sites'),
+    ])
+      .then(([assigned, sites]) => {
+        setAssignedSites(Array.isArray(assigned) ? assigned : [])
+        setAllSites(Array.isArray(sites) ? sites : [])
+      })
+      .catch(console.error)
+      .finally(() => setSitesLoading(false))
+  }, [tab, id])
 
   function showToast(type: 'success' | 'error', msg: string) {
     setToast({ type, msg })
@@ -127,6 +196,34 @@ export default function ManagerDetail() {
     }
   }
 
+  async function assignSite(siteId: string) {
+    setAssigning(true)
+    try {
+      await api.post(`/admin/managers/${id}/sites/${siteId}`)
+      const assigned = await api.get<AssignedSite[]>(`/admin/managers/${id}/sites`)
+      setAssignedSites(Array.isArray(assigned) ? assigned : [])
+      setSiteSearch('')
+      showToast('success', '현장이 배정되었습니다.')
+    } catch {
+      showToast('error', '현장 배정 실패.')
+    } finally {
+      setAssigning(false)
+    }
+  }
+
+  async function unassignSite(siteId: string) {
+    setUnassigning(siteId)
+    try {
+      await api.delete(`/admin/managers/${id}/sites/${siteId}`)
+      setAssignedSites((prev) => prev.filter((s) => s.id !== siteId))
+      showToast('success', '현장 배정이 해제되었습니다.')
+    } catch {
+      showToast('error', '해제 실패.')
+    } finally {
+      setUnassigning(null)
+    }
+  }
+
   async function revoke() {
     if (!confirm('권한을 해제하시겠습니까?')) return
     setProcessing(true)
@@ -173,11 +270,16 @@ export default function ManagerDetail() {
       <div className="bg-white rounded-2xl shadow-sm p-6 mb-5">
         <div className="flex items-center gap-4 mb-4">
           <div className="w-14 h-14 rounded-full bg-[#E6F0FE] flex items-center justify-center text-2xl font-bold text-[#0669F7]">
-            {(manager.company_name || manager.representative_name)[0]?.toUpperCase()}
+            {(manager.worker_full_name || manager.company_name || manager.representative_name)[0]?.toUpperCase()}
           </div>
           <div className="flex-1">
-            <h2 className="text-xl font-bold text-gray-900">{manager.company_name ?? manager.representative_name}</h2>
-            <p className="text-sm text-gray-500">{manager.phone ?? '-'}</p>
+            <h2 className="text-xl font-bold text-gray-900">
+              {manager.worker_full_name ?? manager.representative_name}
+            </h2>
+            {manager.worker_full_name && (
+              <p className="text-xs text-[#98A2B2]">{manager.company_name ?? manager.representative_name}</p>
+            )}
+            <p className="text-sm text-gray-500 mt-0.5">{formatPhone(manager.phone)}</p>
           </div>
           <span className={`px-3 py-1 rounded-full text-sm font-medium ${statusClass}`}>
             {statusLabel}
@@ -348,8 +450,150 @@ export default function ManagerDetail() {
               </p>
             </div>
             <ReadOnlyField label="가입일" value={new Date(manager.created_at).toLocaleString('ko-KR')} />
-            <ReadOnlyField label="전화번호 (인증)" value={manager.phone ?? '-'} />
+            <ReadOnlyField label="전화번호 (인증)" value={formatPhone(manager.phone)} />
           </>
+        )}
+
+        {/* 현장 배정 */}
+        {tab === 'sites' && (
+          <SiteAssignmentTab
+            assignedSites={assignedSites}
+            allSites={allSites}
+            loading={sitesLoading}
+            siteSearch={siteSearch}
+            setSiteSearch={setSiteSearch}
+            assigning={assigning}
+            unassigning={unassigning}
+            onAssign={assignSite}
+            onUnassign={unassignSite}
+          />
+        )}
+      </div>
+    </div>
+  )
+}
+
+// ── Site Assignment Tab ────────────────────────────────────────────────────────
+
+function SiteAssignmentTab({
+  assignedSites,
+  allSites,
+  loading,
+  siteSearch,
+  setSiteSearch,
+  assigning,
+  unassigning,
+  onAssign,
+  onUnassign,
+}: {
+  assignedSites: AssignedSite[]
+  allSites: SiteOption[]
+  loading: boolean
+  siteSearch: string
+  setSiteSearch: (v: string) => void
+  assigning: boolean
+  unassigning: string | null
+  onAssign: (siteId: string) => void
+  onUnassign: (siteId: string) => void
+}) {
+  const assignedIds = new Set(assignedSites.map((s) => s.id))
+
+  const filteredSites = allSites.filter((s) => {
+    if (assignedIds.has(s.id)) return false
+    if (!siteSearch.trim()) return true
+    const q = siteSearch.toLowerCase()
+    return s.name.toLowerCase().includes(q) || s.address.toLowerCase().includes(q)
+  })
+
+  if (loading) {
+    return <div className="py-8 text-center text-gray-400 text-sm">로딩 중...</div>
+  }
+
+  return (
+    <div className="space-y-6">
+
+      {/* Currently assigned sites */}
+      <div>
+        <div className="flex items-center justify-between mb-3">
+          <p className="text-sm font-semibold text-gray-700">배정된 현장</p>
+          <span className="text-xs text-[#98A2B2]">{assignedSites.length}개</span>
+        </div>
+
+        {assignedSites.length === 0 ? (
+          <div className="rounded-2xl border border-dashed border-[#EFF1F5] py-8 text-center">
+            <p className="text-sm text-[#98A2B2]">배정된 현장이 없습니다.</p>
+            <p className="text-xs text-[#98A2B2] mt-1">아래에서 현장을 선택해 배정하세요.</p>
+          </div>
+        ) : (
+          <div className="space-y-2">
+            {assignedSites.map((s) => (
+              <div key={s.id} className="flex items-start gap-3 p-3 rounded-2xl border border-[#EFF1F5] bg-white hover:bg-[#F9FAFB]">
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2">
+                    <p className="text-sm font-medium text-gray-900 truncate">{s.name}</p>
+                    <span className={`shrink-0 px-2 py-0.5 text-xs rounded-full ${SITE_STATUS_CLASS[s.status] ?? 'bg-[#EFF1F5] text-[#98A2B2]'}`}>
+                      {SITE_STATUS_LABEL[s.status] ?? s.status}
+                    </span>
+                  </div>
+                  <p className="text-xs text-[#98A2B2] mt-0.5 truncate">{s.address}</p>
+                  <p className="text-xs text-[#98A2B2]">
+                    배정일: {new Date(s.assigned_at).toLocaleDateString('ko-KR')}
+                  </p>
+                </div>
+                <button
+                  onClick={() => onUnassign(s.id)}
+                  disabled={unassigning === s.id}
+                  className="shrink-0 text-xs text-[#D81A48] border border-[#F4B0C0] rounded-xl px-3 py-1.5 hover:bg-[#FDE8EE] disabled:opacity-50 transition-colors"
+                >
+                  {unassigning === s.id ? '해제 중...' : '배정 해제'}
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Site picker */}
+      <div>
+        <p className="text-sm font-semibold text-gray-700 mb-3">현장 추가</p>
+        <input
+          type="text"
+          value={siteSearch}
+          onChange={(e) => setSiteSearch(e.target.value)}
+          placeholder="현장명 또는 주소 검색..."
+          className="w-full border border-[#EFF1F5] rounded-2xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#0669F7] mb-3"
+        />
+
+        {filteredSites.length === 0 ? (
+          <div className="py-6 text-center text-sm text-[#98A2B2]">
+            {allSites.length === 0
+              ? '등록된 현장이 없습니다.'
+              : '검색 결과가 없거나 모든 현장이 배정되었습니다.'}
+          </div>
+        ) : (
+          <div className="border border-[#EFF1F5] rounded-2xl overflow-hidden max-h-72 overflow-y-auto">
+            {filteredSites.map((s, i) => (
+              <div
+                key={s.id}
+                className={`flex items-center gap-3 p-3 hover:bg-[#F2F4F5] ${i > 0 ? 'border-t border-[#EFF1F5]' : ''}`}
+              >
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium text-gray-900 truncate">{s.name}</p>
+                  <p className="text-xs text-[#98A2B2] truncate">{s.address}</p>
+                  <span className={`mt-0.5 inline-block px-2 py-0.5 text-xs rounded-full ${SITE_STATUS_CLASS[s.status] ?? 'bg-[#EFF1F5] text-[#98A2B2]'}`}>
+                    {SITE_STATUS_LABEL[s.status] ?? s.status}
+                  </span>
+                </div>
+                <button
+                  onClick={() => onAssign(s.id)}
+                  disabled={assigning}
+                  className="shrink-0 text-xs bg-[#0669F7] text-white rounded-xl px-3 py-1.5 hover:bg-[#0550C4] disabled:opacity-50 transition-colors font-medium"
+                >
+                  {assigning ? '배정 중...' : '배정'}
+                </button>
+              </div>
+            ))}
+          </div>
         )}
       </div>
     </div>

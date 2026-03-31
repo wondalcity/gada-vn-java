@@ -2,12 +2,14 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
+import { ManagerActionButton } from './ManagerActionButton'
 
 interface Props {
   locale: string
   userName: string | null
   userPhone?: string | null
   isManager?: boolean
+  managerStatus?: 'active' | 'pending' | null
   children: React.ReactNode
 }
 
@@ -93,7 +95,7 @@ const NAV_ITEMS: NavItem[] = [
   },
 ]
 
-export default function WorkerAccountShell({ locale, userName, userPhone, isManager, children }: Props) {
+export default function WorkerAccountShell({ locale, userName, userPhone, isManager, managerStatus, children }: Props) {
   const pathname = usePathname()
 
   const displayName = userName ?? userPhone ?? '근로자'
@@ -177,25 +179,13 @@ export default function WorkerAccountShell({ locale, userName, userPhone, isMana
             })}
           </nav>
 
-          {/* Manager switch */}
-          {isManager && (
-            <Link
-              href={`/${locale}/manager` as never}
-              className="flex items-center justify-between px-4 py-3 bg-gradient-to-r from-[#0669F7] to-[#1A4FD6] text-white rounded-2xl text-sm font-semibold hover:from-[#0554D6] hover:to-[#1440B8] transition-all shadow-sm"
-            >
-              <div className="flex items-center gap-2.5">
-                <div className="w-7 h-7 rounded-lg bg-white/15 flex items-center justify-center shrink-0">
-                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
-                  </svg>
-                </div>
-                관리자 화면
-              </div>
-              <svg className="w-4 h-4 text-white/70" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-              </svg>
-            </Link>
-          )}
+          {/* Manager action (always shown) */}
+          <ManagerActionButton
+            locale={locale}
+            isManager={isManager ?? false}
+            managerStatus={managerStatus}
+            variant="sidebar"
+          />
         </aside>
 
         {/* ── Page content ── */}

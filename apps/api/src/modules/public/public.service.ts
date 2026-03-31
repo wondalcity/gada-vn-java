@@ -31,6 +31,7 @@ export class PublicService {
   constructor(private readonly db: DatabaseService) {}
 
   async listJobs(params: {
+    q?: string;
     province?: string;
     tradeId?: number;
     site?: string;
@@ -68,6 +69,11 @@ export class PublicService {
         ${radiusKm * 1000}
       )`;
       binds.push(params.lng, params.lat);
+    }
+    if (params.q) {
+      where += ` AND (j.title ILIKE $${idx} OR s.name ILIKE $${idx})`;
+      binds.push(`%${params.q}%`);
+      idx++;
     }
     if (params.province) {
       where += ` AND LOWER(s.province) = LOWER($${idx++})`;

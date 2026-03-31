@@ -92,7 +92,7 @@ export default function Notifications() {
     return (Array.isArray(users) ? users : []).map(u => u.user_id)
   }
 
-  function showFlash(type: typeof flash, msg?: string) {
+  function showFlash(type: 'success' | 'scheduled' | 'cancelled' | 'error' | null, msg?: string) {
     setFlash(type ? { type, msg } : null)
     setTimeout(() => setFlash(null), 4000)
   }

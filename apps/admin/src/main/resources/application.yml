@@ -10,10 +10,16 @@ spring:
   security:
     user:
       name: ignored  # We use custom auth
+  datasource:
+    url: ${DATABASE_URL:jdbc:postgresql://localhost:5432/gada}
+    username: ${DATABASE_USER:postgres}
+    password: ${DATABASE_PASSWORD:}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 5
+      connection-timeout: 10000
 
 gada:
   admin:
-    username: ${ADMIN_USERNAME:admin}
-    password-hash: ${ADMIN_PASSWORD_HASH:}
     api-base-url: ${API_BASE_URL:http://localhost:7001/v1}
     api-admin-key: ${ADMIN_SERVICE_KEY:}

@@ -7,6 +7,7 @@ export class PublicController {
 
   @Get('jobs')
   async listJobs(
+    @Query('q') q?: string,
     @Query('province') province?: string,
     @Query('tradeId') tradeId?: string,
     @Query('site') site?: string,
@@ -21,6 +22,7 @@ export class PublicController {
       ? (statusFilter as typeof validStatus[number])
       : undefined;
     return this.publicService.listJobs({
+      q: q?.trim() || undefined,
       province,
       tradeId: tradeId ? Number(tradeId) : undefined,
       site,

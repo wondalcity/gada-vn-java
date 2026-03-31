@@ -3,6 +3,20 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { api } from '../lib/api'
 import { DEMO_SITES, DEMO_COMPANIES } from '../lib/demo-data'
 
+function formatPhone(phone: string | null | undefined): string {
+  if (!phone) return '-'
+  const p = phone.trim()
+  if (p.startsWith('+84')) {
+    const d = p.slice(3)
+    if (d.length === 9) return `+84 ${d.slice(0, 2)}-${d.slice(2, 5)}-${d.slice(5)}`
+  }
+  if (p.startsWith('+82')) {
+    const d = p.slice(3)
+    if (d.length >= 9) return `+82 ${d.slice(0, 2)}-${d.slice(2, d.length - 4)}-${d.slice(d.length - 4)}`
+  }
+  return p
+}
+
 interface Site {
   id: string
   name: string
@@ -344,7 +358,7 @@ function SiteDetailPanel({
           </div>
           <div>
             <span className="text-gray-500">연락처</span>
-            <p className="font-medium text-gray-900 mt-0.5">{site.manager_phone ?? '-'}</p>
+            <p className="font-medium text-gray-900 mt-0.5">{formatPhone(site.manager_phone)}</p>
           </div>
         </div>
 
@@ -362,7 +376,7 @@ function SiteDetailPanel({
               {site.company_contact_phone && (
                 <div>
                   <span className="text-gray-500">전화번호</span>
-                  <p className="font-medium text-gray-900 mt-0.5">{site.company_contact_phone}</p>
+                  <p className="font-medium text-gray-900 mt-0.5">{formatPhone(site.company_contact_phone)}</p>
                 </div>
               )}
               {site.company_contact_email && (
@@ -406,7 +420,7 @@ function SiteDetailPanel({
                   </td>
                   <td className="px-6 py-4 text-sm text-gray-600">{j.work_date ? formatDate(j.work_date) : '-'}</td>
                   <td className="px-6 py-4 text-sm text-[#0669F7] font-medium">
-                    {j.daily_wage ? `₫${Number(j.daily_wage).toLocaleString()}` : '-'}
+                    {j.daily_wage ? `₫${Number(j.daily_wage).toLocaleString('ko-KR')}` : '-'}
                   </td>
                   <td className="px-6 py-4 text-sm text-gray-600">{j.application_count}명</td>
                   <td className="px-6 py-4 text-sm text-gray-600">{j.hired_count}명</td>

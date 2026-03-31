@@ -22,6 +22,7 @@ interface MeResponse {
   role: string
   roles: string[]
   status: string
+  isManager?: boolean
   managerStatus?: string | null
 }
 
@@ -38,7 +39,7 @@ export async function getAuthUser(): Promise<AuthUser | null> {
     const data = res.data
     return {
       ...data,
-      isManager: data.roles.includes('MANAGER'),
+      isManager: data.isManager ?? data.roles.includes('MANAGER'),
       isAdmin: data.roles.includes('ADMIN'),
       managerStatus: (data.managerStatus ?? null) as 'active' | 'pending' | null,
     }

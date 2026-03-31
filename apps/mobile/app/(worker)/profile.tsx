@@ -532,7 +532,7 @@ export default function WorkerProfileScreen() {
         {isManager && (
           <TouchableOpacity
             style={s.managerSwitchBtn}
-            onPress={() => router.replace('/(manager)')}
+            onPress={() => router.navigate('/(manager)/' as never)}
             activeOpacity={0.8}
           >
             <Text style={s.managerSwitchText}>관리자 화면으로 전환 →</Text>

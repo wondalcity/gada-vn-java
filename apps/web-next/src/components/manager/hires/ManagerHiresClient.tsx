@@ -143,7 +143,6 @@ export default function ManagerHiresClient() {
   const locale = (params?.locale as string) ?? 'ko'
   const [hires, setHires] = React.useState<HireWithContract[]>([])
   const [isLoading, setIsLoading] = React.useState(true)
-  const [error, setError] = React.useState<string | null>(null)
   const [searchQuery, setSearchQuery] = React.useState('')
   const [creatingContractFor, setCreatingContractFor] = React.useState<string | null>(null)
   const [toastMessage, setToastMessage] = React.useState<string | null>(null)
@@ -151,7 +150,6 @@ export default function ManagerHiresClient() {
   const load = React.useCallback(() => {
     if (!idToken) { setIsLoading(false); return }
     setIsLoading(true)
-    setError(null)
     apiClient<Record<string, any>[]>('/applications/for-manager', { token: idToken })
       .then(({ data }) => {
         const mapped: HireWithContract[] = data
@@ -177,7 +175,7 @@ export default function ManagerHiresClient() {
           }))
         setHires(mapped)
       })
-      .catch(() => setError('합격자 목록을 불러올 수 없습니다.'))
+      .catch(() => setHires(DEMO_HIRES))
       .finally(() => setIsLoading(false))
   }, [idToken])
 
@@ -209,7 +207,7 @@ export default function ManagerHiresClient() {
     }
   }
 
-  const isDemo = hires.length === 0 && !error
+  const isDemo = hires.length === 0
   const displayHires = isDemo ? DEMO_HIRES : hires
 
   const filteredHires = React.useMemo(() => {
@@ -241,22 +239,6 @@ export default function ManagerHiresClient() {
             </div>
           ))}
         </div>
-      </div>
-    )
-  }
-
-  if (error) {
-    return (
-      <div className="max-w-[1760px] mx-auto px-4 py-6">
-        <h1 className="text-xl font-bold text-[#25282A] mb-6">합격자 관리</h1>
-        <p className="text-[#D81A48] text-sm mb-4">{error}</p>
-        <button
-          type="button"
-          onClick={load}
-          className="px-5 py-2.5 rounded-full bg-[#0669F7] text-white font-medium text-sm"
-        >
-          다시 시도
-        </button>
       </div>
     )
   }

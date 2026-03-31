@@ -2,7 +2,7 @@ import Link from 'next/link'
 import { cookies } from 'next/headers'
 import { getAuthUser } from '../../../../lib/auth/server'
 import { apiClient } from '../../../../lib/api/client'
-import { ManagerRoleButton } from '../../../../components/worker/ManagerRoleButton'
+import { ManagerActionButton } from '../../../../components/worker/ManagerActionButton'
 import WorkerAccountShell from '../../../../components/worker/WorkerAccountShell'
 import type { ApplicationStatus } from '../../../../types/application'
 
@@ -140,6 +140,7 @@ export default async function WorkerHomePage({ params }: Props) {
       userName={user?.name ?? null}
       userPhone={user?.phone}
       isManager={isManager}
+      managerStatus={user?.managerStatus}
     >
       {/* ────────────────────────────────────────────────────
           MOBILE ONLY: profile hero card (replaces LNB info)
@@ -189,18 +190,13 @@ export default async function WorkerHomePage({ params }: Props) {
             ))}
           </div>
 
-          {/* Manager switch button */}
-          {isManager && (
-            <Link
-              href={`/${locale}/manager` as never}
-              className="relative mt-3 flex items-center justify-center gap-2 w-full py-2.5 rounded-xl bg-white/15 border border-white/30 text-white text-sm font-semibold hover:bg-white/25 transition-colors active:bg-white/30"
-            >
-              <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
-              </svg>
-              관리자 화면으로 전환
-            </Link>
-          )}
+          {/* Manager action button — always shown */}
+          <ManagerActionButton
+            locale={locale}
+            isManager={isManager}
+            managerStatus={user?.managerStatus}
+            variant="hero"
+          />
         </div>
 
         {/* Mobile quick actions */}
@@ -270,12 +266,9 @@ export default async function WorkerHomePage({ params }: Props) {
       </div>
 
       {/* ────────────────────────────────────────────────────
-          Main layout: applications + sidebar (desktop 2-col)
+          Recent applications — full width
           ──────────────────────────────────────────────────── */}
-      <div className="md:grid md:grid-cols-[1fr_300px] md:gap-5 md:items-start">
-
-        {/* Recent applications */}
-        <div>
+      <div>
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
               <h2 className="text-base font-bold text-[#25282A]">최근 지원 현황</h2>
@@ -345,83 +338,7 @@ export default async function WorkerHomePage({ params }: Props) {
               )}
             </div>
           )}
-        </div>
 
-        {/* ── Right sidebar (desktop) / stacked (mobile) ── */}
-        <div className="mt-5 md:mt-0 space-y-3">
-
-          {/* Browse jobs CTA */}
-          <Link
-            href={`/${locale}/jobs` as never}
-            className="flex items-center gap-4 bg-[#0669F7] text-white rounded-2xl px-5 py-4 hover:bg-[#0554D6] transition-colors group"
-          >
-            <div className="w-10 h-10 rounded-xl bg-white/15 flex items-center justify-center shrink-0">
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-4.35-4.35M17 11A6 6 0 115 11a6 6 0 0112 0z" />
-              </svg>
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="font-semibold text-sm">새 공고 둘러보기</p>
-              <p className="text-blue-100 text-xs mt-0.5 truncate">베트남 건설 현장 일자리</p>
-            </div>
-            <svg className="w-4 h-4 text-white/60 group-hover:text-white shrink-0 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-            </svg>
-          </Link>
-
-          {/* Manager section */}
-          {isManager ? (
-            <div className="rounded-2xl p-4 bg-white border border-[#C8D8FF] shadow-sm">
-              <div className="flex items-start gap-3 mb-3">
-                <div className="w-8 h-8 rounded-lg bg-[#E6F0FE] flex items-center justify-center shrink-0">
-                  <svg className="w-4 h-4 text-[#0669F7]" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-                  </svg>
-                </div>
-                <div>
-                  <p className="text-sm font-bold text-[#25282A]">관리자 계정 활성화됨</p>
-                  <p className="text-xs text-[#98A2B2] mt-0.5">공고 등록 및 근로자를 관리하세요</p>
-                </div>
-              </div>
-              <Link
-                href={`/${locale}/manager` as never}
-                className="flex items-center justify-between w-full px-4 py-2.5 bg-[#0669F7] text-white rounded-xl text-sm font-bold hover:bg-[#0554D6] transition-colors"
-              >
-                관리자 화면으로 전환
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
-                </svg>
-              </Link>
-            </div>
-          ) : user?.managerStatus === 'pending' ? (
-            <div className="rounded-2xl p-4 bg-[#FFFBEB] border border-[#F5D87D]">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-bold text-[#856404]">관리자 신청 심사 중</p>
-                  <p className="text-xs text-[#856404]/70 mt-0.5">운영팀이 검토 후 승인합니다</p>
-                </div>
-                <span className="px-3 py-1.5 rounded-lg bg-[#FDBC08] text-white text-xs font-bold">
-                  심사 중
-                </span>
-              </div>
-            </div>
-          ) : (
-            <div className="rounded-2xl p-4 bg-white border border-[#EFF1F5] shadow-sm">
-              <div className="flex items-start gap-3 mb-3">
-                <div className="w-8 h-8 rounded-lg bg-[#F2F4F5] flex items-center justify-center shrink-0">
-                  <svg className="w-4 h-4 text-[#98A2B2]" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                  </svg>
-                </div>
-                <div>
-                  <p className="text-sm font-bold text-[#25282A]">현장 관리자이신가요?</p>
-                  <p className="text-xs text-[#98A2B2] mt-0.5">관리자 권한으로 공고를 올리세요</p>
-                </div>
-              </div>
-              <ManagerRoleButton locale={locale} initialManagerStatus={user?.managerStatus} />
-            </div>
-          )}
-        </div>
       </div>
     </WorkerAccountShell>
   )

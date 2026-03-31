@@ -32,6 +32,15 @@ export class ContractsController {
     return this.contractsService.findByWorker(user.id);
   }
 
+  // Manager fetches their own contracts
+  @Get('mine-as-manager')
+  @Roles('MANAGER')
+  async getMyContractsAsManager(
+    @CurrentUser() user: CurrentUserPayload,
+  ) {
+    return this.contractsService.findByManager(user.id);
+  }
+
   // Worker or Manager retrieves a contract by ID
   @Get(':id')
   async getContract(
@@ -50,5 +59,16 @@ export class ContractsController {
     @Body() body: { signatureData?: string },
   ) {
     return this.contractsService.sign(id, user.id, body.signatureData);
+  }
+
+  // Manager co-signs a contract (PENDING_MANAGER_SIGN → FULLY_SIGNED)
+  @Post(':id/manager-sign')
+  @Roles('MANAGER')
+  async managerSignContract(
+    @Param('id') id: string,
+    @CurrentUser() user: CurrentUserPayload,
+    @Body() body: { signatureData?: string },
+  ) {
+    return this.contractsService.managerSign(id, user.id, body.signatureData);
   }
 }

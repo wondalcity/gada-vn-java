@@ -64,12 +64,9 @@ export function ManagerAppBar({ locale, user }: Props) {
         {isRootPage ? (
           <Link
             href={`/${locale}/manager`}
-            className="md:hidden flex items-center gap-1.5 shrink-0"
+            className="md:hidden flex items-center shrink-0"
           >
-            <span className="text-xl font-black text-[#0669F7] tracking-tight">GADA</span>
-            <span className="text-[10px] font-semibold bg-[#FDBC08] px-1.5 py-0.5 rounded-full leading-none text-[#25282A]">
-              관리자
-            </span>
+            <img src="/logo.png" alt="GADA VN" className="h-8 w-auto" />
           </Link>
         ) : (
           <div className="md:hidden flex items-center gap-1 shrink-0">
@@ -90,10 +87,9 @@ export function ManagerAppBar({ locale, user }: Props) {
         )}
         <Link
           href={'/' as never}
-          className="hidden md:flex items-center gap-2 shrink-0"
+          className="hidden md:flex items-center shrink-0"
         >
-          <span className="text-xl font-black text-[#0669F7] tracking-tight">GADA</span>
-          <span className="text-xs text-[#98A2B2] font-medium">관리자</span>
+          <img src="/logo.png" alt="GADA VN" className="h-9 w-auto" />
         </Link>
 
         {/* Desktop nav links */}
@@ -117,7 +113,7 @@ export function ManagerAppBar({ locale, user }: Props) {
 
         {/* Right actions */}
         <div className="flex items-center gap-1">
-          {/* Search button */}
+          {/* Search button — visible on all sizes */}
           <button
             type="button"
             aria-label="검색"
@@ -128,16 +124,16 @@ export function ManagerAppBar({ locale, user }: Props) {
               <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
             </svg>
           </button>
-          {/* Worker view shortcut — icon only on mobile, icon+text on desktop */}
+
+          {/* Notification button — mobile only */}
           <Link
-            href={`/${locale}/worker`}
-            className="flex items-center gap-1.5 mr-1 text-xs font-medium text-[#98A2B2] hover:text-[#0669F7] px-2.5 py-1.5 rounded-full hover:bg-[#EFF1F5] transition-colors border border-[#EFF1F5] hover:border-[#0669F7]"
-            aria-label="근로자 화면으로 전환"
+            href={`/${locale}/manager/notifications` as never}
+            aria-label="알림"
+            className="md:hidden flex items-center justify-center w-9 h-9 rounded-full text-[#98A2B2] hover:text-[#0669F7] hover:bg-[#EFF1F5] transition-colors"
           >
-            <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+            <svg className="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
             </svg>
-            <span className="hidden md:inline">근로자 화면</span>
           </Link>
 
           {user ? (
@@ -146,6 +142,7 @@ export function ManagerAppBar({ locale, user }: Props) {
                 locale={locale}
                 userName={user.name}
                 isManager={user.isManager}
+                isManagerContext={true}
               />
             </div>
           ) : (

@@ -105,8 +105,10 @@ export async function fetchPublicJobs(params: {
   lng?: number
   radiusKm?: number
   statusFilter?: string
+  q?: string
 }): Promise<PublicJobsResponse> {
   const qs = new URLSearchParams()
+  if (params.q)              qs.set('q', params.q)
   if (params.provinceSlug)   qs.set('province', params.provinceSlug)
   if (params.tradeId)        qs.set('tradeId', String(params.tradeId))
   if (params.siteSlug)       qs.set('site', params.siteSlug)
@@ -116,9 +118,9 @@ export async function fetchPublicJobs(params: {
   if (params.lng != null)    qs.set('lng', String(params.lng))
   if (params.radiusKm)       qs.set('radiusKm', String(params.radiusKm))
   if (params.statusFilter)   qs.set('statusFilter', params.statusFilter)
-  const cacheOptions = params.lat != null
-    ? { cache: 'no-store' as const }  // geo results are personalized, skip CDN cache
-    : { next: { revalidate: 60, tags: ['JOBS_LISTING'] } as const }
+  const cacheOptions = params.lat != null || params.q
+    ? { cache: 'no-store' as const }  // geo/search results skip CDN cache
+    : { next: { revalidate: 60, tags: ['JOBS_LISTING'] as string[] } }
   const res = await fetch(`${BASE}/public/jobs?${qs}`, cacheOptions)
   if (!res.ok) return { jobs: [], total: 0, page: 1, totalPages: 0 }
   const json = await res.json()

@@ -47,7 +47,13 @@ export class ContractsRepository {
 
   async findById(id: string) {
     const CDN = process.env.CLOUDFRONT_URL ?? '';
-    const cdnUrl = (key: string | null) => key ? (CDN ? `${CDN}/${key}` : key) : null;
+    // Signatures are stored as raw data URLs (data:image/png;base64,...), not S3 keys.
+    // Only apply CDN prefix to real S3 keys (not data URLs).
+    const cdnUrl = (key: string | null) => {
+      if (!key) return null;
+      if (key.startsWith('data:')) return key;
+      return CDN ? `${CDN}/${key}` : key;
+    };
 
     const { rows } = await this.db.query(
       `SELECT

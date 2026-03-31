@@ -1,0 +1,149 @@
+'use client'
+
+import * as React from 'react'
+import Link from 'next/link'
+import { useRouter } from 'next/navigation'
+import { getSessionCookie } from '@/lib/auth/session'
+
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'https://api.gada.vn/api/v1'
+
+interface Props {
+  locale: string
+  isManager: boolean
+  managerStatus: 'active' | 'pending' | null | undefined
+  variant: 'hero' | 'sidebar'
+}
+
+export function ManagerActionButton({ locale, isManager, managerStatus, variant }: Props) {
+  const router = useRouter()
+  const [status, setStatus] = React.useState<'idle' | 'loading' | 'pending'>(
+    managerStatus === 'pending' ? 'pending' : 'idle',
+  )
+
+  // Sync state when server re-renders with updated managerStatus
+  React.useEffect(() => {
+    if (managerStatus === 'pending') setStatus('pending')
+  }, [managerStatus])
+
+  async function handleApply() {
+    const token = getSessionCookie()
+    if (!token) return
+    setStatus('loading')
+    try {
+      const res = await fetch(`${API_BASE}/managers/register`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({}),
+      })
+      if (res.ok) {
+        setStatus('pending')
+        // Invalidate the Router Cache so navigating back shows the updated state
+        router.refresh()
+      } else {
+        setStatus('idle')
+      }
+    } catch {
+      setStatus('idle')
+    }
+  }
+
+  if (isManager) {
+    if (variant === 'hero') {
+      return (
+        <Link
+          href={`/${locale}/manager` as never}
+          className="relative mt-3 flex items-center justify-center gap-2 w-full py-2.5 rounded-xl bg-white/15 border border-white/30 text-white text-sm font-semibold hover:bg-white/25 transition-colors active:bg-white/30"
+        >
+          <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+          </svg>
+          관리자 화면으로 전환
+        </Link>
+      )
+    }
+    return (
+      <Link
+        href={`/${locale}/manager` as never}
+        className="flex items-center justify-between px-4 py-3 bg-gradient-to-r from-[#0669F7] to-[#1A4FD6] text-white rounded-2xl text-sm font-semibold hover:from-[#0554D6] hover:to-[#1440B8] transition-all shadow-sm"
+      >
+        <div className="flex items-center gap-2.5">
+          <div className="w-7 h-7 rounded-lg bg-white/15 flex items-center justify-center shrink-0">
+            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+            </svg>
+          </div>
+          관리자 화면으로 전환
+        </div>
+        <svg className="w-4 h-4 text-white/70" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+        </svg>
+      </Link>
+    )
+  }
+
+  if (status === 'pending') {
+    if (variant === 'hero') {
+      return (
+        <div className="relative mt-3 flex items-center justify-center gap-2 w-full py-2.5 rounded-xl bg-amber-400/20 border border-amber-300/40 text-amber-200 text-sm font-semibold">
+          <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          관리자 심사 중
+        </div>
+      )
+    }
+    return (
+      <div className="flex items-center justify-between px-4 py-3 bg-[#FFFBEB] border border-[#F5D87D] rounded-2xl">
+        <div className="flex items-center gap-2.5">
+          <div className="w-7 h-7 rounded-lg bg-[#FFFBEB] border border-[#F5D87D] flex items-center justify-center shrink-0">
+            <svg className="w-3.5 h-3.5 text-[#856404]" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
+          <div>
+            <p className="text-sm font-bold text-[#856404]">관리자 심사 중</p>
+            <p className="text-xs text-[#856404]/70">운영팀이 검토 후 승인합니다</p>
+          </div>
+        </div>
+        <span className="px-2.5 py-1 rounded-lg bg-[#FDBC08] text-white text-xs font-bold">심사 중</span>
+      </div>
+    )
+  }
+
+  // idle / apply state
+  if (variant === 'hero') {
+    return (
+      <button
+        type="button"
+        onClick={handleApply}
+        disabled={status === 'loading'}
+        className="relative mt-3 flex items-center justify-center gap-2 w-full py-2.5 rounded-xl bg-white/15 border border-white/30 text-white text-sm font-semibold hover:bg-white/25 transition-colors active:bg-white/30 disabled:opacity-50"
+      >
+        <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+        </svg>
+        {status === 'loading' ? '신청 중...' : '관리자 신청하기'}
+      </button>
+    )
+  }
+  return (
+    <button
+      type="button"
+      onClick={handleApply}
+      disabled={status === 'loading'}
+      className="flex items-center justify-between w-full px-4 py-3 bg-white border border-[#EFF1F5] rounded-2xl text-sm font-semibold text-[#25282A] hover:border-[#0669F7] hover:text-[#0669F7] hover:bg-[#E6F0FE] transition-all shadow-sm disabled:opacity-50"
+    >
+      <div className="flex items-center gap-2.5">
+        <div className="w-7 h-7 rounded-lg bg-[#F2F4F5] flex items-center justify-center shrink-0">
+          <svg className="w-3.5 h-3.5 text-[#98A2B2]" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+          </svg>
+        </div>
+        {status === 'loading' ? '신청 중...' : '관리자 신청하기'}
+      </div>
+      <svg className="w-4 h-4 text-[#98A2B2]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+      </svg>
+    </button>
+  )
+}

@@ -25,6 +25,16 @@ export class FilesController {
     );
   }
 
+  // Upload a base64-encoded image (used by mobile app)
+  @Post('upload-base64')
+  async uploadBase64(
+    @CurrentUser() user: CurrentUserPayload,
+    @Body() body: { dataUrl: string; folder?: string },
+  ) {
+    const key = await this.filesService.uploadBase64(user.id, body.dataUrl, body.folder);
+    return { key };
+  }
+
   // Confirm upload completed and register file in DB
   @Post('confirm')
   async confirmUpload(

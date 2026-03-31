@@ -16,9 +16,8 @@ export function PublicHeader({ locale, user, provinces = [] }: Props) {
     <header className="sticky top-0 z-50 bg-white border-b border-[#DDDDDD] shadow-sm">
       <div className="max-w-[1760px] mx-auto px-4 sm:px-6 xl:px-20 h-14 flex items-center justify-between gap-4">
         {/* Logo */}
-        <Link href="/" className="flex items-center gap-2 shrink-0">
-          <span className="text-xl font-black text-[#0669F7] tracking-tight">GADA</span>
-          <span className="hidden sm:block text-xs text-[#7A7B7A] font-medium">베트남 건설 일자리</span>
+        <Link href="/" className="flex items-center shrink-0">
+          <img src="/logo.png" alt="GADA VN" className="h-8 w-auto" />
         </Link>
 
         {/* Nav (desktop) */}

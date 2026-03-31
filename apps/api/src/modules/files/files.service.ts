@@ -40,6 +40,29 @@ export class FilesService {
     return { url, key, expiresIn: 300 };
   }
 
+  async uploadBase64(userId: string, dataUrl: string, folder?: string): Promise<string> {
+    // Parse data URL: data:<mime>;base64,<data>
+    const match = dataUrl.match(/^data:([^;]+);base64,(.+)$/);
+    if (!match) throw new Error('Invalid data URL format');
+    const [, contentType, base64Data] = match;
+    const ext = contentType.split('/')[1] || 'jpg';
+    const key = `${folder || 'uploads'}/${userId}/${uuidv4()}.${ext}`;
+    const buffer = Buffer.from(base64Data, 'base64');
+
+    // Try S3 upload; fall back to returning key-only for local dev
+    if (process.env.AWS_ACCESS_KEY_ID) {
+      const command = new PutObjectCommand({
+        Bucket: this.bucket,
+        Key: key,
+        ContentType: contentType,
+        Body: buffer,
+      });
+      await this.s3.send(command);
+    }
+
+    return key;
+  }
+
   async confirmUpload(
     userId: string,
     key: string,

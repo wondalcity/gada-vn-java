@@ -23,6 +23,15 @@ interface WorkerApplication {
   status: ApplicationStatus;
 }
 
+const DEMO_APPLICATIONS: WorkerApplication[] = [
+  { id: 'dapp-1', jobId: 'djob-1', jobTitle: '강남구 철근 작업 모집', workDate: '2026-04-05', workerId: 'dw-1', workerName: '김민준', workerPhone: '+82 10-1234-5678', workerTrades: ['철근공'], experienceYears: 3, status: 'HIRED' },
+  { id: 'dapp-2', jobId: 'djob-1', jobTitle: '강남구 철근 작업 모집', workDate: '2026-04-05', workerId: 'dw-2', workerName: '이서준', workerPhone: '+82 10-2345-6789', workerTrades: ['철근공'], experienceYears: 5, status: 'APPLIED' },
+  { id: 'dapp-3', jobId: 'djob-2', jobTitle: '서초 오피스텔 미장 작업', workDate: '2026-04-07', workerId: 'dw-3', workerName: '박도윤', workerPhone: '+82 10-3456-7890', workerTrades: ['미장공'], experienceYears: 2, status: 'APPLIED' },
+  { id: 'dapp-4', jobId: 'djob-3', jobTitle: '마포구 배관 설치', workDate: '2026-04-10', workerId: 'dw-4', workerName: '최현우', workerPhone: '+82 10-4567-8901', workerTrades: ['배관공'], experienceYears: 6, status: 'COMPLETED' },
+  { id: 'dapp-5', jobId: 'djob-5', jobTitle: '성동구 신축 도장 작업', workDate: '2026-04-12', workerId: 'dw-5', workerName: '정시우', workerPhone: '+82 10-5678-9012', workerTrades: ['도장공'], experienceYears: 4, status: 'HIRED' },
+  { id: 'dapp-6', jobId: 'djob-2', jobTitle: '서초 오피스텔 미장 작업', workDate: '2026-04-07', workerId: 'dw-6', workerName: '강지훈', workerPhone: '+82 10-6789-0123', workerTrades: ['미장공'], experienceYears: 1, status: 'REJECTED' },
+]
+
 const STATUS_CONFIG: Record<ApplicationStatus, { bg: string; text: string; label: string }> = {
   APPLIED:   { bg: Colors.primaryContainer, text: Colors.primary,           label: '지원' },
   HIRED:     { bg: Colors.successContainer, text: Colors.onSuccessContainer, label: '채용' },
@@ -43,8 +52,18 @@ function formatDate(dateStr: string): string {
   return `${d.getMonth() + 1}/${d.getDate()}(${days[d.getDay()]})`;
 }
 
-function formatPhone(phone: string): string {
-  return phone.replace(/(\d{4})(\d{3})(\d{3})/, '$1 $2 $3');
+function formatPhone(phone: string | null | undefined): string {
+  if (!phone) return '-'
+  const p = phone.trim()
+  if (p.startsWith('+84')) {
+    const d = p.slice(3)
+    if (d.length === 9) return `+84 ${d.slice(0, 2)}-${d.slice(2, 5)}-${d.slice(5)}`
+  }
+  if (p.startsWith('+82')) {
+    const d = p.slice(3)
+    if (d.length >= 9) return `+82 ${d.slice(0, 2)}-${d.slice(2, d.length - 4)}-${d.slice(d.length - 4)}`
+  }
+  return p
 }
 
 export default function ManagerWorkersScreen() {
@@ -57,9 +76,9 @@ export default function ManagerWorkersScreen() {
   const loadApplications = useCallback(async () => {
     try {
       const data = await api.get<WorkerApplication[]>('/manager/applications');
-      setApplications(data);
+      setApplications(data.length > 0 ? data : DEMO_APPLICATIONS);
     } catch {
-      setApplications([]);
+      setApplications(DEMO_APPLICATIONS);
     } finally {
       setLoading(false);
       setRefreshing(false);

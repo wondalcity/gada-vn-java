@@ -6,6 +6,16 @@ import { getSessionCookie, clearSessionCookie } from '@/lib/auth/session'
 import { getGoogleMapsLoader } from '@/lib/maps/loader'
 
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'https://api.gada.vn/api/v1'
+const CDN_DOMAIN = process.env.NEXT_PUBLIC_CDN_DOMAIN ?? ''
+
+/** Convert an S3 key or any URL to a displayable URL using the CDN domain. */
+function toCdnUrl(urlOrKey: string | null): string | null {
+  if (!urlOrKey) return null
+  if (urlOrKey.startsWith('http') || urlOrKey.startsWith('blob:') || urlOrKey.startsWith('data:')) return urlOrKey
+  if (!CDN_DOMAIN) return urlOrKey
+  const base = CDN_DOMAIN.startsWith('http') ? CDN_DOMAIN : `https://${CDN_DOMAIN}`
+  return `${base}/${urlOrKey}`
+}
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -230,7 +240,7 @@ function BasicTab({ profile, onSaved }: { profile: WorkerProfile; onSaved: (p: P
   const [bio, setBio] = React.useState(profile.bio ?? '')
   const [saving, setSaving] = React.useState(false)
   const [error, setError] = React.useState('')
-  const [profileImageUrl, setProfileImageUrl] = React.useState<string | null>(profile.profile_image_url)
+  const [profileImageUrl, setProfileImageUrl] = React.useState<string | null>(toCdnUrl(profile.profile_image_url))
   const [imageUploading, setImageUploading] = React.useState(false)
   const [imageError, setImageError] = React.useState('')
   const imageInputRef = React.useRef<HTMLInputElement>(null)
@@ -695,7 +705,7 @@ function AddressTab({ profile, onSaved }: { profile: WorkerProfile; onSaved: (p:
 function BankTab({ profile, onSaved }: { profile: WorkerProfile; onSaved: (p: Partial<WorkerProfile>) => void }) {
   const [bankName, setBankName] = React.useState(profile.bank_name ?? '')
   const [accountNumber, setAccountNumber] = React.useState(profile.bank_account_number ?? '')
-  const [bankBookUrl, setBankBookUrl] = React.useState<string | null>(profile.bank_book_url)
+  const [bankBookUrl, setBankBookUrl] = React.useState<string | null>(toCdnUrl(profile.bank_book_url))
   const [saving, setSaving] = React.useState(false)
   const [uploading, setUploading] = React.useState(false)
   const [error, setError] = React.useState('')
@@ -770,8 +780,8 @@ function StatusBadge({ verified, hasDoc }: { verified: boolean; hasDoc: boolean 
 
 function IdTab({ profile, onSaved }: { profile: WorkerProfile; onSaved: (p: Partial<WorkerProfile>) => void }) {
   const [idNumber, setIdNumber] = React.useState(profile.id_number ?? '')
-  const [frontUrl, setFrontUrl] = React.useState<string | null>(profile.id_front_url)
-  const [backUrl, setBackUrl] = React.useState<string | null>(profile.id_back_url)
+  const [frontUrl, setFrontUrl] = React.useState<string | null>(toCdnUrl(profile.id_front_url))
+  const [backUrl, setBackUrl] = React.useState<string | null>(toCdnUrl(profile.id_back_url))
   const [saving, setSaving] = React.useState(false)
   const [error, setError] = React.useState('')
   const [success, setSuccess] = React.useState('')
@@ -927,7 +937,7 @@ function useSignaturePad(canvasRef: React.RefObject<HTMLCanvasElement | null>) {
 function SignatureTab({ profile, onSaved }: { profile: WorkerProfile; onSaved: (p: Partial<WorkerProfile>) => void }) {
   const canvasRef = React.useRef<HTMLCanvasElement>(null)
   const { initCanvas, startDrawing, draw, stopDrawing, clear, getBlob, checkIsEmpty } = useSignaturePad(canvasRef)
-  const [existingUrl, setExistingUrl] = React.useState<string | null>(profile.signature_url)
+  const [existingUrl, setExistingUrl] = React.useState<string | null>(toCdnUrl(profile.signature_url))
   const [saving, setSaving] = React.useState(false)
   const [error, setError] = React.useState('')
   const [success, setSuccess] = React.useState('')
@@ -969,7 +979,7 @@ function SignatureTab({ profile, onSaved }: { profile: WorkerProfile; onSaved: (
       const key = await uploadFile(token!, file, 'worker-signatures')
       const ok = await saveProfile(token!, { signatureS3Key: key })
       if (ok) {
-        const url = URL.createObjectURL(blob)
+        const url = toCdnUrl(key) ?? URL.createObjectURL(blob)
         setExistingUrl(url); onSaved({ signature_url: url })
         setSuccess('서명이 저장되었습니다.')
         clear()

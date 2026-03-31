@@ -3,6 +3,20 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { api } from '../lib/api'
 import { DEMO_COMPANIES } from '../lib/demo-data'
 
+function formatPhone(phone: string | null | undefined): string {
+  if (!phone) return '-'
+  const p = phone.trim()
+  if (p.startsWith('+84')) {
+    const d = p.slice(3)
+    if (d.length === 9) return `+84 ${d.slice(0, 2)}-${d.slice(2, 5)}-${d.slice(5)}`
+  }
+  if (p.startsWith('+82')) {
+    const d = p.slice(3)
+    if (d.length >= 9) return `+82 ${d.slice(0, 2)}-${d.slice(2, d.length - 4)}-${d.slice(d.length - 4)}`
+  }
+  return p
+}
+
 interface Company {
   id: string
   name: string
@@ -200,7 +214,7 @@ function CompanyDetailPanel({
             </div>
             <div>
               <p className="text-xs text-gray-500 mb-0.5">전화번호</p>
-              <p className="text-sm font-medium text-gray-900">{company.contact_phone ?? '-'}</p>
+              <p className="text-sm font-medium text-gray-900">{formatPhone(company.contact_phone)}</p>
             </div>
             <div>
               <p className="text-xs text-gray-500 mb-0.5">이메일</p>
@@ -385,7 +399,7 @@ export default function Companies() {
                   </td>
                   <td className="px-6 py-4 text-sm text-gray-600">{c.business_reg_no ?? '-'}</td>
                   <td className="px-6 py-4 text-sm text-gray-600">{c.contact_name ?? '-'}</td>
-                  <td className="px-6 py-4 text-sm text-gray-600">{c.contact_phone ?? '-'}</td>
+                  <td className="px-6 py-4 text-sm text-gray-600">{formatPhone(c.contact_phone)}</td>
                   <td className="px-6 py-4 text-sm">
                     <span className="text-blue-600 font-medium">{c.site_count}</span>
                     <span className="text-gray-400">개</span>

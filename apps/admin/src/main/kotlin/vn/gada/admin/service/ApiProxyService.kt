@@ -1,6 +1,7 @@
 package vn.gada.admin.service
 
 import org.springframework.http.*
+import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.stereotype.Service
 import org.springframework.web.client.HttpClientErrorException
 import org.springframework.web.client.HttpServerErrorException
@@ -28,8 +29,10 @@ class ApiProxyService(private val props: AppProperties) {
             uriBuilder.query(queryString)
         }
 
+        val adminEmail = SecurityContextHolder.getContext().authentication?.name
         val headers = HttpHeaders().apply {
             set("x-admin-key", props.apiAdminKey)
+            adminEmail?.let { set("x-admin-email", it) }
             contentType?.let { this.contentType = it }
             accept = listOf(MediaType.APPLICATION_JSON)
         }

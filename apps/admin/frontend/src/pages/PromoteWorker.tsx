@@ -2,6 +2,20 @@ import { useState, useCallback } from 'react'
 import { Link } from 'react-router-dom'
 import { api } from '../lib/api'
 
+function formatPhone(phone: string | null | undefined): string {
+  if (!phone) return '-'
+  const p = phone.trim()
+  if (p.startsWith('+84')) {
+    const d = p.slice(3)
+    if (d.length === 9) return `+84 ${d.slice(0, 2)}-${d.slice(2, 5)}-${d.slice(5)}`
+  }
+  if (p.startsWith('+82')) {
+    const d = p.slice(3)
+    if (d.length >= 9) return `+82 ${d.slice(0, 2)}-${d.slice(2, d.length - 4)}-${d.slice(d.length - 4)}`
+  }
+  return p
+}
+
 interface Worker {
   id: string
   full_name: string
@@ -188,7 +202,7 @@ export default function PromoteWorker() {
               >
                 <div>
                   <span className="text-sm font-medium text-gray-900">{w.full_name}</span>
-                  <span className="ml-3 text-xs text-gray-500">{w.phone ?? '-'}</span>
+                  <span className="ml-3 text-xs text-gray-500">{formatPhone(w.phone)}</span>
                 </div>
                 <div className="flex items-center gap-2">
                   {w.id_verified ? (
@@ -207,7 +221,7 @@ export default function PromoteWorker() {
           <div className="bg-[#EEF4FF] border border-[#B8D4FD] rounded-2xl p-4 flex items-center justify-between">
             <div>
               <p className="text-sm font-semibold text-gray-900">{selectedWorker.full_name}</p>
-              <p className="text-xs text-gray-500 mt-0.5">{selectedWorker.phone ?? '-'} · user_id: {selectedWorker.user_id}</p>
+              <p className="text-xs text-gray-500 mt-0.5">{formatPhone(selectedWorker.phone)} · user_id: {selectedWorker.user_id}</p>
             </div>
             <button
               onClick={() => { setSelectedWorker(null); setSearchResults([]) }}

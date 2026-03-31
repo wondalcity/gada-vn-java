@@ -1,4 +1,4 @@
-import { Controller, Get, Put, Body, Query, UseGuards } from '@nestjs/common';
+import { Controller, Get, Put, Post, Delete, Body, Query, Param, UseGuards } from '@nestjs/common';
 import { FirebaseAuthGuard } from '../../common/guards/firebase-auth.guard';
 import { Roles } from '../../common/decorators/roles.decorator';
 import { RolesGuard } from '../../common/guards/roles.guard';
@@ -38,6 +38,31 @@ export class WorkersController {
     @Query('jobId') jobId?: string,
   ) {
     return this.workersService.getAttendance(user.id, jobId);
+  }
+
+  @Get('saved-locations')
+  @Roles('WORKER')
+  async getSavedLocations(@CurrentUser() user: CurrentUserPayload) {
+    return this.workersService.getSavedLocations(user.id);
+  }
+
+  @Post('saved-locations')
+  @Roles('WORKER')
+  async upsertSavedLocation(
+    @CurrentUser() user: CurrentUserPayload,
+    @Body() body: { label: string; address?: string; lat: number; lng: number; isDefault?: boolean },
+  ) {
+    return this.workersService.upsertSavedLocation(user.id, body);
+  }
+
+  @Delete('saved-locations/:id')
+  @Roles('WORKER')
+  async deleteSavedLocation(
+    @CurrentUser() user: CurrentUserPayload,
+    @Param('id') id: string,
+  ) {
+    const deleted = await this.workersService.deleteSavedLocation(user.id, id);
+    return { deleted };
   }
 
   @Get('me/trade-skills')

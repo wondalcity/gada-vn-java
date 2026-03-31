@@ -3,6 +3,20 @@ import { Link, useSearchParams } from 'react-router-dom'
 import { api } from '../lib/api'
 import { DEMO_MANAGERS } from '../lib/demo-data'
 
+function formatPhone(phone: string | null | undefined): string {
+  if (!phone) return '-'
+  const p = phone.trim()
+  if (p.startsWith('+84')) {
+    const d = p.slice(3)
+    if (d.length === 9) return `+84 ${d.slice(0, 2)}-${d.slice(2, 5)}-${d.slice(5)}`
+  }
+  if (p.startsWith('+82')) {
+    const d = p.slice(3)
+    if (d.length >= 9) return `+82 ${d.slice(0, 2)}-${d.slice(2, d.length - 4)}-${d.slice(d.length - 4)}`
+  }
+  return p
+}
+
 type Status = 'PENDING' | 'APPROVED' | 'REJECTED'
 interface Manager {
   id: string
@@ -131,7 +145,7 @@ export default function Managers() {
                     </div>
                     <div className="text-xs text-[#98A2B2] mt-0.5">{m.representative_name}</div>
                   </td>
-                  <td className="px-6 py-4 text-sm text-gray-600">{m.phone ?? '-'}</td>
+                  <td className="px-6 py-4 text-sm text-gray-600">{formatPhone(m.phone)}</td>
                   <td className="px-6 py-4">
                     <div className="text-sm text-gray-700">{m.site_name ?? '-'}</div>
                     <div className="text-xs text-[#98A2B2] mt-0.5">{m.company_name ?? ''}</div>

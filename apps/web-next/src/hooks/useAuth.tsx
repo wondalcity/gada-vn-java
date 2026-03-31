@@ -133,7 +133,7 @@ function useAuthProvider(locale: string) {
     if (isNewUser) {
       router.push(`/${locale}/register`)
     } else {
-      router.push(redirectTo ?? `/${locale}/worker`)
+      router.push((redirectTo ?? `/${locale}/worker`) as any)
     }
   }
 

@@ -1,6 +1,20 @@
 import { useEffect, useState } from 'react'
-import { useParams, Link } from 'react-router-dom'
+import { useParams, Link, useNavigate } from 'react-router-dom'
 import { api } from '../lib/api'
+
+function formatPhone(phone: string | null | undefined): string {
+  if (!phone) return '-'
+  const p = phone.trim()
+  if (p.startsWith('+84')) {
+    const d = p.slice(3)
+    if (d.length === 9) return `+84 ${d.slice(0, 2)}-${d.slice(2, 5)}-${d.slice(5)}`
+  }
+  if (p.startsWith('+82')) {
+    const d = p.slice(3)
+    if (d.length >= 9) return `+82 ${d.slice(0, 2)}-${d.slice(2, d.length - 4)}-${d.slice(d.length - 4)}`
+  }
+  return p
+}
 
 interface Worker {
   id: string
@@ -68,11 +82,13 @@ const TABS: { key: TabKey; label: string }[] = [
 
 export default function WorkerDetail() {
   const { id } = useParams<{ id: string }>()
+  const navigate = useNavigate()
   const [worker, setWorker] = useState<Worker | null>(null)
   const [loading, setLoading] = useState(true)
   const [tab, setTab] = useState<TabKey>('basic')
   const [form, setForm] = useState<Partial<Worker>>({})
   const [saving, setSaving] = useState(false)
+  const [deactivating, setDeactivating] = useState(false)
   const [toast, setToast] = useState<{ type: 'success' | 'error'; msg: string } | null>(null)
 
   // Trade skills state
@@ -180,6 +196,19 @@ export default function WorkerDetail() {
     }
   }
 
+  async function handleDeactivate() {
+    if (!confirm(`"${worker?.full_name}" 근로자를 비활성화하시겠습니까?`)) return
+    setDeactivating(true)
+    try {
+      await api.delete(`/admin/workers/${id}`)
+      navigate('/workers')
+    } catch (err: unknown) {
+      showToast('error', err instanceof Error ? err.message : '비활성화 실패')
+    } finally {
+      setDeactivating(false)
+    }
+  }
+
   if (loading) return <div className="p-8 text-center text-gray-400">로딩 중...</div>
   if (!worker) return <div className="p-8 text-center text-[#D81A48]">근로자를 찾을 수 없습니다</div>
 
@@ -209,13 +238,22 @@ export default function WorkerDetail() {
               <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-[#FDBC08]/20 text-yellow-700">관리자</span>
             )}
           </div>
-          <p className="text-sm text-gray-500">{worker.phone ?? '-'}</p>
+          <p className="text-sm text-gray-500">{formatPhone(worker.phone)}</p>
         </div>
-        <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-          worker.id_verified ? 'bg-green-100 text-green-700' : 'bg-[#FDE8EE] text-[#D81A48]'
-        }`}>
-          {worker.id_verified ? '신분증 인증' : '미인증'}
-        </span>
+        <div className="flex flex-col items-end gap-2">
+          <span className={`px-3 py-1 rounded-full text-xs font-medium ${
+            worker.id_verified ? 'bg-green-100 text-green-700' : 'bg-[#FDE8EE] text-[#D81A48]'
+          }`}>
+            {worker.id_verified ? '신분증 인증' : '미인증'}
+          </span>
+          <button
+            onClick={handleDeactivate}
+            disabled={deactivating}
+            className="px-3 py-1 text-xs border border-[#F4B0C0] rounded-xl text-[#D81A48] hover:bg-[#FDE8EE] disabled:opacity-50"
+          >
+            비활성화
+          </button>
+        </div>
       </div>
 
       {/* Tab Bar */}
@@ -445,7 +483,7 @@ export default function WorkerDetail() {
         {/* 기타 */}
         {tab === 'misc' && (
           <>
-            <ReadOnlyField label="전화번호" value={worker.phone ?? '-'} />
+            <ReadOnlyField label="전화번호" value={formatPhone(worker.phone)} />
             <ReadOnlyField label="이메일" value={worker.email ?? '-'} />
             <div className="flex gap-4">
               <div className="flex-1">

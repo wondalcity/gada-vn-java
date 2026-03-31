@@ -36,7 +36,8 @@ export class AuthService {
     const existing = await this.repo.findByFirebaseUid(decoded.uid);
 
     if (existing) {
-      return { user: existing, isNew: false };
+      const profile = await this.repo.getMeProfile(existing.id);
+      return { user: profile, isNew: false };
     }
 
     const user = await this.repo.create({
@@ -46,7 +47,8 @@ export class AuthService {
       role: 'WORKER',
     });
 
-    return { user, isNew: true };
+    const profile = await this.repo.getMeProfile(user.id);
+    return { user: profile, isNew: true };
   }
 
   async register(currentUser: CurrentUserPayload, dto: RegisterDto) {

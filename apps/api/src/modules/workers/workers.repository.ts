@@ -148,6 +148,63 @@ export class WorkersRepository {
     return rows;
   }
 
+  // ── Saved locations ──────────────────────────────────────────────────────
+
+  async findSavedLocationsByUserId(userId: string) {
+    const { rows } = await this.db.query(
+      `SELECT wsl.id, wsl.label, wsl.address, wsl.lat, wsl.lng, wsl.is_default
+       FROM app.worker_saved_locations wsl
+       JOIN app.worker_profiles wp ON wp.id = wsl.worker_id
+       WHERE wp.user_id = $1
+       ORDER BY wsl.is_default DESC, wsl.created_at ASC`,
+      [userId],
+    );
+    return rows;
+  }
+
+  async upsertSavedLocation(
+    userId: string,
+    data: { label: string; address?: string | null; lat: number; lng: number; isDefault?: boolean },
+  ) {
+    return this.db.transaction(async (client) => {
+      const { rows: wpRows } = await client.query(
+        'SELECT id FROM app.worker_profiles WHERE user_id = $1',
+        [userId],
+      );
+      if (!wpRows[0]) throw new Error('Worker profile not found');
+      const workerId = wpRows[0].id;
+
+      // If setting as default, clear existing default first
+      if (data.isDefault) {
+        await client.query(
+          'UPDATE app.worker_saved_locations SET is_default = FALSE WHERE worker_id = $1',
+          [workerId],
+        );
+      }
+
+      const { rows } = await client.query(
+        `INSERT INTO app.worker_saved_locations (worker_id, label, address, lat, lng, is_default)
+         VALUES ($1, $2, $3, $4, $5, $6)
+         ON CONFLICT (worker_id, label)
+         DO UPDATE SET address = EXCLUDED.address, lat = EXCLUDED.lat,
+                       lng = EXCLUDED.lng, is_default = EXCLUDED.is_default
+         RETURNING id, label, address, lat, lng, is_default`,
+        [workerId, data.label, data.address ?? null, data.lat, data.lng, data.isDefault ?? false],
+      );
+      return rows[0];
+    });
+  }
+
+  async deleteSavedLocation(userId: string, locationId: string) {
+    const { rowCount } = await this.db.query(
+      `DELETE FROM app.worker_saved_locations wsl
+       USING app.worker_profiles wp
+       WHERE wsl.id = $1 AND wsl.worker_id = wp.id AND wp.user_id = $2`,
+      [locationId, userId],
+    );
+    return (rowCount ?? 0) > 0;
+  }
+
   async replaceTradeSkillsByUserId(
     userId: string,
     skills: { tradeId: number; years: number }[],

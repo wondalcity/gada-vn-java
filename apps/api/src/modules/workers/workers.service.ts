@@ -23,6 +23,21 @@ export class WorkersService {
     return this.repo.findAttendanceByUserId(userId, jobId);
   }
 
+  async getSavedLocations(userId: string) {
+    return this.repo.findSavedLocationsByUserId(userId);
+  }
+
+  async upsertSavedLocation(
+    userId: string,
+    data: { label: string; address?: string | null; lat: number; lng: number; isDefault?: boolean },
+  ) {
+    return this.repo.upsertSavedLocation(userId, data);
+  }
+
+  async deleteSavedLocation(userId: string, locationId: string) {
+    return this.repo.deleteSavedLocation(userId, locationId);
+  }
+
   async getTradeSkills(userId: string) {
     return this.repo.findTradeSkillsByUserId(userId);
   }

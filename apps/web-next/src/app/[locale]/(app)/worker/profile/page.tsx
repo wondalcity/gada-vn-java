@@ -16,6 +16,7 @@ export default async function WorkerProfilePage({ params }: Props) {
       userName={user?.name ?? null}
       userPhone={user?.phone}
       isManager={user?.isManager}
+      managerStatus={user?.managerStatus}
     >
       <WorkerProfileTabs locale={locale} />
     </WorkerAccountShell>

@@ -64,12 +64,9 @@ export function WorkerAppBar({ locale, user, provinces = [] }: Props) {
         {isRootPage ? (
           <Link
             href={`/${locale}/worker`}
-            className="md:hidden flex items-center gap-1.5 shrink-0"
+            className="md:hidden flex items-center shrink-0"
           >
-            <span className="text-xl font-black text-[#0669F7] tracking-tight">GADA</span>
-            <span className="text-[10px] font-semibold text-white bg-[#0669F7] px-1.5 py-0.5 rounded-full leading-none">
-              근로자
-            </span>
+            <img src="/logo.png" alt="GADA VN" className="h-8 w-auto" />
           </Link>
         ) : (
           <div className="md:hidden flex items-center gap-1 shrink-0">
@@ -90,10 +87,9 @@ export function WorkerAppBar({ locale, user, provinces = [] }: Props) {
         )}
         <Link
           href={'/' as never}
-          className="hidden md:flex items-center gap-2 shrink-0"
+          className="hidden md:flex items-center shrink-0"
         >
-          <span className="text-xl font-black text-[#0669F7] tracking-tight">GADA</span>
-          <span className="text-xs text-[#98A2B2] font-medium">베트남 건설 일자리</span>
+          <img src="/logo.png" alt="GADA VN" className="h-9 w-auto" />
         </Link>
 
         {/* Desktop nav */}

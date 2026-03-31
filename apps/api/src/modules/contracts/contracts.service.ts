@@ -60,6 +60,34 @@ export class ContractsService {
     return this.repo.findByWorkerUserId(userId);
   }
 
+  async findByManager(userId: string) {
+    return this.repo.findByManagerUserId(userId);
+  }
+
+  async managerSign(id: string, managerUserId: string, signatureData?: string) {
+    const contract = await this.repo.findById(id);
+    if (!contract) throw new NotFoundException(`Contract ${id} not found`);
+
+    const isManager = await this.repo.isManagerPartyToContract(id, managerUserId);
+    if (!isManager) throw new ForbiddenException('Not authorized to sign this contract');
+
+    const signed = await this.repo.managerSign(id, managerUserId, signatureData ?? '');
+
+    // Notify worker that contract is fully signed
+    const parties = await this.repo.findPartyUserIds(id);
+    if (parties.workerUserId) {
+      this.notifications.send(
+        parties.workerUserId,
+        'CONTRACT_FULLY_SIGNED',
+        '계약이 완료되었습니다 🎉',
+        '사업주가 계약서에 서명하여 계약이 확정되었습니다.',
+        { contractId: id },
+      ).catch(() => undefined);
+    }
+
+    return signed;
+  }
+
   async sign(id: string, workerUserId: string, signatureData?: string) {
     const contract = await this.repo.findById(id);
     if (!contract) throw new NotFoundException(`Contract ${id} not found`);

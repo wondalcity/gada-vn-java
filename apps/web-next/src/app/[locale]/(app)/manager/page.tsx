@@ -214,11 +214,22 @@ export default function ManagerHomePage({ params }: Props) {
             ))}
           </div>
 
+          {/* Switch to worker view — mobile only */}
+          <Link
+            href={`/${locale}/worker` as never}
+            className="mt-3 w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-white border border-[#EFF1F5] text-[#4B5563] text-sm font-medium shadow-sm hover:border-[#0669F7] hover:text-[#0669F7] hover:bg-[#E6F0FE] transition-colors"
+          >
+            <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+            </svg>
+            근로자 화면으로 전환
+          </Link>
+
           {/* Logout — mobile only */}
           <button
             type="button"
             onClick={() => { clearSessionCookie(); router.push(`/${locale}/login`) }}
-            className="mt-3 w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-white border border-[#EFF1F5] text-[#98A2B2] text-sm font-medium shadow-sm hover:border-[#D81A48] hover:text-[#D81A48] hover:bg-[#FDE8EE] transition-colors"
+            className="mt-2 w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-white border border-[#EFF1F5] text-[#98A2B2] text-sm font-medium shadow-sm hover:border-[#D81A48] hover:text-[#D81A48] hover:bg-[#FDE8EE] transition-colors"
           >
             <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
@@ -236,15 +247,26 @@ export default function ManagerHomePage({ params }: Props) {
               <h1 className="text-xl font-bold text-[#25282A]">관리자 홈</h1>
               <p className="text-sm text-[#98A2B2] mt-0.5">건설 현장과 일자리를 관리하세요</p>
             </div>
-            <Link
-              href={`/${locale}/manager/sites/new` as never}
-              className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#0669F7] text-white text-sm font-semibold hover:bg-[#0554D6] transition-colors"
-            >
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
-              </svg>
-              새 현장 등록
-            </Link>
+            <div className="flex items-center gap-2">
+              <Link
+                href={`/${locale}/worker` as never}
+                className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-[#EFF1F5] bg-white text-[#4B5563] text-sm font-medium hover:border-[#0669F7] hover:text-[#0669F7] hover:bg-[#E6F0FE] transition-colors"
+              >
+                <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                </svg>
+                근로자 화면으로 전환
+              </Link>
+              <Link
+                href={`/${locale}/manager/sites/new` as never}
+                className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#0669F7] text-white text-sm font-semibold hover:bg-[#0554D6] transition-colors"
+              >
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+                </svg>
+                새 현장 등록
+              </Link>
+            </div>
           </div>
 
           {isDemo && (

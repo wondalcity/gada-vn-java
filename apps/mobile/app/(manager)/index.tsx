@@ -121,7 +121,7 @@ export default function ManagerJobsScreen() {
                 📅 {new Date(item.workDate).toLocaleDateString('ko-KR', { month: 'long', day: 'numeric', weekday: 'short' })}
               </Text>
               <View style={styles.cardFooter}>
-                <Text style={styles.wage}>₫{item.dailyWage.toLocaleString()}</Text>
+                <Text style={styles.wage}>₫{new Intl.NumberFormat('ko-KR').format(item.dailyWage)}</Text>
                 <Text style={styles.slots}>{item.slotsFilled}/{item.slotsTotal}명</Text>
               </View>
             </TouchableOpacity>

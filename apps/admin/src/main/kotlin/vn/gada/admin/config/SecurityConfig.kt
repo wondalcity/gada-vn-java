@@ -9,8 +9,6 @@ import org.springframework.security.config.annotation.authentication.configurati
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
 import org.springframework.security.core.AuthenticationException
-import org.springframework.security.core.userdetails.User
-import org.springframework.security.core.userdetails.UserDetailsService
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.security.web.SecurityFilterChain
@@ -18,24 +16,10 @@ import org.springframework.security.web.authentication.SimpleUrlAuthenticationFa
 
 @Configuration
 @EnableWebSecurity
-class SecurityConfig(private val props: AppProperties) {
+class SecurityConfig {
 
     @Bean
     fun passwordEncoder(): PasswordEncoder = BCryptPasswordEncoder()
-
-    @Bean
-    fun userDetailsService(encoder: PasswordEncoder): UserDetailsService {
-        // If no hash configured, generate a placeholder (login will fail gracefully)
-        val hash = if (props.passwordHash.isNotBlank()) props.passwordHash
-                   else encoder.encode("__not_set__")
-
-        val user = User.withUsername(props.username)
-            .password(hash)
-            .roles("ADMIN")
-            .build()
-
-        return org.springframework.security.provisioning.InMemoryUserDetailsManager(user)
-    }
 
     @Bean
     fun authenticationManager(config: AuthenticationConfiguration): AuthenticationManager =
@@ -47,7 +31,11 @@ class SecurityConfig(private val props: AppProperties) {
             .csrf { it.disable() }
             .authorizeHttpRequests { auth ->
                 auth
+                    // Static assets and login/logout always allowed
                     .requestMatchers("/login", "/assets/**", "/favicon.ico", "/*.js", "/*.css").permitAll()
+                    // Accept-invite page and its API call are public (user not yet logged in)
+                    .requestMatchers("/accept-invite").permitAll()
+                    .requestMatchers("/api/admin/admin-users/accept-invite").permitAll()
                     .anyRequest().authenticated()
             }
             .formLogin { form ->

@@ -18,7 +18,9 @@ class SpaController {
         value = ["/", "/login", "/managers", "/managers/**",
                  "/workers", "/workers/**", "/jobs", "/jobs/**",
                  "/sites", "/sites/**",
-                 "/notifications"],
+                 "/companies", "/companies/**",
+                 "/notifications", "/admin-users", "/accept-invite",
+                 "/settings"],
     )
     fun spa(response: HttpServletResponse): ByteArray {
         response.contentType = MediaType.TEXT_HTML_VALUE

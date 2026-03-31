@@ -24,7 +24,7 @@ const STATUS_TABS = [
 const STATUS_BADGE: Record<string, string> = {
   OPEN: 'bg-green-100 text-green-700',
   FILLED: 'bg-blue-100 text-blue-700',
-  CANCELLED: 'bg-[#EFF1F5] text-[#98A2B2]00',
+  CANCELLED: 'bg-[#EFF1F5] text-[#98A2B2]',
   COMPLETED: 'bg-purple-100 text-purple-700',
 }
 
@@ -124,10 +124,10 @@ export default function Jobs() {
                   </td>
                   <td className="px-6 py-4 text-sm text-gray-600">{j.site_name ?? '-'}</td>
                   <td className="px-6 py-4 text-sm text-gray-600">{j.work_date ?? '-'}</td>
-                  <td className="px-6 py-4 text-sm text-[#0669F7] font-medium">₫{j.daily_wage.toLocaleString()}</td>
+                  <td className="px-6 py-4 text-sm text-[#0669F7] font-medium">₫{Number(j.daily_wage).toLocaleString('ko-KR')}</td>
                   <td className="px-6 py-4 text-sm text-gray-500">{j.slots_filled ?? 0}/{j.slots_total}명</td>
                   <td className="px-6 py-4">
-                    <span className={`px-2 py-1 text-xs rounded-full ${STATUS_BADGE[j.status] ?? 'bg-[#EFF1F5] text-[#98A2B2]00'}`}>
+                    <span className={`px-2 py-1 text-xs rounded-full ${STATUS_BADGE[j.status] ?? 'bg-[#EFF1F5] text-[#98A2B2]'}`}>
                       {j.status === 'OPEN' ? '모집 중' : j.status === 'FILLED' ? '마감' : j.status === 'CANCELLED' ? '취소됨' : j.status}
                     </span>
                   </td>
