@@ -460,6 +460,13 @@ export default function WorkerProfileScreen() {
             badge={basicDone ? '완료' : '미완성'}
           />
           {openSection === 'basic' && <BasicSection profile={p} onSaved={handleSaved} />}
+          {openSection === 'basic' && (
+            <View style={s.logoutInBasic}>
+              <TouchableOpacity style={s.logoutInBasicBtn} onPress={handleLogout} activeOpacity={0.7}>
+                <Text style={s.logoutInBasicText}>로그아웃</Text>
+              </TouchableOpacity>
+            </View>
+          )}
         </View>
 
         {/* Bank */}
@@ -532,10 +539,6 @@ export default function WorkerProfileScreen() {
           </TouchableOpacity>
         )}
 
-        <TouchableOpacity style={s.logoutBtn} onPress={handleLogout} activeOpacity={0.7}>
-          <Text style={s.logoutText}>{t('profile.logout')}</Text>
-        </TouchableOpacity>
-
         <View style={{ height: 40 }} />
       </ScrollView>
     </KeyboardAvoidingView>
@@ -605,6 +608,7 @@ const s = StyleSheet.create({
   completionSub: { fontSize: 11, color: '#C0C4CF' },
   managerSwitchBtn: { marginTop: 8, padding: 14, borderRadius: 12, backgroundColor: '#0669F7', alignItems: 'center' },
   managerSwitchText: { color: '#fff', fontSize: 15, fontWeight: '700' },
-  logoutBtn: { marginTop: 8, padding: 14, borderRadius: 12, borderWidth: 1, borderColor: '#FF6B2C', alignItems: 'center' },
-  logoutText: { color: '#FF6B2C', fontSize: 15, fontWeight: '600' },
+  logoutInBasic: { borderTopWidth: 0.5, borderColor: '#F2F4F5', paddingHorizontal: 16, paddingVertical: 12 },
+  logoutInBasicBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, paddingVertical: 12, borderRadius: 12, borderWidth: 1, borderColor: '#EFF1F5' },
+  logoutInBasicText: { color: '#98A2B2', fontSize: 14, fontWeight: '600' },
 });

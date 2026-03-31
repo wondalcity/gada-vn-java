@@ -1198,20 +1198,6 @@ export default function WorkerProfileTabs({ locale: _locale }: { locale: string 
         </div>
       </div>
 
-      {/* Logout — mobile only */}
-      <div className="md:hidden py-4 border-b border-[#EFF1F5]">
-        <button
-          type="button"
-          onClick={() => { clearSessionCookie(); router.push(`/${_locale}/login`) }}
-          className="w-full flex items-center justify-center gap-2 py-3 rounded-2xl border border-[#EFF1F5] text-[#98A2B2] text-sm font-medium hover:border-[#D81A48] hover:text-[#D81A48] hover:bg-[#FDE8EE] transition-colors"
-        >
-          <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-          </svg>
-          로그아웃
-        </button>
-      </div>
-
       {/* Content card */}
       <div className="py-4">
         {isNew && (
@@ -1229,6 +1215,22 @@ export default function WorkerProfileTabs({ locale: _locale }: { locale: string 
           {activeTab === 'bank'       && <BankTab profile={profile} onSaved={handleSaved} />}
           {activeTab === 'id'         && <IdTab profile={profile} onSaved={handleSaved} />}
           {activeTab === 'signature'  && <SignatureTab profile={profile} onSaved={handleSaved} />}
+
+          {/* Logout — mobile only, shown at bottom of basic info tab */}
+          {activeTab === 'basic' && (
+            <div className="md:hidden mt-6 pt-5 border-t border-[#EFF1F5]">
+              <button
+                type="button"
+                onClick={() => { clearSessionCookie(); router.push(`/${_locale}/login`) }}
+                className="w-full flex items-center justify-center gap-2 py-3 rounded-2xl border border-[#EFF1F5] text-[#98A2B2] text-sm font-medium hover:border-[#D81A48] hover:text-[#D81A48] hover:bg-[#FDE8EE] transition-colors"
+              >
+                <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                </svg>
+                로그아웃
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </div>
