@@ -169,7 +169,7 @@ export class AuthService {
 
   // ── Facebook social login ────────────────────────────────────────────────────
 
-  async socialFacebook(idToken: string): Promise<{ isNewUser: boolean }> {
+  async socialFacebook(idToken: string): Promise<{ isNewUser: boolean; needsPhone: boolean; devToken?: string }> {
     const decoded = await this.firebase.verifyIdToken(idToken);
     let dbUser = await this.repo.findByFirebaseUid(decoded.uid);
     let isNewUser = false;
@@ -184,7 +184,13 @@ export class AuthService {
       isNewUser = true;
     }
 
-    return { isNewUser };
+    const needsPhone = !dbUser.phone;
+    const isDev = process.env.NODE_ENV !== 'production';
+    return {
+      isNewUser,
+      needsPhone,
+      ...(isDev ? { devToken: `dev_${dbUser.id}` } : {}),
+    };
   }
 
   // ── Logout ───────────────────────────────────────────────────────────────────

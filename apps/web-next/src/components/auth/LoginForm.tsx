@@ -158,15 +158,16 @@ function LoginFormInner({ locale, redirectTo }: LoginFormInnerProps) {
     setError(null); setAlertMsg(null)
     setIsLoading(true)
     try {
-      // Firebase Facebook auth → gets idToken
+      // Firebase Facebook OAuth → already a valid Firebase ID Token
       const { idToken } = await (await import('../../lib/firebase/auth')).signInWithFacebook()
 
-      // Backend: upsert user, returns needsPhone flag
+      // Backend: upsert user, returns needsPhone + devToken (dev only)
       const { data } = await apiFetch<{
-        data: { devToken?: string; customToken?: string; isNewUser: boolean; needsPhone: boolean }
+        data: { devToken?: string; isNewUser: boolean; needsPhone: boolean }
       }>('/auth/social/facebook', { method: 'POST', body: JSON.stringify({ idToken }) })
 
-      const sessionToken = data.devToken ?? data.customToken ?? ''
+      // Dev: use devToken; Production: idToken IS the Firebase ID Token → use directly
+      const sessionToken = data.devToken ?? idToken
 
       if (data.needsPhone) {
         // Facebook user has no phone → collect it before completing login
