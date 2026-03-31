@@ -170,7 +170,13 @@ export class AuthService {
   // ── Facebook social login ────────────────────────────────────────────────────
 
   async socialFacebook(idToken: string): Promise<{ isNewUser: boolean; needsPhone: boolean; devToken?: string }> {
-    const decoded = await this.firebase.verifyIdToken(idToken);
+    if (!idToken) throw new UnauthorizedException('idToken이 필요합니다.');
+    let decoded: Awaited<ReturnType<typeof this.firebase.verifyIdToken>>;
+    try {
+      decoded = await this.firebase.verifyIdToken(idToken);
+    } catch {
+      throw new UnauthorizedException('유효하지 않은 Firebase ID Token입니다.');
+    }
     let dbUser = await this.repo.findByFirebaseUid(decoded.uid);
     let isNewUser = false;
 
