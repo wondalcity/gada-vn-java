@@ -168,7 +168,7 @@ export function RegisterForm({ locale }: RegisterFormProps) {
           <p className="text-[12px] text-[#98A2B2] -mt-1">인증 가능한 휴대폰 번호를 입력해주세요</p>
 
           <div className="flex gap-2">
-            <div className="flex-1">
+            <div className="flex-1 min-w-0">
               <PhoneInput
                 value={phone}
                 onChange={v => { setPhone(v); setOtpSent(false); setPhoneVerified(false); setOtp('') }}
@@ -176,7 +176,7 @@ export function RegisterForm({ locale }: RegisterFormProps) {
               />
             </div>
             {phoneVerified ? (
-              <div className="min-h-[52px] px-4 flex items-center gap-1.5 bg-[#E8F3FF] border border-[#0669F7]/30 rounded-2xl text-[14px] font-semibold text-[#0669F7] whitespace-nowrap">
+              <div className="shrink-0 min-h-[52px] px-4 flex items-center gap-1.5 bg-[#E8F3FF] border border-[#0669F7]/30 rounded-2xl text-[14px] font-semibold text-[#0669F7] whitespace-nowrap">
                 <span>✓</span> 인증 완료
               </div>
             ) : (
@@ -184,7 +184,7 @@ export function RegisterForm({ locale }: RegisterFormProps) {
                 type="button"
                 onClick={handleSendOtp}
                 disabled={isLoading || !phone || phone === '+84'}
-                className="min-h-[52px] px-4 bg-[#0669F7] text-white rounded-2xl text-[14px] font-bold disabled:opacity-40 whitespace-nowrap hover:bg-[#0557D4] transition-colors"
+                className="shrink-0 min-h-[52px] px-4 bg-[#0669F7] text-white rounded-2xl text-[14px] font-bold disabled:opacity-40 whitespace-nowrap hover:bg-[#0557D4] transition-colors"
               >
                 {isLoading && !otpSent ? '전송 중...' : otpSent ? '재발송' : '인증번호 발송'}
               </button>

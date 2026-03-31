@@ -112,15 +112,7 @@ export default function WorkerAccountShell({ locale, userName, userPhone, isMana
     <div className="max-w-[1760px] mx-auto px-4 py-4 md:py-8">
       {/* ── Mobile section breadcrumb + sub-nav (desktop sidebar alternative) ── */}
       <div className="md:hidden mb-4">
-        {/* Section heading */}
-        {currentSection && currentSection.key !== 'home' && (
-          <div className="flex items-center gap-2 mb-3">
-            <span className="text-[#98A2B2]">
-              {currentSection.icon}
-            </span>
-            <h2 className="text-base font-bold text-[#25282A]">{currentSection.label}</h2>
-          </div>
-        )}
+        {/* Section heading — hidden on mobile */}
       </div>
 
       {/* ── Desktop layout: sidebar + content ── */}

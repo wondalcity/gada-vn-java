@@ -93,6 +93,20 @@ function formatWage(n: number | null | undefined) {
   return new Intl.NumberFormat('ko-KR').format(n) + ' ₫'
 }
 
+function formatPhone(phone: string | null | undefined): string {
+  if (!phone) return '-'
+  const p = phone.trim()
+  if (p.startsWith('+84')) {
+    const d = p.slice(3)
+    if (d.length === 9) return `+84 ${d.slice(0, 2)}-${d.slice(2, 5)}-${d.slice(5)}`
+  }
+  if (p.startsWith('+82')) {
+    const d = p.slice(3)
+    if (d.length >= 9) return `+82 ${d.slice(0, 2)}-${d.slice(2, d.length - 4)}-${d.slice(d.length - 4)}`
+  }
+  return p
+}
+
 export default async function WorkerHomePage({ params }: Props) {
   const { locale } = await params
   const cookieStore = await cookies()
@@ -146,7 +160,7 @@ export default async function WorkerHomePage({ params }: Props) {
             <div>
               <p className="font-bold text-base leading-tight">{displayName}</p>
               {user?.phone && (
-                <p className="text-blue-100 text-xs mt-0.5">{user.phone}</p>
+                <p className="text-blue-100 text-xs mt-0.5">{formatPhone(user.phone)}</p>
               )}
               <div className="flex items-center gap-1.5 mt-1.5">
                 <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-white/20 border border-white/30 text-white leading-none">
@@ -174,6 +188,19 @@ export default async function WorkerHomePage({ params }: Props) {
               </div>
             ))}
           </div>
+
+          {/* Manager switch button */}
+          {isManager && (
+            <Link
+              href={`/${locale}/manager` as never}
+              className="relative mt-3 flex items-center justify-center gap-2 w-full py-2.5 rounded-xl bg-white/15 border border-white/30 text-white text-sm font-semibold hover:bg-white/25 transition-colors active:bg-white/30"
+            >
+              <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+              </svg>
+              관리자 화면으로 전환
+            </Link>
+          )}
         </div>
 
         {/* Mobile quick actions */}

@@ -249,6 +249,46 @@ function Divider() {
   return <div className="border-t border-[#EFF1F5] my-8" />
 }
 
+// ── Mobile apply bar (wage + apply button combined) ───────────────────────────
+
+function MobileApplyBar({
+  dailyWage,
+  workDate,
+  applyProps,
+}: {
+  dailyWage: number
+  workDate: string
+  applyProps: React.ComponentProps<typeof ApplyButton>
+}) {
+  return (
+    <div
+      className="fixed left-0 right-0 z-40 bg-white border-t border-[#EFF1F5]"
+      style={{
+        bottom: 'calc(var(--tab-bar-height, 0px) + env(safe-area-inset-bottom, 0px))',
+        boxShadow: '0 -4px 20px rgba(0,0,0,0.08)',
+      }}
+    >
+      <div className="flex items-center gap-3 px-4 py-3">
+        {/* Wage summary */}
+        <div className="flex-1 min-w-0">
+          <p className="text-[11px] text-[#98A2B2] font-medium leading-none mb-0.5">일급</p>
+          <p className="text-[20px] font-bold text-[#0669F7] leading-tight truncate">
+            {formatVND(dailyWage)}
+          </p>
+          {workDate && (
+            <p className="text-[11px] text-[#98A2B2] mt-0.5 truncate">{formatDateShort(workDate)}</p>
+          )}
+        </div>
+
+        {/* Apply button */}
+        <div className="shrink-0">
+          <ApplyButton {...applyProps} mobileInline />
+        </div>
+      </div>
+    </div>
+  )
+}
+
 // ── Expandable text ───────────────────────────────────────────────────────────
 
 function ExpandableText({ text }: { text: string }) {
@@ -569,7 +609,7 @@ export default function JobDetailView({
   // ── Layout ──────────────────────────────────────────────────────────────────
 
   return (
-    <div className="pb-32 md:pb-10">
+    <div className="pb-36 md:pb-10">
       {/* Gallery */}
       <div className="md:max-w-[1760px] md:mx-auto md:px-6 md:pt-6">
         <SiteImageGallery images={siteImages} title={job.titleKo} />
@@ -593,27 +633,13 @@ export default function JobDetailView({
         </div>
       </div>
 
-      {/* Mobile: sticky CTA bar (rendered by ApplyButton internally) */}
+      {/* Mobile: sticky CTA bar (wage info + apply button combined) */}
       <div className="md:hidden">
-        {/* Mobile booking summary above sticky bar */}
-        <div className="fixed bottom-0 left-0 right-0 z-30 pointer-events-none">
-          {/* wage pill floating above sticky bar */}
-        </div>
-        <ApplyButton {...applyProps} />
-      </div>
-
-      {/* Mobile wage bar (above sticky apply button) */}
-      <div
-        className="md:hidden fixed left-0 right-0 z-29 bg-white border-t border-[#EFF1F5] pointer-events-none"
-        style={{ bottom: 'calc(var(--tab-bar-height, 64px) + env(safe-area-inset-bottom, 0px))', boxShadow: '0 -1px 0 #EFF1F5' }}
-      >
-        <div className="flex items-center justify-between px-4 py-2">
-          <div>
-            <p className="text-xs text-[#98A2B2]">일급</p>
-            <p className="text-lg font-bold text-[#0669F7]">{formatVND(dailyWage)}</p>
-          </div>
-          {workDate && <p className="text-xs text-[#98A2B2]">{formatDateShort(workDate)}</p>}
-        </div>
+        <MobileApplyBar
+          dailyWage={dailyWage}
+          workDate={workDate}
+          applyProps={applyProps}
+        />
       </div>
     </div>
   )

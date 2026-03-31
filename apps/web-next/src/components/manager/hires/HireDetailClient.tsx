@@ -113,10 +113,10 @@ export default function HireDetailClient({ hireId }: Props) {
 
   return (
     <>
-      {/* Back nav */}
+      {/* Back nav — desktop only (mobile uses AppBar back button) */}
       <Link
         href={`/${locale}/manager/hires`}
-        className="inline-flex items-center gap-1.5 text-sm text-[#98A2B2] hover:text-[#25282A] mb-4 transition-colors"
+        className="hidden md:inline-flex items-center gap-1.5 text-sm text-[#98A2B2] hover:text-[#25282A] mb-4 transition-colors"
       >
         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />

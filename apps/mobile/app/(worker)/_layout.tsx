@@ -54,9 +54,26 @@ export default function WorkerLayout() {
           tabBarIcon: ({ color }) => <Text style={{ color, fontSize: 20 }}>👤</Text>,
         }}
       />
-      {/* Detail screens — hidden from tab bar */}
-      <Tabs.Screen name="jobs/[id]" options={{ href: null }} />
-      <Tabs.Screen name="contracts/[id]" options={{ href: null }} />
+      {/* Detail screens — hidden from tab bar, back button shown in header */}
+      <Tabs.Screen
+        name="jobs/[id]"
+        options={{
+          href: null,
+          title: '공고 상세',
+          headerShown: true,
+          tabBarStyle: { display: 'none' },
+          headerLeft: undefined, // use default Expo back button
+        }}
+      />
+      <Tabs.Screen
+        name="contracts/[id]"
+        options={{
+          href: null,
+          title: '계약서',
+          headerShown: true,
+          tabBarStyle: { display: 'none' },
+        }}
+      />
     </Tabs>
   );
 }

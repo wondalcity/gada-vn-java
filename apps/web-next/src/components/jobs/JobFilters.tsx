@@ -84,7 +84,7 @@ export function JobFilters({
   }
 
   function updateParam(key: string, value: string | undefined) {
-    router.push(`${pathname}?${buildParams({ [key]: value }).toString()}`)
+    router.push((`${pathname}?${buildParams({ [key]: value }).toString()}`) as any)
   }
 
   function activateGeo(lat: number, lng: number, label: string) {
@@ -94,23 +94,23 @@ export function JobFilters({
       radius: String(selectedRadius || 30),
     })
     setActiveLabel(label)
-    router.push(`${pathname}?${params.toString()}`)
+    router.push((`${pathname}?${params.toString()}`) as any)
   }
 
   function clearGeo() {
     const params = buildParams({ lat: undefined, lng: undefined, radius: undefined })
     setActiveLabel('')
-    router.push(`${pathname}?${params.toString()}`)
+    router.push((`${pathname}?${params.toString()}`) as any)
   }
 
   function changeRadius(radius: number) {
     if (!geoActive) return
-    router.push(`${pathname}?${buildParams({ radius: String(radius) }).toString()}`)
+    router.push((`${pathname}?${buildParams({ radius: String(radius) }).toString()}`) as any)
   }
 
   function clearFilters() {
     setActiveLabel('')
-    router.push(pathname)
+    router.push(pathname as any)
   }
 
   function useGPS() {
@@ -238,7 +238,7 @@ export function JobFilters({
               <button
                 key={loc.id}
                 type="button"
-                onClick={() => { setActiveLabel(loc.label); activateGeo(loc.lat, loc.lng, loc.label) }}
+                onClick={() => { setActiveLabel(loc.label); activateGeo(Number(loc.lat), Number(loc.lng), loc.label) }}
                 className="flex items-center gap-2 px-3 py-2 text-xs border border-[#EFF1F5] rounded-lg bg-white text-[#25282A] hover:border-[#0669F7] hover:text-[#0669F7] transition-colors text-left"
               >
                 <span>{loc.is_default ? '⭐' : '📌'}</span>

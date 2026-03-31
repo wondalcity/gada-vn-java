@@ -40,6 +40,7 @@ interface Props {
   provinces: Province[]
   trades: Trade[]
   locale: string
+  q?: string
   province?: string
   tradeId?: number
   selectedLat?: number
@@ -65,6 +66,7 @@ export function WorkerJobsClient({
   provinces,
   trades,
   locale,
+  q,
   province,
   tradeId,
   selectedLat,
@@ -94,7 +96,7 @@ export function WorkerJobsClient({
       .then((res: { data?: SavedLocation[] } | null) => {
         if (!res?.data) return
         const defaultLoc = res.data.find(l => l.is_default) ?? res.data[0]
-        if (defaultLoc) setMapCenter({ lat: defaultLoc.lat, lng: defaultLoc.lng })
+        if (defaultLoc) setMapCenter({ lat: Number(defaultLoc.lat), lng: Number(defaultLoc.lng) })
       })
       .catch(() => undefined)
   }, [])
@@ -190,12 +192,8 @@ export function WorkerJobsClient({
               selectedRadius={selectedRadius}
               selectedStatus={selectedStatus}
               totalJobs={total}
+              viewToggle={viewToggle}
             />
-          </div>
-
-          {/* Mobile view toggle bar */}
-          <div className="md:hidden flex items-center gap-2 px-3 pt-3 pb-1">
-            <div className="flex-1">{viewToggle}</div>
           </div>
 
           <div className="md:flex md:gap-6 md:max-w-[1760px] md:mx-auto md:px-6 xl:px-20 md:py-6">
@@ -229,6 +227,9 @@ export function WorkerJobsClient({
               {/* Desktop header: count + view toggle */}
               <div className="hidden md:flex items-center justify-between gap-3 mb-4">
                 <p className="text-sm text-[#7A7B7A]">
+                  {q && (
+                    <span className="font-semibold text-[#25282A]">"{q}" </span>
+                  )}
                   총 <span className="font-semibold text-[#25282A]">{total.toLocaleString()}</span>개 공고
                   {geoActive && (
                     <span className="ml-2 text-[#0669F7] font-medium">· 반경 {selectedRadius}km 내</span>

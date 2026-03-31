@@ -366,7 +366,7 @@ export default function WorkerContractDetailClient({ contractId }: Props) {
   if (error || !contract) {
     return (
       <div className="py-6">
-        <Link href={`/${locale}/worker/contracts` as never} className="inline-flex items-center gap-1.5 text-sm text-[#98A2B2] hover:text-[#25282A] mb-4 transition-colors">
+        <Link href={`/${locale}/worker/contracts` as never} className="hidden md:inline-flex items-center gap-1.5 text-sm text-[#98A2B2] hover:text-[#25282A] mb-4 transition-colors">
           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" /></svg>
           계약서 목록
         </Link>
@@ -412,7 +412,7 @@ export default function WorkerContractDetailClient({ contractId }: Props) {
 
       {/* Back nav */}
       <div className="flex items-center justify-between">
-        <Link href={`/${locale}/worker/contracts` as never} className="inline-flex items-center gap-1.5 text-sm text-[#98A2B2] hover:text-[#25282A] transition-colors">
+        <Link href={`/${locale}/worker/contracts` as never} className="hidden md:inline-flex items-center gap-1.5 text-sm text-[#98A2B2] hover:text-[#25282A] transition-colors">
           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" /></svg>
           계약서 목록
         </Link>

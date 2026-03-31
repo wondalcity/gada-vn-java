@@ -18,12 +18,20 @@ const MANAGER_ROOT_PATHS = (locale: string) => new Set([
   `/${locale}/manager/jobs`,
   `/${locale}/manager/hires`,
   `/${locale}/manager/contracts`,
+  `/${locale}/manager/notifications`,
+  `/${locale}/manager/profile`,
+  `/${locale}/manager/my-listings`,
 ])
 
 function getManagerPageTitle(pathname: string, locale: string): string {
   if (pathname.startsWith(`/${locale}/manager/sites/`) && pathname.includes('/jobs/new')) return '공고 등록'
+  if (pathname.startsWith(`/${locale}/manager/sites/`) && pathname.endsWith('/edit')) return '현장 수정'
+  if (pathname.startsWith(`/${locale}/manager/sites/`) && pathname.endsWith('/jobs')) return '현장 공고 목록'
+  if (pathname.startsWith(`/${locale}/manager/sites/new`)) return '현장 등록'
   if (pathname.startsWith(`/${locale}/manager/sites/`)) return '현장 상세'
   if (pathname.startsWith(`/${locale}/manager/jobs/`) && pathname.endsWith('/edit')) return '공고 수정'
+  if (pathname.startsWith(`/${locale}/manager/jobs/`) && pathname.endsWith('/applicants')) return '지원자 목록'
+  if (pathname.startsWith(`/${locale}/manager/jobs/`) && pathname.endsWith('/attendance')) return '출퇴근 관리'
   if (pathname.startsWith(`/${locale}/manager/jobs/`)) return '공고 상세'
   if (pathname.startsWith(`/${locale}/manager/hires/`)) return '채용 상세'
   if (pathname.startsWith(`/${locale}/manager/contracts/`)) return '계약서'

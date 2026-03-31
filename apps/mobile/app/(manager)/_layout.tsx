@@ -52,13 +52,61 @@ export default function ManagerLayout() {
           tabBarIcon: ({ color }) => <Text style={{ color, fontSize: 20 }}>🔔</Text>,
         }}
       />
-      {/* Non-tab screens */}
-      <Tabs.Screen name="profile" options={{ href: null }} />
-      <Tabs.Screen name="jobs/[id]" options={{ href: null }} />
-      <Tabs.Screen name="jobs/[id]/attendance" options={{ href: null }} />
-      <Tabs.Screen name="jobs/create" options={{ href: null }} />
-      <Tabs.Screen name="contracts/[id]" options={{ href: null }} />
-      <Tabs.Screen name="register" options={{ href: null }} />
+      {/* Non-tab screens — tab bar hidden, header back button shown */}
+      <Tabs.Screen
+        name="profile"
+        options={{
+          href: null,
+          title: '프로필',
+          headerShown: true,
+          tabBarStyle: { display: 'none' },
+        }}
+      />
+      <Tabs.Screen
+        name="jobs/[id]"
+        options={{
+          href: null,
+          title: '공고 상세',
+          headerShown: true,
+          tabBarStyle: { display: 'none' },
+        }}
+      />
+      <Tabs.Screen
+        name="jobs/[id]/attendance"
+        options={{
+          href: null,
+          title: '출퇴근 관리',
+          headerShown: true,
+          tabBarStyle: { display: 'none' },
+        }}
+      />
+      <Tabs.Screen
+        name="jobs/create"
+        options={{
+          href: null,
+          title: '공고 등록',
+          headerShown: true,
+          tabBarStyle: { display: 'none' },
+        }}
+      />
+      <Tabs.Screen
+        name="contracts/[id]"
+        options={{
+          href: null,
+          title: '계약서',
+          headerShown: true,
+          tabBarStyle: { display: 'none' },
+        }}
+      />
+      <Tabs.Screen
+        name="register"
+        options={{
+          href: null,
+          title: '관리자 등록',
+          headerShown: true,
+          tabBarStyle: { display: 'none' },
+        }}
+      />
     </Tabs>
   );
 }

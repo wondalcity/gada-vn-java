@@ -1,8 +1,9 @@
 import { useEffect, useState, useCallback } from 'react';
 import {
   View, Text, ScrollView, TouchableOpacity,
-  StyleSheet, Alert, ActivityIndicator, Modal,
+  StyleSheet, Alert, ActivityIndicator, Modal, Platform,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Image } from 'expo-image';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
@@ -35,6 +36,7 @@ export default function JobDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { t } = useTranslation();
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const [job, setJob] = useState<JobWithSite | null>(null);
   const [loading, setLoading] = useState(true);
   const [applying, setApplying] = useState(false);
@@ -92,9 +94,15 @@ export default function JobDetailScreen() {
   const timeLabel =
     job.startTime && job.endTime ? `${job.startTime} ~ ${job.endTime}` : '시간 미정';
 
+  // Bottom bar height: button (16+20+16) + padding (16) + safe area bottom
+  const bottomBarHeight = 68 + 16 + insets.bottom;
+
   return (
     <>
-      <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+      <ScrollView
+        style={styles.container}
+        contentContainerStyle={[styles.content, { paddingBottom: bottomBarHeight + 16 }]}
+      >
         {/* Cover image */}
         {coverKey ? (
           <Image
@@ -121,7 +129,7 @@ export default function JobDetailScreen() {
         {/* Wage highlight */}
         <View style={styles.wageCard}>
           <Text style={styles.wageLabel}>일당</Text>
-          <Text style={styles.wage}>₫{job.dailyWage.toLocaleString()}</Text>
+          <Text style={styles.wage}>₫{new Intl.NumberFormat('ko-KR').format(job.dailyWage)}</Text>
           <View style={[styles.slotBadge, isFull && styles.slotBadgeFull]}>
             <Text style={styles.slotBadgeText}>
               {isFull ? '마감' : `${job.slotsTotal - job.slotsFilled}자리 남음`}
@@ -158,12 +166,10 @@ export default function JobDetailScreen() {
           </View>
         )}
 
-        {/* Spacer for bottom button */}
-        <View style={{ height: 100 }} />
       </ScrollView>
 
       {/* Apply CTA */}
-      <View style={styles.bottomBar}>
+      <View style={[styles.bottomBar, { paddingBottom: 16 + insets.bottom }]}>
         <TouchableOpacity
           style={[styles.applyBtn, (isFull || applying) && styles.applyBtnDisabled]}
           onPress={() => setConfirmVisible(true)}
@@ -205,7 +211,7 @@ export default function JobDetailScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#F5F5F5' },
-  content: { paddingBottom: 24 },
+  content: {},
   center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
 
   cover: { width: '100%', height: 220 },
@@ -247,7 +253,7 @@ const styles = StyleSheet.create({
 
   bottomBar: {
     position: 'absolute', bottom: 0, left: 0, right: 0,
-    backgroundColor: '#fff', padding: 16, paddingBottom: 32,
+    backgroundColor: '#fff', padding: 16,
     borderTopWidth: 1, borderTopColor: '#F0F0F0',
   },
   applyBtn: {

@@ -20,13 +20,20 @@ const WORKER_ROOT_PATHS = (locale: string) => new Set([
   `/${locale}/worker/applications`,
   `/${locale}/worker/attendance`,
   `/${locale}/worker/profile`,
+  `/${locale}/worker/hires`,
+  `/${locale}/worker/notifications`,
+  `/${locale}/worker/contracts`,
 ])
 
 function getPageTitle(pathname: string, locale: string): string {
   if (pathname.startsWith(`/${locale}/worker/jobs/`)) return '공고 상세'
+  if (pathname.startsWith(`/${locale}/worker/applications/`)) return '지원 상세'
+  if (pathname.startsWith(`/${locale}/worker/hires/`)) return '채용 상세'
   if (pathname.startsWith(`/${locale}/worker/contracts/`)) return '계약서'
-  if (pathname.startsWith(`/${locale}/worker/contracts`)) return '계약 목록'
-  if (pathname.startsWith(`/${locale}/worker/notifications`)) return '알림'
+  if (pathname === `/${locale}/worker/profile/id-upload`) return '신분증 업로드'
+  if (pathname === `/${locale}/worker/profile/id`) return '신분증 인증'
+  if (pathname === `/${locale}/worker/profile/experience`) return '경력 관리'
+  if (pathname === `/${locale}/worker/profile/signature`) return '서명'
   return ''
 }
 

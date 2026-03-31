@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { createPortal } from 'react-dom';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'https://api.gada.vn/api/v1';
 
@@ -22,6 +23,205 @@ interface Trade {
 interface PublicHeaderSearchProps {
   locale: string;
 }
+
+// ─── Bottom Sheet Select ──────────────────────────────────────────────────────
+
+interface SelectOption {
+  value: string;
+  label: string;
+}
+
+interface BottomSheetSelectProps {
+  value: string;
+  onChange: (v: string) => void;
+  options: SelectOption[];
+  placeholder: string;
+  title: string;
+}
+
+function BottomSheetSelect({
+  value,
+  onChange,
+  options,
+  placeholder,
+  title,
+}: BottomSheetSelectProps) {
+  const [open, setOpen] = useState(false);
+  const [search, setSearch] = useState('');
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  const selectedLabel = options.find((o) => o.value === value)?.label ?? '';
+
+  const filtered = search.trim()
+    ? options.filter((o) => o.label.toLowerCase().includes(search.toLowerCase()))
+    : options;
+
+  const handleSelect = (v: string) => {
+    onChange(v);
+    setOpen(false);
+    setSearch('');
+  };
+
+  const handleClose = () => {
+    setOpen(false);
+    setSearch('');
+  };
+
+  // Lock body scroll when open
+  useEffect(() => {
+    if (open) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [open]);
+
+  const sheet = open && mounted
+    ? createPortal(
+        <div className="fixed inset-0 z-[200] flex flex-col justify-end">
+          {/* Backdrop */}
+          <div
+            className="absolute inset-0 bg-black/40 backdrop-blur-[2px]"
+            onClick={handleClose}
+          />
+
+          {/* Sheet */}
+          <div className="relative bg-white rounded-t-3xl shadow-2xl flex flex-col max-h-[75vh] animate-slide-up">
+            {/* Handle */}
+            <div className="flex justify-center pt-3 pb-1 shrink-0">
+              <div className="w-10 h-1 rounded-full bg-[#D0D4DB]" />
+            </div>
+
+            {/* Header */}
+            <div className="flex items-center justify-between px-5 py-3 border-b border-[#EFF1F5] shrink-0">
+              <span className="text-[16px] font-bold text-[#25282A]">{title}</span>
+              <button
+                type="button"
+                onClick={handleClose}
+                className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-[#EFF1F5] text-[#98A2B2]"
+                aria-label="닫기"
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+                  <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
+                </svg>
+              </button>
+            </div>
+
+            {/* Search (only when many options) */}
+            {options.length > 10 && (
+              <div className="px-4 py-3 shrink-0">
+                <div className="relative">
+                  <div className="pointer-events-none absolute inset-y-0 left-3 flex items-center">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" className="text-[#98A2B2]">
+                      <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
+                    </svg>
+                  </div>
+                  <input
+                    type="text"
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                    placeholder="검색..."
+                    className="w-full pl-8 pr-3 py-2 text-[14px] bg-[#F5F6F8] rounded-xl border-none outline-none text-[#25282A] placeholder:text-[#98A2B2]"
+                    autoFocus
+                  />
+                </div>
+              </div>
+            )}
+
+            {/* Option list */}
+            <ul className="overflow-y-auto flex-1 px-2 pb-6">
+              {/* "전체" option */}
+              <li>
+                <button
+                  type="button"
+                  onClick={() => handleSelect('')}
+                  className={`w-full flex items-center justify-between px-4 py-3.5 rounded-2xl text-[15px] transition-colors ${
+                    value === ''
+                      ? 'bg-[#EEF4FF] text-[#0669F7] font-semibold'
+                      : 'text-[#25282A] hover:bg-[#F5F6F8]'
+                  }`}
+                >
+                  <span>{placeholder}</span>
+                  {value === '' && (
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" className="text-[#0669F7]">
+                      <polyline points="20 6 9 17 4 12" />
+                    </svg>
+                  )}
+                </button>
+              </li>
+
+              {filtered.map((o) => (
+                <li key={o.value}>
+                  <button
+                    type="button"
+                    onClick={() => handleSelect(o.value)}
+                    className={`w-full flex items-center justify-between px-4 py-3.5 rounded-2xl text-[15px] transition-colors ${
+                      value === o.value
+                        ? 'bg-[#EEF4FF] text-[#0669F7] font-semibold'
+                        : 'text-[#25282A] hover:bg-[#F5F6F8]'
+                    }`}
+                  >
+                    <span>{o.label}</span>
+                    {value === o.value && (
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" className="text-[#0669F7] shrink-0">
+                        <polyline points="20 6 9 17 4 12" />
+                      </svg>
+                    )}
+                  </button>
+                </li>
+              ))}
+
+              {filtered.length === 0 && (
+                <li className="py-10 text-center text-[14px] text-[#98A2B2]">결과 없음</li>
+              )}
+            </ul>
+          </div>
+        </div>,
+        document.body
+      )
+    : null;
+
+  return (
+    <>
+      <button
+        type="button"
+        onClick={() => setOpen(true)}
+        className={`w-full flex items-center justify-between px-3 py-2 text-sm border rounded-xl bg-white transition-colors ${
+          open
+            ? 'border-[#0669F7] ring-2 ring-[#0669F7]'
+            : 'border-[#EFF1F5] hover:border-[#C5CDD8]'
+        }`}
+      >
+        <span className={value ? 'text-[#25282A]' : 'text-[#98A2B2]'}>
+          {selectedLabel || placeholder}
+        </span>
+        <svg
+          width="14"
+          height="14"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2.5"
+          strokeLinecap="round"
+          className={`text-[#98A2B2] transition-transform shrink-0 ml-1 ${open ? 'rotate-180' : ''}`}
+        >
+          <polyline points="6 9 12 15 18 9" />
+        </svg>
+      </button>
+
+      {sheet}
+    </>
+  );
+}
+
+// ─── Main Component ───────────────────────────────────────────────────────────
 
 export default function PublicHeaderSearch({ locale }: PublicHeaderSearchProps) {
   const router = useRouter();
@@ -71,7 +271,6 @@ export default function PublicHeaderSearch({ locale }: PublicHeaderSearchProps) 
     if (keyword.trim()) params.set('q', keyword.trim());
     if (province) params.set('province', province);
     if (trade) params.set('trade', trade);
-    params.set('view', 'map');
     router.push(`/${locale}/jobs?${params.toString()}` as never);
     closePanel();
   };
@@ -105,6 +304,16 @@ export default function PublicHeaderSearch({ locale }: PublicHeaderSearchProps) 
     };
   }, [isOpen]);
 
+  const provinceOptions: SelectOption[] = provinces.map((p) => ({
+    value: p.slug,
+    label: p.nameVi,
+  }));
+
+  const tradeOptions: SelectOption[] = trades.map((t) => ({
+    value: String(t.id),
+    label: t.nameKo,
+  }));
+
   return (
     <div className="relative">
       {/* Search icon button */}
@@ -114,7 +323,7 @@ export default function PublicHeaderSearch({ locale }: PublicHeaderSearchProps) 
         aria-label="검색"
         aria-expanded={isOpen}
         onClick={isOpen ? closePanel : openPanel}
-        className="flex items-center justify-center w-9 h-9 rounded-full text-[#98A2B2] hover:text-[#0669F7] hover:bg-[#EFF1F5] transition-colors"
+        className="flex items-center justify-center w-9 h-9 rounded-full text-[#25282A] hover:text-[#0669F7] hover:bg-[#EFF1F5] transition-colors"
       >
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -172,31 +381,20 @@ export default function PublicHeaderSearch({ locale }: PublicHeaderSearchProps) 
 
             {/* Row 2: Province + Trade selects */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <select
+              <BottomSheetSelect
                 value={province}
-                onChange={(e) => setProvince(e.target.value)}
-                className="px-3 py-2 text-sm border border-[#EFF1F5] rounded-xl bg-white focus:ring-2 focus:ring-[#0669F7] focus:border-transparent outline-none w-full"
-              >
-                <option value="">전체 지역</option>
-                {provinces.map((p) => (
-                  <option key={p.code} value={p.slug}>
-                    {p.nameVi}
-                  </option>
-                ))}
-              </select>
-
-              <select
+                onChange={setProvince}
+                options={provinceOptions}
+                placeholder="전체 지역"
+                title="지역 선택"
+              />
+              <BottomSheetSelect
                 value={trade}
-                onChange={(e) => setTrade(e.target.value)}
-                className="px-3 py-2 text-sm border border-[#EFF1F5] rounded-xl bg-white focus:ring-2 focus:ring-[#0669F7] focus:border-transparent outline-none w-full"
-              >
-                <option value="">전체 직종</option>
-                {trades.map((t) => (
-                  <option key={t.id} value={t.code}>
-                    {t.nameKo}
-                  </option>
-                ))}
-              </select>
+                onChange={setTrade}
+                options={tradeOptions}
+                placeholder="전체 직종"
+                title="직종 선택"
+              />
             </div>
 
             {/* Row 3: Submit button */}

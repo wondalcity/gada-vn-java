@@ -50,13 +50,13 @@ export function PublicHeader({ locale, user, provinces = [] }: Props) {
           ) : (
             <>
               <Link
-                href={`/${locale}/login`}
+                href="/login"
                 className="hidden sm:block text-sm font-medium text-[#25282A] hover:text-[#0669F7] px-3 py-1.5"
               >
                 로그인
               </Link>
               <Link
-                href={`/${locale}/register`}
+                href="/register"
                 className="text-sm font-semibold text-white bg-[#0669F7] hover:bg-blue-700 px-4 py-1.5 rounded-full transition-colors"
               >
                 무료 가입

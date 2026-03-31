@@ -12,6 +12,9 @@ interface Contract {
   status: string;
   contract_html: string;
   worker_signed_at: string | null;
+  manager_signed_at: string | null;
+  worker_sig_url: string | null;
+  manager_sig_url: string | null;
   created_at: string;
 }
 
@@ -60,51 +63,63 @@ export default function WorkerContractScreen() {
   }
   if (!contract) return null;
 
-  const isSigned = contract.status === 'FULLY_SIGNED';
+  const canWorkerSign = contract.status === 'PENDING_WORKER_SIGN';
+  const workerSigned = !!contract.worker_signed_at;
+  const managerSigned = !!contract.manager_signed_at;
 
   return (
     <>
       <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-        {/* Status banner */}
-        <View style={[styles.statusBanner, isSigned ? styles.statusSigned : styles.statusPending]}>
-          <Text style={[styles.statusText, { color: isSigned ? '#2E7D32' : '#E65100' }]}>
-            {isSigned ? '✅ 서명 완료' : '⏳ 서명 대기 중'}
-          </Text>
-          {isSigned && contract.worker_signed_at && (
-            <Text style={styles.statusSub}>
-              {new Date(contract.worker_signed_at).toLocaleString('ko-KR')}
-            </Text>
-          )}
-        </View>
-
         {/* Contract HTML content */}
         <View style={styles.contractBox}>
           <Text style={styles.contractTitle}>근로계약서</Text>
           <View style={styles.divider} />
-          {/* Render HTML as plain text — for production, use react-native-webview */}
           <Text style={styles.contractText}>
             {contract.contract_html.replace(/<[^>]*>/g, '').trim()}
           </Text>
         </View>
 
-        <View style={{ height: 100 }} />
-      </ScrollView>
+        {/* Signature status card */}
+        <View style={styles.sigCard}>
+          <Text style={styles.sigCardTitle}>서명 현황</Text>
+          <View style={styles.sigRow}>
+            {/* Worker signature box */}
+            {canWorkerSign ? (
+              <TouchableOpacity
+                style={[styles.sigBox, styles.sigBoxActive]}
+                onPress={() => setShowSignPad(true)}
+                disabled={signing}
+                activeOpacity={0.75}
+              >
+                <Text style={styles.sigBoxLabelActive}>근로자 서명</Text>
+                <View style={styles.sigIconActive}>
+                  <Text style={{ fontSize: 20 }}>✍️</Text>
+                </View>
+                <Text style={styles.sigBoxCta}>서명하기</Text>
+              </TouchableOpacity>
+            ) : (
+              <View style={[styles.sigBox, workerSigned ? styles.sigBoxDone : styles.sigBoxWait]}>
+                <Text style={[styles.sigBoxLabel, workerSigned && styles.sigBoxLabelDone]}>근로자 서명</Text>
+                <Text style={{ fontSize: 28, marginVertical: 4 }}>{workerSigned ? '✅' : '⏳'}</Text>
+                <Text style={[styles.sigBoxStatus, workerSigned && styles.sigBoxStatusDone]}>
+                  {workerSigned ? '서명 완료' : '서명 대기'}
+                </Text>
+              </View>
+            )}
 
-      {/* Sign CTA */}
-      {!isSigned && (
-        <View style={styles.bottomBar}>
-          <TouchableOpacity
-            style={[styles.signBtn, signing && styles.signBtnDisabled]}
-            onPress={() => setShowSignPad(true)}
-            disabled={signing}
-          >
-            {signing
-              ? <ActivityIndicator color="#fff" />
-              : <Text style={styles.signBtnText}>서명하기 ✍️</Text>
-            }
-          </TouchableOpacity>
+            {/* Manager signature box — display only */}
+            <View style={[styles.sigBox, managerSigned ? styles.sigBoxDone : styles.sigBoxWait]}>
+              <Text style={[styles.sigBoxLabel, managerSigned && styles.sigBoxLabelDone]}>사업주 서명</Text>
+              <Text style={{ fontSize: 28, marginVertical: 4 }}>{managerSigned ? '✅' : '⏳'}</Text>
+              <Text style={[styles.sigBoxStatus, managerSigned && styles.sigBoxStatusDone]}>
+                {managerSigned ? '서명 완료' : '서명 대기'}
+              </Text>
+            </View>
+          </View>
         </View>
-      )}
+
+        <View style={{ height: 40 }} />
+      </ScrollView>
 
       {/* Signature pad modal */}
       {showSignPad && (
@@ -202,26 +217,25 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#F5F5F5' },
   content: { padding: 16, paddingBottom: 24 },
   center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  statusBanner: { borderRadius: 12, padding: 16, marginBottom: 12, alignItems: 'center' },
-  statusSigned: { backgroundColor: '#E8F5E9' },
-  statusPending: { backgroundColor: '#FFF3E0' },
-  statusText: { fontSize: 16, fontWeight: '700' },
-  statusSub: { fontSize: 12, color: '#888', marginTop: 4 },
   contractBox: { backgroundColor: '#fff', borderRadius: 16, padding: 20 },
   contractTitle: { fontSize: 20, fontWeight: '800', textAlign: 'center', marginBottom: 16 },
   divider: { height: 1, backgroundColor: '#E0E0E0', marginBottom: 16 },
   contractText: { fontSize: 14, color: '#444', lineHeight: 22 },
-  bottomBar: {
-    position: 'absolute', bottom: 0, left: 0, right: 0,
-    backgroundColor: '#fff', padding: 16, paddingBottom: 32,
-    borderTopWidth: 1, borderTopColor: '#F0F0F0',
-  },
-  signBtn: {
-    backgroundColor: '#FF6B2C', borderRadius: 14,
-    paddingVertical: 16, alignItems: 'center',
-  },
-  signBtnDisabled: { backgroundColor: '#ccc' },
-  signBtnText: { color: '#fff', fontSize: 17, fontWeight: '700' },
+  // Signature status card
+  sigCard: { backgroundColor: '#fff', borderRadius: 16, padding: 16, marginTop: 12 },
+  sigCardTitle: { fontSize: 14, fontWeight: '700', color: '#25282A', marginBottom: 12 },
+  sigRow: { flexDirection: 'row', gap: 10 },
+  sigBox: { flex: 1, borderRadius: 12, borderWidth: 2, padding: 12, alignItems: 'center', minHeight: 110, justifyContent: 'center' },
+  sigBoxActive: { borderColor: '#0669F7', backgroundColor: '#EFF5FF' },
+  sigBoxDone: { borderColor: '#86EFAC', backgroundColor: '#F0FDF4' },
+  sigBoxWait: { borderColor: '#E5E7EB', backgroundColor: '#F9FAFB', borderStyle: 'dashed' },
+  sigBoxLabel: { fontSize: 11, fontWeight: '600', color: '#9CA3AF', marginBottom: 4 },
+  sigBoxLabelActive: { fontSize: 11, fontWeight: '700', color: '#0669F7', marginBottom: 4 },
+  sigBoxLabelDone: { color: '#16A34A' },
+  sigBoxCta: { fontSize: 12, fontWeight: '700', color: '#0669F7', marginTop: 4 },
+  sigBoxStatus: { fontSize: 11, color: '#9CA3AF', marginTop: 2 },
+  sigBoxStatusDone: { color: '#16A34A' },
+  sigIconActive: { width: 40, height: 40, borderRadius: 20, backgroundColor: '#0669F7', alignItems: 'center', justifyContent: 'center' },
 });
 
 const sig = StyleSheet.create({

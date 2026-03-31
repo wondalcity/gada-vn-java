@@ -18,6 +18,8 @@ interface Props {
   initialApplicationId?: string
   initialApplicationStatus?: string
   initialNotes?: string
+  /** When true, renders only the button element (no sticky wrapper). Used inside MobileApplyBar. */
+  mobileInline?: boolean
 }
 
 type Phase =
@@ -48,6 +50,7 @@ export default function ApplyButton({
   jobId, slug, locale, jobStatus, expiresAt,
   isLoggedIn = false,
   initialApplicationId, initialApplicationStatus, initialNotes,
+  mobileInline = false,
 }: Props) {
   // isLoggedIn is determined server-side and passed as prop to avoid
   // hydration mismatch (getSessionCookie() returns null during SSR).
@@ -325,6 +328,112 @@ export default function ApplyButton({
         </button>
         {phase === 'error' && <p className={`text-sm text-[#D81A48] ${sticky ? 'text-center mt-2' : ''}`}>{errorMsg}</p>}
       </div>
+    )
+  }
+
+  // ════════════════════════════════════════════════════════════════
+  // mobileInline — renders only the button, no sticky wrapper
+  // ════════════════════════════════════════════════════════════════
+  if (mobileInline) {
+    if (!isLoggedIn) {
+      return (
+        <button
+          type="button"
+          onClick={() => router.push(`/${locale}/login?redirect=/${locale}/jobs/${slug}`)}
+          className="h-12 px-5 rounded-2xl bg-[#0669F7] text-white font-bold text-sm whitespace-nowrap"
+        >
+          로그인 후 지원하기
+        </button>
+      )
+    }
+    if (!isJobOpen && phase !== 'applied') {
+      return (
+        <button type="button" disabled
+          className="h-12 px-5 rounded-2xl bg-[#0669F7] text-white font-bold text-sm disabled:opacity-40 whitespace-nowrap"
+        >
+          {isExpired ? '지원 마감' : '마감'}
+        </button>
+      )
+    }
+    if (phase === 'applied' || phase === 'editing_note' || phase === 'saving_note' || phase === 'withdrawing') {
+      return (
+        <>
+          <button
+            type="button"
+            onClick={() => router.push(`/${locale}/worker/applications`)}
+            className="h-12 px-5 rounded-2xl bg-[#E6F0FE] text-[#0669F7] font-bold text-sm whitespace-nowrap"
+          >
+            지원 현황
+          </button>
+          <ConfirmModal
+            isOpen={showWithdrawConfirm}
+            title="지원 취소"
+            message="지원을 취소하시겠습니까? 취소 후에는 다시 지원할 수 있습니다."
+            confirmLabel="취소하기"
+            confirmVariant="danger"
+            onConfirm={() => { setShowWithdrawConfirm(false); handleWithdraw() }}
+            onCancel={() => setShowWithdrawConfirm(false)}
+            isLoading={phase === 'withdrawing'}
+          />
+        </>
+      )
+    }
+    // idle / confirming / applying / error
+    return (
+      <>
+        <button
+          type="button"
+          onClick={() => setPhase('confirming')}
+          disabled={phase === 'applying'}
+          className="h-12 px-5 rounded-2xl bg-[#0669F7] text-white font-bold text-sm disabled:opacity-40 whitespace-nowrap flex items-center gap-2"
+        >
+          {phase === 'applying' && (
+            <svg className="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
+            </svg>
+          )}
+          지원하기
+        </button>
+
+        {/* Confirming bottom sheet (mobile inline mode) */}
+        {phase === 'confirming' && (
+          <div className="fixed inset-0 z-[200] flex flex-col justify-end">
+            <div className="absolute inset-0 bg-black/40" onClick={() => setPhase('idle')} />
+            <div className="relative bg-white rounded-t-3xl p-6 flex flex-col gap-4 animate-slide-up">
+              <div className="w-10 h-1 rounded-full bg-[#D0D4DB] mx-auto -mt-1 mb-1" />
+              <p className="text-[15px] font-bold text-[#25282A]">지원 확인</p>
+              <p className="text-xs text-[#98A2B2] -mt-1 font-medium">관리자에게 메시지 (선택사항)</p>
+              <textarea
+                value={note}
+                onChange={e => setNote(e.target.value)}
+                rows={3}
+                maxLength={200}
+                placeholder="간단한 자기소개나 경력을 적어보세요"
+                className="w-full text-sm border border-[#EFF1F5] rounded-2xl px-3 py-3 resize-none focus:outline-none focus:ring-2 focus:ring-[#0669F7]/30"
+              />
+              <div className="flex gap-3">
+                <button
+                  type="button"
+                  onClick={() => setPhase('idle')}
+                  className="flex-1 h-14 rounded-2xl bg-[#EFF1F5] text-[#25282A] text-sm font-bold"
+                >
+                  취소
+                </button>
+                <button
+                  type="button"
+                  onClick={handleApply}
+                  className="flex-1 h-14 rounded-2xl bg-[#0669F7] text-white text-sm font-bold"
+                >
+                  신청하기
+                </button>
+              </div>
+              {phase === 'error' && <p className="text-sm text-[#D81A48] text-center">{errorMsg}</p>}
+              <div style={{ height: 'env(safe-area-inset-bottom, 0px)' }} />
+            </div>
+          </div>
+        )}
+      </>
     )
   }
 
