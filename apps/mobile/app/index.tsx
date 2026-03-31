@@ -14,8 +14,8 @@ export default function Index() {
         try {
           const result = await syncAuthToken();
           if (result) {
-            const user = result.user as { id: string; role: 'WORKER' | 'MANAGER' };
-            setUser(user.id, user.role);
+            const user = result.user as { id: string; role: 'WORKER' | 'MANAGER'; isManager?: boolean };
+            setUser(user.id, user.role, user.isManager);
             if (result.isNew) setNew(true);
           }
         } catch {

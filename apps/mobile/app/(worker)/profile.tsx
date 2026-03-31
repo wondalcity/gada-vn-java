@@ -376,7 +376,7 @@ function CompletionBar({ profile }: { profile: WorkerProfile }) {
 export default function WorkerProfileScreen() {
   const { t } = useTranslation();
   const router = useRouter();
-  const { clearUser, role } = useAuthStore();
+  const { clearUser, isManager } = useAuthStore();
   const [profile, setProfile] = useState<WorkerProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [openSection, setOpenSection] = useState<Section>('basic');
@@ -529,7 +529,7 @@ export default function WorkerProfileScreen() {
           ))}
         </View>
 
-        {role === 'MANAGER' && (
+        {isManager && (
           <TouchableOpacity
             style={s.managerSwitchBtn}
             onPress={() => router.replace('/(manager)')}

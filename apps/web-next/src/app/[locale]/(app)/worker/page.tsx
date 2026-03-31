@@ -131,7 +131,7 @@ export default async function WorkerHomePage({ params }: Props) {
 
   const displayName = user?.name ?? user?.phone ?? '근로자'
   const initial = displayName.charAt(0).toUpperCase()
-  const isManager = user?.isManager ?? false
+  const isManager = (user?.isManager ?? false) || user?.managerStatus === 'active'
   const recent = applications.slice(0, 5)
 
   return (
