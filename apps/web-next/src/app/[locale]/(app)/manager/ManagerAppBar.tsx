@@ -141,11 +141,13 @@ export function ManagerAppBar({ locale, user }: Props) {
           </Link>
 
           {user ? (
-            <PublicHeaderAuthMenu
-              locale={locale}
-              userName={user.name}
-              isManager={user.isManager}
-            />
+            <div className="hidden md:block">
+              <PublicHeaderAuthMenu
+                locale={locale}
+                userName={user.name}
+                isManager={user.isManager}
+              />
+            </div>
           ) : (
             <Link
               href={`/${locale}/login`}
