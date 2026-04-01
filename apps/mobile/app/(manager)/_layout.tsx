@@ -49,9 +49,20 @@ export default function ManagerLayout() {
       <Tabs.Screen
         name="notifications"
         options={{
+          href: null,
           title: t('manager.tab_notifications'),
-          tabBarLabel: t('manager.tab_notifications'),
-          tabBarIcon: ({ color }) => <Text style={{ color, fontSize: 20 }}>🔔</Text>,
+          headerShown: true,
+          tabBarStyle: { display: 'none' },
+        }}
+      />
+      {/* Settings screen — hidden from tab bar */}
+      <Tabs.Screen
+        name="settings"
+        options={{
+          href: null,
+          title: t('profile.settings'),
+          headerShown: true,
+          tabBarStyle: { display: 'none' },
         }}
       />
       {/* Non-tab screens — tab bar hidden, header back button shown */}

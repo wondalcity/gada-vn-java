@@ -109,7 +109,8 @@
       "vi": "Tiếng Việt",
       "en": "English",
       "current_suffix": "(현재)"
-    }
+    },
+    "logout": "로그아웃"
   },
   "worker_badge": {
     "worker": "근로자",

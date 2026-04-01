@@ -156,7 +156,12 @@ export default async function WorkerHomePage({ params }: Props) {
               {initial}
             </div>
             <div>
-              <p className="font-bold text-base leading-tight">{displayName}</p>
+              <div className="flex items-center gap-2">
+                <p className="font-bold text-base leading-tight">{displayName}</p>
+                <Link href={`/${locale}/worker/settings` as never} className="opacity-70 hover:opacity-100 transition-opacity">
+                  <span className="text-lg leading-none">⚙️</span>
+                </Link>
+              </div>
               {user?.phone && (
                 <p className="text-blue-100 text-xs mt-0.5">{formatPhone(user.phone)}</p>
               )}

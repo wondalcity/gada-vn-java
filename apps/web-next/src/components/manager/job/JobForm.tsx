@@ -3,6 +3,7 @@
 import * as React from 'react'
 import { useRouter } from 'next/navigation'
 import { apiClient } from '@/lib/api/client'
+import { siteStore } from '@/lib/demo/siteStore'
 import type { Job, JobStatus } from '@/types/manager-site-job'
 
 interface Trade {
@@ -134,6 +135,18 @@ export default function JobForm({
 
       if (mode === 'edit') {
         payload.status = jobStatus
+      }
+
+      if (!idToken) {
+        // Demo mode — use siteStore
+        if (mode === 'create') {
+          const newJob = siteStore.createJob(siteId, payload as Parameters<typeof siteStore.createJob>[1])
+          router.push(`/${locale}/manager/jobs/${newJob.id}`)
+        } else {
+          siteStore.updateJob(jobId!, payload as Partial<Job>)
+          router.push(`/${locale}/manager/jobs/${jobId}`)
+        }
+        return
       }
 
       if (mode === 'create') {

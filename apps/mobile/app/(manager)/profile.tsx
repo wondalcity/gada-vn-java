@@ -2,27 +2,23 @@ import { useState } from 'react';
 import { View, Text, TouchableOpacity, ScrollView, StyleSheet, Modal } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
-import { signOut } from '../../lib/firebase';
-import { useAuthStore } from '../../store/auth.store';
 import i18n, { SUPPORTED_LANGUAGES, changeAppLanguage, LangCode } from '../../lib/i18n';
 
 export default function ManagerProfile() {
   const { t } = useTranslation();
   const router = useRouter();
-  const { clearUser } = useAuthStore();
   const [langModalVisible, setLangModalVisible] = useState(false);
-
-  async function handleLogout() {
-    await signOut();
-    clearUser();
-    router.replace('/(auth)/phone');
-  }
 
   return (
     <ScrollView style={styles.container}>
       <View style={styles.header}>
         <View style={styles.avatar} />
-        <Text style={styles.name}>{t('manager.admin_label')}</Text>
+        <View style={styles.nameRow}>
+          <Text style={styles.name}>{t('manager.admin_label')}</Text>
+          <TouchableOpacity onPress={() => router.push('/(manager)/settings' as never)} activeOpacity={0.7}>
+            <Text style={styles.settingsIcon}>⚙️</Text>
+          </TouchableOpacity>
+        </View>
       </View>
 
       {/* Language setting */}
@@ -32,10 +28,6 @@ export default function ManagerProfile() {
         <Text style={styles.settingValue}>
           {SUPPORTED_LANGUAGES.find(l => l.code === i18n.language)?.flag ?? '🌐'} ›
         </Text>
-      </TouchableOpacity>
-
-      <TouchableOpacity style={styles.logoutBtn} onPress={handleLogout}>
-        <Text style={styles.logoutText}>{t('profile.logout')}</Text>
       </TouchableOpacity>
 
       {/* Language selection modal */}
@@ -68,13 +60,13 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#F5F5F5' },
   header: { backgroundColor: '#fff', alignItems: 'center', padding: 32, marginBottom: 8 },
   avatar: { width: 80, height: 80, borderRadius: 40, backgroundColor: '#FFD4C0', marginBottom: 12 },
+  nameRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   name: { fontSize: 20, fontWeight: '700' },
+  settingsIcon: { fontSize: 20, opacity: 0.7 },
   settingRow: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#fff', marginHorizontal: 0, marginBottom: 1, paddingHorizontal: 20, paddingVertical: 16 },
   settingIcon: { fontSize: 20, marginRight: 12 },
   settingLabel: { flex: 1, fontSize: 15, fontWeight: '600', color: '#25282A' },
   settingValue: { fontSize: 14, color: '#98A2B2' },
-  logoutBtn: { margin: 24, padding: 16, borderRadius: 12, borderWidth: 1, borderColor: '#FF6B2C', alignItems: 'center' },
-  logoutText: { color: '#FF6B2C', fontSize: 16, fontWeight: '600' },
   modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'flex-end' },
   modalSheet: { backgroundColor: '#fff', borderTopLeftRadius: 20, borderTopRightRadius: 20, padding: 24, paddingBottom: 40 },
   modalTitle: { fontSize: 16, fontWeight: '700', color: '#25282A', marginBottom: 16, textAlign: 'center' },

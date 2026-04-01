@@ -3,6 +3,7 @@
 import * as React from 'react'
 import { useRouter } from 'next/navigation'
 import { apiClient } from '@/lib/api/client'
+import { siteStore } from '@/lib/demo/siteStore'
 import { getGoogleMapsLoader } from '@/lib/maps/loader'
 import ImageUploader from '@/components/manager/ImageUploader'
 import type { Site, SiteStatus } from '@/types/manager-site-job'
@@ -188,7 +189,7 @@ export default function SiteForm({ mode, initialData, siteId, locale, idToken }:
 
     setIsSaving(true)
     try {
-      const payload: Record<string, unknown> = {
+      const payload = {
         name: name.trim(),
         nameVi: nameVi.trim() || undefined,
         address: address.trim(),
@@ -197,22 +198,36 @@ export default function SiteForm({ mode, initialData, siteId, locale, idToken }:
         lat,
         lng,
         siteType: siteType || undefined,
+        status,
       }
 
-      if (mode === 'edit') payload.status = status
+      // Demo mode (no API token) — use localStorage store
+      if (!idToken) {
+        if (mode === 'create') {
+          const newSite = siteStore.create(payload)
+          router.push(`/${locale}/manager/sites/${newSite.id}`)
+        } else if (siteId) {
+          siteStore.update(siteId, payload)
+          router.push(`/${locale}/manager/sites/${siteId}`)
+        }
+        return
+      }
+
+      const apiPayload: Record<string, unknown> = { ...payload }
+      if (mode !== 'edit') delete apiPayload.status
 
       if (mode === 'create') {
         const res = await apiClient<Site>('/manager/sites', {
           method: 'POST',
           token: idToken,
-          body: JSON.stringify(payload),
+          body: JSON.stringify(apiPayload),
         })
         router.push(`/${locale}/manager/sites/${res.data.id}`)
       } else {
         await apiClient<Site>(`/manager/sites/${siteId}`, {
           method: 'PUT',
           token: idToken,
-          body: JSON.stringify(payload),
+          body: JSON.stringify(apiPayload),
         })
         router.push(`/${locale}/manager/sites/${siteId}`)
       }

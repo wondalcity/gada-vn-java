@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { useTranslations } from 'next-intl'
 import { getSessionCookie } from '@/lib/auth/session'
 import { apiClient } from '@/lib/api/client'
+import { siteStore } from '@/lib/demo/siteStore'
 import type { Site, SiteStatus, Job } from '@/types/manager-site-job'
 import StatusBadge from '@/components/manager/StatusBadge'
 import ConfirmModal from '@/components/manager/ConfirmModal'
@@ -29,24 +30,6 @@ function SkeletonDetail() {
   )
 }
 
-const DEMO_SITES: Record<string, Site & { demoJobs?: Job[] }> = {
-  'demo-1': { id: 'demo-1', name: '롯데몰 하노이 지하 1층 공사', address: '54 Liễu Giai, Ba Đình, Hà Nội', province: 'Hà Nội', district: 'Ba Đình', status: 'ACTIVE', imageUrls: [], jobCount: 2, createdAt: '2026-01-15T00:00:00Z', updatedAt: '2026-03-10T00:00:00Z', demoJobs: [
-    { id: 'djob-1', siteId: 'demo-1', siteName: '롯데몰 하노이 지하 1층 공사', title: '전기 배선 작업', tradeName: '전기', workDate: '2026-03-28', dailyWage: 700000, currency: 'VND', benefits: { meals: true, transport: false, accommodation: false, insurance: true }, requirements: {}, slotsTotal: 5, slotsFilled: 3, status: 'OPEN', imageUrls: [], shiftCount: 0, applicationCount: { pending: 2, accepted: 3, rejected: 0 }, createdAt: '2026-03-20T00:00:00Z', updatedAt: '2026-03-20T00:00:00Z' },
-    { id: 'djob-2', siteId: 'demo-1', siteName: '롯데몰 하노이 지하 1층 공사', title: '콘크리트 타설 — 기초 슬라브', tradeName: '콘크리트', workDate: '2026-03-29', dailyWage: 560000, currency: 'VND', benefits: { meals: true, transport: true, accommodation: false, insurance: false }, requirements: {}, slotsTotal: 8, slotsFilled: 8, status: 'FILLED', imageUrls: [], shiftCount: 0, applicationCount: { pending: 0, accepted: 8, rejected: 2 }, createdAt: '2026-03-18T00:00:00Z', updatedAt: '2026-03-18T00:00:00Z' },
-  ] },
-  'demo-2': { id: 'demo-2', name: '인천 송도 물류센터 자재 운반', address: '1 Lê Duẩn, Bến Nghé, Quận 1, Hồ Chí Minh', province: 'Hồ Chí Minh', district: 'Quận 1', status: 'ACTIVE', imageUrls: [], jobCount: 1, createdAt: '2026-02-01T00:00:00Z', updatedAt: '2026-03-15T00:00:00Z', demoJobs: [
-    { id: 'djob-3', siteId: 'demo-2', siteName: '인천 송도 물류센터', title: '잡부 — 자재 운반', tradeName: '일반', workDate: '2026-03-30', dailyWage: 410000, currency: 'VND', benefits: { meals: false, transport: false, accommodation: false, insurance: false }, requirements: {}, slotsTotal: 10, slotsFilled: 4, status: 'OPEN', imageUrls: [], shiftCount: 0, applicationCount: { pending: 6, accepted: 4, rejected: 0 }, createdAt: '2026-03-22T00:00:00Z', updatedAt: '2026-03-22T00:00:00Z' },
-  ] },
-  'demo-3': { id: 'demo-3', name: '광명역 복합쇼핑몰 신축', address: '2 Phạm Văn Bạch, Yên Hòa, Cầu Giấy, Hà Nội', province: 'Hà Nội', district: 'Cầu Giấy', status: 'ACTIVE', imageUrls: [], jobCount: 2, createdAt: '2026-01-20T00:00:00Z', updatedAt: '2026-03-20T00:00:00Z', demoJobs: [
-    { id: 'djob-4', siteId: 'demo-3', siteName: '광명역 복합쇼핑몰 신축', title: '철근 조립 — 3층 골조', tradeName: '철근', workDate: '2026-03-25', dailyWage: 620000, currency: 'VND', benefits: { meals: true, transport: false, accommodation: false, insurance: true }, requirements: {}, slotsTotal: 6, slotsFilled: 6, status: 'COMPLETED', imageUrls: [], shiftCount: 0, applicationCount: { pending: 0, accepted: 6, rejected: 1 }, createdAt: '2026-03-15T00:00:00Z', updatedAt: '2026-03-15T00:00:00Z' },
-    { id: 'djob-5', siteId: 'demo-3', siteName: '광명역 복합쇼핑몰 신축', title: '타일 시공 — 로비 바닥', tradeName: '타일', workDate: '2026-04-01', dailyWage: 580000, currency: 'VND', benefits: { meals: false, transport: false, accommodation: false, insurance: false }, requirements: {}, slotsTotal: 4, slotsFilled: 0, status: 'OPEN', imageUrls: [], shiftCount: 0, applicationCount: { pending: 0, accepted: 0, rejected: 0 }, createdAt: '2026-03-24T00:00:00Z', updatedAt: '2026-03-24T00:00:00Z' },
-  ] },
-  'demo-4': { id: 'demo-4', name: '다낭 해양 리조트 기초 슬라브', address: '78 Võ Nguyên Giáp, Mỹ An, Đà Nẵng', province: 'Đà Nẵng', district: 'Sơn Trà', status: 'PAUSED', imageUrls: [], jobCount: 0, createdAt: '2025-12-01T00:00:00Z', updatedAt: '2026-02-01T00:00:00Z', demoJobs: [] },
-  'demo-5': { id: 'demo-5', name: '호치민 스카이라인 빌딩', address: '128 Võ Văn Tần, Quận 3, Hồ Chí Minh', province: 'Hồ Chí Minh', district: 'Quận 3', status: 'ACTIVE', imageUrls: [], jobCount: 1, createdAt: '2026-02-15T00:00:00Z', updatedAt: '2026-03-25T00:00:00Z', demoJobs: [
-    { id: 'djob-6', siteId: 'demo-5', siteName: '호치민 스카이라인 빌딩', title: '도장 작업 — 외벽 마감', tradeName: '도장', workDate: '2026-03-20', dailyWage: 490000, currency: 'VND', benefits: { meals: false, transport: false, accommodation: false, insurance: false }, requirements: {}, slotsTotal: 3, slotsFilled: 3, status: 'COMPLETED', imageUrls: [], shiftCount: 0, applicationCount: { pending: 0, accepted: 3, rejected: 0 }, createdAt: '2026-03-10T00:00:00Z', updatedAt: '2026-03-10T00:00:00Z' },
-  ] },
-}
-
 export default function SiteDetailClient({ siteId, locale }: SiteDetailClientProps) {
   const t = useTranslations('common')
   const router = useRouter()
@@ -61,16 +44,17 @@ export default function SiteDetailClient({ siteId, locale }: SiteDetailClientPro
   const [isDeleting, setIsDeleting] = React.useState(false)
 
   React.useEffect(() => {
-    // Demo fallback for demo IDs
-    if (DEMO_SITES[siteId]) {
-      const demoSite = DEMO_SITES[siteId]
-      setSite(demoSite)
-      setJobs(demoSite.demoJobs ?? [])
-      setIsDemo(true)
+    // Demo mode (no token) — load from localStorage store
+    if (!idToken) {
+      const stored = siteStore.get(siteId)
+      if (stored) {
+        setSite(stored)
+        setJobs(stored.demoJobs)
+        setIsDemo(true)
+      }
       setIsLoading(false)
       return
     }
-    if (!idToken) { setIsLoading(false); return }
     Promise.all([
       apiClient<Site>(`/manager/sites/${siteId}`, { token: idToken }),
       apiClient<Job[]>(`/manager/sites/${siteId}/jobs`, { token: idToken }),
@@ -84,7 +68,13 @@ export default function SiteDetailClient({ siteId, locale }: SiteDetailClientPro
   }, [siteId, idToken])
 
   async function handleStatusChange(newStatus: SiteStatus) {
-    if (!site || !idToken) return
+    if (!site) return
+    if (!idToken) {
+      // Demo mode
+      siteStore.updateStatus(siteId, newStatus)
+      setSite((prev) => prev ? { ...prev, status: newStatus } : prev)
+      return
+    }
     try {
       await apiClient<Site>(`/manager/sites/${siteId}/status`, {
         method: 'PATCH',
@@ -98,9 +88,14 @@ export default function SiteDetailClient({ siteId, locale }: SiteDetailClientPro
   }
 
   async function handleDelete() {
-    if (!idToken) return
     setIsDeleting(true)
     try {
+      if (!idToken) {
+        // Demo mode
+        siteStore.delete(siteId)
+        router.push(`/${locale}/manager/sites`)
+        return
+      }
       await apiClient(`/manager/sites/${siteId}/status`, {
         method: 'PATCH',
         token: idToken,

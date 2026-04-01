@@ -9,7 +9,6 @@ import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import i18n, { SUPPORTED_LANGUAGES, changeAppLanguage, LangCode } from '../../lib/i18n';
 import { api, ApiError } from '../../lib/api-client';
-import { signOut } from '../../lib/firebase';
 import { useAuthStore } from '../../store/auth.store';
 
 function formatPhone(phone: string | null | undefined): string {
@@ -383,7 +382,7 @@ function CompletionBar({ profile }: { profile: WorkerProfile }) {
 export default function WorkerProfileScreen() {
   const { t } = useTranslation();
   const router = useRouter();
-  const { clearUser, isManager } = useAuthStore();
+  const { isManager } = useAuthStore();
   const [profile, setProfile] = useState<WorkerProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [openSection, setOpenSection] = useState<Section>('basic');
@@ -409,16 +408,6 @@ export default function WorkerProfileScreen() {
 
   function handleSaved(partial: Partial<WorkerProfile>) {
     setProfile(prev => prev ? { ...prev, ...partial } : prev);
-  }
-
-  async function handleLogout() {
-    Alert.alert(t('worker.logout_confirm_title'), t('worker.logout_confirm_body'), [
-      { text: t('common.cancel'), style: 'cancel' },
-      {
-        text: t('worker.logout'), style: 'destructive',
-        onPress: async () => { await signOut(); clearUser(); router.replace('/(auth)/phone'); },
-      },
-    ]);
   }
 
   function toggleSection(section: Section) {
@@ -451,7 +440,12 @@ export default function WorkerProfileScreen() {
               <View style={s.avatarEditBadge}><Text style={{ fontSize: 12 }}>✏️</Text></View>
             </View>
           </TouchableOpacity>
-          <Text style={s.headerName}>{p.full_name ?? t('worker.name_unregistered')}</Text>
+          <View style={s.nameRow}>
+            <Text style={s.headerName}>{p.full_name ?? t('worker.name_unregistered')}</Text>
+            <TouchableOpacity onPress={() => router.push('/(worker)/settings' as never)} activeOpacity={0.7}>
+              <Text style={s.settingsIcon}>⚙️</Text>
+            </TouchableOpacity>
+          </View>
           {p.phone && <Text style={s.headerPhone}>{formatPhone(p.phone)}</Text>}
           <View style={{ marginTop: 12, width: '100%' }}>
             <CompletionBar profile={p} />
@@ -469,13 +463,6 @@ export default function WorkerProfileScreen() {
             badgeDone={basicDone}
           />
           {openSection === 'basic' && <BasicSection profile={p} onSaved={handleSaved} />}
-          {openSection === 'basic' && (
-            <View style={s.logoutInBasic}>
-              <TouchableOpacity style={s.logoutInBasicBtn} onPress={handleLogout} activeOpacity={0.7}>
-                <Text style={s.logoutInBasicText}>{t('worker.logout')}</Text>
-              </TouchableOpacity>
-            </View>
-          )}
         </View>
 
         {/* Bank */}
@@ -618,7 +605,9 @@ const s = StyleSheet.create({
   headerAvatar: { width: 88, height: 88, borderRadius: 44, borderWidth: 2, borderColor: '#0669F7' },
   headerAvatarPlaceholder: { width: 88, height: 88, borderRadius: 44, backgroundColor: '#EFF5FF', justifyContent: 'center', alignItems: 'center', borderWidth: 2, borderColor: '#BFDBFE' },
   avatarEditBadge: { position: 'absolute', bottom: 0, right: 0, width: 26, height: 26, borderRadius: 13, backgroundColor: '#0669F7', justifyContent: 'center', alignItems: 'center', borderWidth: 2, borderColor: '#fff' },
-  headerName: { fontSize: 20, fontWeight: '800', color: '#25282A', marginBottom: 2 },
+  nameRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 2 },
+  headerName: { fontSize: 20, fontWeight: '800', color: '#25282A' },
+  settingsIcon: { fontSize: 20, opacity: 0.7 },
   headerPhone: { fontSize: 13, color: '#98A2B2' },
   fieldLabel: { fontSize: 12, fontWeight: '600', color: '#98A2B2', marginTop: 12, marginBottom: 4 },
   input: { backgroundColor: '#F9FAFB', borderRadius: 10, borderWidth: 1, borderColor: '#EFF1F5', paddingHorizontal: 12, paddingVertical: 10, fontSize: 14, color: '#25282A' },
@@ -654,9 +643,6 @@ const s = StyleSheet.create({
   completionSub: { fontSize: 11, color: '#C0C4CF' },
   managerSwitchBtn: { marginTop: 8, padding: 14, borderRadius: 12, backgroundColor: '#0669F7', alignItems: 'center' },
   managerSwitchText: { color: '#fff', fontSize: 15, fontWeight: '700' },
-  logoutInBasic: { borderTopWidth: 0.5, borderColor: '#F2F4F5', paddingHorizontal: 16, paddingVertical: 12 },
-  logoutInBasicBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, paddingVertical: 12, borderRadius: 12, borderWidth: 1, borderColor: '#EFF1F5' },
-  logoutInBasicText: { color: '#98A2B2', fontSize: 14, fontWeight: '600' },
   modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'flex-end' },
   modalSheet: { backgroundColor: '#fff', borderTopLeftRadius: 20, borderTopRightRadius: 20, padding: 24, paddingBottom: 40 },
   modalTitle: { fontSize: 16, fontWeight: '700', color: '#25282A', marginBottom: 16, textAlign: 'center' },

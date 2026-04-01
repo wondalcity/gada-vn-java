@@ -3,6 +3,7 @@
 import * as React from 'react'
 import { useTranslations } from 'next-intl'
 import { useRouter, usePathname } from '@/i18n/navigation'
+import { clearSessionCookie } from '@/lib/auth/session'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -90,6 +91,12 @@ function LanguageSection({ currentLocale }: { currentLocale: string }) {
 
 export default function SettingsPage({ currentLocale, extraSections = [] }: Props) {
   const t = useTranslations('common')
+  const router = useRouter()
+
+  function handleLogout() {
+    clearSessionCookie()
+    router.push(`/${currentLocale}/login` as never)
+  }
 
   return (
     <div className="py-6 space-y-6">
@@ -109,6 +116,15 @@ export default function SettingsPage({ currentLocale, extraSections = [] }: Prop
           </div>
         </div>
       ))}
+
+      {/* Logout — always at the bottom */}
+      <button
+        type="button"
+        onClick={handleLogout}
+        className="w-full py-4 rounded-2xl border border-[#FF6B2C] text-[#FF6B2C] font-semibold text-base hover:bg-[#FFF3EE] active:bg-[#FFE5D6] transition-colors"
+      >
+        {t('settings.logout')}
+      </button>
     </div>
   )
 }

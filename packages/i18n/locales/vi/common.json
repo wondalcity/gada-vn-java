@@ -109,7 +109,8 @@
       "vi": "Tiếng Việt",
       "en": "English",
       "current_suffix": "(Hiện tại)"
-    }
+    },
+    "logout": "Đăng xuất"
   },
   "worker_badge": {
     "worker": "Công nhân",

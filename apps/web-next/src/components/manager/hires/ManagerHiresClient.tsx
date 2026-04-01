@@ -12,11 +12,11 @@ import { CONTRACT_STATUS_LABELS, CONTRACT_STATUS_COLORS } from '@/types/contract
 const DEMO_HIRES: HireWithContract[] = [
   {
     id: 'hire-1',
-    jobId: 'djob-1',
-    jobTitle: '전기 배선 작업',
-    siteName: '롯데몰 하노이 지하 1층 공사',
-    workDate: '2026-03-28',
-    dailyWage: 700000,
+    jobId: 'djob-1-1',
+    jobTitle: '철근 조립 — 10~12층 골조',
+    siteName: '하노이 스타레이크 시티 A동 신축',
+    workDate: '2026-04-03',
+    dailyWage: 650000,
     workerName: 'Nguyễn Văn An',
     workerPhone: '0901234567',
     status: 'CONTRACTED',
@@ -31,11 +31,11 @@ const DEMO_HIRES: HireWithContract[] = [
   },
   {
     id: 'hire-2',
-    jobId: 'djob-1',
-    jobTitle: '전기 배선 작업',
-    siteName: '롯데몰 하노이 지하 1층 공사',
-    workDate: '2026-03-28',
-    dailyWage: 700000,
+    jobId: 'djob-1-1',
+    jobTitle: '철근 조립 — 10~12층 골조',
+    siteName: '하노이 스타레이크 시티 A동 신축',
+    workDate: '2026-04-03',
+    dailyWage: 650000,
     workerName: 'Trần Thị Bích',
     workerPhone: '0912345678',
     status: 'CONTRACTED',
@@ -50,11 +50,11 @@ const DEMO_HIRES: HireWithContract[] = [
   },
   {
     id: 'hire-3',
-    jobId: 'djob-3',
-    jobTitle: '잡부 — 자재 운반',
-    siteName: '인천 송도 물류센터',
-    workDate: '2026-03-30',
-    dailyWage: 410000,
+    jobId: 'djob-3-2',
+    jobTitle: '콘크리트 타설 — 철탑 기초 2차',
+    siteName: '다낭 선월드 케이블카 지지대 기초',
+    workDate: '2026-04-02',
+    dailyWage: 560000,
     workerName: 'Lê Minh Tuấn',
     workerPhone: '0923456789',
     status: 'ACCEPTED',
@@ -63,11 +63,11 @@ const DEMO_HIRES: HireWithContract[] = [
   },
   {
     id: 'hire-4',
-    jobId: 'djob-3',
-    jobTitle: '잡부 — 자재 운반',
-    siteName: '인천 송도 물류센터',
-    workDate: '2026-03-30',
-    dailyWage: 410000,
+    jobId: 'djob-3-2',
+    jobTitle: '콘크리트 타설 — 철탑 기초 2차',
+    siteName: '다낭 선월드 케이블카 지지대 기초',
+    workDate: '2026-04-02',
+    dailyWage: 560000,
     workerName: 'Phạm Thị Hoa',
     workerPhone: '0934567890',
     status: 'ACCEPTED',
@@ -76,11 +76,11 @@ const DEMO_HIRES: HireWithContract[] = [
   },
   {
     id: 'hire-5',
-    jobId: 'djob-5',
-    jobTitle: '타일 시공 — 로비 바닥',
-    siteName: '광명역 복합쇼핑몰 신축',
-    workDate: '2026-04-01',
-    dailyWage: 580000,
+    jobId: 'djob-1-3',
+    jobTitle: '거푸집 설치 — 기둥 공사',
+    siteName: '하노이 스타레이크 시티 A동 신축',
+    workDate: '2026-04-07',
+    dailyWage: 520000,
     workerName: 'Võ Văn Hùng',
     workerPhone: '0945678901',
     status: 'ACCEPTED',
@@ -89,11 +89,11 @@ const DEMO_HIRES: HireWithContract[] = [
   },
   {
     id: 'hire-6',
-    jobId: 'djob-5',
-    jobTitle: '타일 시공 — 로비 바닥',
-    siteName: '광명역 복합쇼핑몰 신축',
-    workDate: '2026-04-01',
-    dailyWage: 580000,
+    jobId: 'djob-1-3',
+    jobTitle: '거푸집 설치 — 기둥 공사',
+    siteName: '하노이 스타레이크 시티 A동 신축',
+    workDate: '2026-04-07',
+    dailyWage: 520000,
     workerName: 'Đặng Thị Mai',
     workerPhone: '0956789012',
     status: 'CONTRACTED',
@@ -150,7 +150,7 @@ export default function ManagerHiresClient() {
   const [toastMessage, setToastMessage] = React.useState<string | null>(null)
 
   const load = React.useCallback(() => {
-    if (!idToken) { setIsLoading(false); return }
+    if (!idToken) { setHires(DEMO_HIRES); setIsLoading(false); return }
     setIsLoading(true)
     apiClient<Record<string, any>[]>('/applications/for-manager', { token: idToken })
       .then(({ data }) => {
@@ -209,8 +209,8 @@ export default function ManagerHiresClient() {
     }
   }
 
-  const isDemo = hires.length === 0
-  const displayHires = isDemo ? DEMO_HIRES : hires
+  const isDemo = !idToken
+  const displayHires = hires
 
   const filteredHires = React.useMemo(() => {
     if (!searchQuery.trim()) return displayHires

@@ -4,6 +4,7 @@ import * as React from 'react'
 import Link from 'next/link'
 import { getSessionCookie } from '@/lib/auth/session'
 import { apiClient } from '@/lib/api/client'
+import { siteStore } from '@/lib/demo/siteStore'
 import type { Job } from '@/types/manager-site-job'
 import JobCard from './JobCard'
 
@@ -33,7 +34,11 @@ export default function JobListClient({ siteId, locale }: JobListClientProps) {
   const [error, setError] = React.useState<string | null>(null)
 
   React.useEffect(() => {
-    if (!idToken) return
+    if (!idToken) {
+      setJobs(siteStore.listJobsBySite(siteId))
+      setIsLoading(false)
+      return
+    }
     apiClient<Job[]>(`/manager/sites/${siteId}/jobs`, { token: idToken })
       .then((res) => setJobs(res.data))
       .catch((e) => setError(e instanceof Error ? e.message : '불러오기 실패'))

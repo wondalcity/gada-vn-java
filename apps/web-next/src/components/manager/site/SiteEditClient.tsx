@@ -3,6 +3,7 @@
 import * as React from 'react'
 import { getSessionCookie } from '@/lib/auth/session'
 import { apiClient } from '@/lib/api/client'
+import { siteStore } from '@/lib/demo/siteStore'
 import type { Site } from '@/types/manager-site-job'
 import SiteForm from './SiteForm'
 
@@ -18,7 +19,16 @@ export default function SiteEditClient({ siteId, locale }: SiteEditClientProps) 
   const [error, setError] = React.useState<string | null>(null)
 
   React.useEffect(() => {
-    if (!idToken) return
+    if (!idToken) {
+      // Demo mode — load from localStorage store
+      const stored = siteStore.get(siteId)
+      if (stored) {
+        const { demoJobs: _d, ...siteData } = stored
+        setSite(siteData)
+      }
+      setIsLoading(false)
+      return
+    }
     apiClient<Site>(`/manager/sites/${siteId}`, { token: idToken })
       .then((res) => setSite(res.data))
       .catch((e) => setError(e instanceof Error ? e.message : '불러오기 실패'))
@@ -48,7 +58,7 @@ export default function SiteEditClient({ siteId, locale }: SiteEditClientProps) 
     )
   }
 
-  if (!site || !idToken) return null
+  if (!site) return null
 
   return (
     <SiteForm
@@ -56,7 +66,7 @@ export default function SiteEditClient({ siteId, locale }: SiteEditClientProps) 
       initialData={site}
       siteId={siteId}
       locale={locale}
-      idToken={idToken}
+      idToken={idToken ?? ''}
     />
   )
 }

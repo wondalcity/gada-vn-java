@@ -4,6 +4,7 @@ import * as React from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { getSessionCookie } from '@/lib/auth/session'
 import { apiClient } from '@/lib/api/client'
+import { siteStore } from '@/lib/demo/siteStore'
 import type { Job, Site } from '@/types/manager-site-job'
 import JobCard from './JobCard'
 import StatusBadge from '@/components/manager/StatusBadge'
@@ -19,153 +20,6 @@ const STATUS_TABS: { key: JobStatus | 'ALL'; label: string }[] = [
   { key: 'FILLED', label: '마감' },
   { key: 'COMPLETED', label: '완료' },
   { key: 'CANCELLED', label: '취소' },
-]
-
-const DEMO_JOBS: Job[] = [
-  {
-    id: 'djob-1',
-    siteId: 'demo-1',
-    siteName: '롯데몰 하노이 지하 1층 공사',
-    title: '전기 배선 작업',
-    tradeId: 1,
-    tradeName: '전기',
-    workDate: '2026-03-28',
-    startTime: '07:00',
-    endTime: '17:00',
-    dailyWage: 700000,
-    currency: 'VND',
-    benefits: { meals: true, transport: false, accommodation: false, insurance: true },
-    requirements: {},
-    slotsTotal: 5,
-    slotsFilled: 3,
-    status: 'OPEN',
-    imageUrls: [],
-    shiftCount: 0,
-    applicationCount: { pending: 2, accepted: 3, rejected: 0 },
-    publishedAt: '2026-03-20T00:00:00Z',
-    createdAt: '2026-03-20T00:00:00Z',
-    updatedAt: '2026-03-20T00:00:00Z',
-  },
-  {
-    id: 'djob-2',
-    siteId: 'demo-1',
-    siteName: '롯데몰 하노이 지하 1층 공사',
-    title: '콘크리트 타설 — 기초 슬라브',
-    tradeId: 2,
-    tradeName: '콘크리트',
-    workDate: '2026-03-29',
-    startTime: '06:00',
-    endTime: '16:00',
-    dailyWage: 560000,
-    currency: 'VND',
-    benefits: { meals: true, transport: true, accommodation: false, insurance: false },
-    requirements: {},
-    slotsTotal: 8,
-    slotsFilled: 8,
-    status: 'FILLED',
-    imageUrls: [],
-    shiftCount: 0,
-    applicationCount: { pending: 0, accepted: 8, rejected: 2 },
-    publishedAt: '2026-03-18T00:00:00Z',
-    createdAt: '2026-03-18T00:00:00Z',
-    updatedAt: '2026-03-18T00:00:00Z',
-  },
-  {
-    id: 'djob-3',
-    siteId: 'demo-2',
-    siteName: '인천 송도 물류센터',
-    title: '잡부 — 자재 운반',
-    tradeId: 3,
-    tradeName: '일반',
-    workDate: '2026-03-30',
-    startTime: '08:00',
-    endTime: '17:00',
-    dailyWage: 410000,
-    currency: 'VND',
-    benefits: { meals: false, transport: false, accommodation: false, insurance: false },
-    requirements: {},
-    slotsTotal: 10,
-    slotsFilled: 4,
-    status: 'OPEN',
-    imageUrls: [],
-    shiftCount: 0,
-    applicationCount: { pending: 6, accepted: 4, rejected: 0 },
-    publishedAt: '2026-03-22T00:00:00Z',
-    createdAt: '2026-03-22T00:00:00Z',
-    updatedAt: '2026-03-22T00:00:00Z',
-  },
-  {
-    id: 'djob-4',
-    siteId: 'demo-3',
-    siteName: '광명역 복합쇼핑몰 신축',
-    title: '철근 조립 — 3층 골조',
-    tradeId: 4,
-    tradeName: '철근',
-    workDate: '2026-03-25',
-    startTime: '07:00',
-    endTime: '17:00',
-    dailyWage: 620000,
-    currency: 'VND',
-    benefits: { meals: true, transport: false, accommodation: false, insurance: true },
-    requirements: {},
-    slotsTotal: 6,
-    slotsFilled: 6,
-    status: 'COMPLETED',
-    imageUrls: [],
-    shiftCount: 0,
-    applicationCount: { pending: 0, accepted: 6, rejected: 1 },
-    publishedAt: '2026-03-15T00:00:00Z',
-    createdAt: '2026-03-15T00:00:00Z',
-    updatedAt: '2026-03-15T00:00:00Z',
-  },
-  {
-    id: 'djob-5',
-    siteId: 'demo-3',
-    siteName: '광명역 복합쇼핑몰 신축',
-    title: '타일 시공 — 로비 바닥',
-    tradeId: 5,
-    tradeName: '타일',
-    workDate: '2026-04-01',
-    startTime: '08:00',
-    endTime: '17:00',
-    dailyWage: 580000,
-    currency: 'VND',
-    benefits: { meals: false, transport: false, accommodation: false, insurance: false },
-    requirements: {},
-    slotsTotal: 4,
-    slotsFilled: 0,
-    status: 'OPEN',
-    imageUrls: [],
-    shiftCount: 0,
-    applicationCount: { pending: 0, accepted: 0, rejected: 0 },
-    publishedAt: '2026-03-24T00:00:00Z',
-    createdAt: '2026-03-24T00:00:00Z',
-    updatedAt: '2026-03-24T00:00:00Z',
-  },
-  {
-    id: 'djob-6',
-    siteId: 'demo-5',
-    siteName: '호치민 스카이라인 빌딩',
-    title: '도장 작업 — 외벽 마감',
-    tradeId: 6,
-    tradeName: '도장',
-    workDate: '2026-03-20',
-    startTime: '08:00',
-    endTime: '17:00',
-    dailyWage: 490000,
-    currency: 'VND',
-    benefits: { meals: false, transport: false, accommodation: false, insurance: false },
-    requirements: {},
-    slotsTotal: 3,
-    slotsFilled: 3,
-    status: 'CANCELLED',
-    imageUrls: [],
-    shiftCount: 0,
-    applicationCount: { pending: 0, accepted: 3, rejected: 0 },
-    publishedAt: '2026-03-10T00:00:00Z',
-    createdAt: '2026-03-10T00:00:00Z',
-    updatedAt: '2026-03-10T00:00:00Z',
-  },
 ]
 
 function SkeletonCard() {
@@ -376,7 +230,12 @@ export default function AllJobsClient({ locale }: AllJobsClientProps) {
   }, [statusParam])
 
   React.useEffect(() => {
-    if (!idToken) { setIsLoading(false); return }
+    if (!idToken) {
+      setJobs(siteStore.listJobs())
+      setSites(siteStore.list())
+      setIsLoading(false)
+      return
+    }
     setIsLoading(true)
     Promise.all([
       apiClient<Job[]>('/manager/jobs', { token: idToken }),
@@ -390,8 +249,8 @@ export default function AllJobsClient({ locale }: AllJobsClientProps) {
       .finally(() => setIsLoading(false))
   }, [idToken])
 
-  const isDemo = jobs.length === 0 && !error
-  const displayJobs = isDemo ? DEMO_JOBS : jobs
+  const isDemo = !idToken
+  const displayJobs = jobs
 
   // Build siteId→province map for province filtering
   const siteProvinceMap = React.useMemo(() => {

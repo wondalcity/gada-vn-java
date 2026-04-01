@@ -3,6 +3,7 @@
 import * as React from 'react'
 import { getSessionCookie } from '@/lib/auth/session'
 import { apiClient } from '@/lib/api/client'
+import { siteStore } from '@/lib/demo/siteStore'
 import type { Job } from '@/types/manager-site-job'
 import JobForm from './JobForm'
 
@@ -18,7 +19,12 @@ export default function JobEditClient({ jobId, locale }: JobEditClientProps) {
   const [error, setError] = React.useState<string | null>(null)
 
   React.useEffect(() => {
-    if (!idToken) return
+    if (!idToken) {
+      const stored = siteStore.getJob(jobId)
+      if (stored) setJob(stored)
+      setIsLoading(false)
+      return
+    }
     apiClient<Job>(`/manager/jobs/${jobId}`, { token: idToken })
       .then((res) => setJob(res.data))
       .catch((e) => setError(e instanceof Error ? e.message : '불러오기 실패'))
@@ -46,7 +52,7 @@ export default function JobEditClient({ jobId, locale }: JobEditClientProps) {
     )
   }
 
-  if (!job || !idToken) return null
+  if (!job) return null
 
   return (
     <JobForm
@@ -56,7 +62,7 @@ export default function JobEditClient({ jobId, locale }: JobEditClientProps) {
       jobId={jobId}
       initialData={job}
       locale={locale}
-      idToken={idToken}
+      idToken={idToken ?? ''}
     />
   )
 }

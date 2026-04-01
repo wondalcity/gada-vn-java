@@ -17,6 +17,14 @@ interface Site {
   status: 'ACTIVE' | 'INACTIVE';
 }
 
+const DEMO_SITES: Site[] = [
+  { id: 'demo-1', name: '하노이 스타레이크 시티 A동 신축', address: '28 Xuân La, Tây Hồ, Hà Nội', province: 'Hà Nội', jobCount: 3, status: 'ACTIVE' },
+  { id: 'demo-2', name: '호치민 빈홈즈 그랜드파크 상업동', address: '188 Nguyễn Xiển, Long Bình, Quận 9, Hồ Chí Minh', province: 'Hồ Chí Minh', jobCount: 2, status: 'ACTIVE' },
+  { id: 'demo-3', name: '다낭 선월드 케이블카 지지대 기초', address: 'Bãi Bụt, Sơn Trà, Đà Nẵng', province: 'Đà Nẵng', jobCount: 2, status: 'ACTIVE' },
+  { id: 'demo-4', name: '하이퐁 LG 전자 3공장 증설', address: 'Khu công nghiệp Tràng Duệ, An Dương, Hải Phòng', province: 'Hải Phòng', jobCount: 0, status: 'INACTIVE' },
+  { id: 'demo-5', name: '호치민 메트로 2호선 역사 마감', address: '149 Phạm Ngũ Lão, Quận 1, Hồ Chí Minh', province: 'Hồ Chí Minh', jobCount: 1, status: 'INACTIVE' },
+];
+
 export default function ManagerSitesScreen() {
   const { t } = useTranslation();
   const router = useRouter();
@@ -29,7 +37,7 @@ export default function ManagerSitesScreen() {
       const data = await api.get<Site[]>('/manager/sites');
       setSites(data);
     } catch {
-      setSites([]);
+      setSites(DEMO_SITES);
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -100,13 +108,6 @@ export default function ManagerSitesScreen() {
         )}
       />
 
-      <TouchableOpacity
-        style={styles.fab}
-        onPress={() => router.push('/(manager)/register')}
-        activeOpacity={0.85}
-      >
-        <Text style={styles.fabText}>+</Text>
-      </TouchableOpacity>
     </View>
   );
 }
@@ -115,13 +116,6 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: Colors.background },
   center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   list: { padding: Spacing.lg, gap: Spacing.md, paddingBottom: 80 },
-  fab: {
-    position: 'absolute', right: 20, bottom: 20,
-    width: 56, height: 56, borderRadius: 28,
-    backgroundColor: Colors.primary, justifyContent: 'center', alignItems: 'center',
-    shadowColor: Colors.primary, shadowOpacity: 0.4, shadowRadius: 8, elevation: 6,
-  },
-  fabText: { color: Colors.onPrimary, fontSize: 28, lineHeight: 32 },
 
   card: {
     backgroundColor: Colors.surface,

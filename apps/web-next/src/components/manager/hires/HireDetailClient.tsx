@@ -9,12 +9,12 @@ import type { HireWithContract } from '@/types/contract'
 import { CONTRACT_STATUS_LABELS, CONTRACT_STATUS_COLORS } from '@/types/contract'
 
 const DEMO_HIRES: Record<string, HireWithContract> = {
-  'hire-1': { id: 'hire-1', jobId: 'djob-1', jobTitle: '전기 배선 작업', siteName: '롯데몰 하노이 지하 1층 공사', workDate: '2026-03-28', dailyWage: 700000, workerName: 'Nguyễn Văn An', workerPhone: '0901234567', status: 'CONTRACTED', reviewedAt: '2026-03-22T10:00:00Z', contract: { id: 'ctr-1', status: 'FULLY_SIGNED', workerSignedAt: '2026-03-23T14:00:00Z', managerSignedAt: '2026-03-22T10:00:00Z', downloadUrl: null } },
-  'hire-2': { id: 'hire-2', jobId: 'djob-1', jobTitle: '전기 배선 작업', siteName: '롯데몰 하노이 지하 1층 공사', workDate: '2026-03-28', dailyWage: 700000, workerName: 'Trần Thị Bích', workerPhone: '0912345678', status: 'CONTRACTED', reviewedAt: '2026-03-22T11:00:00Z', contract: { id: 'ctr-2', status: 'PENDING_MANAGER_SIGN', workerSignedAt: '2026-03-23T16:00:00Z', managerSignedAt: null, downloadUrl: null } },
-  'hire-3': { id: 'hire-3', jobId: 'djob-3', jobTitle: '잡부 — 자재 운반', siteName: '인천 송도 물류센터', workDate: '2026-03-30', dailyWage: 410000, workerName: 'Lê Minh Tuấn', workerPhone: '0923456789', status: 'ACCEPTED', reviewedAt: '2026-03-24T09:00:00Z', contract: null },
-  'hire-4': { id: 'hire-4', jobId: 'djob-3', jobTitle: '잡부 — 자재 운반', siteName: '인천 송도 물류센터', workDate: '2026-03-30', dailyWage: 410000, workerName: 'Phạm Thị Hoa', workerPhone: '0934567890', status: 'ACCEPTED', reviewedAt: '2026-03-24T10:00:00Z', contract: null },
-  'hire-5': { id: 'hire-5', jobId: 'djob-5', jobTitle: '타일 시공 — 로비 바닥', siteName: '광명역 복합쇼핑몰 신축', workDate: '2026-04-01', dailyWage: 580000, workerName: 'Võ Văn Hùng', workerPhone: '0945678901', status: 'ACCEPTED', reviewedAt: '2026-03-25T08:00:00Z', contract: null },
-  'hire-6': { id: 'hire-6', jobId: 'djob-5', jobTitle: '타일 시공 — 로비 바닥', siteName: '광명역 복합쇼핑몰 신축', workDate: '2026-04-01', dailyWage: 580000, workerName: 'Đặng Thị Mai', workerPhone: '0956789012', status: 'CONTRACTED', reviewedAt: '2026-03-25T09:00:00Z', contract: { id: 'ctr-3', status: 'PENDING_WORKER_SIGN', workerSignedAt: null, managerSignedAt: null, downloadUrl: null } },
+  'hire-1': { id: 'hire-1', jobId: 'djob-1-1', jobTitle: '철근 조립 — 10~12층 골조', siteName: '하노이 스타레이크 시티 A동 신축', workDate: '2026-04-03', dailyWage: 650000, workerName: 'Nguyễn Văn An', workerPhone: '0901234567', status: 'CONTRACTED', reviewedAt: '2026-03-22T10:00:00Z', contract: { id: 'ctr-1', status: 'FULLY_SIGNED', workerSignedAt: '2026-03-23T14:00:00Z', managerSignedAt: '2026-03-22T10:00:00Z', downloadUrl: null } },
+  'hire-2': { id: 'hire-2', jobId: 'djob-1-1', jobTitle: '철근 조립 — 10~12층 골조', siteName: '하노이 스타레이크 시티 A동 신축', workDate: '2026-04-03', dailyWage: 650000, workerName: 'Trần Thị Bích', workerPhone: '0912345678', status: 'CONTRACTED', reviewedAt: '2026-03-22T11:00:00Z', contract: { id: 'ctr-2', status: 'PENDING_MANAGER_SIGN', workerSignedAt: '2026-03-23T16:00:00Z', managerSignedAt: null, downloadUrl: null } },
+  'hire-3': { id: 'hire-3', jobId: 'djob-3-2', jobTitle: '콘크리트 타설 — 철탑 기초 2차', siteName: '다낭 선월드 케이블카 지지대 기초', workDate: '2026-04-02', dailyWage: 560000, workerName: 'Lê Minh Tuấn', workerPhone: '0923456789', status: 'ACCEPTED', reviewedAt: '2026-03-24T09:00:00Z', contract: null },
+  'hire-4': { id: 'hire-4', jobId: 'djob-3-2', jobTitle: '콘크리트 타설 — 철탑 기초 2차', siteName: '다낭 선월드 케이블카 지지대 기초', workDate: '2026-04-02', dailyWage: 560000, workerName: 'Phạm Thị Hoa', workerPhone: '0934567890', status: 'ACCEPTED', reviewedAt: '2026-03-24T10:00:00Z', contract: null },
+  'hire-5': { id: 'hire-5', jobId: 'djob-1-3', jobTitle: '거푸집 설치 — 기둥 공사', siteName: '하노이 스타레이크 시티 A동 신축', workDate: '2026-04-07', dailyWage: 520000, workerName: 'Võ Văn Hùng', workerPhone: '0945678901', status: 'ACCEPTED', reviewedAt: '2026-03-25T08:00:00Z', contract: null },
+  'hire-6': { id: 'hire-6', jobId: 'djob-1-3', jobTitle: '거푸집 설치 — 기둥 공사', siteName: '하노이 스타레이크 시티 A동 신축', workDate: '2026-04-07', dailyWage: 520000, workerName: 'Đặng Thị Mai', workerPhone: '0956789012', status: 'CONTRACTED', reviewedAt: '2026-03-25T09:00:00Z', contract: { id: 'ctr-3', status: 'PENDING_WORKER_SIGN', workerSignedAt: null, managerSignedAt: null, downloadUrl: null } },
 }
 
 function formatVND(n: number) {
@@ -58,13 +58,15 @@ export default function HireDetailClient({ hireId }: Props) {
   }
 
   React.useEffect(() => {
-    if (DEMO_HIRES[hireId]) {
-      setHire(DEMO_HIRES[hireId])
-      setIsDemo(true)
+    if (!idToken) {
+      const found = DEMO_HIRES[hireId]
+      if (found) {
+        setHire(found)
+        setIsDemo(true)
+      }
       setIsLoading(false)
       return
     }
-    if (!idToken) { setIsLoading(false); return }
     apiClient<HireWithContract>(`/applications/${hireId}`, { token: idToken })
       .then((res) => setHire(res.data))
       .catch(() => setHire(null))

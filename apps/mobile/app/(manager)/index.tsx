@@ -10,6 +10,13 @@ import type { JobWithSite } from '@gada-vn/core';
 
 type JobStatus = 'OPEN' | 'FILLED' | 'CANCELLED' | 'COMPLETED';
 
+const DEMO_JOBS: JobWithSite[] = [
+  { id: 'djob-1-1', siteId: 'demo-1', siteName: '하노이 스타레이크 시티 A동 신축', title: '철근 조립 — 10~12층 골조', tradeName: '철근', workDate: '2026-04-03', dailyWage: 650000, currency: 'VND', slotsTotal: 8, slotsFilled: 5, status: 'OPEN', benefits: { meals: true, transport: false, accommodation: false, insurance: true }, requirements: {}, imageUrls: [], shiftCount: 0, applicationCount: { pending: 4, accepted: 5, rejected: 1 }, createdAt: '2026-03-20T00:00:00Z', updatedAt: '2026-03-28T00:00:00Z' },
+  { id: 'djob-1-2', siteId: 'demo-1', siteName: '하노이 스타레이크 시티 A동 신축', title: '콘크리트 타설 — 기초 슬라브', tradeName: '콘크리트', workDate: '2026-04-05', dailyWage: 580000, currency: 'VND', slotsTotal: 10, slotsFilled: 10, status: 'FILLED', benefits: { meals: true, transport: true, accommodation: false, insurance: false }, requirements: {}, imageUrls: [], shiftCount: 0, applicationCount: { pending: 0, accepted: 10, rejected: 3 }, createdAt: '2026-03-18T00:00:00Z', updatedAt: '2026-03-25T00:00:00Z' },
+  { id: 'djob-2-1', siteId: 'demo-2', siteName: '호치민 빈홈즈 그랜드파크 상업동', title: '전기 배선 — 3~5층', tradeName: '전기', workDate: '2026-04-04', dailyWage: 720000, currency: 'VND', slotsTotal: 4, slotsFilled: 1, status: 'OPEN', benefits: { meals: true, transport: false, accommodation: false, insurance: true }, requirements: {}, imageUrls: [], shiftCount: 0, applicationCount: { pending: 3, accepted: 1, rejected: 0 }, createdAt: '2026-03-22T00:00:00Z', updatedAt: '2026-03-22T00:00:00Z' },
+  { id: 'djob-3-2', siteId: 'demo-3', siteName: '다낭 선월드 케이블카 지지대 기초', title: '콘크리트 타설 — 철탑 기초 2차', tradeName: '콘크리트', workDate: '2026-04-02', dailyWage: 560000, currency: 'VND', slotsTotal: 8, slotsFilled: 3, status: 'OPEN', benefits: { meals: true, transport: true, accommodation: false, insurance: true }, requirements: {}, imageUrls: [], shiftCount: 0, applicationCount: { pending: 5, accepted: 3, rejected: 0 }, createdAt: '2026-03-28T00:00:00Z', updatedAt: '2026-03-28T00:00:00Z' },
+] as JobWithSite[];
+
 const STATUS_COLOR: Record<string, string> = {
   OPEN: '#4CAF50', FILLED: '#FF9800', CANCELLED: '#9E9E9E', COMPLETED: '#2196F3',
 };
@@ -43,7 +50,7 @@ export default function ManagerJobsScreen() {
       const data = await api.get<JobWithSite[]>('/jobs/mine');
       setJobs(data);
     } catch {
-      setJobs([]);
+      setJobs(DEMO_JOBS);
     } finally {
       setLoading(false);
       setRefreshing(false);

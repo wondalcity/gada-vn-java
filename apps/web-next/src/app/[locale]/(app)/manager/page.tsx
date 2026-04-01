@@ -175,7 +175,12 @@ export default function ManagerHomePage({ params }: Props) {
                 {initial}
               </div>
               <div>
-                <p className="font-bold text-base leading-tight">{displayName}</p>
+                <div className="flex items-center gap-2">
+                  <p className="font-bold text-base leading-tight">{displayName}</p>
+                  <Link href={`/${locale}/manager/settings` as never} className="opacity-70 hover:opacity-100 transition-opacity">
+                    <span className="text-lg leading-none">⚙️</span>
+                  </Link>
+                </div>
                 <div className="flex items-center gap-1.5 mt-1.5">
                   <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#FDBC08] text-[#7A4700] leading-none">
                     관리자
@@ -225,17 +230,6 @@ export default function ManagerHomePage({ params }: Props) {
             근로자 화면으로 전환
           </Link>
 
-          {/* Logout — mobile only */}
-          <button
-            type="button"
-            onClick={() => { clearSessionCookie(); router.push(`/${locale}/login`) }}
-            className="mt-2 w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-white border border-[#EFF1F5] text-[#98A2B2] text-sm font-medium shadow-sm hover:border-[#D81A48] hover:text-[#D81A48] hover:bg-[#FDE8EE] transition-colors"
-          >
-            <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-            </svg>
-            로그아웃
-          </button>
         </div>
 
         {/* ──────────────────────────────────────────

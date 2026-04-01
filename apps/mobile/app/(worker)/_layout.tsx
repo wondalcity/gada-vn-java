@@ -41,9 +41,10 @@ export default function WorkerLayout() {
       <Tabs.Screen
         name="notifications"
         options={{
+          href: null,
           title: t('notifications.title'),
-          tabBarLabel: t('notifications.title'),
-          tabBarIcon: ({ color }) => <Text style={{ color, fontSize: 20 }}>🔔</Text>,
+          headerShown: true,
+          tabBarStyle: { display: 'none' },
         }}
       />
       <Tabs.Screen
@@ -52,6 +53,16 @@ export default function WorkerLayout() {
           title: t('profile.title'),
           tabBarLabel: t('profile.title'),
           tabBarIcon: ({ color }) => <Text style={{ color, fontSize: 20 }}>👤</Text>,
+        }}
+      />
+      {/* Settings screen — hidden from tab bar */}
+      <Tabs.Screen
+        name="settings"
+        options={{
+          href: null,
+          title: t('profile.settings'),
+          headerShown: true,
+          tabBarStyle: { display: 'none' },
         }}
       />
       {/* Detail screens — hidden from tab bar, back button shown in header */}
