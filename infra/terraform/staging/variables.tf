@@ -4,7 +4,7 @@ variable "aws_region" {
   default     = "ap-southeast-1"
 }
 
-variable "project" {
+variable "project_name" {
   description = "Project name prefix used in resource names"
   type        = string
   default     = "gada-vn"
@@ -35,13 +35,13 @@ variable "availability_zone" {
 }
 
 variable "instance_type" {
-  description = "EC2 instance type (t3.small = 2 vCPU, 2 GB RAM)"
+  description = "EC2 instance type (t4g.small = 2 vCPU, 2 GB RAM, ARM64 Graviton2)"
   type        = string
-  default     = "t3.small"
+  default     = "t4g.small"
 }
 
 variable "ami_id" {
-  description = "AMI ID override. Leave empty to use the latest Amazon Linux 2023 x86_64."
+  description = "AMI ID override. Leave empty to use the latest Amazon Linux 2023 arm64."
   type        = string
   default     = ""
 }
@@ -52,14 +52,8 @@ variable "key_name" {
   default     = ""
 }
 
-variable "allowed_ssh_cidrs" {
-  description = "CIDR blocks allowed SSH (port 22) inbound. Use your office/home IP."
-  type        = list(string)
-  default     = []
-}
-
-variable "allowed_http_cidrs" {
-  description = "CIDR blocks allowed HTTP/HTTPS inbound"
+variable "allowed_ingress_cidrs" {
+  description = "CIDR blocks allowed for all inbound traffic (HTTP, HTTPS, API, SSH)"
   type        = list(string)
   default     = ["0.0.0.0/0"]
 }
@@ -67,7 +61,7 @@ variable "allowed_http_cidrs" {
 variable "s3_uploads_bucket" {
   description = "Name of the S3 bucket for user-uploaded assets"
   type        = string
-  default     = "" # Defaults to <project>-<env>-uploads in locals.tf
+  default     = "" # Defaults to <project_name>-<environment>-uploads in locals.tf
 }
 
 variable "root_volume_size_gb" {

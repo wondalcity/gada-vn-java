@@ -1,6 +1,6 @@
 resource "aws_security_group" "app" {
   name        = "${local.name_prefix}-app-sg"
-  description = "App server: HTTP/HTTPS public, SSH restricted"
+  description = "App server: HTTP/HTTPS/API/SSH from allowed_ingress_cidrs"
   vpc_id      = aws_vpc.main.id
 
   tags = merge(local.common_tags, { Name = "${local.name_prefix}-app-sg" })
@@ -8,37 +8,43 @@ resource "aws_security_group" "app" {
 
 # HTTP
 resource "aws_vpc_security_group_ingress_rule" "http" {
+  for_each = toset(var.allowed_ingress_cidrs)
+
   security_group_id = aws_security_group.app.id
   ip_protocol       = "tcp"
   from_port         = 80
   to_port           = 80
-  cidr_ipv4         = "0.0.0.0/0"
-  description       = "HTTP from anywhere"
+  cidr_ipv4         = each.value
+  description       = "HTTP from ${each.value}"
 }
 
 # HTTPS
 resource "aws_vpc_security_group_ingress_rule" "https" {
+  for_each = toset(var.allowed_ingress_cidrs)
+
   security_group_id = aws_security_group.app.id
   ip_protocol       = "tcp"
   from_port         = 443
   to_port           = 443
-  cidr_ipv4         = "0.0.0.0/0"
-  description       = "HTTPS from anywhere"
+  cidr_ipv4         = each.value
+  description       = "HTTPS from ${each.value}"
 }
 
 # API direct port (NestJS default — behind nginx in prod)
 resource "aws_vpc_security_group_ingress_rule" "api" {
+  for_each = toset(var.allowed_ingress_cidrs)
+
   security_group_id = aws_security_group.app.id
   ip_protocol       = "tcp"
   from_port         = 3000
   to_port           = 3000
-  cidr_ipv4         = "0.0.0.0/0"
-  description       = "NestJS API port (staging only)"
+  cidr_ipv4         = each.value
+  description       = "NestJS API port from ${each.value}"
 }
 
-# SSH — restricted to specific CIDRs
+# SSH
 resource "aws_vpc_security_group_ingress_rule" "ssh" {
-  for_each = toset(var.allowed_ssh_cidrs)
+  for_each = toset(var.allowed_ingress_cidrs)
 
   security_group_id = aws_security_group.app.id
   ip_protocol       = "tcp"

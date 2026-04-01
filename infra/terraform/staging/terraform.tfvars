@@ -10,11 +10,10 @@ availability_zone  = "ap-southeast-1a"
 # EC2
 instance_type       = "t4g.small"
 root_volume_size_gb = 20
-key_name            = ""  # Pre-create with: aws ec2 create-key-pair --key-name gada-staging
+key_name            = ""
 
-# Ingress — SSH, HTTP, HTTPS, API port (port 3000)
-# Use your IP for SSH-only access: curl -4 ifconfig.me
-allowed_ingress_cidrs = ["0.0.0.0/0"]
+# Ingress — SSH, HTTP, HTTPS, API port
+allowed_ingress_cidrs = ["220.79.183.141/32"]
 
 # AMI override (leave empty to auto-detect latest AL2023 arm64)
 # ami_id = "ami-0abcdef1234567890"
