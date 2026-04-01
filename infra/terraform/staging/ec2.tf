@@ -31,7 +31,8 @@ resource "aws_instance" "app" {
     prevent_destroy = false
 
     # Ignore AMI changes after initial launch (update via new launch + replace)
-    ignore_changes = [ami, user_data]
+    # user_data is NOT ignored — changes to bootstrap script trigger instance replacement
+    ignore_changes = [ami]
   }
 
   tags = merge(local.common_tags, { Name = "${local.name_prefix}-app" })
