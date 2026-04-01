@@ -11,7 +11,7 @@ export default async function AppLayout({ children, params }: Props) {
   const user = await getAuthUser()
 
   if (!user) {
-    redirect(`/${locale}/login`)
+    redirect(`/api/auth/signout?locale=${locale}`)
   }
 
   return <>{children}</>

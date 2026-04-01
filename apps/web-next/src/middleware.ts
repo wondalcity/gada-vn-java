@@ -37,7 +37,7 @@ export function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    // Match all pathnames except Next.js internals and static assets
-    '/((?!_next|_vercel|.*\\..*).*)',
+    // Match all pathnames except Next.js internals, API routes, and static assets
+    '/((?!_next|_vercel|api|.*\\..*).*)',
   ],
 }

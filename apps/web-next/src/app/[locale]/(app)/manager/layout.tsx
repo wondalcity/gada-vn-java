@@ -13,7 +13,7 @@ export default async function ManagerLayout({ children, params }: Props) {
   const user = await getAuthUser()
 
   if (!user) {
-    redirect(`/${locale}/login`)
+    redirect(`/api/auth/signout?locale=${locale}`)
   }
 
   if (!user.isManager) {
