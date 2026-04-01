@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useParams, Link, useNavigate } from 'react-router-dom'
 import { api } from '../lib/api'
+import { useAdminTranslation } from '../context/LanguageContext'
 
 function formatPhone(phone: string | null | undefined): string {
   if (!phone) return '-'
@@ -71,16 +72,8 @@ interface Trade {
 
 type TabKey = 'basic' | 'docs' | 'bank' | 'trades' | 'manager' | 'misc'
 
-const TABS: { key: TabKey; label: string }[] = [
-  { key: 'basic', label: '기본 정보' },
-  { key: 'docs', label: '신분증 / 서류' },
-  { key: 'bank', label: '은행 / 결제' },
-  { key: 'trades', label: '직종 / 기술' },
-  { key: 'manager', label: '관리자' },
-  { key: 'misc', label: '기타' },
-]
-
 export default function WorkerDetail() {
+  const { t } = useAdminTranslation()
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
   const [worker, setWorker] = useState<Worker | null>(null)
@@ -97,6 +90,15 @@ export default function WorkerDetail() {
   const [skillRows, setSkillRows] = useState<{ tradeId: number | ''; years: number }[]>([])
   const [savingSkills, setSavingSkills] = useState(false)
   const [tradesLoading, setTradesLoading] = useState(false)
+
+  const TABS: { key: TabKey; label: string }[] = [
+    { key: 'basic', label: t('worker_detail.tab_basic') },
+    { key: 'docs', label: t('worker_detail.tab_docs') },
+    { key: 'bank', label: t('worker_detail.tab_bank') },
+    { key: 'trades', label: t('worker_detail.tab_trades') },
+    { key: 'manager', label: t('worker_detail.tab_manager') },
+    { key: 'misc', label: t('worker_detail.tab_misc') },
+  ]
 
   useEffect(() => {
     api.get<Worker>(`/admin/workers/${id}`)
@@ -144,9 +146,9 @@ export default function WorkerDetail() {
         profileComplete: form.profile_complete,
         idVerified: form.id_verified,
       })
-      showToast('success', '저장되었습니다.')
+      showToast('success', t('worker_detail.save_success'))
     } catch {
-      showToast('error', '저장 실패. 다시 시도해주세요.')
+      showToast('error', t('worker_detail.save_failed'))
     } finally {
       setSaving(false)
     }
@@ -158,9 +160,9 @@ export default function WorkerDetail() {
       await api.put(`/admin/workers/${id}`, {
         idNumber: form.id_number,
       })
-      showToast('success', '저장되었습니다.')
+      showToast('success', t('worker_detail.save_success'))
     } catch {
-      showToast('error', '저장 실패. 다시 시도해주세요.')
+      showToast('error', t('worker_detail.save_failed'))
     } finally {
       setSaving(false)
     }
@@ -173,9 +175,9 @@ export default function WorkerDetail() {
         bankName: form.bank_name,
         bankAccountNumber: form.bank_account_number,
       })
-      showToast('success', '저장되었습니다.')
+      showToast('success', t('worker_detail.save_success'))
     } catch {
-      showToast('error', '저장 실패. 다시 시도해주세요.')
+      showToast('error', t('worker_detail.save_failed'))
     } finally {
       setSaving(false)
     }
@@ -188,33 +190,33 @@ export default function WorkerDetail() {
         .filter((r) => r.tradeId !== '')
         .map((r) => ({ tradeId: r.tradeId, years: r.years }))
       await api.put(`/admin/workers/${id}/trade-skills`, { skills })
-      showToast('success', '직종 기술이 저장되었습니다.')
+      showToast('success', t('worker_detail.skills_saved'))
     } catch {
-      showToast('error', '저장 실패. 다시 시도해주세요.')
+      showToast('error', t('worker_detail.save_failed'))
     } finally {
       setSavingSkills(false)
     }
   }
 
   async function handleDeactivate() {
-    if (!confirm(`"${worker?.full_name}" 근로자를 비활성화하시겠습니까?`)) return
+    if (!confirm(`"${worker?.full_name}" ${t('worker_detail.confirm_deactivate')}`)) return
     setDeactivating(true)
     try {
       await api.delete(`/admin/workers/${id}`)
       navigate('/workers')
     } catch (err: unknown) {
-      showToast('error', err instanceof Error ? err.message : '비활성화 실패')
+      showToast('error', err instanceof Error ? err.message : t('worker_detail.deactivate_failed'))
     } finally {
       setDeactivating(false)
     }
   }
 
-  if (loading) return <div className="p-8 text-center text-gray-400">로딩 중...</div>
-  if (!worker) return <div className="p-8 text-center text-[#D81A48]">근로자를 찾을 수 없습니다</div>
+  if (loading) return <div className="p-8 text-center text-gray-400">{t('common.loading')}</div>
+  if (!worker) return <div className="p-8 text-center text-[#D81A48]">{t('worker_detail.not_found')}</div>
 
   return (
     <div className="p-8 max-w-2xl">
-      <Link to="/workers" className="text-gray-400 hover:text-gray-600 text-sm mb-4 inline-block">← 목록으로</Link>
+      <Link to="/workers" className="text-gray-400 hover:text-gray-600 text-sm mb-4 inline-block">{t('common.back_to_list')}</Link>
 
       {toast && (
         <div className={`rounded-2xl p-4 mb-5 text-sm border ${
@@ -235,7 +237,7 @@ export default function WorkerDetail() {
           <div className="flex items-center gap-2">
             <h2 className="text-xl font-bold text-gray-900">{worker.full_name}</h2>
             {worker.is_manager && (
-              <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-[#FDBC08]/20 text-yellow-700">관리자</span>
+              <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-[#FDBC08]/20 text-yellow-700">{t('worker_detail.manager_badge')}</span>
             )}
           </div>
           <p className="text-sm text-gray-500">{formatPhone(worker.phone)}</p>
@@ -244,29 +246,29 @@ export default function WorkerDetail() {
           <span className={`px-3 py-1 rounded-full text-xs font-medium ${
             worker.id_verified ? 'bg-green-100 text-green-700' : 'bg-[#FDE8EE] text-[#D81A48]'
           }`}>
-            {worker.id_verified ? '신분증 인증' : '미인증'}
+            {worker.id_verified ? t('worker_detail.id_verified') : t('worker_detail.id_unverified')}
           </span>
           <button
             onClick={handleDeactivate}
             disabled={deactivating}
             className="px-3 py-1 text-xs border border-[#F4B0C0] rounded-xl text-[#D81A48] hover:bg-[#FDE8EE] disabled:opacity-50"
           >
-            비활성화
+            {t('common.deactivate')}
           </button>
         </div>
       </div>
 
       {/* Tab Bar */}
       <div className="flex gap-1 bg-[#EFF1F5] rounded-2xl p-1 mb-5 overflow-x-auto">
-        {TABS.map((t) => (
+        {TABS.map((tabItem) => (
           <button
-            key={t.key}
-            onClick={() => setTab(t.key)}
+            key={tabItem.key}
+            onClick={() => setTab(tabItem.key)}
             className={`flex-1 py-2 px-3 rounded-2xl text-sm font-medium transition-all whitespace-nowrap ${
-              tab === t.key ? 'bg-white shadow-sm text-[#0669F7] font-semibold' : 'text-gray-500 hover:text-gray-700'
+              tab === tabItem.key ? 'bg-white shadow-sm text-[#0669F7] font-semibold' : 'text-gray-500 hover:text-gray-700'
             }`}
           >
-            {t.label}
+            {tabItem.label}
           </button>
         ))}
       </div>
@@ -274,30 +276,30 @@ export default function WorkerDetail() {
       {/* Tab Content */}
       <div className="bg-white rounded-2xl shadow-sm p-6 space-y-4">
 
-        {/* 기본 정보 */}
+        {/* Basic Info */}
         {tab === 'basic' && (
           <>
-            <Field label="이름">
+            <Field label={t('worker_detail.field_name')}>
               <input className={INPUT} value={form.full_name ?? ''} onChange={(e) => patch({ full_name: e.target.value })} />
             </Field>
-            <Field label="생년월일">
+            <Field label={t('worker_detail.field_dob')}>
               <input type="date" className={INPUT} value={form.date_of_birth ?? ''} onChange={(e) => patch({ date_of_birth: e.target.value })} />
             </Field>
-            <Field label="성별">
+            <Field label={t('worker_detail.field_gender')}>
               <select className={INPUT} value={form.gender ?? ''} onChange={(e) => patch({ gender: e.target.value })}>
-                <option value="">선택 안 함</option>
-                <option value="MALE">남성</option>
-                <option value="FEMALE">여성</option>
-                <option value="OTHER">기타</option>
+                <option value="">{t('worker_detail.field_gender_none')}</option>
+                <option value="MALE">{t('worker_detail.field_gender_male')}</option>
+                <option value="FEMALE">{t('worker_detail.field_gender_female')}</option>
+                <option value="OTHER">{t('worker_detail.field_gender_other')}</option>
               </select>
             </Field>
-            <Field label="자기소개">
+            <Field label={t('worker_detail.field_bio')}>
               <textarea className={INPUT + ' resize-none'} rows={3} value={form.bio ?? ''} onChange={(e) => patch({ bio: e.target.value })} />
             </Field>
-            <Field label="주요 직종 ID">
+            <Field label={t('worker_detail.field_trade_id')}>
               <input type="number" className={INPUT} value={form.primary_trade_id ?? ''} onChange={(e) => patch({ primary_trade_id: e.target.value ? Number(e.target.value) : null })} />
             </Field>
-            <Field label="경력 (개월)">
+            <Field label={t('worker_detail.field_experience')}>
               <input type="number" className={INPUT} value={form.experience_months ?? ''} onChange={(e) => patch({ experience_months: Number(e.target.value) })} />
             </Field>
             <div className="flex items-center gap-6 pt-1">
@@ -308,7 +310,7 @@ export default function WorkerDetail() {
                   onChange={(e) => patch({ profile_complete: e.target.checked })}
                   className="w-4 h-4 accent-[#0669F7]"
                 />
-                <span className="text-sm text-gray-700">프로필 완성</span>
+                <span className="text-sm text-gray-700">{t('worker_detail.profile_complete')}</span>
               </label>
               <label className="flex items-center gap-2 cursor-pointer">
                 <input
@@ -317,65 +319,65 @@ export default function WorkerDetail() {
                   onChange={(e) => patch({ id_verified: e.target.checked })}
                   className="w-4 h-4 accent-[#0669F7]"
                 />
-                <span className="text-sm text-gray-700">신분증 인증</span>
+                <span className="text-sm text-gray-700">{t('worker_detail.id_verified_check')}</span>
                 <span className={`ml-1 px-2 py-0.5 text-xs rounded-full font-medium ${
                   form.id_verified ? 'bg-green-100 text-green-700' : 'bg-[#FDE8EE] text-[#D81A48]'
                 }`}>
-                  {form.id_verified ? '인증됨' : '미인증'}
+                  {form.id_verified ? t('worker_detail.id_verified_badge') : t('worker_detail.id_unverified_badge')}
                 </span>
               </label>
             </div>
-            <SaveButton saving={saving} onClick={saveBasic} />
+            <SaveButton saving={saving} onClick={saveBasic} label={t('common.save')} savingLabel={t('common.saving')} />
           </>
         )}
 
-        {/* 신분증 / 서류 */}
+        {/* ID / Documents */}
         {tab === 'docs' && (
           <>
-            <Field label="주민등록번호 / ID 번호">
+            <Field label={t('worker_detail.field_id_number')}>
               <input className={INPUT} value={form.id_number ?? ''} onChange={(e) => patch({ id_number: e.target.value })} />
             </Field>
-            <Field label="인증일">
+            <Field label={t('worker_detail.field_verified_at')}>
               <p className="text-sm text-gray-700 py-2">
-                {worker.id_verified_at ? new Date(worker.id_verified_at).toLocaleString('ko-KR') : '미인증'}
+                {worker.id_verified_at ? new Date(worker.id_verified_at).toLocaleString('ko-KR') : t('worker_detail.unverified_date')}
               </p>
             </Field>
 
             <div className="border-t border-[#EFF1F5] pt-4 mt-2">
-              <h3 className="text-sm font-semibold text-gray-700 mb-4">첨부 이미지</h3>
+              <h3 className="text-sm font-semibold text-gray-700 mb-4">{t('worker_detail.attachments_title')}</h3>
               <div className="grid grid-cols-1 gap-5">
-                <ImageField label="신분증 앞면" url={worker.id_front_url} />
-                <ImageField label="신분증 뒷면" url={worker.id_back_url} />
-                <ImageField label="통장사본" url={worker.bank_book_url} />
-                <ImageField label="서명" url={worker.signature_url} />
+                <ImageField label={t('worker_detail.field_id_front')} url={worker.id_front_url} notRegisteredLabel={t('common.not_registered')} />
+                <ImageField label={t('worker_detail.field_id_back')} url={worker.id_back_url} notRegisteredLabel={t('common.not_registered')} />
+                <ImageField label={t('worker_detail.field_bank_book')} url={worker.bank_book_url} notRegisteredLabel={t('common.not_registered')} />
+                <ImageField label={t('worker_detail.field_signature')} url={worker.signature_url} notRegisteredLabel={t('common.not_registered')} />
               </div>
             </div>
-            <SaveButton saving={saving} onClick={saveDocs} />
+            <SaveButton saving={saving} onClick={saveDocs} label={t('common.save')} savingLabel={t('common.saving')} />
           </>
         )}
 
-        {/* 은행 / 결제 */}
+        {/* Bank / Payment */}
         {tab === 'bank' && (
           <>
-            <Field label="은행명">
+            <Field label={t('worker_detail.field_bank_name')}>
               <input className={INPUT} value={form.bank_name ?? ''} onChange={(e) => patch({ bank_name: e.target.value })} />
             </Field>
-            <Field label="계좌번호">
+            <Field label={t('worker_detail.field_bank_account')}>
               <input className={INPUT} value={form.bank_account_number ?? ''} onChange={(e) => patch({ bank_account_number: e.target.value })} />
             </Field>
-            <SaveButton saving={saving} onClick={saveBank} />
+            <SaveButton saving={saving} onClick={saveBank} label={t('common.save')} savingLabel={t('common.saving')} />
           </>
         )}
 
-        {/* 직종 / 기술 */}
+        {/* Trades / Skills */}
         {tab === 'trades' && (
           <>
             {tradesLoading ? (
-              <div className="py-8 text-center text-gray-400 text-sm">로딩 중...</div>
+              <div className="py-8 text-center text-gray-400 text-sm">{t('worker_detail.trades_loading')}</div>
             ) : (
               <>
                 {skillRows.length === 0 && (
-                  <p className="text-sm text-gray-400 py-2">등록된 직종이 없습니다.</p>
+                  <p className="text-sm text-gray-400 py-2">{t('worker_detail.trades_empty')}</p>
                 )}
                 <div className="space-y-3">
                   {skillRows.map((row, i) => (
@@ -389,16 +391,16 @@ export default function WorkerDetail() {
                           setSkillRows(updated)
                         }}
                       >
-                        <option value="">직종 선택</option>
-                        {allTrades.map((t) => (
-                          <option key={t.id} value={t.id}>{t.name_ko} ({t.code})</option>
+                        <option value="">{t('worker_detail.trade_select')}</option>
+                        {allTrades.map((tr) => (
+                          <option key={tr.id} value={tr.id}>{tr.name_ko} ({tr.code})</option>
                         ))}
                       </select>
                       <div className="flex items-center gap-1.5 shrink-0">
                         <input
                           type="number"
                           min={0}
-                          placeholder="경력(년)"
+                          placeholder={t('worker_detail.experience_years_placeholder')}
                           className={INPUT + ' w-24'}
                           value={row.years}
                           onChange={(e) => {
@@ -407,13 +409,13 @@ export default function WorkerDetail() {
                             setSkillRows(updated)
                           }}
                         />
-                        <span className="text-xs text-gray-500">년</span>
+                        <span className="text-xs text-gray-500">{t('worker_detail.experience_years_suffix')}</span>
                       </div>
                       <button
                         onClick={() => setSkillRows(skillRows.filter((_, j) => j !== i))}
                         className="text-[#D81A48] hover:text-[#D81A48] text-sm px-2"
                       >
-                        삭제
+                        {t('common.delete')}
                       </button>
                     </div>
                   ))}
@@ -422,7 +424,7 @@ export default function WorkerDetail() {
                   onClick={() => setSkillRows([...skillRows, { tradeId: '', years: 0 }])}
                   className="mt-2 text-sm text-blue-600 hover:text-blue-800 font-medium"
                 >
-                  + 직종 추가
+                  {t('worker_detail.trade_add')}
                 </button>
                 <div className="pt-2">
                   <button
@@ -430,7 +432,7 @@ export default function WorkerDetail() {
                     disabled={savingSkills}
                     className="w-full bg-[#0669F7] hover:bg-[#0550C4] text-white font-semibold py-2.5 rounded-2xl transition-colors text-sm disabled:opacity-50"
                   >
-                    {savingSkills ? '저장 중...' : '저장'}
+                    {savingSkills ? t('common.saving') : t('common.save')}
                   </button>
                 </div>
               </>
@@ -438,22 +440,22 @@ export default function WorkerDetail() {
           </>
         )}
 
-        {/* 관리자 정보 */}
+        {/* Manager Info */}
         {tab === 'manager' && (
           <>
             {worker.is_manager ? (
               <>
                 <div className="flex items-center gap-2 mb-2">
-                  <span className="px-3 py-1 rounded-full text-sm font-semibold bg-[#FDBC08]/20 text-yellow-700">관리자 활성</span>
+                  <span className="px-3 py-1 rounded-full text-sm font-semibold bg-[#FDBC08]/20 text-yellow-700">{t('worker_detail.manager_active')}</span>
                   {worker.manager_approved_at && (
-                    <span className="text-xs text-gray-400">({new Date(worker.manager_approved_at).toLocaleDateString('ko-KR')} 승인)</span>
+                    <span className="text-xs text-gray-400">({new Date(worker.manager_approved_at).toLocaleDateString('ko-KR')} {t('worker_detail.approved_suffix')})</span>
                   )}
                 </div>
                 {worker.manager_company_name && (
-                  <ReadOnlyField label="회사명" value={worker.manager_company_name} />
+                  <ReadOnlyField label={t('worker_detail.field_company')} value={worker.manager_company_name} />
                 )}
                 {worker.manager_representative_name && (
-                  <ReadOnlyField label="담당자명" value={worker.manager_representative_name} />
+                  <ReadOnlyField label={t('worker_detail.field_contact_name')} value={worker.manager_representative_name} />
                 )}
                 {worker.manager_profile_id && (
                   <div className="pt-2">
@@ -461,49 +463,49 @@ export default function WorkerDetail() {
                       href={`/managers/${worker.manager_profile_id}`}
                       className="inline-block text-sm text-[#0669F7] hover:underline font-medium"
                     >
-                      관리자 프로필 상세 보기 →
+                      {t('worker_detail.manager_profile_link')}
                     </a>
                   </div>
                 )}
               </>
             ) : (
               <div className="py-6 text-center">
-                <p className="text-sm text-gray-400 mb-4">이 근로자는 관리자 권한이 없습니다.</p>
+                <p className="text-sm text-gray-400 mb-4">{t('worker_detail.no_manager')}</p>
                 <a
                   href={`/managers/promote?workerId=${worker.id}`}
                   className="inline-block px-5 py-2.5 bg-[#0669F7] text-white text-sm font-semibold rounded-2xl hover:bg-[#0550C4] transition-colors"
                 >
-                  관리자로 지정하기 →
+                  {t('worker_detail.promote_link')}
                 </a>
               </div>
             )}
           </>
         )}
 
-        {/* 기타 */}
+        {/* Other */}
         {tab === 'misc' && (
           <>
-            <ReadOnlyField label="전화번호" value={formatPhone(worker.phone)} />
-            <ReadOnlyField label="이메일" value={worker.email ?? '-'} />
+            <ReadOnlyField label={t('worker_detail.field_phone')} value={formatPhone(worker.phone)} />
+            <ReadOnlyField label={t('worker_detail.field_email')} value={worker.email ?? '-'} />
             <div className="flex gap-4">
               <div className="flex-1">
-                <ReadOnlyField label="위도 (lat)" value={worker.lat?.toString() ?? '-'} />
+                <ReadOnlyField label={t('worker_detail.field_lat')} value={worker.lat?.toString() ?? '-'} />
               </div>
               <div className="flex-1">
-                <ReadOnlyField label="경도 (lng)" value={worker.lng?.toString() ?? '-'} />
+                <ReadOnlyField label={t('worker_detail.field_lng')} value={worker.lng?.toString() ?? '-'} />
               </div>
             </div>
             <div className="flex items-center gap-6">
               <label className="flex items-center gap-2">
                 <input type="checkbox" checked={worker.terms_accepted} readOnly className="w-4 h-4 accent-[#0669F7] cursor-default" />
-                <span className="text-sm text-gray-600">이용약관 동의</span>
+                <span className="text-sm text-gray-600">{t('worker_detail.terms_accepted')}</span>
               </label>
               <label className="flex items-center gap-2">
                 <input type="checkbox" checked={worker.privacy_accepted} readOnly className="w-4 h-4 accent-[#0669F7] cursor-default" />
-                <span className="text-sm text-gray-600">개인정보 처리방침 동의</span>
+                <span className="text-sm text-gray-600">{t('worker_detail.privacy_accepted')}</span>
               </label>
             </div>
-            <ReadOnlyField label="가입일" value={new Date(worker.created_at).toLocaleString('ko-KR')} />
+            <ReadOnlyField label={t('worker_detail.field_joined')} value={new Date(worker.created_at).toLocaleString('ko-KR')} />
           </>
         )}
       </div>
@@ -531,7 +533,7 @@ function ReadOnlyField({ label, value }: { label: string; value: string }) {
   )
 }
 
-function ImageField({ label, url }: { label: string; url: string | null | undefined }) {
+function ImageField({ label, url, notRegisteredLabel }: { label: string; url: string | null | undefined; notRegisteredLabel: string }) {
   return (
     <div>
       <label className="block text-xs font-medium text-gray-500 mb-2">{label}</label>
@@ -540,20 +542,20 @@ function ImageField({ label, url }: { label: string; url: string | null | undefi
           <img src={url} alt={label} className="max-w-xs rounded border border-[#EFF1F5] hover:opacity-90 transition-opacity" />
         </a>
       ) : (
-        <div className="inline-block px-3 py-1.5 bg-[#EFF1F5] text-[#98A2B2] text-xs rounded-2xl border border-[#EFF1F5]">미등록</div>
+        <div className="inline-block px-3 py-1.5 bg-[#EFF1F5] text-[#98A2B2] text-xs rounded-2xl border border-[#EFF1F5]">{notRegisteredLabel}</div>
       )}
     </div>
   )
 }
 
-function SaveButton({ saving, onClick }: { saving: boolean; onClick: () => void }) {
+function SaveButton({ saving, onClick, label, savingLabel }: { saving: boolean; onClick: () => void; label: string; savingLabel: string }) {
   return (
     <button
       onClick={onClick}
       disabled={saving}
       className="w-full bg-[#0669F7] hover:bg-[#0550C4] text-white font-semibold py-2.5 rounded-2xl transition-colors text-sm disabled:opacity-50"
     >
-      {saving ? '저장 중...' : '저장'}
+      {saving ? savingLabel : label}
     </button>
   )
 }

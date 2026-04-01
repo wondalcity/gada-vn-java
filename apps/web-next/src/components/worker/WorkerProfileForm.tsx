@@ -2,6 +2,7 @@
 
 import * as React from 'react'
 import Link from 'next/link'
+import { useTranslations } from 'next-intl'
 import { getSessionCookie } from '@/lib/auth/session'
 import { apiClient, ApiError } from '@/lib/api/client'
 
@@ -71,6 +72,7 @@ function Toast({ message, type }: { message: string; type: 'success' | 'error' }
 
 export default function WorkerProfileForm({ locale }: { locale: string }) {
   const idToken = getSessionCookie()
+  const t = useTranslations('common')
   const [profile, setProfile] = React.useState<WorkerProfile>(EMPTY_PROFILE)
   const [isLoading, setIsLoading] = React.useState(true)
   const [isSaving, setIsSaving] = React.useState(false)
@@ -139,9 +141,9 @@ export default function WorkerProfileForm({ locale }: { locale: string }) {
           province: profile.province || null,
         }),
       })
-      setToast({ message: '프로필이 저장되었습니다.', type: 'success' })
+      setToast({ message: t('worker_profile_form.save_success'), type: 'success' })
     } catch (err) {
-      const msg = err instanceof ApiError ? err.message : '저장 중 오류가 발생했습니다.'
+      const msg = err instanceof ApiError ? err.message : t('worker_profile_form.save_error')
       setToast({ message: msg, type: 'error' })
     } finally {
       setIsSaving(false)
@@ -156,14 +158,14 @@ export default function WorkerProfileForm({ locale }: { locale: string }) {
 
       <div className="max-w-lg mx-auto px-4 py-6">
         {/* Header */}
-        <h1 className="text-xl font-semibold text-[#25282A] mb-6">프로필</h1>
+        <h1 className="text-xl font-semibold text-[#25282A] mb-6">{t('worker_profile_form.title')}</h1>
 
         {/* Profile picture */}
         {profile.profilePictureUrl && (
           <div className="flex justify-center mb-6">
             <img
               src={profile.profilePictureUrl}
-              alt="프로필 사진"
+              alt={t('worker_profile_form.photo_alt')}
               className="w-24 h-24 rounded-full object-cover border border-[#EFF1F5]"
             />
           </div>
@@ -188,10 +190,10 @@ export default function WorkerProfileForm({ locale }: { locale: string }) {
                     clipRule="evenodd"
                   />
                 </svg>
-                신분증 인증 완료
+                {t('worker_profile_form.id_verified')}
               </>
             ) : (
-              '신분증 미인증'
+              t('worker_profile_form.id_unverified')
             )}
           </span>
 
@@ -205,14 +207,14 @@ export default function WorkerProfileForm({ locale }: { locale: string }) {
                   clipRule="evenodd"
                 />
               </svg>
-              서명 완료
+              {t('worker_profile_form.signature_done')}
             </span>
           ) : (
             <Link
               href={`/${locale}/worker/profile/signature`}
               className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium bg-gray-100 text-[#98A2B2] border border-[#EFF1F5] hover:border-[#0669F7] hover:text-[#0669F7] transition-colors"
             >
-              서명 등록하기
+              {t('worker_profile_form.signature_register')}
             </Link>
           )}
         </div>
@@ -226,7 +228,7 @@ export default function WorkerProfileForm({ locale }: { locale: string }) {
               {/* Full name */}
               <div>
                 <label htmlFor="fullName" className="block text-sm font-medium text-[#25282A] mb-1">
-                  이름 <span className="text-[#D81A48]">*</span>
+                  {t('worker_profile_form.field_name')} <span className="text-[#D81A48]">*</span>
                 </label>
                 <input
                   id="fullName"
@@ -235,7 +237,7 @@ export default function WorkerProfileForm({ locale }: { locale: string }) {
                   required
                   value={profile.fullName}
                   onChange={handleChange}
-                  placeholder="성명을 입력하세요"
+                  placeholder={t('worker_profile_form.placeholder_name')}
                   className="w-full px-3 py-2 rounded-2xl border border-[#EFF1F5] focus:outline-none focus:border-[#0669F7] text-sm text-[#25282A]"
                 />
               </div>
@@ -243,7 +245,7 @@ export default function WorkerProfileForm({ locale }: { locale: string }) {
               {/* Date of birth */}
               <div>
                 <label htmlFor="dateOfBirth" className="block text-sm font-medium text-[#25282A] mb-1">
-                  생년월일 <span className="text-[#D81A48]">*</span>
+                  {t('worker_profile_form.field_dob')} <span className="text-[#D81A48]">*</span>
                 </label>
                 <input
                   id="dateOfBirth"
@@ -259,7 +261,7 @@ export default function WorkerProfileForm({ locale }: { locale: string }) {
               {/* Gender */}
               <div>
                 <label htmlFor="gender" className="block text-sm font-medium text-[#25282A] mb-1">
-                  성별 <span className="text-[#D81A48]">*</span>
+                  {t('worker_profile_form.field_gender')} <span className="text-[#D81A48]">*</span>
                 </label>
                 <select
                   id="gender"
@@ -270,18 +272,18 @@ export default function WorkerProfileForm({ locale }: { locale: string }) {
                   className="w-full px-3 py-2 rounded-2xl border border-[#EFF1F5] focus:outline-none focus:border-[#0669F7] text-sm text-[#25282A] bg-white"
                 >
                   <option value="" disabled>
-                    성별을 선택하세요
+                    {t('worker_profile_form.placeholder_gender')}
                   </option>
-                  <option value="MALE">남성</option>
-                  <option value="FEMALE">여성</option>
-                  <option value="OTHER">기타</option>
+                  <option value="MALE">{t('worker_profile_form.gender_male')}</option>
+                  <option value="FEMALE">{t('worker_profile_form.gender_female')}</option>
+                  <option value="OTHER">{t('worker_profile_form.gender_other')}</option>
                 </select>
               </div>
 
               {/* Bio */}
               <div>
                 <label htmlFor="bio" className="block text-sm font-medium text-[#25282A] mb-1">
-                  자기소개
+                  {t('worker_profile_form.field_bio')}
                 </label>
                 <textarea
                   id="bio"
@@ -290,7 +292,7 @@ export default function WorkerProfileForm({ locale }: { locale: string }) {
                   maxLength={500}
                   value={profile.bio}
                   onChange={handleChange}
-                  placeholder="간단한 자기소개를 입력하세요 (최대 500자)"
+                  placeholder={t('worker_profile_form.placeholder_bio')}
                   className="w-full px-3 py-2 rounded-2xl border border-[#EFF1F5] focus:outline-none focus:border-[#0669F7] text-sm text-[#25282A] resize-none"
                 />
                 <p className="text-xs text-[#98A2B2] mt-1 text-right">{profile.bio.length}/500</p>
@@ -299,7 +301,7 @@ export default function WorkerProfileForm({ locale }: { locale: string }) {
               {/* Bank name */}
               <div>
                 <label htmlFor="bankName" className="block text-sm font-medium text-[#25282A] mb-1">
-                  은행명
+                  {t('worker_profile_form.field_bank_name')}
                 </label>
                 <input
                   id="bankName"
@@ -315,7 +317,7 @@ export default function WorkerProfileForm({ locale }: { locale: string }) {
               {/* Bank account number */}
               <div>
                 <label htmlFor="bankAccountNumber" className="block text-sm font-medium text-[#25282A] mb-1">
-                  계좌번호
+                  {t('worker_profile_form.field_bank_account')}
                 </label>
                 <input
                   id="bankAccountNumber"
@@ -323,7 +325,7 @@ export default function WorkerProfileForm({ locale }: { locale: string }) {
                   type="text"
                   value={profile.bankAccountNumber}
                   onChange={handleChange}
-                  placeholder="계좌번호를 입력하세요"
+                  placeholder={t('worker_profile_form.placeholder_bank_account')}
                   className="w-full px-3 py-2 rounded-2xl border border-[#EFF1F5] focus:outline-none focus:border-[#0669F7] text-sm text-[#25282A]"
                 />
               </div>
@@ -331,8 +333,8 @@ export default function WorkerProfileForm({ locale }: { locale: string }) {
               {/* Primary trade — TODO: replace with trade selector */}
               <div>
                 <label htmlFor="primaryTradeId" className="block text-sm font-medium text-[#25282A] mb-1">
-                  주요 직종
-                  <span className="ml-1 text-xs text-[#98A2B2] font-normal">(직종 ID)</span>
+                  {t('worker_profile_form.field_trade')}
+                  <span className="ml-1 text-xs text-[#98A2B2] font-normal">{t('worker_profile_form.field_trade_hint')}</span>
                 </label>
                 <input
                   id="primaryTradeId"
@@ -340,7 +342,7 @@ export default function WorkerProfileForm({ locale }: { locale: string }) {
                   type="text"
                   value={profile.primaryTradeId}
                   onChange={handleChange}
-                  placeholder="직종 ID를 입력하세요"
+                  placeholder={t('worker_profile_form.placeholder_trade')}
                   className="w-full px-3 py-2 rounded-2xl border border-[#EFF1F5] focus:outline-none focus:border-[#0669F7] text-sm text-[#25282A]"
                 />
               </div>
@@ -348,7 +350,7 @@ export default function WorkerProfileForm({ locale }: { locale: string }) {
               {/* Province */}
               <div>
                 <label htmlFor="province" className="block text-sm font-medium text-[#25282A] mb-1">
-                  지역
+                  {t('worker_profile_form.field_province')}
                 </label>
                 <input
                   id="province"
@@ -356,7 +358,7 @@ export default function WorkerProfileForm({ locale }: { locale: string }) {
                   type="text"
                   value={profile.province}
                   onChange={handleChange}
-                  placeholder="거주 지역을 입력하세요"
+                  placeholder={t('worker_profile_form.placeholder_province')}
                   className="w-full px-3 py-2 rounded-2xl border border-[#EFF1F5] focus:outline-none focus:border-[#0669F7] text-sm text-[#25282A]"
                 />
               </div>
@@ -367,7 +369,7 @@ export default function WorkerProfileForm({ locale }: { locale: string }) {
                 disabled={isSaving}
                 className="w-full py-3 rounded-full bg-[#0669F7] text-white font-medium disabled:opacity-50 mt-2 text-sm hover:bg-blue-700 transition-colors"
               >
-                {isSaving ? '저장 중...' : '저장하기'}
+                {isSaving ? t('worker_profile_form.saving') : t('worker_profile_form.save')}
               </button>
             </form>
           )}
@@ -379,7 +381,7 @@ export default function WorkerProfileForm({ locale }: { locale: string }) {
             href={`/${locale}/worker/profile/id`}
             className="flex items-center justify-between w-full px-4 py-3 bg-white rounded-2xl shadow-sm border border-[#EFF1F5] text-sm text-[#25282A] hover:border-[#0669F7] transition-colors"
           >
-            <span>신분증 등록</span>
+            <span>{t('worker_profile_form.link_id_upload')}</span>
             <svg className="w-4 h-4 text-[#98A2B2]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
             </svg>
@@ -388,7 +390,7 @@ export default function WorkerProfileForm({ locale }: { locale: string }) {
             href={`/${locale}/worker/profile/signature`}
             className="flex items-center justify-between w-full px-4 py-3 bg-white rounded-2xl shadow-sm border border-[#EFF1F5] text-sm text-[#25282A] hover:border-[#0669F7] transition-colors"
           >
-            <span>서명 등록</span>
+            <span>{t('worker_profile_form.link_signature')}</span>
             <svg className="w-4 h-4 text-[#98A2B2]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
             </svg>

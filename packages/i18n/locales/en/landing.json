@@ -1,9 +1,29 @@
 {
+  "meta": {
+    "title": "GADA VN — Daily Construction Jobs in Vietnam",
+    "description": "Find daily construction jobs across Vietnam. Jobs in Hanoi, Ho Chi Minh City, Da Nang, and more.",
+    "og_description": "Find daily construction jobs across Vietnam."
+  },
+  "header": {
+    "jobs_list": "Job Listings",
+    "register_free": "Sign Up Free"
+  },
   "hero": {
     "title": "Connecting Vietnam's Construction Industry",
+    "h1": "Construction jobs in Vietnam",
+    "h1_highlight": "found in one place",
     "subtitle": "The platform that connects skilled construction workers with trusted job sites",
+    "description": "From Hanoi to Ho Chi Minh City, daily construction jobs nationwide",
     "cta_worker": "Find Jobs",
-    "cta_manager": "Hire Workers"
+    "cta_manager": "Hire Workers",
+    "stat_jobs": "Active Jobs",
+    "stat_cities": "Cities",
+    "stat_free": "Free",
+    "stat_signup": "Sign Up",
+    "search_placeholder": "Search by job title or site name...",
+    "all_provinces": "All Provinces",
+    "all_trades": "All Trades",
+    "map_view": "Map View"
   },
   "stats": {
     "jobs": "{count} jobs",
@@ -29,12 +49,34 @@
   },
   "provinces": {
     "title": "Jobs by Province",
-    "view_all": "View All"
+    "section_title": "Find Jobs by Region",
+    "view_all": "View All",
+    "view_jobs": "View Jobs →"
+  },
+  "jobs": {
+    "section_title": "Latest Jobs",
+    "view_all": "View All →",
+    "empty": "No jobs available at this time."
+  },
+  "cta": {
+    "title": "Start your job search today",
+    "subtitle": "Join GADA VN and find construction jobs across Vietnam",
+    "register": "Sign Up Free",
+    "view_jobs": "Browse Jobs",
+    "have_account": "Already have an account?",
+    "login": "Log In"
   },
   "footer": {
     "about": "About Us",
     "terms": "Terms of Service",
     "privacy": "Privacy Policy",
-    "contact": "Contact Us"
+    "contact": "Contact Us",
+    "description": "Connecting daily construction workers with job sites across Vietnam. Jobs in Hanoi, Ho Chi Minh City, Da Nang and nationwide.",
+    "popular_regions": "Popular Regions",
+    "job_suffix": "construction jobs",
+    "quick_links": "Quick Links",
+    "jobs_list": "Job Listings",
+    "register": "Sign Up",
+    "login": "Log In"
   }
 }

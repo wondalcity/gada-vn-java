@@ -4,6 +4,7 @@ import {
   StyleSheet, ScrollView, Alert, ActivityIndicator, Switch,
 } from 'react-native';
 import { useRouter } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 import { api, ApiError } from '../../../lib/api-client';
 
 interface Benefits {
@@ -14,6 +15,7 @@ interface Benefits {
 }
 
 export default function CreateJobScreen() {
+  const { t } = useTranslation();
   const router = useRouter();
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
@@ -49,12 +51,12 @@ export default function CreateJobScreen() {
         slotsTotal: parseInt(slotsTotal, 10),
         benefits,
       });
-      Alert.alert('등록 완료', '일자리가 등록되었습니다.', [
-        { text: '확인', onPress: () => router.replace('/(manager)/') },
+      Alert.alert(t('jobs.register_success_title'), t('jobs.register_success_body'), [
+        { text: t('common.confirm'), onPress: () => router.replace('/(manager)/') },
       ]);
     } catch (err) {
-      const msg = err instanceof ApiError ? err.message : '등록에 실패했습니다.';
-      Alert.alert('오류', msg);
+      const msg = err instanceof ApiError ? err.message : t('jobs.register_fail');
+      Alert.alert(t('common.error'), msg);
     } finally {
       setLoading(false);
     }
@@ -62,12 +64,12 @@ export default function CreateJobScreen() {
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      <Text style={styles.screenTitle}>새 일자리 등록</Text>
+      <Text style={styles.screenTitle}>{t('jobs.create_title')}</Text>
 
-      <Text style={styles.label}>제목 *</Text>
-      <TextInput style={styles.input} placeholder="콘크리트 타설 작업" value={title} onChangeText={setTitle} />
+      <Text style={styles.label}>{t('jobs.field_title')}</Text>
+      <TextInput style={styles.input} placeholder={t('jobs.field_title_placeholder')} value={title} onChangeText={setTitle} />
 
-      <Text style={styles.label}>근무일 * (YYYY-MM-DD)</Text>
+      <Text style={styles.label}>{t('jobs.field_work_date')}</Text>
       <TextInput
         style={styles.input} placeholder="2026-04-01" value={workDate}
         onChangeText={setWorkDate} keyboardType="numbers-and-punctuation" maxLength={10}
@@ -75,41 +77,41 @@ export default function CreateJobScreen() {
 
       <View style={styles.row}>
         <View style={styles.flex}>
-          <Text style={styles.label}>시작 시간</Text>
+          <Text style={styles.label}>{t('jobs.field_start_time')}</Text>
           <TextInput style={styles.input} placeholder="08:00" value={startTime} onChangeText={setStartTime} />
         </View>
         <View style={{ width: 12 }} />
         <View style={styles.flex}>
-          <Text style={styles.label}>종료 시간</Text>
+          <Text style={styles.label}>{t('jobs.field_end_time')}</Text>
           <TextInput style={styles.input} placeholder="17:00" value={endTime} onChangeText={setEndTime} />
         </View>
       </View>
 
-      <Text style={styles.label}>일당 (VND) *</Text>
+      <Text style={styles.label}>{t('jobs.field_daily_wage')}</Text>
       <TextInput
         style={styles.input} placeholder="500,000" value={dailyWage}
         onChangeText={setDailyWage} keyboardType="numeric"
       />
 
-      <Text style={styles.label}>모집 인원 *</Text>
+      <Text style={styles.label}>{t('jobs.field_slots')}</Text>
       <TextInput
         style={styles.input} placeholder="1" value={slotsTotal}
         onChangeText={setSlotsTotal} keyboardType="numeric"
       />
 
-      <Text style={styles.label}>상세 내용 (선택)</Text>
+      <Text style={styles.label}>{t('jobs.field_description_optional')}</Text>
       <TextInput
-        style={[styles.input, styles.textarea]} placeholder="작업 상세 설명..."
+        style={[styles.input, styles.textarea]} placeholder={t('jobs.field_description_placeholder')}
         value={description} onChangeText={setDescription}
         multiline numberOfLines={4} textAlignVertical="top"
       />
 
-      <Text style={styles.sectionTitle}>제공 혜택</Text>
+      <Text style={styles.sectionTitle}>{t('jobs.section_benefits_label')}</Text>
       {([
-        ['meals', '🍱 식사 제공'],
-        ['transport', '🚌 교통 지원'],
-        ['accommodation', '🏠 숙소 제공'],
-        ['insurance', '🛡️ 보험 적용'],
+        ['meals', t('jobs.benefit_meals')],
+        ['transport', t('jobs.benefit_transport')],
+        ['accommodation', t('jobs.benefit_accommodation')],
+        ['insurance', t('jobs.benefit_insurance')],
       ] as [keyof Benefits, string][]).map(([key, label]) => (
         <View key={key} style={styles.switchRow}>
           <Text style={styles.switchLabel}>{label}</Text>
@@ -128,7 +130,7 @@ export default function CreateJobScreen() {
         onPress={handleCreate}
         disabled={!isValid || loading}
       >
-        {loading ? <ActivityIndicator color="#fff" /> : <Text style={styles.buttonText}>등록하기</Text>}
+        {loading ? <ActivityIndicator color="#fff" /> : <Text style={styles.buttonText}>{t('jobs.register_button')}</Text>}
       </TouchableOpacity>
     </ScrollView>
   );

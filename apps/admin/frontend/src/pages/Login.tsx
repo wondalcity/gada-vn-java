@@ -1,7 +1,9 @@
 import { useState, FormEvent } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
+import { useAdminTranslation } from '../context/LanguageContext'
 
 export default function Login() {
+  const { t } = useAdminTranslation()
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
@@ -41,22 +43,22 @@ export default function Login() {
     <div className="min-h-screen bg-gray-900 flex items-center justify-center">
       <div className="bg-white rounded-2xl shadow-xl p-8 w-full max-w-sm">
         <div className="text-center mb-8">
-          <span className="text-3xl font-bold text-[#0669F7]">가다 VN</span>
+          <span className="text-3xl font-bold text-[#0669F7]">{t('login.brand')}</span>
           <p className="text-gray-500 text-sm mt-1">Admin Panel</p>
         </div>
         {hasError && (
           <div className="bg-[#FDE8EE] border border-[#F4B0C0] text-[#D81A48] rounded-2xl p-3 mb-4 text-sm">
-            아이디 또는 비밀번호가 틀렸습니다.
+            {t('login.error_credentials')}
           </div>
         )}
         {hasLogout && (
           <div className="bg-green-50 border border-green-200 text-green-700 rounded-2xl p-3 mb-4 text-sm">
-            로그아웃 되었습니다.
+            {t('login.logout_success')}
           </div>
         )}
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-xs font-medium text-gray-500 mb-1">아이디</label>
+            <label className="block text-xs font-medium text-gray-500 mb-1">{t('login.username')}</label>
             <input
               type="text"
               value={username}
@@ -66,7 +68,7 @@ export default function Login() {
             />
           </div>
           <div>
-            <label className="block text-xs font-medium text-gray-500 mb-1">비밀번호</label>
+            <label className="block text-xs font-medium text-gray-500 mb-1">{t('login.password')}</label>
             <input
               type="password"
               value={password}
@@ -80,7 +82,7 @@ export default function Login() {
             disabled={loading}
             className="w-full bg-[#0669F7] hover:bg-[#0550C4] text-white font-semibold py-2.5 rounded-2xl transition-colors text-sm disabled:opacity-50"
           >
-            {loading ? '로그인 중...' : '로그인'}
+            {loading ? t('login.submitting') : t('login.submit')}
           </button>
         </form>
       </div>

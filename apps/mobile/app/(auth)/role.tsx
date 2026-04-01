@@ -51,8 +51,8 @@ export default function RoleSelectScreen() {
         router.replace('/(worker)/');
       }
     } catch (err) {
-      const msg = err instanceof ApiError ? err.message : '역할 등록에 실패했습니다.';
-      Alert.alert('오류', msg);
+      const msg = err instanceof ApiError ? err.message : t('auth.role_register_fail');
+      Alert.alert(t('common.error'), msg);
     } finally {
       setLoading(false);
     }
@@ -61,8 +61,8 @@ export default function RoleSelectScreen() {
   return (
     <SafeAreaView style={styles.safe}>
       <View style={styles.container}>
-        <Text style={styles.title}>어떤 역할로 시작하시겠습니까?</Text>
-        <Text style={styles.subtitle}>나중에 프로필에서 변경할 수 없습니다</Text>
+        <Text style={styles.title}>{t('auth.role_select_title')}</Text>
+        <Text style={styles.subtitle}>{t('auth.role_select_subtitle')}</Text>
 
         <View style={styles.options}>
           {ROLE_OPTIONS.map((opt) => (
@@ -75,12 +75,12 @@ export default function RoleSelectScreen() {
               <Text style={styles.optionIcon}>{opt.icon}</Text>
               <View style={styles.optionBody}>
                 <Text style={[styles.optionTitle, selected === opt.role && styles.optionTitleSelected]}>
-                  {opt.role === 'WORKER' ? '근로자' : '현장 관리자'}
+                  {opt.role === 'WORKER' ? t('auth.role_worker') : t('auth.role_manager')}
                 </Text>
                 <Text style={[styles.optionDesc, selected === opt.role && styles.optionDescSelected]}>
                   {opt.role === 'WORKER'
-                    ? '건설 현장 일자리를 검색하고 지원합니다'
-                    : '일자리를 등록하고 근로자를 고용합니다'}
+                    ? t('auth.role_worker_desc')
+                    : t('auth.role_manager_desc')}
                 </Text>
               </View>
               <View style={[styles.radio, selected === opt.role && styles.radioSelected]}>
@@ -92,9 +92,7 @@ export default function RoleSelectScreen() {
 
         {selected === 'MANAGER' && (
           <View style={styles.notice}>
-            <Text style={styles.noticeText}>
-              📋 관리자 등록 후 관리자 검토가 필요합니다. 승인 후 일자리 등록이 가능합니다.
-            </Text>
+            <Text style={styles.noticeText}>{t('auth.manager_notice')}</Text>
           </View>
         )}
 
@@ -105,7 +103,7 @@ export default function RoleSelectScreen() {
         >
           {loading
             ? <ActivityIndicator color="#fff" />
-            : <Text style={styles.buttonText}>시작하기</Text>
+            : <Text style={styles.buttonText}>{t('auth.start')}</Text>
           }
         </TouchableOpacity>
       </View>

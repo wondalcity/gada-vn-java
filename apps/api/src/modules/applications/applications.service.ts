@@ -15,6 +15,10 @@ export class ApplicationsService {
     return result;
   }
 
+  async findByWorkerAndJob(userId: string, jobId: string) {
+    return this.repo.findByWorkerAndJob(userId, jobId);
+  }
+
   async apply(userId: string, jobId: string, data: Record<string, unknown>) {
     const existing = await this.repo.findByWorkerAndJob(userId, jobId);
     if (existing) {

@@ -1,6 +1,7 @@
 'use client'
 
 import * as React from 'react'
+import { useTranslations } from 'next-intl'
 import type { Applicant, ApplicationStatus } from '@/types/application'
 
 interface Props {
@@ -11,20 +12,16 @@ interface Props {
   isActing: boolean
 }
 
-function formatExperience(months: number): string {
-  const years = Math.floor(months / 12)
-  const rem = months % 12
-  if (years === 0) return `${rem}개월`
-  if (rem === 0) return `${years}년`
-  return `${years}년 ${rem}개월`
+function getExperienceParts(months: number): { years: number; rem: number } {
+  return { years: Math.floor(months / 12), rem: months % 12 }
 }
 
-const STATUS_CONFIG: Record<ApplicationStatus, { label: string; bg: string; text: string; dot: string }> = {
-  PENDING:    { label: '검토중',   bg: '#FFF3CD', text: '#856404', dot: '#FDBC08' },
-  ACCEPTED:   { label: '합격',    bg: '#E8FBE8', text: '#1A6B1A', dot: '#00C800' },
-  REJECTED:   { label: '불합격',  bg: '#FDE8EE', text: '#D81A48', dot: '#D81A48' },
-  WITHDRAWN:  { label: '취소',    bg: '#EFF1F5', text: '#98A2B2', dot: '#DBDFE9' },
-  CONTRACTED: { label: '계약완료', bg: '#E6F0FE', text: '#0669F7', dot: '#0669F7' },
+const STATUS_BG_TEXT: Record<ApplicationStatus, { bg: string; text: string; dot: string }> = {
+  PENDING:    { bg: '#FFF3CD', text: '#856404', dot: '#FDBC08' },
+  ACCEPTED:   { bg: '#E8FBE8', text: '#1A6B1A', dot: '#00C800' },
+  REJECTED:   { bg: '#FDE8EE', text: '#D81A48', dot: '#D81A48' },
+  WITHDRAWN:  { bg: '#EFF1F5', text: '#98A2B2', dot: '#DBDFE9' },
+  CONTRACTED: { bg: '#E6F0FE', text: '#0669F7', dot: '#0669F7' },
 }
 
 function getAvatarBg(status: ApplicationStatus): string {
@@ -34,8 +31,16 @@ function getAvatarBg(status: ApplicationStatus): string {
 }
 
 export default function ApplicantCard({ applicant, onOpenDetail, onQuickAccept, onQuickReject, isActing }: Props) {
+  const t = useTranslations('common')
   const { worker, status } = applicant
-  const statusConfig = STATUS_CONFIG[status]
+  const statusBgText = STATUS_BG_TEXT[status]
+  const statusLabel: Record<ApplicationStatus, string> = {
+    PENDING:    t('manager_applicants.status_pending'),
+    ACCEPTED:   t('manager_applicants.status_accepted'),
+    REJECTED:   t('manager_applicants.status_rejected'),
+    WITHDRAWN:  t('manager_applicants.status_withdrawn'),
+    CONTRACTED: t('manager_applicants.status_contracted'),
+  }
   const avatarBg = getAvatarBg(status)
 
   function handleCardClick(e: React.MouseEvent) {
@@ -73,18 +78,25 @@ export default function ApplicantCard({ applicant, onOpenDetail, onQuickAccept, 
       <div className="flex-1 min-w-0">
         <p className="text-sm font-bold text-[#25282A] truncate">{worker.name}</p>
         <p className="text-xs text-[#98A2B2] font-medium mt-0.5">
-          {worker.tradeNameKo ?? '직종 미지정'} · {formatExperience(worker.experienceMonths)}
+          {worker.tradeNameKo ?? t('manager_applicants.trade_unset')} · {(() => {
+            const { years, rem } = getExperienceParts(worker.experienceMonths)
+            return years === 0
+              ? t('manager_workers.exp_months', { months: rem })
+              : rem === 0
+                ? t('manager_workers.exp_years', { years })
+                : t('manager_workers.exp_years_months', { years, months: rem })
+          })()}
         </p>
         {/* Badges */}
         <div className="flex gap-1.5 mt-1.5 flex-wrap">
           {worker.idVerified && (
             <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold bg-[#E8FBE8] text-[#1A6B1A]">
-              신분증 ✓
+              {t('manager_applicants.id_verified')}
             </span>
           )}
           {worker.hasSignature && (
             <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold bg-[#E8FBE8] text-[#1A6B1A]">
-              서명 ✓
+              {t('manager_applicants.signature_done')}
             </span>
           )}
         </div>
@@ -94,10 +106,10 @@ export default function ApplicantCard({ applicant, onOpenDetail, onQuickAccept, 
       <div className="flex-shrink-0 flex flex-col items-end gap-2">
         <span
           className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold"
-          style={{ background: statusConfig.bg, color: statusConfig.text }}
+          style={{ background: statusBgText.bg, color: statusBgText.text }}
         >
-          <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ background: statusConfig.dot }} />
-          {statusConfig.label}
+          <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ background: statusBgText.dot }} />
+          {statusLabel[status]}
         </span>
 
         {status === 'PENDING' && (
@@ -108,7 +120,7 @@ export default function ApplicantCard({ applicant, onOpenDetail, onQuickAccept, 
               disabled={isActing}
               className="px-3 py-1.5 rounded-xl bg-[#0669F7] text-white font-bold text-xs disabled:opacity-40"
             >
-              합격
+              {t('manager_applicants.quick_accept')}
             </button>
             <button
               type="button"
@@ -116,7 +128,7 @@ export default function ApplicantCard({ applicant, onOpenDetail, onQuickAccept, 
               disabled={isActing}
               className="px-3 py-1.5 rounded-xl bg-[#FDE8EE] text-[#D81A48] font-bold text-xs disabled:opacity-40"
             >
-              불합격
+              {t('manager_applicants.quick_reject')}
             </button>
           </div>
         )}

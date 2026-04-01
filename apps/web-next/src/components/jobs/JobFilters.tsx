@@ -2,6 +2,7 @@
 
 import * as React from 'react'
 import { useRouter, useSearchParams, usePathname } from 'next/navigation'
+import { useTranslations } from 'next-intl'
 import { getSessionCookie } from '@/lib/auth/session'
 import type { Province, Trade } from '@/lib/api/public'
 
@@ -28,10 +29,10 @@ interface Props {
   locale: string
 }
 
-const STATUS_OPTIONS = [
-  { value: '',           label: '모집중',   emoji: '🟢' },
-  { value: 'ALMOST_FULL', label: '마감임박', emoji: '🟡' },
-  { value: 'FILLED',      label: '모집마감', emoji: '⚫' },
+const STATUS_VALUES = [
+  { value: '',            emoji: '🟢', key: 'listing.filter.status_open' },
+  { value: 'ALMOST_FULL', emoji: '🟡', key: 'listing.filter.status_closing_soon' },
+  { value: 'FILLED',      emoji: '⚫', key: 'listing.filter.status_closed' },
 ] as const
 
 const RADIUS_OPTIONS = [10, 30, 50, 100]
@@ -47,6 +48,7 @@ export function JobFilters({
   selectedStatus,
   locale: _locale,
 }: Props) {
+  const t = useTranslations('jobs')
   const router = useRouter()
   const pathname = usePathname()
   const searchParams = useSearchParams()
@@ -56,7 +58,7 @@ export function JobFilters({
   const [savedLocations, setSavedLocations] = React.useState<SavedLocation[]>([])
   // Label for the currently active geo location (GPS or saved)
   const [activeLabel, setActiveLabel] = React.useState(() =>
-    selectedLat != null ? '현재 위치' : ''
+    selectedLat != null ? t('listing.filter.use_location') : ''
   )
 
   const geoActive = selectedLat != null && selectedLng != null
@@ -115,18 +117,18 @@ export function JobFilters({
 
   function useGPS() {
     if (!navigator.geolocation) {
-      setGeoError('이 브라우저는 위치 기능을 지원하지 않습니다.')
+      setGeoError(t('listing.filter.geo_error_unsupported'))
       return
     }
     setGeoLoading(true)
     setGeoError('')
     navigator.geolocation.getCurrentPosition(
       pos => {
-        activateGeo(pos.coords.latitude, pos.coords.longitude, '현재 위치')
+        activateGeo(pos.coords.latitude, pos.coords.longitude, t('listing.filter.use_location'))
         setGeoLoading(false)
       },
       () => {
-        setGeoError('위치 권한이 거부되었습니다.')
+        setGeoError(t('listing.filter.geo_error_denied'))
         setGeoLoading(false)
       },
       { timeout: 10000 },
@@ -140,13 +142,13 @@ export function JobFilters({
       {/* Province filter */}
       <div className="flex flex-col sm:flex-row md:flex-col gap-3">
         <div className="flex-1 md:flex-none">
-          <label className="block text-xs font-medium text-[#98A2B2] mb-1">지역</label>
+          <label className="block text-xs font-medium text-[#98A2B2] mb-1">{t('listing.filter.province')}</label>
           <select
             value={selectedProvince ?? ''}
             onChange={e => updateParam('province', e.target.value || undefined)}
             className="w-full px-3 py-2 text-sm border border-[#EFF1F5] rounded-lg bg-white text-[#25282A] focus:outline-none focus:ring-2 focus:ring-[#0669F7] focus:border-transparent"
           >
-            <option value="">전체 지역</option>
+            <option value="">{t('listing.filter.all_provinces')}</option>
             {provinces.map(p => (
               <option key={p.slug} value={p.slug}>{p.nameVi}</option>
             ))}
@@ -155,15 +157,15 @@ export function JobFilters({
 
         {/* Trade filter */}
         <div className="flex-1 md:flex-none">
-          <label className="block text-xs font-medium text-[#98A2B2] mb-1">직종</label>
+          <label className="block text-xs font-medium text-[#98A2B2] mb-1">{t('listing.filter.trade')}</label>
           <select
             value={selectedTrade ?? ''}
             onChange={e => updateParam('trade', e.target.value || undefined)}
             className="w-full px-3 py-2 text-sm border border-[#EFF1F5] rounded-lg bg-white text-[#25282A] focus:outline-none focus:ring-2 focus:ring-[#0669F7] focus:border-transparent"
           >
-            <option value="">전체 직종</option>
-            {trades.map(t => (
-              <option key={t.id} value={String(t.id)}>{t.nameKo}</option>
+            <option value="">{t('listing.filter.all_trades')}</option>
+            {trades.map(tr => (
+              <option key={tr.id} value={String(tr.id)}>{tr.nameKo}</option>
             ))}
           </select>
         </div>
@@ -171,9 +173,9 @@ export function JobFilters({
 
       {/* Status filter */}
       <div>
-        <label className="block text-xs font-medium text-[#98A2B2] mb-2">모집 상태</label>
+        <label className="block text-xs font-medium text-[#98A2B2] mb-2">{t('listing.filter.status')}</label>
         <div className="flex flex-col gap-1">
-          {STATUS_OPTIONS.map(opt => (
+          {STATUS_VALUES.map(opt => (
             <button
               key={opt.value}
               type="button"
@@ -185,7 +187,7 @@ export function JobFilters({
               }`}
             >
               <span className="text-xs">{opt.emoji}</span>
-              <span>{opt.label}</span>
+              <span>{t(opt.key as any)}</span>
             </button>
           ))}
         </div>
@@ -193,19 +195,19 @@ export function JobFilters({
 
       {/* Location filter */}
       <div>
-        <label className="block text-xs font-medium text-[#98A2B2] mb-2">내 위치</label>
+        <label className="block text-xs font-medium text-[#98A2B2] mb-2">{t('listing.filter.my_location')}</label>
 
         {geoActive ? (
           /* Active location chip */
           <div className="flex items-center gap-2 px-3 py-2 bg-[#E6F0FE] border border-[#0669F7] rounded-lg">
             <span className="text-sm">📍</span>
             <span className="flex-1 text-xs font-medium text-[#0669F7] truncate">
-              {activeLabel || '위치 필터 중'}
+              {activeLabel || t('listing.filter.active_location')}
             </span>
             <button
               type="button"
               onClick={clearGeo}
-              aria-label="위치 필터 제거"
+              aria-label={t('listing.filter.clear_location_aria')}
               className="text-[#0669F7] hover:text-blue-800 font-bold text-sm leading-none"
             >
               ✕
@@ -223,7 +225,7 @@ export function JobFilters({
               ? <span className="inline-block animate-spin text-base">⟳</span>
               : <span className="text-base">📍</span>
             }
-            <span>{geoLoading ? '위치 찾는 중...' : '현재 위치 사용'}</span>
+            <span>{geoLoading ? t('listing.filter.finding_location') : t('listing.filter.use_location')}</span>
           </button>
         )}
 
@@ -251,7 +253,7 @@ export function JobFilters({
         {/* Radius selector — only when geo is active */}
         {geoActive && (
           <div className="mt-2">
-            <p className="text-xs text-[#98A2B2] mb-1.5">반경</p>
+            <p className="text-xs text-[#98A2B2] mb-1.5">{t('listing.filter.radius')}</p>
             <div className="flex gap-1">
               {RADIUS_OPTIONS.map(r => (
                 <button
@@ -278,7 +280,7 @@ export function JobFilters({
           onClick={clearFilters}
           className="text-xs text-[#98A2B2] hover:text-[#25282A] underline text-left transition-colors"
         >
-          필터 초기화
+          {t('listing.filter.reset')}
         </button>
       )}
     </div>

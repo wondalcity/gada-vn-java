@@ -17,9 +17,17 @@ import {
   FacebookAuthProvider,
   signOut as firebaseSignOut,
   onIdTokenChanged,
+  RecaptchaVerifier,
+  signInWithPhoneNumber,
+  type ConfirmationResult,
   type User as FirebaseUser,
 } from 'firebase/auth'
 import { getFirebaseAuth } from './client'
+
+// ─── Phone OTP state (module-level singleton) ─────────────────────────────────
+let _confirmationResult: ConfirmationResult | null = null
+let _recaptchaVerifier: RecaptchaVerifier | null = null
+let _recaptchaContainerId: string | null = null
 
 /**
  * Exchange a Firebase custom token (from our Laravel backend) for a
@@ -44,8 +52,7 @@ export async function signInWithCustomTokenAndGetIdToken(customToken: string): P
 export async function signInWithFacebook(): Promise<{ idToken: string; displayName: string | null; email: string | null }> {
   const auth = getFirebaseAuth()
   const provider = new FacebookAuthProvider()
-  provider.addScope('email')
-  provider.addScope('public_profile')
+  // email and public_profile are default permissions — adding them explicitly causes an error
 
   const result = await signInWithPopup(auth, provider)
   const idToken = await result.user.getIdToken()
@@ -85,4 +92,65 @@ export function subscribeToTokenRefresh(
       onToken(null)
     }
   })
+}
+
+/**
+ * Step 1 of Firebase phone OTP flow.
+ * Creates an invisible reCAPTCHA and triggers Firebase SMS to the given phone.
+ *
+ * @param phone  E.164 phone number, e.g. "+84901234567"
+ * @param containerId  ID of a DOM element to attach the invisible reCAPTCHA widget
+ */
+export async function sendFirebaseOtp(phone: string, containerId: string): Promise<void> {
+  const auth = getFirebaseAuth()
+
+  // Reuse existing verifier only if it's for the same container.
+  // If the container changed (e.g., login → Facebook phone screen), create a fresh one.
+  if (!_recaptchaVerifier || _recaptchaContainerId !== containerId) {
+    if (_recaptchaVerifier) {
+      try { _recaptchaVerifier.clear() } catch { /* ignore */ }
+      _recaptchaVerifier = null
+    }
+    _recaptchaVerifier = new RecaptchaVerifier(auth, containerId, { size: 'invisible' })
+    _recaptchaContainerId = containerId
+  }
+
+  try {
+    _confirmationResult = await signInWithPhoneNumber(auth, phone, _recaptchaVerifier)
+  } catch (err) {
+    // For config/quota/phone-format errors the reCAPTCHA widget is still valid — reuse it.
+    // Only reset when the widget itself is in a bad state (unexpected errors).
+    const code = (err as { code?: string })?.code ?? ''
+    const widgetIsOk = (
+      code === 'auth/operation-not-allowed' ||
+      code === 'auth/invalid-phone-number' ||
+      code === 'auth/too-many-requests' ||
+      code === 'auth/quota-exceeded'
+    )
+    if (!widgetIsOk) {
+      try { _recaptchaVerifier.clear() } catch { /* ignore */ }
+      _recaptchaVerifier = null
+      // Replace DOM node so reCAPTCHA treats it as a fresh container
+      const old = document.getElementById(containerId)
+      if (old?.parentNode) {
+        const fresh = document.createElement('div')
+        fresh.id = containerId
+        old.parentNode.replaceChild(fresh, old)
+      }
+    }
+    throw err
+  }
+}
+
+/**
+ * Step 2 of Firebase phone OTP flow.
+ * Confirms the OTP entered by the user and returns the Firebase ID Token.
+ *
+ * @param otp  6-digit code the user received via SMS
+ * @returns Firebase ID Token string (ready to use as Bearer token)
+ */
+export async function confirmFirebaseOtp(otp: string): Promise<string> {
+  if (!_confirmationResult) throw new Error('OTP not sent — call sendFirebaseOtp first')
+  const credential = await _confirmationResult.confirm(otp)
+  return credential.user.getIdToken()
 }

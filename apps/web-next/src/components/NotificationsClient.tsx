@@ -1,6 +1,7 @@
 'use client'
 
 import * as React from 'react'
+import { useTranslations } from 'next-intl'
 import { getSessionCookie } from '@/lib/auth/session'
 
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'https://api.gada.vn/api/v1'
@@ -15,15 +16,15 @@ interface Notification {
   data?: Record<string, unknown>
 }
 
-function timeAgo(dateStr: string): string {
+function timeAgo(dateStr: string, t: ReturnType<typeof useTranslations<'notifications'>>): string {
   const diff = Date.now() - new Date(dateStr).getTime()
   const m = Math.floor(diff / 60000)
-  if (m < 1) return '방금 전'
-  if (m < 60) return `${m}분 전`
+  if (m < 1) return t('time.just_now')
+  if (m < 60) return t('time.minutes_ago', { n: m })
   const h = Math.floor(m / 60)
-  if (h < 24) return `${h}시간 전`
+  if (h < 24) return t('time.hours_ago', { n: h })
   const d = Math.floor(h / 24)
-  return `${d}일 전`
+  return t('time.days_ago', { n: d })
 }
 
 const TYPE_ICONS: Record<string, string> = {
@@ -80,6 +81,7 @@ const DEMO_NOTIFICATIONS: Notification[] = [
 ]
 
 export default function NotificationsClient() {
+  const t = useTranslations('notifications')
   const idToken = getSessionCookie()
   const [notifications, setNotifications] = React.useState<Notification[]>([])
   const [unreadCount, setUnreadCount] = React.useState(0)
@@ -98,7 +100,7 @@ export default function NotificationsClient() {
       headers: { Authorization: `Bearer ${idToken}` },
     })
       .then(async res => {
-        if (!res.ok) throw new Error('알림을 불러올 수 없습니다')
+        if (!res.ok) throw new Error(t('error_load'))
         return res.json()
       })
       .then(body => {
@@ -169,9 +171,9 @@ export default function NotificationsClient() {
       {/* Header */}
       <div className="px-4 py-5 flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-bold text-[#25282A]">알림</h1>
+          <h1 className="text-xl font-bold text-[#25282A]">{t('title')}</h1>
           {unreadCount > 0 && (
-            <p className="text-xs text-[#98A2B2] mt-0.5">읽지 않은 알림 {unreadCount}개</p>
+            <p className="text-xs text-[#98A2B2] mt-0.5">{t('unread_count', { n: unreadCount })}</p>
           )}
         </div>
         {unreadCount > 0 && (
@@ -181,7 +183,7 @@ export default function NotificationsClient() {
             disabled={markingAll}
             className="text-xs text-[#0669F7] font-medium disabled:opacity-50"
           >
-            {markingAll ? '처리 중...' : '모두 읽음'}
+            {markingAll ? t('marking_all') : t('mark_all_read')}
           </button>
         )}
       </div>
@@ -193,8 +195,8 @@ export default function NotificationsClient() {
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5}
               d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
           </svg>
-          <p className="text-[#25282A] text-sm font-semibold mb-1">알림이 없습니다</p>
-          <p className="text-[#98A2B2] text-xs">새로운 알림이 오면 여기에 표시됩니다</p>
+          <p className="text-[#25282A] text-sm font-semibold mb-1">{t('empty')}</p>
+          <p className="text-[#98A2B2] text-xs">{t('empty_subtitle')}</p>
         </div>
       ) : (
         <div className="divide-y divide-[#EFF1F5]">
@@ -222,7 +224,7 @@ export default function NotificationsClient() {
                   )}
                 </div>
                 <p className="text-xs text-[#98A2B2] mt-0.5 line-clamp-2">{n.body}</p>
-                <p className="text-xs text-[#98A2B2] mt-1">{timeAgo(n.created_at)}</p>
+                <p className="text-xs text-[#98A2B2] mt-1">{timeAgo(n.created_at, t)}</p>
               </div>
             </div>
           ))}

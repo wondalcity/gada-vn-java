@@ -1,7 +1,9 @@
 import { Tabs } from 'expo-router';
 import { Text } from 'react-native';
+import { useTranslation } from 'react-i18next';
 
 export default function ManagerLayout() {
+  const { t } = useTranslation();
   return (
     <Tabs
       screenOptions={{
@@ -15,40 +17,40 @@ export default function ManagerLayout() {
       <Tabs.Screen
         name="index"
         options={{
-          title: '공고 관리',
-          tabBarLabel: '공고',
+          title: t('manager.tab_jobs'),
+          tabBarLabel: t('manager.tab_jobs_label'),
           tabBarIcon: ({ color }) => <Text style={{ color, fontSize: 20 }}>📋</Text>,
         }}
       />
       <Tabs.Screen
         name="sites"
         options={{
-          title: '현장 관리',
-          tabBarLabel: '현장',
+          title: t('manager.tab_sites'),
+          tabBarLabel: t('manager.tab_sites_label'),
           tabBarIcon: ({ color }) => <Text style={{ color, fontSize: 20 }}>🏗️</Text>,
         }}
       />
       <Tabs.Screen
         name="workers"
         options={{
-          title: '채용 관리',
-          tabBarLabel: '채용',
+          title: t('manager.tab_workers'),
+          tabBarLabel: t('manager.tab_workers_label'),
           tabBarIcon: ({ color }) => <Text style={{ color, fontSize: 20 }}>👷</Text>,
         }}
       />
       <Tabs.Screen
         name="contracts"
         options={{
-          title: '계약 관리',
-          tabBarLabel: '계약',
+          title: t('manager.tab_contracts'),
+          tabBarLabel: t('manager.tab_contracts_label'),
           tabBarIcon: ({ color }) => <Text style={{ color, fontSize: 20 }}>📄</Text>,
         }}
       />
       <Tabs.Screen
         name="notifications"
         options={{
-          title: '알림',
-          tabBarLabel: '알림',
+          title: t('manager.tab_notifications'),
+          tabBarLabel: t('manager.tab_notifications'),
           tabBarIcon: ({ color }) => <Text style={{ color, fontSize: 20 }}>🔔</Text>,
         }}
       />
@@ -57,7 +59,7 @@ export default function ManagerLayout() {
         name="profile"
         options={{
           href: null,
-          title: '프로필',
+          title: t('manager.profile_title'),
           headerShown: true,
           tabBarStyle: { display: 'none' },
         }}
@@ -66,7 +68,7 @@ export default function ManagerLayout() {
         name="jobs/[id]"
         options={{
           href: null,
-          title: '공고 상세',
+          title: t('manager.screen_job_detail'),
           headerShown: true,
           tabBarStyle: { display: 'none' },
         }}
@@ -75,7 +77,7 @@ export default function ManagerLayout() {
         name="jobs/[id]/attendance"
         options={{
           href: null,
-          title: '출퇴근 관리',
+          title: t('manager.screen_attendance'),
           headerShown: true,
           tabBarStyle: { display: 'none' },
         }}
@@ -84,7 +86,7 @@ export default function ManagerLayout() {
         name="jobs/create"
         options={{
           href: null,
-          title: '공고 등록',
+          title: t('manager.screen_create_job'),
           headerShown: true,
           tabBarStyle: { display: 'none' },
         }}
@@ -93,7 +95,7 @@ export default function ManagerLayout() {
         name="contracts/[id]"
         options={{
           href: null,
-          title: '계약서',
+          title: t('manager.screen_contract'),
           headerShown: true,
           tabBarStyle: { display: 'none' },
         }}
@@ -102,7 +104,7 @@ export default function ManagerLayout() {
         name="register"
         options={{
           href: null,
-          title: '관리자 등록',
+          title: t('manager.screen_register'),
           headerShown: true,
           tabBarStyle: { display: 'none' },
         }}

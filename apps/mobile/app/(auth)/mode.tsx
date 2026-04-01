@@ -1,8 +1,10 @@
 import { View, Text, TouchableOpacity, StyleSheet, SafeAreaView } from 'react-native';
 import { useRouter } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 import { Colors, Spacing, Radius, Font } from '../../constants/theme';
 
 export default function ModeSelectScreen() {
+  const { t } = useTranslation();
   const router = useRouter();
 
   return (
@@ -12,8 +14,8 @@ export default function ModeSelectScreen() {
           <View style={styles.logoCircle}>
             <Text style={styles.logoText}>G</Text>
           </View>
-          <Text style={styles.title}>어떤 모드로 시작할까요?</Text>
-          <Text style={styles.subtitle}>두 역할을 모두 보유하고 있습니다</Text>
+          <Text style={styles.title}>{t('auth.mode_select_title')}</Text>
+          <Text style={styles.subtitle}>{t('auth.mode_select_subtitle')}</Text>
         </View>
 
         <View style={styles.options}>
@@ -24,8 +26,8 @@ export default function ModeSelectScreen() {
           >
             <Text style={styles.optionIcon}>👷</Text>
             <View style={styles.optionBody}>
-              <Text style={styles.optionTitle}>근로자 모드</Text>
-              <Text style={styles.optionDesc}>일자리를 검색하고 지원합니다</Text>
+              <Text style={styles.optionTitle}>{t('auth.mode_worker')}</Text>
+              <Text style={styles.optionDesc}>{t('auth.mode_worker_desc')}</Text>
             </View>
             <Text style={styles.arrow}>›</Text>
           </TouchableOpacity>
@@ -37,14 +39,14 @@ export default function ModeSelectScreen() {
           >
             <Text style={styles.optionIcon}>🏗️</Text>
             <View style={styles.optionBody}>
-              <Text style={styles.optionTitle}>관리자 모드</Text>
-              <Text style={styles.optionDesc}>일자리를 등록하고 근로자를 고용합니다</Text>
+              <Text style={styles.optionTitle}>{t('auth.mode_manager')}</Text>
+              <Text style={styles.optionDesc}>{t('auth.mode_manager_desc')}</Text>
             </View>
             <Text style={styles.arrow}>›</Text>
           </TouchableOpacity>
         </View>
 
-        <Text style={styles.hint}>프로필에서 언제든 모드를 전환할 수 있습니다</Text>
+        <Text style={styles.hint}>{t('auth.mode_hint')}</Text>
       </View>
     </SafeAreaView>
   );

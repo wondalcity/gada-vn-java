@@ -3,6 +3,7 @@
 import * as React from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
+import { useTranslations } from 'next-intl'
 import { getSessionCookie } from '@/lib/auth/session'
 import ConfirmModal from '@/components/manager/ConfirmModal'
 
@@ -32,18 +33,12 @@ type Phase =
   | 'withdrawing'   // DELETE in progress
   | 'error'         // apply/withdraw error
 
-const ERROR_MESSAGES: Record<string, string> = {
-  ALREADY_APPLIED: '이미 지원한 공고입니다',
-  JOB_FULL: '모집이 완료되었습니다',
-  JOB_NOT_OPEN: '마감된 공고입니다',
-}
-
-const STATUS_LABEL: Record<string, { label: string; className: string }> = {
-  APPLIED:   { label: '검토중',   className: 'bg-yellow-50 text-yellow-700 border-yellow-200' },
-  HIRED:     { label: '합격',     className: 'bg-green-50 text-green-700 border-green-200' },
-  COMPLETED: { label: '계약완료', className: 'bg-blue-50 text-[#0669F7] border-blue-200' },
-  REJECTED:  { label: '불합격',   className: 'bg-red-50 text-[#D81A48] border-red-200' },
-  WITHDRAWN: { label: '취소됨',   className: 'bg-gray-100 text-[#98A2B2] border-[#EFF1F5]' },
+const STATUS_LABEL_CLASSES: Record<string, string> = {
+  APPLIED:   'bg-yellow-50 text-yellow-700 border-yellow-200',
+  HIRED:     'bg-green-50 text-green-700 border-green-200',
+  COMPLETED: 'bg-blue-50 text-[#0669F7] border-blue-200',
+  REJECTED:  'bg-red-50 text-[#D81A48] border-red-200',
+  WITHDRAWN: 'bg-gray-100 text-[#98A2B2] border-[#EFF1F5]',
 }
 
 export default function ApplyButton({
@@ -55,6 +50,7 @@ export default function ApplyButton({
   // isLoggedIn is determined server-side and passed as prop to avoid
   // hydration mismatch (getSessionCookie() returns null during SSR).
   // Actual token is read inside event handlers where document is available.
+  const t = useTranslations('jobs')
   const router = useRouter()
 
   const [phase, setPhase] = React.useState<Phase>(initialApplicationId ? 'applied' : 'idle')
@@ -95,10 +91,14 @@ export default function ApplyButton({
       }
       const body = await res.json()
       const code = body.code ?? body.error ?? ''
-      setErrorMsg(ERROR_MESSAGES[code] ?? body.message ?? '지원 중 오류가 발생했습니다')
+      const errorKey = code === 'ALREADY_APPLIED' ? 'apply_btn.error.already_applied'
+        : code === 'JOB_FULL' ? 'apply_btn.error.job_full'
+        : code === 'JOB_NOT_OPEN' ? 'apply_btn.error.job_not_open'
+        : null
+      setErrorMsg(errorKey ? t(errorKey as any) : (body.message ?? t('apply_btn.error.apply_generic')))
       setPhase('error')
     } catch {
-      setErrorMsg('지원 중 오류가 발생했습니다')
+      setErrorMsg(t('apply_btn.error.apply_generic'))
       setPhase('error')
     }
   }
@@ -145,10 +145,10 @@ export default function ApplyButton({
         return
       }
       const body = await res.json().catch(() => ({}))
-      setErrorMsg(body.message ?? '취소 중 오류가 발생했습니다')
+      setErrorMsg(body.message ?? t('apply_btn.error.cancel_generic'))
       setPhase('applied')
     } catch {
-      setErrorMsg('취소 중 오류가 발생했습니다')
+      setErrorMsg(t('apply_btn.error.cancel_generic'))
       setPhase('applied')
     }
   }
@@ -157,7 +157,17 @@ export default function ApplyButton({
   // Render helpers
   // ════════════════════════════════════════════════════════════════
 
-  const statusBadge = appStatus ? STATUS_LABEL[appStatus] : null
+  const statusBadgeClass = appStatus ? STATUS_LABEL_CLASSES[appStatus] : null
+  const statusBadgeLabel = appStatus ? (() => {
+    switch (appStatus) {
+      case 'APPLIED':   return t('apply_btn.status.applied')
+      case 'HIRED':     return t('apply_btn.status.hired')
+      case 'COMPLETED': return t('apply_btn.status.completed')
+      case 'REJECTED':  return t('apply_btn.status.rejected')
+      case 'WITHDRAWN': return t('apply_btn.status.withdrawn')
+      default:          return appStatus
+    }
+  })() : null
 
   // Sticky bar: sits ABOVE the tab bar using CSS variable, falls back to bottom:0 on public pages
   const stickyClass = 'fixed left-0 right-0 p-4 bg-white border-t border-[#EFF1F5] shadow-lg z-40'
@@ -171,13 +181,13 @@ export default function ApplyButton({
     if (phase === 'editing_note' || phase === 'saving_note') {
       return (
         <div className={base} style={sticky ? stickyStyle : baseStyle}>
-          <p className="text-xs text-[#98A2B2] mb-1.5 font-medium">관리자에게 메시지 수정</p>
+          <p className="text-xs text-[#98A2B2] mb-1.5 font-medium">{t('apply_btn.note_edit_section')}</p>
           <textarea
             value={draftNote}
             onChange={e => setDraftNote(e.target.value)}
             rows={3}
             maxLength={200}
-            placeholder="간단한 자기소개나 경력을 적어보세요 (선택사항)"
+            placeholder={t('apply_btn.note_placeholder')}
             className="w-full text-sm border border-[#EFF1F5] rounded-2xl px-3 py-2 resize-none focus:outline-none focus:ring-2 focus:ring-[#0669F7]/30 mb-4"
           />
           <div className="flex gap-3">
@@ -186,7 +196,7 @@ export default function ApplyButton({
               onClick={() => { setDraftNote(note); setPhase('applied') }}
               className="flex-1 h-14 rounded-2xl bg-[#EFF1F5] text-[#25282A] text-sm font-bold"
             >
-              취소
+              {t('apply_btn.cancel')}
             </button>
             <button
               type="button"
@@ -194,7 +204,7 @@ export default function ApplyButton({
               disabled={phase === 'saving_note'}
               className="flex-1 h-14 rounded-2xl bg-[#0669F7] text-white text-sm font-bold disabled:opacity-50"
             >
-              {phase === 'saving_note' ? '저장 중...' : '저장'}
+              {phase === 'saving_note' ? t('apply_btn.saving') : t('apply_btn.save')}
             </button>
           </div>
         </div>
@@ -209,11 +219,11 @@ export default function ApplyButton({
             <svg className="w-4 h-4 text-green-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
-            <span className="text-sm font-bold text-[#25282A]">신청완료됨</span>
+            <span className="text-sm font-bold text-[#25282A]">{t('apply_btn.applied_title')}</span>
           </div>
-          {statusBadge && (
-            <span className={`text-xs font-bold px-2.5 py-1 rounded-full border ${statusBadge.className}`}>
-              {statusBadge.label}
+          {statusBadgeClass && statusBadgeLabel && (
+            <span className={`text-xs font-bold px-2.5 py-1 rounded-full border ${statusBadgeClass}`}>
+              {statusBadgeLabel}
             </span>
           )}
         </div>
@@ -240,7 +250,7 @@ export default function ApplyButton({
             href={`/${locale}/worker/applications`}
             className="text-center h-14 flex items-center justify-center rounded-2xl bg-[#E6F0FE] text-[#0669F7] text-sm font-bold hover:bg-[#D6E8FE] transition-colors"
           >
-            지원 현황 보기
+            {t('apply_btn.view_applications')}
           </Link>
 
           {canWithdraw && (
@@ -251,7 +261,7 @@ export default function ApplyButton({
                 disabled={phase === 'withdrawing'}
                 className={`flex-1 rounded-2xl bg-[#FDE8EE] text-[#D81A48] text-sm font-bold hover:bg-[#FCD0DC] transition-colors disabled:opacity-40 ${sticky ? 'h-14' : 'h-11'}`}
               >
-                {phase === 'withdrawing' ? '취소 중...' : '지원 취소'}
+                {phase === 'withdrawing' ? t('apply_btn.withdrawing') : t('apply_btn.withdraw')}
               </button>
 
               {!note && (
@@ -260,7 +270,7 @@ export default function ApplyButton({
                   onClick={() => setPhase('editing_note')}
                   className={`flex-1 rounded-2xl bg-[#EFF1F5] text-[#98A2B2] text-sm font-bold hover:bg-[#E4E8EE] transition-colors ${sticky ? 'h-14' : 'h-11'}`}
                 >
-                  + 메시지 추가
+                  {t('apply_btn.add_message')}
                 </button>
               )}
             </div>
@@ -281,13 +291,13 @@ export default function ApplyButton({
     if (phase === 'confirming') {
       return (
         <div className={base} style={sticky ? stickyStyle : baseStyle}>
-          <p className="text-xs text-[#98A2B2] font-medium">관리자에게 메시지 (선택사항)</p>
+          <p className="text-xs text-[#98A2B2] font-medium">{t('apply_btn.note_section')}</p>
           <textarea
             value={note}
             onChange={e => setNote(e.target.value)}
             rows={3}
             maxLength={200}
-            placeholder="간단한 자기소개나 경력을 적어보세요"
+            placeholder={t('apply_btn.note_placeholder')}
             className="w-full text-sm border border-[#EFF1F5] rounded-2xl px-3 py-3 resize-none focus:outline-none focus:ring-2 focus:ring-[#0669F7]/30"
           />
           <div className="flex gap-3">
@@ -296,14 +306,14 @@ export default function ApplyButton({
               onClick={() => setPhase('idle')}
               className="flex-1 h-14 rounded-2xl bg-[#EFF1F5] text-[#25282A] text-sm font-bold"
             >
-              취소
+              {t('apply_btn.cancel')}
             </button>
             <button
               type="button"
               onClick={handleApply}
               className="flex-1 h-14 rounded-2xl bg-[#0669F7] text-white text-sm font-bold"
             >
-              신청하기
+              {t('apply_btn.confirm')}
             </button>
           </div>
         </div>
@@ -324,7 +334,7 @@ export default function ApplyButton({
               <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
             </svg>
           )}
-          지원하기
+          {t('apply_btn.apply')}
         </button>
         {phase === 'error' && <p className={`text-sm text-[#D81A48] ${sticky ? 'text-center mt-2' : ''}`}>{errorMsg}</p>}
       </div>
@@ -342,7 +352,7 @@ export default function ApplyButton({
           onClick={() => router.push(`/${locale}/login?redirect=/${locale}/jobs/${slug}`)}
           className="h-12 px-5 rounded-2xl bg-[#0669F7] text-white font-bold text-sm whitespace-nowrap"
         >
-          로그인 후 지원하기
+          {t('apply_btn.login_required')}
         </button>
       )
     }
@@ -351,7 +361,7 @@ export default function ApplyButton({
         <button type="button" disabled
           className="h-12 px-5 rounded-2xl bg-[#0669F7] text-white font-bold text-sm disabled:opacity-40 whitespace-nowrap"
         >
-          {isExpired ? '지원 마감' : '마감'}
+          {isExpired ? t('apply_btn.deadline_expired') : t('card.status.filled')}
         </button>
       )
     }
@@ -363,7 +373,7 @@ export default function ApplyButton({
             onClick={() => router.push(`/${locale}/worker/applications`)}
             className="h-12 px-5 rounded-2xl bg-[#E6F0FE] text-[#0669F7] font-bold text-sm whitespace-nowrap"
           >
-            지원 현황
+            {t('apply_btn.applications_status')}
           </button>
           <ConfirmModal
             isOpen={showWithdrawConfirm}
@@ -393,7 +403,7 @@ export default function ApplyButton({
               <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
             </svg>
           )}
-          지원하기
+          {t('apply_btn.apply')}
         </button>
 
         {/* Confirming bottom sheet (mobile inline mode) */}
@@ -402,14 +412,14 @@ export default function ApplyButton({
             <div className="absolute inset-0 bg-black/40" onClick={() => setPhase('idle')} />
             <div className="relative bg-white rounded-t-3xl p-6 flex flex-col gap-4 animate-slide-up">
               <div className="w-10 h-1 rounded-full bg-[#D0D4DB] mx-auto -mt-1 mb-1" />
-              <p className="text-[15px] font-bold text-[#25282A]">지원 확인</p>
-              <p className="text-xs text-[#98A2B2] -mt-1 font-medium">관리자에게 메시지 (선택사항)</p>
+              <p className="text-[15px] font-bold text-[#25282A]">{t('apply_btn.confirm_title')}</p>
+              <p className="text-xs text-[#98A2B2] -mt-1 font-medium">{t('apply_btn.note_section')}</p>
               <textarea
                 value={note}
                 onChange={e => setNote(e.target.value)}
                 rows={3}
                 maxLength={200}
-                placeholder="간단한 자기소개나 경력을 적어보세요"
+                placeholder={t('apply_btn.note_placeholder')}
                 className="w-full text-sm border border-[#EFF1F5] rounded-2xl px-3 py-3 resize-none focus:outline-none focus:ring-2 focus:ring-[#0669F7]/30"
               />
               <div className="flex gap-3">
@@ -418,21 +428,21 @@ export default function ApplyButton({
                   onClick={() => setPhase('idle')}
                   className="flex-1 h-14 rounded-2xl bg-[#EFF1F5] text-[#25282A] text-sm font-bold"
                 >
-                  취소
+                  {t('apply_btn.cancel')}
                 </button>
                 <button
                   type="button"
                   onClick={handleApply}
                   className="flex-1 h-14 rounded-2xl bg-[#0669F7] text-white text-sm font-bold"
                 >
-                  신청하기
+                  {t('apply_btn.confirm')}
                 </button>
               </div>
-              {phase === 'error' && <p className="text-sm text-[#D81A48] text-center">{errorMsg}</p>}
               <div style={{ height: 'env(safe-area-inset-bottom, 0px)' }} />
             </div>
           </div>
         )}
+        {phase === 'error' && <p className="text-sm text-[#D81A48] text-center mt-2">{errorMsg}</p>}
       </>
     )
   }
@@ -451,7 +461,7 @@ export default function ApplyButton({
           onClick={() => router.push(`/${locale}/login?redirect=/${locale}/jobs/${slug}`)}
           className={`${sticky ? 'w-full' : ''} h-14 px-5 rounded-2xl bg-[#0669F7] text-white font-bold text-sm`}
         >
-          로그인 후 지원하기
+          {t('apply_btn.login_required')}
         </button>
       </div>
     )
@@ -470,7 +480,7 @@ export default function ApplyButton({
         <button type="button" disabled
           className={`${sticky ? 'w-full' : ''} h-14 px-5 rounded-2xl bg-[#0669F7] text-white font-bold text-sm disabled:opacity-40`}
         >
-          {isExpired ? '지원 마감' : '마감된 공고입니다'}
+          {isExpired ? t('apply_btn.deadline_expired') : t('apply_btn.job_closed')}
         </button>
       </div>
     )
@@ -487,9 +497,9 @@ export default function ApplyButton({
         <div className="md:hidden">{renderAppliedPanel(true)}</div>
         <ConfirmModal
           isOpen={showWithdrawConfirm}
-          title="지원 취소"
-          message="지원을 취소하시겠습니까? 취소 후에는 다시 지원할 수 있습니다."
-          confirmLabel="취소하기"
+          title={t('apply_btn.withdraw_modal.title')}
+          message={t('apply_btn.withdraw_modal.message')}
+          confirmLabel={t('apply_btn.withdraw_modal.confirm')}
           confirmVariant="danger"
           onConfirm={() => { setShowWithdrawConfirm(false); handleWithdraw() }}
           onCancel={() => setShowWithdrawConfirm(false)}

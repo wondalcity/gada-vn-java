@@ -5,6 +5,7 @@ import {
 } from 'react-native';
 import { api } from '../../lib/api-client';
 import { Colors, Spacing, Radius, Font } from '../../constants/theme';
+import { useTranslation } from 'react-i18next';
 
 type AttendanceStatus = 'PRESENT' | 'ABSENT' | 'PENDING';
 
@@ -20,11 +21,8 @@ interface AttendanceRecord {
   dailyWage: number;
 }
 
-const STATUS_CONFIG: Record<AttendanceStatus, { label: string; bg: string; text: string }> = {
-  PRESENT: { label: '출근완료', bg: Colors.successContainer, text: Colors.onSuccessContainer },
-  ABSENT:  { label: '결근',     bg: Colors.errorContainer,   text: Colors.onErrorContainer },
-  PENDING: { label: '예정',     bg: Colors.primaryContainer,  text: Colors.primary },
-};
+// STATUS_CONFIG is built inside the component to use t()
+
 
 function formatDate(d: string) {
   const date = new Date(d);
@@ -37,10 +35,17 @@ function formatWage(n: number) {
 }
 
 export default function WorkerAttendanceScreen() {
+  const { t } = useTranslation();
   const [records, setRecords] = useState<AttendanceRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [checkingIn, setCheckingIn] = useState(false);
+
+  const STATUS_CONFIG: Record<AttendanceStatus, { label: string; bg: string; text: string }> = {
+    PRESENT: { label: t('attendance.status_present'), bg: Colors.successContainer, text: Colors.onSuccessContainer },
+    ABSENT:  { label: t('attendance.status_absent'),  bg: Colors.errorContainer,   text: Colors.onErrorContainer },
+    PENDING: { label: t('attendance.status_pending'), bg: Colors.primaryContainer,  text: Colors.primary },
+  };
 
   const loadRecords = useCallback(async () => {
     try {
@@ -62,23 +67,23 @@ export default function WorkerAttendanceScreen() {
       await api.post(`/attendance/${recordId}/check-in`);
       await loadRecords();
     } catch {
-      Alert.alert('오류', '출근 처리에 실패했습니다.');
+      Alert.alert(t('common.error'), t('attendance.check_in_fail'));
     } finally {
       setCheckingIn(false);
     }
   }
 
   async function handleCheckOut(recordId: string) {
-    Alert.alert('퇴근', '퇴근 처리를 하시겠습니까?', [
-      { text: '취소', style: 'cancel' },
+    Alert.alert(t('attendance.check_out_confirm_title'), t('attendance.check_out_confirm_body'), [
+      { text: t('common.cancel'), style: 'cancel' },
       {
-        text: '퇴근', onPress: async () => {
+        text: t('attendance.check_out'), onPress: async () => {
           setCheckingIn(true);
           try {
             await api.post(`/attendance/${recordId}/check-out`);
             await loadRecords();
           } catch {
-            Alert.alert('오류', '퇴근 처리에 실패했습니다.');
+            Alert.alert(t('common.error'), t('attendance.check_out_fail'));
           } finally {
             setCheckingIn(false);
           }
@@ -103,7 +108,7 @@ export default function WorkerAttendanceScreen() {
       {/* Today's check-in/out card */}
       {todayRecord && (
         <View style={styles.todayCard}>
-          <Text style={styles.todayTitle}>오늘 근무</Text>
+          <Text style={styles.todayTitle}>{t('attendance.today')}</Text>
           <Text style={styles.todayJob} numberOfLines={1}>{todayRecord.jobTitle}</Text>
           <Text style={styles.todaySite}>{todayRecord.siteName}</Text>
           <View style={styles.todayActions}>
@@ -113,12 +118,12 @@ export default function WorkerAttendanceScreen() {
                 onPress={() => handleCheckIn(todayRecord.id)}
                 disabled={checkingIn}
               >
-                <Text style={styles.checkBtnText}>출근</Text>
+                <Text style={styles.checkBtnText}>{t('attendance.check_in')}</Text>
               </TouchableOpacity>
             ) : !todayRecord.checkOutTime ? (
               <>
                 <View style={styles.timeInfo}>
-                  <Text style={styles.timeLabel}>출근</Text>
+                  <Text style={styles.timeLabel}>{t('attendance.check_in')}</Text>
                   <Text style={styles.timeValue}>{todayRecord.checkInTime}</Text>
                 </View>
                 <TouchableOpacity
@@ -126,22 +131,22 @@ export default function WorkerAttendanceScreen() {
                   onPress={() => handleCheckOut(todayRecord.id)}
                   disabled={checkingIn}
                 >
-                  <Text style={styles.checkBtnText}>퇴근</Text>
+                  <Text style={styles.checkBtnText}>{t('attendance.check_out')}</Text>
                 </TouchableOpacity>
               </>
             ) : (
               <View style={styles.doneRow}>
                 <View style={styles.timeInfo}>
-                  <Text style={styles.timeLabel}>출근</Text>
+                  <Text style={styles.timeLabel}>{t('attendance.check_in')}</Text>
                   <Text style={styles.timeValue}>{todayRecord.checkInTime}</Text>
                 </View>
                 <Text style={styles.timeSep}>→</Text>
                 <View style={styles.timeInfo}>
-                  <Text style={styles.timeLabel}>퇴근</Text>
+                  <Text style={styles.timeLabel}>{t('attendance.check_out')}</Text>
                   <Text style={styles.timeValue}>{todayRecord.checkOutTime}</Text>
                 </View>
                 {todayRecord.hoursWorked != null && (
-                  <Text style={styles.hoursText}>{todayRecord.hoursWorked}시간</Text>
+                  <Text style={styles.hoursText}>{t('attendance.hours', { hours: todayRecord.hoursWorked })}</Text>
                 )}
               </View>
             )}
@@ -160,11 +165,11 @@ export default function WorkerAttendanceScreen() {
           />
         }
         contentContainerStyle={styles.list}
-        ListHeaderComponent={<Text style={styles.sectionTitle}>출퇴근 내역</Text>}
+        ListHeaderComponent={<Text style={styles.sectionTitle}>{t('attendance.title')}</Text>}
         ListEmptyComponent={
           <View style={styles.empty}>
             <Text style={styles.emptyIcon}>⏱️</Text>
-            <Text style={styles.emptyText}>출퇴근 내역이 없습니다</Text>
+            <Text style={styles.emptyText}>{t('attendance.no_records')}</Text>
           </View>
         }
         renderItem={({ item }) => {
@@ -185,11 +190,11 @@ export default function WorkerAttendanceScreen() {
                 <Text style={styles.metaText}>📅 {formatDate(item.workDate)}</Text>
                 {item.checkInTime && (
                   <Text style={styles.metaText}>
-                    {item.checkInTime}{item.checkOutTime ? ` ~ ${item.checkOutTime}` : ' 출근'}
+                    {item.checkInTime}{item.checkOutTime ? ` ~ ${item.checkOutTime}` : ` ${t('attendance.check_in')}`}
                   </Text>
                 )}
                 {item.hoursWorked != null && (
-                  <Text style={styles.hoursChip}>{item.hoursWorked}시간</Text>
+                  <Text style={styles.hoursChip}>{t('attendance.hours', { hours: item.hoursWorked })}</Text>
                 )}
                 <Text style={styles.wageText}>{formatWage(item.dailyWage)}</Text>
               </View>

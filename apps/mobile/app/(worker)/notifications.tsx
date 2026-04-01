@@ -4,6 +4,7 @@ import {
   StyleSheet, RefreshControl, ActivityIndicator,
 } from 'react-native';
 import { api } from '../../lib/api-client';
+import { useTranslation } from 'react-i18next';
 
 interface Notification {
   id: string;
@@ -23,6 +24,7 @@ const TYPE_ICONS: Record<string, string> = {
 };
 
 export default function WorkerNotifications() {
+  const { t } = useTranslation();
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(true);
   const [unreadCount, setUnreadCount] = useState(0);
@@ -76,18 +78,18 @@ export default function WorkerNotifications() {
       ListHeaderComponent={
         <View style={styles.header}>
           <Text style={styles.headerTitle}>
-            알림 {unreadCount > 0 && <Text style={styles.badge}>({unreadCount})</Text>}
+            {t('notifications.title')} {unreadCount > 0 && <Text style={styles.badge}>({unreadCount})</Text>}
           </Text>
           {unreadCount > 0 && (
             <TouchableOpacity onPress={markAllRead}>
-              <Text style={styles.markAll}>모두 읽음</Text>
+              <Text style={styles.markAll}>{t('common.mark_all_read')}</Text>
             </TouchableOpacity>
           )}
         </View>
       }
       ListEmptyComponent={
         <View style={styles.empty}>
-          <Text style={styles.emptyText}>알림이 없습니다</Text>
+          <Text style={styles.emptyText}>{t('common.no_notifications')}</Text>
         </View>
       }
       renderItem={({ item }) => (

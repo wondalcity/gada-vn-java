@@ -1,24 +1,64 @@
 {
   "listing": {
     "meta": {
-      "title": "Construction Jobs in Vietnam | GADA VN",
-      "description": "Browse construction site jobs across Vietnam."
+      "title": "Construction Job Listings | GADA VN",
+      "description": "Browse construction site jobs across Vietnam. Filter by trade and region."
     },
-    "heading": "Construction Jobs",
+    "heading": "Construction Job Listings",
+    "breadcrumb_home": "Home",
+    "breadcrumb_jobs": "Job Listings",
+    "search_placeholder": "Search by job title or site name...",
+    "all_provinces": "All Provinces",
+    "all_trades": "All Trades",
+    "select_province": "Select Province",
+    "select_trade": "Select Trade",
+    "search_button": "Search",
+    "search_aria": "Search",
+    "search_close": "Close",
+    "no_results": "No results",
+    "searching": "Searching...",
     "filter": {
       "province": "Province",
       "trade": "Trade",
       "date": "Date",
       "all_provinces": "All Provinces",
       "all_trades": "All Trades",
-      "reset": "Reset Filters"
+      "status": "Recruitment Status",
+      "my_location": "My Location",
+      "use_location": "Use Current Location",
+      "finding_location": "Finding location...",
+      "radius": "Radius",
+      "reset": "Reset Filters",
+      "status_open": "Open",
+      "status_closing_soon": "Closing Soon",
+      "status_closed": "Closed",
+      "geo_error_unsupported": "This browser does not support location features.",
+      "geo_error_denied": "Location permission was denied.",
+      "active_location": "Location filter active",
+      "clear_location_aria": "Clear location filter"
     },
     "sort": {
       "latest": "Latest",
       "wage_high": "Highest Wage"
     },
     "empty": "No jobs match your search criteria.",
+    "empty_search": "No results found for \"{q}\".",
+    "empty_geo": "No matching jobs nearby. Try expanding the radius.",
     "count": "{count} jobs"
+  },
+  "card": {
+    "status": {
+      "open": "Open",
+      "filled": "Filled",
+      "cancelled": "Cancelled",
+      "completed": "Completed"
+    },
+    "closing_soon": "Closing Soon",
+    "per_day": "/ day",
+    "headcount": "Openings",
+    "slots_left": "{n} left",
+    "deadline": "Filled",
+    "other": "Other"
   },
   "detail": {
     "meta": {
@@ -32,7 +72,51 @@
     "trade": "Trade",
     "requirements": "Requirements",
     "benefits": "Benefits",
-    "site": "Site Information"
+    "site": "Site Information",
+    "status": {
+      "open": "Open",
+      "filled": "Filled",
+      "cancelled": "Cancelled",
+      "completed": "Completed"
+    },
+    "work_date": "Work Date",
+    "work_hours": "Work Hours",
+    "slots_section": "Positions",
+    "apply_deadline": "Application Deadline",
+    "benefits_section": "Benefits",
+    "description_section": "Job Description",
+    "requirements_section": "Requirements",
+    "site_section": "Work Site",
+    "per_day_label": "/ day",
+    "daily_wage_label": "Daily Wage",
+    "view_all_photos": "View All Photos",
+    "view_map": "View on Map →",
+    "show_more": "Show More →",
+    "show_less": "Show Less",
+    "benefit_meal": "Meals Provided",
+    "benefit_meal_desc": "Meals are provided at the work site",
+    "benefit_transport": "Transport Allowance",
+    "benefit_transport_desc": "Commuting costs are covered",
+    "benefit_accommodation": "Accommodation",
+    "benefit_accommodation_desc": "Accommodation near the work site is provided",
+    "benefit_insurance": "Workers' Insurance",
+    "benefit_insurance_desc": "Industrial accident insurance is provided",
+    "slots_left_n": "{n} spots left",
+    "slots_filled_of": "{filled} applied / {total} total",
+    "slots_left_booking": "{n} spots left",
+    "deadline_sub": "Applications are not accepted after the deadline",
+    "min_experience": "Minimum Experience",
+    "experience_months": "Over {months} month(s)",
+    "experience_years": "Over {years} year(s)",
+    "experience_years_months": "Over {years} year(s) {months} month(s)",
+    "trust_signal": "Manager will review your application",
+    "booking_headcount": "Openings",
+    "booking_work_date": "Work Date",
+    "booking_work_hours": "Work Hours",
+    "related_jobs": "More Jobs in Same Trade",
+    "view_site": "View Site Info →",
+    "other_province_jobs": "📍 More jobs in {province} →",
+    "back_to_list": "Job Listings"
   },
   "province": {
     "meta": {
@@ -46,5 +130,46 @@
     "already_applied": "You have already applied for this job.",
     "job_closed": "This job is no longer accepting applications.",
     "login_required": "Please log in to apply."
+  },
+  "apply_btn": {
+    "apply": "Apply Now",
+    "confirm": "Submit Application",
+    "cancel": "Cancel",
+    "save": "Save",
+    "saving": "Saving...",
+    "withdraw": "Withdraw",
+    "withdrawing": "Withdrawing...",
+    "login_required": "Log in to Apply",
+    "deadline_expired": "Application Closed",
+    "job_closed": "Job Closed",
+    "applied_title": "Application Submitted",
+    "view_applications": "View Applications",
+    "applications_status": "Applications",
+    "add_message": "+ Add Message",
+    "edit_message": "Edit",
+    "note_section": "Message to Manager (optional)",
+    "note_edit_section": "Edit Message to Manager",
+    "note_placeholder": "Brief introduction or relevant experience",
+    "confirm_title": "Confirm Application",
+    "status": {
+      "applied": "Under Review",
+      "hired": "Accepted",
+      "completed": "Contracted",
+      "rejected": "Not Selected",
+      "withdrawn": "Withdrawn"
+    },
+    "error": {
+      "already_applied": "You have already applied",
+      "job_full": "All positions have been filled",
+      "job_not_open": "This job is no longer open",
+      "apply_generic": "An error occurred while applying",
+      "cancel_generic": "An error occurred while withdrawing"
+    },
+    "withdraw_modal": {
+      "title": "Withdraw Application",
+      "message": "Are you sure you want to withdraw? You can reapply after withdrawing.",
+      "confirm": "Withdraw",
+      "cancel": "Go Back"
+    }
   }
 }

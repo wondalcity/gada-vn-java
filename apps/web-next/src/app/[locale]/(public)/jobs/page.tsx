@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import { Suspense } from 'react'
+import { getTranslations } from 'next-intl/server'
 import { fetchPublicJobs, fetchProvinces, fetchTrades } from '@/lib/api/public'
 import { Breadcrumb } from '@/components/public/Breadcrumb'
 import { WorkerJobsClient } from '@/components/jobs/WorkerJobsClient'
@@ -23,12 +24,13 @@ export const revalidate = 60
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { locale } = await params
+  const t = await getTranslations({ locale, namespace: 'jobs' })
   return {
-    title: '건설 일자리 목록 | GADA VN',
-    description: '베트남 전역 건설 현장 일용직 공고를 한 곳에서 확인하세요. 직종별, 지역별 필터 검색 지원.',
+    title: t('listing.meta.title'),
+    description: t('listing.meta.description'),
     openGraph: {
-      title: '건설 일자리 목록 | GADA VN',
-      description: '베트남 전역 건설 현장 일용직 공고를 한 곳에서 확인하세요.',
+      title: t('listing.meta.title'),
+      description: t('listing.meta.description'),
       type: 'website',
       locale: locale === 'ko' ? 'ko_KR' : locale === 'vi' ? 'vi_VN' : 'en_US',
     },
@@ -45,6 +47,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function JobsPage({ params, searchParams }: Props) {
   const { locale } = await params
+  const t = await getTranslations({ locale, namespace: 'jobs' })
   const { q, province, trade, page: pageStr, lat, lng, radius, status, view } = await searchParams
 
   const page = Math.max(1, Number(pageStr ?? 1))
@@ -83,7 +86,7 @@ export default async function JobsPage({ params, searchParams }: Props) {
   const jsonLd = {
     '@context': 'https://schema.org',
     '@type': 'ItemList',
-    name: '건설 일자리 목록',
+    name: t('listing.heading'),
     itemListElement: jobs.map((job, i) => ({
       '@type': 'ListItem',
       position: i + 1,
@@ -94,10 +97,10 @@ export default async function JobsPage({ params, searchParams }: Props) {
 
   const geoActive = selectedLat != null && selectedLng != null
   const emptyMessage = q
-    ? `"${q}" 검색 결과가 없습니다.`
+    ? t('listing.empty_search', { q })
     : geoActive
-    ? '주변에 조건에 맞는 공고가 없습니다. 반경을 넓혀보세요.'
-    : '조건에 맞는 공고가 없습니다.'
+    ? t('listing.empty_geo')
+    : t('listing.empty')
 
   const activeFilterCount = [q, province, trade, geoActive ? 'geo' : null, status].filter(Boolean).length
 
@@ -111,12 +114,12 @@ export default async function JobsPage({ params, searchParams }: Props) {
       <div className="max-w-[1760px] mx-auto px-4 sm:px-6 xl:px-20 pt-6">
         <Breadcrumb
           items={[
-            { label: '홈', href: '/' },
-            { label: '공고 목록' },
+            { label: t('listing.breadcrumb_home'), href: '/' },
+            { label: t('listing.breadcrumb_jobs') },
           ]}
         />
         <div className="mb-4">
-          <h1 className="text-3xl font-bold text-[#25282A]">건설 일자리 공고</h1>
+          <h1 className="text-3xl font-bold text-[#25282A]">{t('listing.heading')}</h1>
         </div>
       </div>
 

@@ -3,6 +3,7 @@
 import * as React from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import { useTranslations } from 'next-intl'
 import { getSessionCookie } from '@/lib/auth/session'
 import { apiClient } from '@/lib/api/client'
 import type { Job, JobStatus } from '@/types/manager-site-job'
@@ -52,6 +53,7 @@ const DEMO_JOBS: Record<string, Job> = {
 }
 
 export default function JobDetailClient({ jobId, locale }: JobDetailClientProps) {
+  const t = useTranslations('common')
   const router = useRouter()
   const idToken = getSessionCookie()
   const [job, setJob] = React.useState<Job | null>(null)
@@ -74,7 +76,7 @@ export default function JobDetailClient({ jobId, locale }: JobDetailClientProps)
     if (!idToken) { setIsLoading(false); return }
     apiClient<Job>(`/manager/jobs/${jobId}`, { token: idToken })
       .then((res) => setJob(res.data))
-      .catch((e) => setError(e instanceof Error ? e.message : '불러오기 실패'))
+      .catch((e) => setError(e instanceof Error ? e.message : t('manager_job_detail.load_error')))
       .finally(() => setIsLoading(false))
   }, [jobId, idToken])
 
@@ -89,7 +91,7 @@ export default function JobDetailClient({ jobId, locale }: JobDetailClientProps)
       })
       setJob((prev) => prev ? { ...prev, status: newStatus } : prev)
     } catch (e) {
-      alert(e instanceof Error ? e.message : '상태 변경 실패')
+      alert(e instanceof Error ? e.message : t('manager_job_detail.status_change_error'))
     } finally {
       setIsActioning(false)
     }
@@ -106,7 +108,7 @@ export default function JobDetailClient({ jobId, locale }: JobDetailClientProps)
       })
       router.push(`/${locale}/manager/sites/${job?.siteId}`)
     } catch (e) {
-      alert(e instanceof Error ? e.message : '삭제 실패')
+      alert(e instanceof Error ? e.message : t('manager_job_detail.delete_error'))
     } finally {
       setIsActioning(false)
       setShowDeleteModal(false)
@@ -128,18 +130,18 @@ export default function JobDetailClient({ jobId, locale }: JobDetailClientProps)
   const allImages = job.imageUrls ?? []
   const fillPercent = job.slotsTotal > 0 ? Math.round((job.slotsFilled / job.slotsTotal) * 100) : 0
   const benefits = [
-    { key: 'meals' as const, label: '식사 제공', emoji: '🍚' },
-    { key: 'transport' as const, label: '교통비 지원', emoji: '🚌' },
-    { key: 'accommodation' as const, label: '숙박 제공', emoji: '🏠' },
-    { key: 'insurance' as const, label: '산재보험', emoji: '🛡️' },
+    { key: 'meals' as const, label: t('manager_job_detail.benefit_meals'), emoji: '🍚' },
+    { key: 'transport' as const, label: t('manager_job_detail.benefit_transport'), emoji: '🚌' },
+    { key: 'accommodation' as const, label: t('manager_job_detail.benefit_accommodation'), emoji: '🏠' },
+    { key: 'insurance' as const, label: t('manager_job_detail.benefit_insurance'), emoji: '🛡️' },
   ]
 
   return (
     <>
       {isDemo && (
         <div className="mb-4 flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-amber-50 border border-amber-200 text-sm text-amber-700">
-          <span className="font-semibold">데모 데이터</span>
-          <span className="text-amber-600">— API 연결 후 실제 데이터가 표시됩니다</span>
+          <span className="font-semibold">{t('manager_job_detail.demo_notice')}</span>
+          <span className="text-amber-600">{t('manager_job_detail.demo_notice_sub')}</span>
         </div>
       )}
       {/* Header */}
@@ -165,7 +167,7 @@ export default function JobDetailClient({ jobId, locale }: JobDetailClientProps)
               onClick={() => setLightboxIdx(idx)}
               className="flex-none w-28 h-28 rounded-2xl overflow-hidden border border-[#EFF1F5]"
             >
-              <img src={url} alt={`일자리 이미지 ${idx + 1}`} className="w-full h-full object-cover" />
+              <img src={url} alt={t('manager_job_detail.image_alt', { n: idx + 1 })} className="w-full h-full object-cover" />
             </button>
           ))}
         </div>
@@ -175,32 +177,32 @@ export default function JobDetailClient({ jobId, locale }: JobDetailClientProps)
       <div className="bg-white rounded-2xl shadow-sm border border-[#EFF1F5] p-5 mb-4">
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
           <div>
-            <p className="text-[#98A2B2] text-xs mb-0.5">작업일</p>
+            <p className="text-[#98A2B2] text-xs mb-0.5">{t('manager_job_detail.work_date')}</p>
             <p className="text-[#25282A] font-medium">{formatDate(job.workDate)}</p>
           </div>
           {job.expiresAt && (
             <div>
-              <p className="text-[#98A2B2] text-xs mb-0.5">모집 마감일</p>
+              <p className="text-[#98A2B2] text-xs mb-0.5">{t('manager_job_detail.deadline')}</p>
               <p className="text-[#25282A] font-medium">{formatDate(job.expiresAt)}</p>
             </div>
           )}
           {(job.startTime || job.endTime) && (
             <div>
-              <p className="text-[#98A2B2] text-xs mb-0.5">근무 시간</p>
+              <p className="text-[#98A2B2] text-xs mb-0.5">{t('manager_job_detail.work_hours')}</p>
               <p className="text-[#25282A] font-medium">
                 {job.startTime ?? '-'} ~ {job.endTime ?? '-'}
               </p>
             </div>
           )}
           <div>
-            <p className="text-[#98A2B2] text-xs mb-0.5">일당</p>
+            <p className="text-[#98A2B2] text-xs mb-0.5">{t('manager_job_detail.daily_wage')}</p>
             <p className="text-[#0669F7] font-semibold">{formatVND(job.dailyWage)}</p>
           </div>
           <div>
-            <p className="text-[#98A2B2] text-xs mb-0.5">채용 현황</p>
+            <p className="text-[#98A2B2] text-xs mb-0.5">{t('manager_job_detail.hire_status')}</p>
             <div>
               <p className="text-[#25282A] font-medium mb-1">
-                {job.slotsFilled}/{job.slotsTotal}명
+                {t('manager_job_detail.slots_count', { filled: job.slotsFilled, total: job.slotsTotal })}
               </p>
               <div className="w-full h-1.5 bg-gray-100 rounded-full overflow-hidden">
                 <div
@@ -212,7 +214,7 @@ export default function JobDetailClient({ jobId, locale }: JobDetailClientProps)
           </div>
           {job.tradeName && (
             <div>
-              <p className="text-[#98A2B2] text-xs mb-0.5">직종</p>
+              <p className="text-[#98A2B2] text-xs mb-0.5">{t('manager_job_detail.trade')}</p>
               <p className="text-[#25282A] font-medium">{job.tradeName}</p>
             </div>
           )}
@@ -220,7 +222,7 @@ export default function JobDetailClient({ jobId, locale }: JobDetailClientProps)
 
         {/* Benefits */}
         <div className="mt-4 pt-4 border-t border-[#EFF1F5]">
-          <p className="text-[#98A2B2] text-xs mb-2">복리후생</p>
+          <p className="text-[#98A2B2] text-xs mb-2">{t('manager_job_detail.benefits')}</p>
           <div className="flex flex-wrap gap-2">
             {benefits.map((b) =>
               job.benefits[b.key] ? (
@@ -233,7 +235,7 @@ export default function JobDetailClient({ jobId, locale }: JobDetailClientProps)
               ) : null
             )}
             {!Object.values(job.benefits).some(Boolean) && (
-              <span className="text-sm text-[#98A2B2]">없음</span>
+              <span className="text-sm text-[#98A2B2]">{t('manager_job_detail.no_benefits')}</span>
             )}
           </div>
         </div>
@@ -241,10 +243,14 @@ export default function JobDetailClient({ jobId, locale }: JobDetailClientProps)
         {/* Requirements */}
         {(job.requirements?.minExperienceMonths !== undefined || job.requirements?.notes) && (
           <div className="mt-4 pt-4 border-t border-[#EFF1F5]">
-            <p className="text-[#98A2B2] text-xs mb-2">자격요건</p>
+            <p className="text-[#98A2B2] text-xs mb-2">{t('manager_job_detail.requirements')}</p>
             {job.requirements?.minExperienceMonths !== undefined && (
               <p className="text-sm text-[#25282A]">
-                최소 경력: {job.requirements.minExperienceMonths === 0 ? '신입 가능' : `${job.requirements.minExperienceMonths}개월`}
+                {t('manager_job_detail.min_experience', {
+                  value: job.requirements.minExperienceMonths === 0
+                    ? t('manager_job_detail.entry_level')
+                    : t('manager_job_detail.experience_months', { months: job.requirements.minExperienceMonths })
+                })}
               </p>
             )}
             {job.requirements?.notes && (
@@ -256,7 +262,7 @@ export default function JobDetailClient({ jobId, locale }: JobDetailClientProps)
         {/* Description */}
         {job.description && (
           <div className="mt-4 pt-4 border-t border-[#EFF1F5]">
-            <p className="text-[#98A2B2] text-xs mb-2">상세 설명</p>
+            <p className="text-[#98A2B2] text-xs mb-2">{t('manager_job_detail.description')}</p>
             <p className="text-sm text-[#25282A] whitespace-pre-wrap">{job.description}</p>
           </div>
         )}
@@ -269,7 +275,7 @@ export default function JobDetailClient({ jobId, locale }: JobDetailClientProps)
             href={`/${locale}/manager/jobs/${jobId}/edit`}
             className="px-5 py-2.5 rounded-full bg-[#0669F7] text-white font-medium text-sm"
           >
-            수정
+            {t('manager_job_detail.edit')}
           </Link>
 
           {/* Status-specific actions */}
@@ -280,14 +286,14 @@ export default function JobDetailClient({ jobId, locale }: JobDetailClientProps)
                 disabled={isActioning}
                 className="px-5 py-2.5 rounded-full border border-[#EFF1F5] text-[#25282A] font-medium text-sm disabled:opacity-40"
               >
-                마감 처리
+                {t('manager_job_detail.close_job')}
               </button>
               <button
                 onClick={() => setShowCancelModal(true)}
                 disabled={isActioning}
                 className="px-5 py-2.5 rounded-full border border-[#D81A48] text-[#D81A48] font-medium text-sm disabled:opacity-40"
               >
-                취소
+                {t('manager_job_detail.cancel_job')}
               </button>
             </>
           )}
@@ -297,18 +303,18 @@ export default function JobDetailClient({ jobId, locale }: JobDetailClientProps)
               disabled={isActioning}
               className="px-5 py-2.5 rounded-full border border-[#EFF1F5] text-[#25282A] font-medium text-sm disabled:opacity-40"
             >
-              다시 열기
+              {t('manager_job_detail.reopen_job')}
             </button>
           )}
           {(job.status === 'CANCELLED' || job.status === 'COMPLETED') && (
-            <span className="text-sm text-[#98A2B2]">상태 변경 불가</span>
+            <span className="text-sm text-[#98A2B2]">{t('manager_job_detail.status_immutable')}</span>
           )}
 
           <button
             onClick={() => setShowDeleteModal(true)}
             className="px-5 py-2.5 rounded-full border border-[#D81A48] text-[#D81A48] font-medium text-sm"
           >
-            삭제
+            {t('manager_job_detail.delete')}
           </button>
         </div>
       </div>
@@ -316,26 +322,26 @@ export default function JobDetailClient({ jobId, locale }: JobDetailClientProps)
       {/* Applicants Summary */}
       <div className="bg-white rounded-2xl shadow-sm border border-[#EFF1F5] p-5 mb-4">
         <div className="flex items-center justify-between mb-3">
-          <h3 className="text-sm font-semibold text-[#25282A]">지원자 현황</h3>
+          <h3 className="text-sm font-semibold text-[#25282A]">{t('manager_job_detail.applicants_title')}</h3>
           <Link
             href={`/${locale}/manager/jobs/${jobId}/applicants`}
             className="text-xs text-[#0669F7] font-medium"
           >
-            전체 보기
+            {t('manager_job_detail.view_all')}
           </Link>
         </div>
         <div className="flex gap-4 text-center">
           <div className="flex-1">
             <p className="text-2xl font-bold text-yellow-600">{job.applicationCount.pending}</p>
-            <p className="text-xs text-[#98A2B2] mt-0.5">대기 중</p>
+            <p className="text-xs text-[#98A2B2] mt-0.5">{t('manager_job_detail.pending_count')}</p>
           </div>
           <div className="flex-1">
             <p className="text-2xl font-bold text-green-600">{job.applicationCount.accepted}</p>
-            <p className="text-xs text-[#98A2B2] mt-0.5">수락됨</p>
+            <p className="text-xs text-[#98A2B2] mt-0.5">{t('manager_job_detail.accepted_count')}</p>
           </div>
           <div className="flex-1">
             <p className="text-2xl font-bold text-[#D81A48]">{job.applicationCount.rejected}</p>
-            <p className="text-xs text-[#98A2B2] mt-0.5">거절됨</p>
+            <p className="text-xs text-[#98A2B2] mt-0.5">{t('manager_job_detail.rejected_count')}</p>
           </div>
         </div>
       </div>
@@ -363,7 +369,7 @@ export default function JobDetailClient({ jobId, locale }: JobDetailClientProps)
           </button>
           <img
             src={allImages[lightboxIdx]}
-            alt="전체 화면 이미지"
+            alt={t('manager_job_detail.fullscreen_alt')}
             className="max-w-full max-h-full object-contain rounded-2xl"
             onClick={(e) => e.stopPropagation()}
           />
@@ -373,9 +379,9 @@ export default function JobDetailClient({ jobId, locale }: JobDetailClientProps)
       {/* Cancel confirm */}
       <ConfirmModal
         isOpen={showCancelModal}
-        title="일자리 취소"
-        message="이 일자리를 취소하시겠습니까? 지원자들에게 알림이 전송됩니다."
-        confirmLabel="취소 처리"
+        title={t('manager_job_detail.cancel_modal_title')}
+        message={t('manager_job_detail.cancel_modal_message')}
+        confirmLabel={t('manager_job_detail.cancel_modal_confirm')}
         confirmVariant="danger"
         onConfirm={async () => {
           setShowCancelModal(false)
@@ -388,9 +394,9 @@ export default function JobDetailClient({ jobId, locale }: JobDetailClientProps)
       {/* Delete confirm */}
       <ConfirmModal
         isOpen={showDeleteModal}
-        title="일자리 삭제"
-        message="이 일자리를 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다."
-        confirmLabel="삭제"
+        title={t('manager_job_detail.delete_modal_title')}
+        message={t('manager_job_detail.delete_modal_message')}
+        confirmLabel={t('manager_job_detail.delete_modal_confirm')}
         confirmVariant="danger"
         onConfirm={handleDelete}
         onCancel={() => setShowDeleteModal(false)}

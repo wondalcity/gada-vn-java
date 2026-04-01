@@ -2,6 +2,7 @@ import { useEffect, useState, useCallback } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { api } from '../lib/api'
 import { DEMO_SITES, DEMO_COMPANIES } from '../lib/demo-data'
+import { useAdminTranslation } from '../context/LanguageContext'
 
 function formatPhone(phone: string | null | undefined): string {
   if (!phone) return '-'
@@ -100,6 +101,7 @@ function SiteFormModal({
   onSave: (data: Record<string, string>) => Promise<void>
   onCancel: () => void
 }) {
+  const { t } = useAdminTranslation()
   const isEdit = Boolean(site?.id)
   const [form, setForm] = useState({
     managerId: site?.manager_profile_id ?? '',
@@ -121,7 +123,7 @@ function SiteFormModal({
     try {
       await onSave(form)
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : '저장 실패')
+      setError(err instanceof Error ? err.message : t('common.save_failed'))
     } finally {
       setSaving(false)
     }
@@ -130,22 +132,22 @@ function SiteFormModal({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
       <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg p-6 overflow-y-auto max-h-[90vh]">
-        <h3 className="text-base font-bold text-gray-900 mb-4">{isEdit ? '현장 수정' : '새 현장 등록'}</h3>
+        <h3 className="text-base font-bold text-gray-900 mb-4">{isEdit ? t('sites.modal.edit_title') : t('sites.modal.create_title')}</h3>
         {error && <div className="bg-[#FDE8EE] border border-[#F4B0C0] text-[#D81A48] rounded-xl p-3 mb-4 text-sm">{error}</div>}
         <form onSubmit={handleSubmit} className="space-y-3">
           <div>
-            <label className="block text-xs font-medium text-gray-500 mb-1">건설사</label>
+            <label className="block text-xs font-medium text-gray-500 mb-1">{t('sites.modal.company')}</label>
             <select className={IN} value={form.companyId} onChange={e => setForm({ ...form, companyId: e.target.value })}>
-              <option value="">선택 안함</option>
+              <option value="">{t('sites.modal.company_none')}</option>
               {companies.map(c => (
                 <option key={c.id} value={c.id}>{c.name}</option>
               ))}
             </select>
           </div>
           <div>
-            <label className="block text-xs font-medium text-gray-500 mb-1">담당 관리자 *</label>
+            <label className="block text-xs font-medium text-gray-500 mb-1">{t('sites.modal.manager')}</label>
             <select required className={IN} value={form.managerId} onChange={e => setForm({ ...form, managerId: e.target.value })}>
-              <option value="">선택...</option>
+              <option value="">{t('sites.modal.manager_placeholder')}</option>
               {managers.map(m => (
                 <option key={m.id} value={m.id}>
                   {m.representative_name}{m.company_name ? ` (${m.company_name})` : ''}
@@ -154,39 +156,39 @@ function SiteFormModal({
             </select>
           </div>
           <div>
-            <label className="block text-xs font-medium text-gray-500 mb-1">현장명 *</label>
+            <label className="block text-xs font-medium text-gray-500 mb-1">{t('sites.modal.site_name')}</label>
             <input required className={IN} value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} />
           </div>
           <div>
-            <label className="block text-xs font-medium text-gray-500 mb-1">주소 *</label>
+            <label className="block text-xs font-medium text-gray-500 mb-1">{t('sites.modal.address')}</label>
             <input required className={IN} value={form.address} onChange={e => setForm({ ...form, address: e.target.value })} />
           </div>
           <div>
-            <label className="block text-xs font-medium text-gray-500 mb-1">성/지역 *</label>
+            <label className="block text-xs font-medium text-gray-500 mb-1">{t('sites.modal.province')}</label>
             <input required className={IN} value={form.province} onChange={e => setForm({ ...form, province: e.target.value })} />
           </div>
           <div>
-            <label className="block text-xs font-medium text-gray-500 mb-1">군/구</label>
+            <label className="block text-xs font-medium text-gray-500 mb-1">{t('sites.modal.district')}</label>
             <input className={IN} value={form.district} onChange={e => setForm({ ...form, district: e.target.value })} />
           </div>
           <div>
-            <label className="block text-xs font-medium text-gray-500 mb-1">현장 유형</label>
-            <input className={IN} value={form.siteType} onChange={e => setForm({ ...form, siteType: e.target.value })} placeholder="예: 아파트, 상업, 도로..." />
+            <label className="block text-xs font-medium text-gray-500 mb-1">{t('sites.modal.site_type')}</label>
+            <input className={IN} value={form.siteType} onChange={e => setForm({ ...form, siteType: e.target.value })} placeholder={t('sites.modal.site_type_placeholder')} />
           </div>
           {isEdit && (
             <div>
-              <label className="block text-xs font-medium text-gray-500 mb-1">상태</label>
+              <label className="block text-xs font-medium text-gray-500 mb-1">{t('sites.modal.status')}</label>
               <select className={IN} value={form.status} onChange={e => setForm({ ...form, status: e.target.value })}>
-                <option value="ACTIVE">운영 중</option>
-                <option value="PAUSED">일시중지</option>
-                <option value="COMPLETED">완료</option>
+                <option value="ACTIVE">{t('sites.status_active')}</option>
+                <option value="PAUSED">{t('sites.status_paused')}</option>
+                <option value="COMPLETED">{t('sites.status_completed')}</option>
               </select>
             </div>
           )}
           <div className="flex gap-2 pt-2">
-            <button type="button" onClick={onCancel} className="flex-1 py-2.5 rounded-xl text-sm font-medium border border-[#EFF1F5] text-gray-600 hover:bg-[#F2F4F5]">취소</button>
+            <button type="button" onClick={onCancel} className="flex-1 py-2.5 rounded-xl text-sm font-medium border border-[#EFF1F5] text-gray-600 hover:bg-[#F2F4F5]">{t('common.cancel')}</button>
             <button type="submit" disabled={saving} className="flex-1 py-2.5 rounded-xl text-sm font-bold bg-[#0669F7] text-white hover:bg-[#0550C4] disabled:opacity-50">
-              {saving ? '저장 중...' : isEdit ? '수정 완료' : '등록'}
+              {saving ? t('sites.modal.saving') : isEdit ? t('sites.modal.save_edit') : t('sites.modal.save_create')}
             </button>
           </div>
         </form>
@@ -209,6 +211,7 @@ function SiteDetailPanel({
   onBack: () => void
   onDeleted: () => void
 }) {
+  const { t } = useAdminTranslation()
   const navigate = useNavigate()
   const [site, setSite] = useState<SiteDetail | null>(null)
   const [loading, setLoading] = useState(true)
@@ -236,11 +239,11 @@ function SiteDetailPanel({
           } as unknown as SiteDetail)
           setIsDemo(true)
         } else {
-          setError('현장 정보를 불러올 수 없습니다')
+          setError(t('sites.load_error'))
         }
       })
       .finally(() => setLoading(false))
-  }, [siteId])
+  }, [siteId, t])
 
   useEffect(() => { load() }, [load])
 
@@ -252,24 +255,38 @@ function SiteDetailPanel({
   async function handleSaveEdit(data: Record<string, string>) {
     await api.put(`/admin/sites/${siteId}`, data)
     setShowEdit(false)
-    showMsg('수정되었습니다')
+    showMsg(t('common.saved'))
     load()
   }
 
   async function handleDelete() {
-    if (!confirm('이 현장을 삭제하시겠습니까? 연결된 공고도 함께 삭제됩니다.')) return
+    if (!confirm(t('sites.confirm_delete'))) return
     setDeleting(true)
     try {
       await api.delete(`/admin/sites/${siteId}`)
       onDeleted()
     } catch (err: unknown) {
-      showMsg(err instanceof Error ? err.message : '삭제 실패')
+      showMsg(err instanceof Error ? err.message : t('common.delete_failed'))
     } finally {
       setDeleting(false)
     }
   }
 
-  if (loading) return <div className="p-8 text-center text-gray-400 text-sm">로딩 중...</div>
+  function getSiteStatusLabel(s?: string) {
+    if (s === 'ACTIVE') return t('sites.status_active')
+    if (s === 'COMPLETED') return t('sites.status_completed')
+    if (s === 'PAUSED') return t('sites.status_paused')
+    return s ?? '-'
+  }
+
+  function getJobStatusLabel(s: string) {
+    if (s === 'OPEN') return t('sites.detail.job_status_open')
+    if (s === 'CLOSED') return t('sites.detail.job_status_closed')
+    if (s === 'DRAFT') return t('sites.detail.job_status_draft')
+    return s
+  }
+
+  if (loading) return <div className="p-8 text-center text-gray-400 text-sm">{t('common.loading')}</div>
   if (error) return <div className="p-8 text-center text-[#D81A48] text-sm">{error}</div>
   if (!site) return null
 
@@ -292,13 +309,13 @@ function SiteDetailPanel({
       )}
 
       <button onClick={onBack} className="flex items-center gap-2 text-sm text-gray-500 hover:text-gray-800 mb-6 transition-colors">
-        ← 현장 목록으로 돌아가기
+        {t('sites.detail.back')}
       </button>
 
       {isDemo && (
         <div className="mb-4 flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-amber-50 border border-amber-200 text-sm text-amber-700">
-          <span className="font-semibold">데모 데이터</span>
-          <span className="text-amber-600">— API 연결 후 실제 데이터가 표시됩니다</span>
+          <span className="font-semibold">{t('common.demo_data')}</span>
+          <span className="text-amber-600">{t('common.demo_suffix')}</span>
         </div>
       )}
 
@@ -313,7 +330,7 @@ function SiteDetailPanel({
           </div>
           <div className="flex items-center gap-2 shrink-0">
             <span className={`px-3 py-1 text-xs rounded-full font-medium ${SITE_STATUS_BADGE[site.status ?? ''] ?? 'bg-[#EFF1F5] text-[#98A2B2]'}`}>
-              {site.status === 'ACTIVE' ? '운영 중' : site.status === 'COMPLETED' ? '완료' : site.status === 'PAUSED' ? '일시중지' : (site.status ?? '-')}
+              {getSiteStatusLabel(site.status)}
             </span>
             {!isDemo && (
               <>
@@ -321,14 +338,14 @@ function SiteDetailPanel({
                   onClick={() => setShowEdit(true)}
                   className="px-3 py-1.5 text-xs border border-[#EFF1F5] rounded-xl text-gray-600 hover:bg-[#F2F4F5]"
                 >
-                  수정
+                  {t('common.edit')}
                 </button>
                 <button
                   onClick={handleDelete}
                   disabled={deleting}
                   className="px-3 py-1.5 text-xs border border-[#F4B0C0] rounded-xl text-[#D81A48] hover:bg-[#FDE8EE] disabled:opacity-50"
                 >
-                  삭제
+                  {t('common.delete')}
                 </button>
               </>
             )}
@@ -336,11 +353,11 @@ function SiteDetailPanel({
         </div>
         <div className="mt-4 grid grid-cols-4 gap-4 text-sm">
           <div>
-            <span className="text-gray-500">유형</span>
+            <span className="text-gray-500">{t('sites.detail.type')}</span>
             <p className="font-medium text-gray-900 mt-0.5">{site.site_type ?? '-'}</p>
           </div>
           <div>
-            <span className="text-gray-500">건설사</span>
+            <span className="text-gray-500">{t('sites.detail.company')}</span>
             {site.company_id ? (
               <button
                 onClick={() => navigate(`/companies/${site.company_id}`)}
@@ -353,35 +370,34 @@ function SiteDetailPanel({
             )}
           </div>
           <div>
-            <span className="text-gray-500">담당 관리자</span>
+            <span className="text-gray-500">{t('sites.detail.manager')}</span>
             <p className="font-medium text-gray-900 mt-0.5">{site.manager_name ?? '-'}</p>
           </div>
           <div>
-            <span className="text-gray-500">연락처</span>
+            <span className="text-gray-500">{t('sites.detail.contact')}</span>
             <p className="font-medium text-gray-900 mt-0.5">{formatPhone(site.manager_phone)}</p>
           </div>
         </div>
 
-        {/* 건설사 연락처 정보 */}
         {site.company_id && (site.company_contact_name || site.company_contact_phone || site.company_contact_email) && (
           <div className="mt-4 pt-4 border-t border-[#EFF1F5]">
-            <p className="text-xs font-semibold text-gray-400 uppercase mb-3">건설사 담당자 정보</p>
+            <p className="text-xs font-semibold text-gray-400 uppercase mb-3">{t('sites.detail.company_contact_title')}</p>
             <div className="grid grid-cols-3 gap-4 text-sm">
               {site.company_contact_name && (
                 <div>
-                  <span className="text-gray-500">담당자</span>
+                  <span className="text-gray-500">{t('sites.detail.contact_person')}</span>
                   <p className="font-medium text-gray-900 mt-0.5">{site.company_contact_name}</p>
                 </div>
               )}
               {site.company_contact_phone && (
                 <div>
-                  <span className="text-gray-500">전화번호</span>
+                  <span className="text-gray-500">{t('sites.detail.phone')}</span>
                   <p className="font-medium text-gray-900 mt-0.5">{formatPhone(site.company_contact_phone)}</p>
                 </div>
               )}
               {site.company_contact_email && (
                 <div>
-                  <span className="text-gray-500">이메일</span>
+                  <span className="text-gray-500">{t('sites.detail.email')}</span>
                   <p className="font-medium text-gray-900 mt-0.5">{site.company_contact_email}</p>
                 </div>
               )}
@@ -393,18 +409,18 @@ function SiteDetailPanel({
       {/* Jobs table */}
       <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
         <div className="px-6 py-4 border-b border-[#EFF1F5]">
-          <h2 className="text-base font-semibold text-gray-900">공고 목록</h2>
+          <h2 className="text-base font-semibold text-gray-900">{t('sites.detail.jobs_title')}</h2>
         </div>
         {site.jobs.length === 0 ? (
           <div className="py-12 text-center text-gray-400">
             <p className="text-3xl mb-2">📋</p>
-            <p className="text-sm">등록된 공고가 없습니다</p>
+            <p className="text-sm">{t('sites.detail.no_jobs')}</p>
           </div>
         ) : (
           <table className="w-full">
             <thead className="bg-[#F2F4F5]">
               <tr>
-                {['공고명', '상태', '근무일', '일 노임', '지원자수', '선발인원'].map((h) => (
+                {[t('sites.detail.col_title'), t('sites.detail.col_status'), t('sites.detail.col_work_date'), t('sites.detail.col_wage'), t('sites.detail.col_applicants'), t('sites.detail.col_hired')].map((h) => (
                   <th key={h} className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase">{h}</th>
                 ))}
               </tr>
@@ -415,15 +431,15 @@ function SiteDetailPanel({
                   <td className="px-6 py-4 text-sm font-medium text-gray-900">{j.title}</td>
                   <td className="px-6 py-4">
                     <span className={`px-2 py-1 text-xs rounded-full ${JOB_STATUS_BADGE[j.status] ?? 'bg-[#EFF1F5] text-[#98A2B2]'}`}>
-                      {j.status === 'OPEN' ? '모집 중' : j.status === 'CLOSED' ? '마감' : j.status === 'DRAFT' ? '임시저장' : j.status}
+                      {getJobStatusLabel(j.status)}
                     </span>
                   </td>
                   <td className="px-6 py-4 text-sm text-gray-600">{j.work_date ? formatDate(j.work_date) : '-'}</td>
                   <td className="px-6 py-4 text-sm text-[#0669F7] font-medium">
                     {j.daily_wage ? `₫${Number(j.daily_wage).toLocaleString('ko-KR')}` : '-'}
                   </td>
-                  <td className="px-6 py-4 text-sm text-gray-600">{j.application_count}명</td>
-                  <td className="px-6 py-4 text-sm text-gray-600">{j.hired_count}명</td>
+                  <td className="px-6 py-4 text-sm text-gray-600">{j.application_count}{t('sites.detail.count_suffix')}</td>
+                  <td className="px-6 py-4 text-sm text-gray-600">{j.hired_count}{t('sites.detail.count_suffix')}</td>
                 </tr>
               ))}
             </tbody>
@@ -436,6 +452,7 @@ function SiteDetailPanel({
 
 // ── Main Sites page ────────────────────────────────────────────────────────
 export default function Sites() {
+  const { t } = useAdminTranslation()
   const { id } = useParams<{ id?: string }>()
   const navigate = useNavigate()
   const [sites, setSites] = useState<Site[]>([])
@@ -500,7 +517,7 @@ export default function Sites() {
   async function handleCreate(data: Record<string, string>) {
     await api.post('/admin/sites', data)
     setShowCreate(false)
-    showMsg('현장이 등록되었습니다')
+    showMsg(t('sites.registered'))
     load()
   }
 
@@ -508,19 +525,26 @@ export default function Sites() {
     if (!editSite) return
     await api.put(`/admin/sites/${editSite.id}`, data)
     setEditSite(null)
-    showMsg('수정되었습니다')
+    showMsg(t('common.saved'))
     load()
   }
 
   async function handleDelete(site: Site) {
-    if (!confirm(`"${site.name}" 현장을 삭제하시겠습니까? 연결된 공고도 함께 삭제됩니다.`)) return
+    if (!confirm(`"${site.name}" ${t('sites.confirm_delete')}`)) return
     try {
       await api.delete(`/admin/sites/${site.id}`)
       setSites(prev => prev.filter(s => s.id !== site.id))
-      showMsg('삭제되었습니다')
+      showMsg(t('common.deleted'))
     } catch (err: unknown) {
-      showMsg(err instanceof Error ? err.message : '삭제 실패')
+      showMsg(err instanceof Error ? err.message : t('common.delete_failed'))
     }
+  }
+
+  function getSiteStatusLabel(s?: string) {
+    if (s === 'ACTIVE') return t('sites.status_active')
+    if (s === 'COMPLETED') return t('sites.status_completed')
+    if (s === 'PAUSED') return t('sites.status_paused')
+    return s ?? '-'
   }
 
   // Detail view
@@ -556,36 +580,36 @@ export default function Sites() {
       )}
 
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">현장 관리</h1>
+        <h1 className="text-2xl font-bold text-gray-900">{t('sites.title')}</h1>
         <button
           onClick={() => setShowCreate(true)}
           className="flex items-center gap-2 px-4 py-2 bg-[#0669F7] hover:bg-[#0550C4] text-white text-sm font-medium rounded-2xl transition-colors"
         >
-          + 새 현장
+          {t('sites.new')}
         </button>
       </div>
 
       {isDemo && (
         <div className="mb-4 flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-amber-50 border border-amber-200 text-sm text-amber-700">
-          <span className="font-semibold">데모 데이터</span>
-          <span className="text-amber-600">— API 연결 후 실제 데이터가 표시됩니다</span>
+          <span className="font-semibold">{t('common.demo_data')}</span>
+          <span className="text-amber-600">{t('common.demo_suffix')}</span>
         </div>
       )}
 
       <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
         {loading ? (
-          <div className="p-8 text-center text-gray-400 text-sm">로딩 중...</div>
+          <div className="p-8 text-center text-gray-400 text-sm">{t('common.loading')}</div>
         ) : sites.length === 0 ? (
           <div className="py-16 text-center text-gray-400">
             <p className="text-4xl mb-3">🏗️</p>
-            <p className="text-sm mb-4">등록된 현장이 없습니다</p>
-            <button onClick={() => setShowCreate(true)} className="inline-flex items-center gap-2 px-4 py-2 bg-[#0669F7] text-white text-sm font-medium rounded-2xl">+ 첫 번째 현장 등록</button>
+            <p className="text-sm mb-4">{t('sites.empty')}</p>
+            <button onClick={() => setShowCreate(true)} className="inline-flex items-center gap-2 px-4 py-2 bg-[#0669F7] text-white text-sm font-medium rounded-2xl">{t('sites.first_register')}</button>
           </div>
         ) : (
           <table className="w-full">
             <thead className="bg-[#F2F4F5]">
               <tr>
-                {['현장명', '건설사', '주소', '상태', '담당 관리자', '공고 수', '등록일', ''].map((h) => (
+                {[t('sites.col_name'), t('sites.col_company'), t('sites.col_address'), t('sites.col_status'), t('sites.col_manager'), t('sites.col_job_count'), t('sites.col_registered'), ''].map((h) => (
                   <th key={h} className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase">{h}</th>
                 ))}
               </tr>
@@ -608,7 +632,7 @@ export default function Sites() {
                   </td>
                   <td className="px-6 py-4">
                     <span className={`px-2 py-1 text-xs rounded-full ${SITE_STATUS_BADGE[s.status ?? ''] ?? 'bg-[#EFF1F5] text-[#98A2B2]'}`}>
-                      {s.status === 'ACTIVE' ? '운영 중' : s.status === 'COMPLETED' ? '완료' : s.status === 'PAUSED' ? '일시중지' : (s.status ?? '-')}
+                      {getSiteStatusLabel(s.status)}
                     </span>
                   </td>
                   <td className="px-6 py-4 text-sm text-gray-600">{s.manager_name ?? '-'}</td>
@@ -619,11 +643,11 @@ export default function Sites() {
                   <td className="px-6 py-4 text-sm text-gray-500">{formatDate(s.created_at)}</td>
                   <td className="px-6 py-4 text-right">
                     <div className="flex gap-3 justify-end items-center">
-                      <button onClick={() => navigate(`/sites/${s.id}`)} className="text-[#0669F7] hover:underline text-sm">상세</button>
+                      <button onClick={() => navigate(`/sites/${s.id}`)} className="text-[#0669F7] hover:underline text-sm">{t('common.detail')}</button>
                       {!isDemo && (
                         <>
-                          <button onClick={e => { e.stopPropagation(); setEditSite(s) }} className="text-gray-400 hover:text-gray-700 text-sm">수정</button>
-                          <button onClick={e => { e.stopPropagation(); handleDelete(s) }} className="text-[#D81A48] text-sm">삭제</button>
+                          <button onClick={e => { e.stopPropagation(); setEditSite(s) }} className="text-gray-400 hover:text-gray-700 text-sm">{t('common.edit')}</button>
+                          <button onClick={e => { e.stopPropagation(); handleDelete(s) }} className="text-[#D81A48] text-sm">{t('common.delete')}</button>
                         </>
                       )}
                     </div>
@@ -635,7 +659,7 @@ export default function Sites() {
         )}
       </div>
 
-      <div className="mt-4 text-xs text-gray-400 text-right">총 {sites.length}개 현장</div>
+      <div className="mt-4 text-xs text-gray-400 text-right">{t('sites.total').replace('{n}', String(sites.length))}</div>
     </div>
   )
 }

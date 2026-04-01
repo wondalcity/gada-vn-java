@@ -4,6 +4,7 @@ import {
   TouchableOpacity, RefreshControl, ActivityIndicator,
 } from 'react-native';
 import { useRouter } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 import { api } from '../../lib/api-client';
 import { Colors, Spacing, Radius, Font } from '../../constants/theme';
 
@@ -17,6 +18,7 @@ interface Site {
 }
 
 export default function ManagerSitesScreen() {
+  const { t } = useTranslation();
   const router = useRouter();
   const [sites, setSites] = useState<Site[]>([]);
   const [loading, setLoading] = useState(true);
@@ -60,7 +62,7 @@ export default function ManagerSitesScreen() {
         ListEmptyComponent={
           <View style={styles.empty}>
             <Text style={styles.emptyIcon}>🏗️</Text>
-            <Text style={styles.emptyText}>등록된 현장이 없습니다</Text>
+            <Text style={styles.emptyText}>{t('manager.site_no_sites')}</Text>
           </View>
         }
         renderItem={({ item }) => (
@@ -85,13 +87,13 @@ export default function ManagerSitesScreen() {
                   styles.statusText,
                   { color: item.status === 'ACTIVE' ? Colors.onSuccessContainer : Colors.onSurfaceVariant },
                 ]}>
-                  {item.status === 'ACTIVE' ? '운영 중' : '비활성'}
+                  {item.status === 'ACTIVE' ? t('manager.site_status_active') : t('manager.site_status_inactive')}
                 </Text>
               </View>
             </View>
             {item.jobCount > 0 && (
               <View style={styles.jobCountRow}>
-                <Text style={styles.jobCountText}>공고 {item.jobCount}개</Text>
+                <Text style={styles.jobCountText}>{t('manager.site_job_count', { count: item.jobCount })}</Text>
               </View>
             )}
           </TouchableOpacity>

@@ -1,10 +1,12 @@
 import Link from 'next/link'
 import { cookies } from 'next/headers'
+import { getTranslations } from 'next-intl/server'
 import { getAuthUser } from '../../../../lib/auth/server'
 import { apiClient } from '../../../../lib/api/client'
 import { ManagerActionButton } from '../../../../components/worker/ManagerActionButton'
 import WorkerAccountShell from '../../../../components/worker/WorkerAccountShell'
 import type { ApplicationStatus } from '../../../../types/application'
+import { formatDateShort } from '../../../../lib/utils/date'
 
 interface Props { params: Promise<{ locale: string }> }
 
@@ -70,23 +72,17 @@ const DEMO_APPLICATIONS: RawApplication[] = [
   },
 ]
 
-const STATUS_CONFIG: Record<string, { label: string; color: string; bg: string }> = {
-  APPLIED:    { label: '검토중',   color: '#856404', bg: '#FFF3CD' },
-  HIRED:      { label: '합격',     color: '#1A6B1A', bg: '#E8FBE8' },
-  COMPLETED:  { label: '계약완료', color: '#0669F7', bg: '#E6F0FE' },
-  REJECTED:   { label: '불합격',   color: '#D81A48', bg: '#FDE8EE' },
-  PENDING:    { label: '검토중',   color: '#856404', bg: '#FFF3CD' },
-  ACCEPTED:   { label: '합격',     color: '#1A6B1A', bg: '#E8FBE8' },
-  CONTRACTED: { label: '계약완료', color: '#0669F7', bg: '#E6F0FE' },
-  WITHDRAWN:  { label: '취소',     color: '#98A2B2', bg: '#EFF1F5' },
+const STATUS_COLORS: Record<string, { color: string; bg: string }> = {
+  APPLIED:    { color: '#856404', bg: '#FFF3CD' },
+  HIRED:      { color: '#1A6B1A', bg: '#E8FBE8' },
+  COMPLETED:  { color: '#0669F7', bg: '#E6F0FE' },
+  REJECTED:   { color: '#D81A48', bg: '#FDE8EE' },
+  PENDING:    { color: '#856404', bg: '#FFF3CD' },
+  ACCEPTED:   { color: '#1A6B1A', bg: '#E8FBE8' },
+  CONTRACTED: { color: '#0669F7', bg: '#E6F0FE' },
+  WITHDRAWN:  { color: '#98A2B2', bg: '#EFF1F5' },
 }
 
-function formatDate(d: string | null | undefined) {
-  if (!d) return '-'
-  const date = new Date(d)
-  if (isNaN(date.getTime())) return d
-  return new Intl.DateTimeFormat('ko-KR', { month: 'long', day: 'numeric', weekday: 'short' }).format(date)
-}
 
 function formatWage(n: number | null | undefined) {
   if (n == null) return '-'
@@ -109,6 +105,7 @@ function formatPhone(phone: string | null | undefined): string {
 
 export default async function WorkerHomePage({ params }: Props) {
   const { locale } = await params
+  const t = await getTranslations({ locale, namespace: 'worker' })
   const cookieStore = await cookies()
   const token = cookieStore.get('gada_session')?.value
 
@@ -129,7 +126,7 @@ export default async function WorkerHomePage({ params }: Props) {
     rejected: applications.filter(a => a.status === 'REJECTED' || a.status === 'WITHDRAWN').length,
   }
 
-  const displayName = user?.name ?? user?.phone ?? '근로자'
+  const displayName = user?.name ?? user?.phone ?? t('dashboard.role_worker')
   const initial = displayName.charAt(0).toUpperCase()
   const isManager = (user?.isManager ?? false) || user?.managerStatus === 'active'
   const recent = applications.slice(0, 5)
@@ -165,11 +162,11 @@ export default async function WorkerHomePage({ params }: Props) {
               )}
               <div className="flex items-center gap-1.5 mt-1.5">
                 <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-white/20 border border-white/30 text-white leading-none">
-                  근로자
+                  {t('dashboard.role_worker')}
                 </span>
                 {isManager && (
                   <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-400/80 text-amber-900 leading-none">
-                    관리자
+                    {t('dashboard.role_manager')}
                   </span>
                 )}
               </div>
@@ -179,9 +176,9 @@ export default async function WorkerHomePage({ params }: Props) {
           {/* Inline stats */}
           <div className="relative grid grid-cols-3 gap-2 border-t border-white/20 pt-4">
             {[
-              { label: '검토중', value: counts.pending },
-              { label: '합격',   value: counts.accepted },
-              { label: '불합격', value: counts.rejected },
+              { label: t('dashboard.stat.pending'),  value: counts.pending },
+              { label: t('dashboard.stat.accepted'), value: counts.accepted },
+              { label: t('dashboard.stat.rejected'), value: counts.rejected },
             ].map(({ label, value }) => (
               <div key={label} className="text-center">
                 <p className="text-2xl font-extrabold leading-none">{value}</p>
@@ -202,10 +199,10 @@ export default async function WorkerHomePage({ params }: Props) {
         {/* Mobile quick actions */}
         <div className="grid grid-cols-4 gap-2 mt-3">
           {[
-            { href: `/${locale}/worker/applications`, icon: '📋', label: '지원현황' },
-            { href: `/${locale}/worker/contracts`,    icon: '📄', label: '계약서' },
-            { href: `/${locale}/worker/profile`,      icon: '👤', label: '프로필' },
-            { href: `/${locale}/jobs`,                icon: '🔍', label: '공고찾기' },
+            { href: `/${locale}/worker/applications`, icon: '📋', label: t('dashboard.quick_actions.applications') },
+            { href: `/${locale}/worker/contracts`,    icon: '📄', label: t('dashboard.quick_actions.contracts') },
+            { href: `/${locale}/worker/profile`,      icon: '👤', label: t('dashboard.quick_actions.profile') },
+            { href: `/${locale}/jobs`,                icon: '🔍', label: t('dashboard.quick_actions.find_jobs') },
           ].map(({ href, icon, label }) => (
             <Link
               key={href}
@@ -224,8 +221,8 @@ export default async function WorkerHomePage({ params }: Props) {
           ──────────────────────────────────────────────────── */}
       <div className="hidden md:flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-xl font-bold text-[#25282A]">활동 현황</h1>
-          <p className="text-sm text-[#98A2B2] mt-0.5">최근 지원 내역과 합격 현황을 확인하세요</p>
+          <h1 className="text-xl font-bold text-[#25282A]">{t('dashboard.activity_title')}</h1>
+          <p className="text-sm text-[#98A2B2] mt-0.5">{t('dashboard.activity_subtitle')}</p>
         </div>
         <Link
           href={`/${locale}/jobs` as never}
@@ -234,7 +231,7 @@ export default async function WorkerHomePage({ params }: Props) {
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-4.35-4.35M17 11A6 6 0 115 11a6 6 0 0112 0z" />
           </svg>
-          공고 찾기
+          {t('dashboard.find_jobs')}
         </Link>
       </div>
 
@@ -243,9 +240,9 @@ export default async function WorkerHomePage({ params }: Props) {
           ──────────────────────────────────────────────────── */}
       <div className="hidden md:grid grid-cols-3 gap-3 mb-6">
         {[
-          { label: '검토중', count: counts.pending,  color: '#856404', bg: '#FFF3CD', border: '#F5D87D' },
-          { label: '합격',   count: counts.accepted, color: '#1A6B1A', bg: '#E8FBE8', border: '#86D98A' },
-          { label: '불합격', count: counts.rejected, color: '#D81A48', bg: '#FDE8EE', border: '#F4B0C0' },
+          { label: t('dashboard.stat.pending'),  count: counts.pending,  color: '#856404', bg: '#FFF3CD', border: '#F5D87D' },
+          { label: t('dashboard.stat.accepted'), count: counts.accepted, color: '#1A6B1A', bg: '#E8FBE8', border: '#86D98A' },
+          { label: t('dashboard.stat.rejected'), count: counts.rejected, color: '#D81A48', bg: '#FDE8EE', border: '#F4B0C0' },
         ].map(({ label, count, color, bg, border }) => (
           <div
             key={label}
@@ -271,15 +268,15 @@ export default async function WorkerHomePage({ params }: Props) {
       <div>
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
-              <h2 className="text-base font-bold text-[#25282A]">최근 지원 현황</h2>
+              <h2 className="text-base font-bold text-[#25282A]">{t('dashboard.recent_section')}</h2>
               {isDemo && (
                 <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-700 border border-amber-200">
-                  데모
+                  {t('dashboard.demo_badge')}
                 </span>
               )}
             </div>
             <Link href={`/${locale}/worker/applications` as never} className="text-sm text-[#0669F7] font-medium hover:underline">
-              전체 보기 →
+              {t('dashboard.view_all')}
             </Link>
           </div>
 
@@ -290,19 +287,20 @@ export default async function WorkerHomePage({ params }: Props) {
                   <path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
                 </svg>
               </div>
-              <p className="text-[#25282A] font-semibold text-sm mb-1">아직 지원한 공고가 없습니다</p>
-              <p className="text-[#98A2B2] text-xs mb-4">베트남 건설 현장 일자리를 찾아보세요</p>
+              <p className="text-[#25282A] font-semibold text-sm mb-1">{t('dashboard.empty_title')}</p>
+              <p className="text-[#98A2B2] text-xs mb-4">{t('dashboard.empty_subtitle')}</p>
               <Link
                 href={`/${locale}/jobs` as never}
                 className="inline-flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-[#0669F7] text-white text-sm font-bold hover:bg-[#0554D6] transition-colors"
               >
-                공고 둘러보기
+                {t('dashboard.browse_jobs')}
               </Link>
             </div>
           ) : (
             <div className="space-y-2">
               {recent.map(app => {
-                const cfg = STATUS_CONFIG[app.status] ?? { label: app.status, color: '#6B7280', bg: '#F3F4F6' }
+                const colors = STATUS_COLORS[app.status] ?? { color: '#6B7280', bg: '#F3F4F6' }
+                const statusLabel = t(`dashboard.status_config.${app.status.toLowerCase()}` as any) ?? app.status
                 return (
                   <div
                     key={app.id}
@@ -311,15 +309,15 @@ export default async function WorkerHomePage({ params }: Props) {
                     <div className="flex-1 min-w-0">
                       <p className="font-semibold text-[#25282A] text-sm truncate">{app.jobTitle}</p>
                       <p className="text-xs text-[#98A2B2] mt-0.5">
-                        {app.siteName} · {formatDate(app.workDate)}
+                        {app.siteName} · {app.workDate ? formatDateShort(app.workDate, locale) : '-'}
                       </p>
                       <p className="text-sm font-bold text-[#0669F7] mt-1">{formatWage(app.dailyWage)}</p>
                     </div>
                     <span
                       className="shrink-0 text-xs font-bold px-2.5 py-1 rounded-full"
-                      style={{ color: cfg.color, backgroundColor: cfg.bg }}
+                      style={{ color: colors.color, backgroundColor: colors.bg }}
                     >
-                      {cfg.label}
+                      {statusLabel}
                     </span>
                   </div>
                 )
@@ -330,7 +328,7 @@ export default async function WorkerHomePage({ params }: Props) {
                   href={`/${locale}/worker/applications` as never}
                   className="flex items-center justify-center gap-1.5 w-full py-3 text-sm text-[#0669F7] font-semibold border border-[#C8D8FF] rounded-2xl bg-white hover:bg-[#E6F0FE] transition-colors"
                 >
-                  {applications.length - 5}개 더 보기
+                  {t('dashboard.view_more', { n: applications.length - 5 })}
                   <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2.5}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
                   </svg>

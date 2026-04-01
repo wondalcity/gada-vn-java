@@ -3,6 +3,7 @@ import {
   View, Text, ScrollView, StyleSheet, ActivityIndicator, Alert,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 import { api } from '../../../lib/api-client';
 
 interface Contract {
@@ -15,6 +16,7 @@ interface Contract {
 
 export default function ManagerContractScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
+  const { t } = useTranslation();
   const router = useRouter();
   const [contract, setContract] = useState<Contract | null>(null);
   const [loading, setLoading] = useState(true);
@@ -24,8 +26,8 @@ export default function ManagerContractScreen() {
       const data = await api.get<Contract>(`/contracts/${id}`);
       setContract(data);
     } catch {
-      Alert.alert('오류', '계약서를 불러올 수 없습니다.', [
-        { text: '확인', onPress: () => router.back() },
+      Alert.alert(t('common.error'), t('contract.load_fail'), [
+        { text: t('common.confirm'), onPress: () => router.back() },
       ]);
     } finally {
       setLoading(false);
@@ -45,17 +47,17 @@ export default function ManagerContractScreen() {
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       <View style={[styles.statusBanner, isSigned ? styles.signed : styles.pending]}>
         <Text style={[styles.statusText, { color: isSigned ? '#2E7D32' : '#E65100' }]}>
-          {isSigned ? '✅ 근로자 서명 완료' : '⏳ 근로자 서명 대기 중'}
+          {isSigned ? t('contract.worker_signed') : t('contract.worker_waiting')}
         </Text>
         {isSigned && contract.worker_signed_at && (
           <Text style={styles.statusSub}>
-            서명일: {new Date(contract.worker_signed_at).toLocaleString('ko-KR')}
+            {t('contract.signed_date', { date: new Date(contract.worker_signed_at).toLocaleString('ko-KR') })}
           </Text>
         )}
       </View>
 
       <View style={styles.contractBox}>
-        <Text style={styles.contractTitle}>근로계약서</Text>
+        <Text style={styles.contractTitle}>{t('contract.title')}</Text>
         <View style={styles.divider} />
         <Text style={styles.contractText}>
           {contract.contract_html.replace(/<[^>]*>/g, '').trim()}

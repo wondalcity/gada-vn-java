@@ -1,5 +1,6 @@
 import { notFound } from 'next/navigation'
 import { cookies } from 'next/headers'
+import { getTranslations } from 'next-intl/server'
 import { fetchPublicJobBySlug } from '@/lib/api/public'
 import { apiClient } from '@/lib/api/client'
 import { Link } from '@/components/navigation'
@@ -14,7 +15,10 @@ export const dynamic = 'force-dynamic'
 
 export default async function WorkerJobDetailPage({ params }: Props) {
   const { locale, slug } = await params
-  const cookieStore = await cookies()
+  const [cookieStore, t] = await Promise.all([
+    cookies(),
+    getTranslations({ locale, namespace: 'jobs' }),
+  ])
   const token = cookieStore.get('gada_session')?.value
 
   const job = await fetchPublicJobBySlug(slug, locale).catch(() => null)
@@ -29,17 +33,19 @@ export default async function WorkerJobDetailPage({ params }: Props) {
   }
 
   return (
-    <div className="max-w-[1760px] mx-auto px-4 py-4">
-      {/* Back button — desktop only (mobile uses WorkerAppBar back button) */}
-      <Link
-        href="/worker/jobs"
-        className="hidden md:inline-flex items-center gap-1.5 text-sm text-[#98A2B2] mb-4 hover:text-[#0669F7] transition-colors"
-      >
-        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-        </svg>
-        일자리 목록
-      </Link>
+    <>
+      {/* Back button — desktop only */}
+      <div className="max-w-[1120px] mx-auto px-4 sm:px-6 pt-4 pb-0">
+        <Link
+          href="/worker/jobs"
+          className="hidden md:inline-flex items-center gap-1.5 text-sm text-[#717171] hover:text-[#222222] transition-colors"
+        >
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+          </svg>
+          {t('detail.back_to_list')}
+        </Link>
+      </div>
 
       <JobDetailView
         job={job}
@@ -50,31 +56,19 @@ export default async function WorkerJobDetailPage({ params }: Props) {
         initialNotes={existingApplication?.notes ?? undefined}
       />
 
-      {/* Site card */}
-      {job.site && (
-        <div className="mt-6 p-4 bg-white rounded-2xl">
-          <p className="text-xs text-[#98A2B2] mb-1">근무 현장</p>
-          <Link
-            href={`/sites/${job.site.slug}`}
-            className="font-semibold text-[#25282A] hover:text-[#0669F7]"
-          >
-            {job.site.nameKo}
-          </Link>
-          <p className="text-sm text-[#98A2B2] mt-1">📍 {job.site.address}</p>
-        </div>
-      )}
-
       {/* Related jobs */}
       {job.relatedJobs && job.relatedJobs.length > 0 && (
-        <section className="mt-8">
-          <h2 className="text-base font-bold text-[#25282A] mb-3">같은 직종 다른 공고</h2>
-          <JobListGrid
-            jobs={job.relatedJobs}
-            locale={locale}
-            basePath={`/worker/jobs`}
-          />
+        <section className="max-w-[1120px] mx-auto px-4 sm:px-6 pb-12">
+          <div className="border-t border-[#DDDDDD] pt-10">
+            <h2 className="text-[20px] font-semibold text-[#222222] mb-6">{t('detail.related_jobs')}</h2>
+            <JobListGrid
+              jobs={job.relatedJobs}
+              locale={locale}
+              basePath="/worker/jobs"
+            />
+          </div>
         </section>
       )}
-    </div>
+    </>
   )
 }

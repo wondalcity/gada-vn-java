@@ -2,6 +2,7 @@ import { useEffect, useState, useCallback } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { api } from '../lib/api'
 import { DEMO_COMPANIES } from '../lib/demo-data'
+import { useAdminTranslation } from '../context/LanguageContext'
 
 function formatPhone(phone: string | null | undefined): string {
   if (!phone) return '-'
@@ -49,6 +50,7 @@ function CompanyFormModal({
   onSave: (data: Record<string, string>) => Promise<void>
   onCancel: () => void
 }) {
+  const { t } = useAdminTranslation()
   const isEdit = Boolean(company?.id)
   const [form, setForm] = useState({
     name: company?.name ?? '',
@@ -67,7 +69,7 @@ function CompanyFormModal({
     try {
       await onSave(form)
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : '저장 실패')
+      setError(err instanceof Error ? err.message : t('common.save_failed'))
     } finally {
       setSaving(false)
     }
@@ -76,35 +78,35 @@ function CompanyFormModal({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
       <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg p-6 overflow-y-auto max-h-[90vh]">
-        <h3 className="text-base font-bold text-gray-900 mb-4">{isEdit ? '건설사 수정' : '새 건설사 등록'}</h3>
+        <h3 className="text-base font-bold text-gray-900 mb-4">{isEdit ? t('companies.modal.edit_title') : t('companies.modal.create_title')}</h3>
         {error && (
           <div className="bg-[#FDE8EE] border border-[#F4B0C0] text-[#D81A48] rounded-xl p-3 mb-4 text-sm">{error}</div>
         )}
         <form onSubmit={handleSubmit} className="space-y-3">
           <div>
-            <label className="block text-xs font-medium text-gray-500 mb-1">건설사명 *</label>
+            <label className="block text-xs font-medium text-gray-500 mb-1">{t('companies.modal.name')}</label>
             <input required className={IN} value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} />
           </div>
           <div>
-            <label className="block text-xs font-medium text-gray-500 mb-1">사업자등록번호</label>
+            <label className="block text-xs font-medium text-gray-500 mb-1">{t('companies.modal.reg_no')}</label>
             <input className={IN} value={form.businessRegNo} onChange={e => setForm({ ...form, businessRegNo: e.target.value })} placeholder="000-00-00000" />
           </div>
           <div>
-            <label className="block text-xs font-medium text-gray-500 mb-1">담당자명</label>
+            <label className="block text-xs font-medium text-gray-500 mb-1">{t('companies.modal.contact_name')}</label>
             <input className={IN} value={form.contactName} onChange={e => setForm({ ...form, contactName: e.target.value })} />
           </div>
           <div>
-            <label className="block text-xs font-medium text-gray-500 mb-1">담당자 전화번호</label>
+            <label className="block text-xs font-medium text-gray-500 mb-1">{t('companies.modal.contact_phone')}</label>
             <input className={IN} value={form.contactPhone} onChange={e => setForm({ ...form, contactPhone: e.target.value })} placeholder="0901 234 567" />
           </div>
           <div>
-            <label className="block text-xs font-medium text-gray-500 mb-1">담당자 이메일</label>
+            <label className="block text-xs font-medium text-gray-500 mb-1">{t('companies.modal.contact_email')}</label>
             <input type="email" className={IN} value={form.contactEmail} onChange={e => setForm({ ...form, contactEmail: e.target.value })} />
           </div>
           <div className="flex gap-2 pt-2">
-            <button type="button" onClick={onCancel} className="flex-1 py-2.5 rounded-xl text-sm font-medium border border-[#EFF1F5] text-gray-600 hover:bg-[#F2F4F5]">취소</button>
+            <button type="button" onClick={onCancel} className="flex-1 py-2.5 rounded-xl text-sm font-medium border border-[#EFF1F5] text-gray-600 hover:bg-[#F2F4F5]">{t('common.cancel')}</button>
             <button type="submit" disabled={saving} className="flex-1 py-2.5 rounded-xl text-sm font-bold bg-[#0669F7] text-white hover:bg-[#0550C4] disabled:opacity-50">
-              {saving ? '저장 중...' : isEdit ? '수정 완료' : '등록'}
+              {saving ? t('companies.modal.saving') : isEdit ? t('companies.modal.save_edit') : t('companies.modal.save_create')}
             </button>
           </div>
         </form>
@@ -123,6 +125,7 @@ function CompanyDetailPanel({
   onBack: () => void
   onDeleted: () => void
 }) {
+  const { t } = useAdminTranslation()
   const [company, setCompany] = useState<Company | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -137,10 +140,10 @@ function CompanyDetailPanel({
       .catch(() => {
         const demo = DEMO_COMPANIES.find(c => c.id === companyId)
         if (demo) setCompany(demo as unknown as Company)
-        else setError('건설사 정보를 불러올 수 없습니다')
+        else setError(t('companies.load_error'))
       })
       .finally(() => setLoading(false))
-  }, [companyId])
+  }, [companyId, t])
 
   useEffect(() => { load() }, [load])
 
@@ -152,24 +155,24 @@ function CompanyDetailPanel({
   async function handleSaveEdit(data: Record<string, string>) {
     await api.put(`/admin/companies/${companyId}`, data)
     setShowEdit(false)
-    showMsg('수정되었습니다')
+    showMsg(t('common.saved'))
     load()
   }
 
   async function handleDelete() {
-    if (!confirm('이 건설사를 삭제하시겠습니까?')) return
+    if (!confirm(t('companies.confirm_delete'))) return
     setDeleting(true)
     try {
       await api.delete(`/admin/companies/${companyId}`)
       onDeleted()
     } catch (err: unknown) {
-      showMsg(err instanceof Error ? err.message : '삭제 실패')
+      showMsg(err instanceof Error ? err.message : t('common.delete_failed'))
     } finally {
       setDeleting(false)
     }
   }
 
-  if (loading) return <div className="p-8 text-center text-gray-400 text-sm">로딩 중...</div>
+  if (loading) return <div className="p-8 text-center text-gray-400 text-sm">{t('common.loading')}</div>
   if (error) return <div className="p-8 text-center text-[#D81A48] text-sm">{error}</div>
   if (!company) return null
 
@@ -189,7 +192,7 @@ function CompanyDetailPanel({
       )}
 
       <button onClick={onBack} className="flex items-center gap-2 text-sm text-gray-500 hover:text-gray-800 mb-6 transition-colors">
-        ← 건설사 목록으로 돌아가기
+        {t('companies.detail.back')}
       </button>
 
       <div className="bg-white rounded-2xl shadow-sm p-6 mb-6">
@@ -197,46 +200,46 @@ function CompanyDetailPanel({
           <div>
             <h1 className="text-2xl font-bold text-gray-900 mb-1">{company.name}</h1>
             {company.business_reg_no && (
-              <p className="text-sm text-gray-500">사업자등록번호: {company.business_reg_no}</p>
+              <p className="text-sm text-gray-500">{t('companies.detail.reg_no_label')}{company.business_reg_no}</p>
             )}
           </div>
           <div className="flex items-center gap-2 shrink-0">
-            <button onClick={() => setShowEdit(true)} className="px-3 py-1.5 text-xs border border-[#EFF1F5] rounded-xl text-gray-600 hover:bg-[#F2F4F5]">수정</button>
-            <button onClick={handleDelete} disabled={deleting} className="px-3 py-1.5 text-xs border border-[#F4B0C0] rounded-xl text-[#D81A48] hover:bg-[#FDE8EE] disabled:opacity-50">삭제</button>
+            <button onClick={() => setShowEdit(true)} className="px-3 py-1.5 text-xs border border-[#EFF1F5] rounded-xl text-gray-600 hover:bg-[#F2F4F5]">{t('common.edit')}</button>
+            <button onClick={handleDelete} disabled={deleting} className="px-3 py-1.5 text-xs border border-[#F4B0C0] rounded-xl text-[#D81A48] hover:bg-[#FDE8EE] disabled:opacity-50">{t('common.delete')}</button>
           </div>
         </div>
 
         <div className="mt-6 grid grid-cols-2 gap-6">
           <div className="space-y-4">
             <div>
-              <p className="text-xs text-gray-500 mb-0.5">담당자</p>
+              <p className="text-xs text-gray-500 mb-0.5">{t('companies.detail.contact')}</p>
               <p className="text-sm font-medium text-gray-900">{company.contact_name ?? '-'}</p>
             </div>
             <div>
-              <p className="text-xs text-gray-500 mb-0.5">전화번호</p>
+              <p className="text-xs text-gray-500 mb-0.5">{t('companies.detail.phone')}</p>
               <p className="text-sm font-medium text-gray-900">{formatPhone(company.contact_phone)}</p>
             </div>
             <div>
-              <p className="text-xs text-gray-500 mb-0.5">이메일</p>
+              <p className="text-xs text-gray-500 mb-0.5">{t('companies.detail.email')}</p>
               <p className="text-sm font-medium text-gray-900">{company.contact_email ?? '-'}</p>
             </div>
             <div>
-              <p className="text-xs text-gray-500 mb-0.5">연결된 현장</p>
-              <p className="text-sm font-bold text-[#0669F7]">{company.site_count}개</p>
+              <p className="text-xs text-gray-500 mb-0.5">{t('companies.detail.linked_sites')}</p>
+              <p className="text-sm font-bold text-[#0669F7]">{company.site_count}{t('companies.detail.linked_sites_suffix')}</p>
             </div>
           </div>
 
           <div className="space-y-4">
             {/* Company signature */}
             <div>
-              <p className="text-xs text-gray-500 mb-2">건설사 서명 / 법인인감</p>
+              <p className="text-xs text-gray-500 mb-2">{t('companies.detail.signature')}</p>
               {company.signature_url ? (
                 <div className="border border-[#EFF1F5] rounded-xl p-3 bg-[#FAFCFF] inline-block">
-                  <img src={company.signature_url} alt="건설사 서명" className="max-h-24 max-w-[200px] object-contain" />
+                  <img src={company.signature_url} alt={t('companies.detail.signature_alt')} className="max-h-24 max-w-[200px] object-contain" />
                 </div>
               ) : (
                 <div className="border-2 border-dashed border-[#E5E7EB] rounded-xl h-20 flex items-center justify-center">
-                  <p className="text-xs text-[#98A2B2]">서명 미등록</p>
+                  <p className="text-xs text-[#98A2B2]">{t('companies.detail.no_signature')}</p>
                 </div>
               )}
             </div>
@@ -244,14 +247,14 @@ function CompanyDetailPanel({
             {/* Business registration cert */}
             {company.business_reg_cert_url && (
               <div>
-                <p className="text-xs text-gray-500 mb-2">사업자등록증</p>
+                <p className="text-xs text-gray-500 mb-2">{t('companies.detail.reg_cert')}</p>
                 <a
                   href={company.business_reg_cert_url}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-2 px-3 py-2 text-xs rounded-xl border border-[#EFF1F5] text-[#0669F7] hover:bg-[#F0F6FF]"
                 >
-                  📄 사업자등록증 보기
+                  {t('companies.detail.view_reg_cert')}
                 </a>
               </div>
             )}
@@ -264,6 +267,7 @@ function CompanyDetailPanel({
 
 // ── Main Companies page ─────────────────────────────────────────────────────
 export default function Companies() {
+  const { t } = useAdminTranslation()
   const { id } = useParams<{ id?: string }>()
   const navigate = useNavigate()
   const [companies, setCompanies] = useState<Company[]>([])
@@ -304,7 +308,7 @@ export default function Companies() {
   async function handleCreate(data: Record<string, string>) {
     await api.post('/admin/companies', data)
     setShowCreate(false)
-    showMsg('건설사가 등록되었습니다')
+    showMsg(t('companies.registered'))
     load()
   }
 
@@ -312,18 +316,18 @@ export default function Companies() {
     if (!editCompany) return
     await api.put(`/admin/companies/${editCompany.id}`, data)
     setEditCompany(null)
-    showMsg('수정되었습니다')
+    showMsg(t('common.saved'))
     load()
   }
 
   async function handleDelete(company: Company) {
-    if (!confirm(`"${company.name}" 건설사를 삭제하시겠습니까?`)) return
+    if (!confirm(`"${company.name}" ${t('companies.confirm_delete')}`)) return
     try {
       await api.delete(`/admin/companies/${company.id}`)
       setCompanies(prev => prev.filter(c => c.id !== company.id))
-      showMsg('삭제되었습니다')
+      showMsg(t('common.deleted'))
     } catch (err: unknown) {
-      showMsg(err instanceof Error ? err.message : '삭제 실패')
+      showMsg(err instanceof Error ? err.message : t('common.delete_failed'))
     }
   }
 
@@ -355,38 +359,38 @@ export default function Companies() {
 
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">건설사 관리</h1>
-          <p className="text-sm text-gray-500 mt-1">현장과 연결될 건설사 정보를 관리합니다</p>
+          <h1 className="text-2xl font-bold text-gray-900">{t('companies.title')}</h1>
+          <p className="text-sm text-gray-500 mt-1">{t('companies.subtitle')}</p>
         </div>
         <button
           onClick={() => setShowCreate(true)}
           className="flex items-center gap-2 px-4 py-2 bg-[#0669F7] hover:bg-[#0550C4] text-white text-sm font-medium rounded-2xl transition-colors"
         >
-          + 새 건설사
+          {t('companies.new')}
         </button>
       </div>
 
       {isDemo && (
         <div className="mb-4 flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-amber-50 border border-amber-200 text-sm text-amber-700">
-          <span className="font-semibold">데모 데이터</span>
-          <span className="text-amber-600">— API 연결 후 실제 데이터가 표시됩니다</span>
+          <span className="font-semibold">{t('common.demo_data')}</span>
+          <span className="text-amber-600">{t('common.demo_suffix')}</span>
         </div>
       )}
 
       <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
         {loading ? (
-          <div className="p-8 text-center text-gray-400 text-sm">로딩 중...</div>
+          <div className="p-8 text-center text-gray-400 text-sm">{t('common.loading')}</div>
         ) : companies.length === 0 ? (
           <div className="py-16 text-center text-gray-400">
             <p className="text-4xl mb-3">🏢</p>
-            <p className="text-sm mb-4">등록된 건설사가 없습니다</p>
-            <button onClick={() => setShowCreate(true)} className="inline-flex items-center gap-2 px-4 py-2 bg-[#0669F7] text-white text-sm font-medium rounded-2xl">+ 첫 번째 건설사 등록</button>
+            <p className="text-sm mb-4">{t('companies.empty')}</p>
+            <button onClick={() => setShowCreate(true)} className="inline-flex items-center gap-2 px-4 py-2 bg-[#0669F7] text-white text-sm font-medium rounded-2xl">{t('companies.first_register')}</button>
           </div>
         ) : (
           <table className="w-full">
             <thead className="bg-[#F2F4F5]">
               <tr>
-                {['건설사명', '사업자등록번호', '담당자', '연락처', '현장 수', '서명', '등록일', ''].map((h) => (
+                {[t('companies.col_name'), t('companies.col_reg_no'), t('companies.col_contact'), t('companies.col_phone'), t('companies.col_sites'), t('companies.col_signature'), t('companies.col_registered'), ''].map((h) => (
                   <th key={h} className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase">{h}</th>
                 ))}
               </tr>
@@ -402,23 +406,23 @@ export default function Companies() {
                   <td className="px-6 py-4 text-sm text-gray-600">{formatPhone(c.contact_phone)}</td>
                   <td className="px-6 py-4 text-sm">
                     <span className="text-blue-600 font-medium">{c.site_count}</span>
-                    <span className="text-gray-400">개</span>
+                    <span className="text-gray-400">{t('companies.sites_suffix')}</span>
                   </td>
                   <td className="px-6 py-4 text-sm">
                     {c.signature_url ? (
-                      <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-green-100 text-green-700 text-xs font-medium">✓ 등록됨</span>
+                      <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-green-100 text-green-700 text-xs font-medium">{t('common.registered')}</span>
                     ) : (
-                      <span className="inline-flex items-center px-2 py-1 rounded-full bg-[#EFF1F5] text-[#98A2B2] text-xs">미등록</span>
+                      <span className="inline-flex items-center px-2 py-1 rounded-full bg-[#EFF1F5] text-[#98A2B2] text-xs">{t('common.not_registered')}</span>
                     )}
                   </td>
                   <td className="px-6 py-4 text-sm text-gray-500">{formatDate(c.created_at)}</td>
                   <td className="px-6 py-4 text-right">
                     <div className="flex gap-3 justify-end items-center">
-                      <button onClick={() => navigate(`/companies/${c.id}`)} className="text-[#0669F7] hover:underline text-sm">상세</button>
+                      <button onClick={() => navigate(`/companies/${c.id}`)} className="text-[#0669F7] hover:underline text-sm">{t('common.detail')}</button>
                       {!isDemo && (
                         <>
-                          <button onClick={e => { e.stopPropagation(); setEditCompany(c) }} className="text-gray-400 hover:text-gray-700 text-sm">수정</button>
-                          <button onClick={e => { e.stopPropagation(); handleDelete(c) }} className="text-[#D81A48] text-sm">삭제</button>
+                          <button onClick={e => { e.stopPropagation(); setEditCompany(c) }} className="text-gray-400 hover:text-gray-700 text-sm">{t('common.edit')}</button>
+                          <button onClick={e => { e.stopPropagation(); handleDelete(c) }} className="text-[#D81A48] text-sm">{t('common.delete')}</button>
                         </>
                       )}
                     </div>
@@ -430,7 +434,7 @@ export default function Companies() {
         )}
       </div>
 
-      <div className="mt-4 text-xs text-gray-400 text-right">총 {companies.length}개 건설사</div>
+      <div className="mt-4 text-xs text-gray-400 text-right">{t('companies.total').replace('{n}', String(companies.length))}</div>
     </div>
   )
 }

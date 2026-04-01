@@ -3,6 +3,7 @@
 import * as React from 'react'
 import Link from 'next/link'
 import { useParams } from 'next/navigation'
+import { useTranslations } from 'next-intl'
 import { getSessionCookie } from '@/lib/auth/session'
 import { apiClient } from '@/lib/api/client'
 import { CONTRACT_STATUS_LABELS, CONTRACT_STATUS_COLORS } from '@/types/contract'
@@ -115,6 +116,7 @@ function DocumentIllustration() {
 }
 
 export default function ManagerContractsClient() {
+  const t = useTranslations('common')
   const idToken = getSessionCookie()
   const params = useParams()
   const locale = (params?.locale as string) ?? 'ko'
@@ -128,7 +130,7 @@ export default function ManagerContractsClient() {
     setError(null)
     apiClient<ContractListItem[]>('/contracts/mine-as-manager', { token: idToken })
       .then(({ data }) => setContracts(data))
-      .catch(() => setError('계약서 목록을 불러올 수 없습니다.'))
+      .catch(() => setError(t('manager_contracts.error_load')))
       .finally(() => setIsLoading(false))
   }, [idToken])
 
@@ -139,7 +141,7 @@ export default function ManagerContractsClient() {
   if (isLoading) {
     return (
       <div className="max-w-[1760px] mx-auto px-4 py-6">
-        <h1 className="text-xl font-bold text-[#25282A] mb-6">계약서 관리</h1>
+        <h1 className="text-xl font-bold text-[#25282A] mb-6">{t('manager_contracts.title')}</h1>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           {[1, 2, 3].map((i) => (
             <div
@@ -160,14 +162,14 @@ export default function ManagerContractsClient() {
   if (error) {
     return (
       <div className="max-w-[1760px] mx-auto px-4 py-6">
-        <h1 className="text-xl font-bold text-[#25282A] mb-6">계약서 관리</h1>
+        <h1 className="text-xl font-bold text-[#25282A] mb-6">{t('manager_contracts.title')}</h1>
         <p className="text-[#D81A48] text-sm mb-4">{error}</p>
         <button
           type="button"
           onClick={load}
           className="px-5 py-2.5 rounded-full bg-[#0669F7] text-white font-medium text-sm"
         >
-          다시 시도
+          {t('manager_contracts.retry')}
         </button>
       </div>
     )
@@ -179,10 +181,10 @@ export default function ManagerContractsClient() {
   return (
     <div className="max-w-[1760px] mx-auto px-4 py-6">
       <div className="flex items-center gap-3 mb-6">
-        <h1 className="text-xl font-bold text-[#25282A]">계약서 관리</h1>
+        <h1 className="text-xl font-bold text-[#25282A]">{t('manager_contracts.title')}</h1>
         {isDemo && (
           <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-700 border border-amber-200">
-            데모 데이터
+            {t('manager_contracts.demo_badge')}
           </span>
         )}
       </div>
@@ -190,8 +192,8 @@ export default function ManagerContractsClient() {
       {displayContracts.length === 0 ? (
         <div className="py-16 text-center">
           <DocumentIllustration />
-          <p className="text-[#98A2B2] text-sm font-medium">계약서가 없습니다.</p>
-          <p className="text-[#98A2B2] text-xs mt-1">합격자에게 계약서를 발행하면 여기에 표시됩니다.</p>
+          <p className="text-[#98A2B2] text-sm font-medium">{t('manager_contracts.empty_title')}</p>
+          <p className="text-[#98A2B2] text-xs mt-1">{t('manager_contracts.empty_subtitle')}</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -228,7 +230,7 @@ export default function ManagerContractsClient() {
                   href={`/${locale}/manager/contracts/${contract.id}`}
                   className="inline-flex items-center px-4 py-1.5 rounded-full bg-[#0669F7] text-white font-medium text-xs hover:bg-blue-700 transition-colors"
                 >
-                  계약서 보기
+                  {t('manager_contracts.view_contract')}
                 </Link>
               </div>
             </div>

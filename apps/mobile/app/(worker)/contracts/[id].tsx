@@ -32,8 +32,8 @@ export default function WorkerContractScreen() {
       const data = await api.get<Contract>(`/contracts/${id}`);
       setContract(data);
     } catch {
-      Alert.alert('오류', '계약서를 불러올 수 없습니다.', [
-        { text: '확인', onPress: () => router.back() },
+      Alert.alert(t('common.error'), t('contract.load_fail'), [
+        { text: t('common.confirm'), onPress: () => router.back() },
       ]);
     } finally {
       setLoading(false);
@@ -47,12 +47,12 @@ export default function WorkerContractScreen() {
     setSigning(true);
     try {
       await api.post(`/contracts/${id}/sign`, { signatureData });
-      Alert.alert('서명 완료 ✅', '계약서에 서명이 완료되었습니다.', [
-        { text: '확인', onPress: () => { load(); } },
+      Alert.alert(t('contract.sign_complete_title'), t('contract.sign_complete_body'), [
+        { text: t('common.confirm'), onPress: () => { load(); } },
       ]);
     } catch (err) {
-      const msg = err instanceof ApiError ? err.message : '서명에 실패했습니다.';
-      Alert.alert('오류', msg);
+      const msg = err instanceof ApiError ? err.message : t('contract.sign_fail');
+      Alert.alert(t('common.error'), msg);
     } finally {
       setSigning(false);
     }
@@ -72,7 +72,7 @@ export default function WorkerContractScreen() {
       <ScrollView style={styles.container} contentContainerStyle={styles.content}>
         {/* Contract HTML content */}
         <View style={styles.contractBox}>
-          <Text style={styles.contractTitle}>근로계약서</Text>
+          <Text style={styles.contractTitle}>{t('contract.title')}</Text>
           <View style={styles.divider} />
           <Text style={styles.contractText}>
             {contract.contract_html.replace(/<[^>]*>/g, '').trim()}
@@ -81,7 +81,7 @@ export default function WorkerContractScreen() {
 
         {/* Signature status card */}
         <View style={styles.sigCard}>
-          <Text style={styles.sigCardTitle}>서명 현황</Text>
+          <Text style={styles.sigCardTitle}>{t('contract.section_signature_status')}</Text>
           <View style={styles.sigRow}>
             {/* Worker signature box */}
             {canWorkerSign ? (
@@ -91,28 +91,28 @@ export default function WorkerContractScreen() {
                 disabled={signing}
                 activeOpacity={0.75}
               >
-                <Text style={styles.sigBoxLabelActive}>근로자 서명</Text>
+                <Text style={styles.sigBoxLabelActive}>{t('contract.worker_signature')}</Text>
                 <View style={styles.sigIconActive}>
                   <Text style={{ fontSize: 20 }}>✍️</Text>
                 </View>
-                <Text style={styles.sigBoxCta}>서명하기</Text>
+                <Text style={styles.sigBoxCta}>{t('contract.sign_button')}</Text>
               </TouchableOpacity>
             ) : (
               <View style={[styles.sigBox, workerSigned ? styles.sigBoxDone : styles.sigBoxWait]}>
-                <Text style={[styles.sigBoxLabel, workerSigned && styles.sigBoxLabelDone]}>근로자 서명</Text>
+                <Text style={[styles.sigBoxLabel, workerSigned && styles.sigBoxLabelDone]}>{t('contract.worker_signature')}</Text>
                 <Text style={{ fontSize: 28, marginVertical: 4 }}>{workerSigned ? '✅' : '⏳'}</Text>
                 <Text style={[styles.sigBoxStatus, workerSigned && styles.sigBoxStatusDone]}>
-                  {workerSigned ? '서명 완료' : '서명 대기'}
+                  {workerSigned ? t('contract.signed') : t('contract.waiting')}
                 </Text>
               </View>
             )}
 
             {/* Manager signature box — display only */}
             <View style={[styles.sigBox, managerSigned ? styles.sigBoxDone : styles.sigBoxWait]}>
-              <Text style={[styles.sigBoxLabel, managerSigned && styles.sigBoxLabelDone]}>사업주 서명</Text>
+              <Text style={[styles.sigBoxLabel, managerSigned && styles.sigBoxLabelDone]}>{t('contract.manager_signature')}</Text>
               <Text style={{ fontSize: 28, marginVertical: 4 }}>{managerSigned ? '✅' : '⏳'}</Text>
               <Text style={[styles.sigBoxStatus, managerSigned && styles.sigBoxStatusDone]}>
-                {managerSigned ? '서명 완료' : '서명 대기'}
+                {managerSigned ? t('contract.signed') : t('contract.waiting')}
               </Text>
             </View>
           </View>
@@ -140,6 +140,7 @@ interface SignaturePadProps {
 }
 
 function SignaturePadModal({ onConfirm, onCancel }: SignaturePadProps) {
+  const { t } = useTranslation();
   const [paths, setPaths] = useState<string[]>([]);
   const [currentPath, setCurrentPath] = useState('');
   const hasSignature = paths.length > 0 || currentPath.length > 0;
@@ -176,8 +177,8 @@ function SignaturePadModal({ onConfirm, onCancel }: SignaturePadProps) {
   return (
     <View style={sig.overlay}>
       <View style={sig.modal}>
-        <Text style={sig.title}>서명</Text>
-        <Text style={sig.hint}>아래 영역에 서명해 주세요</Text>
+        <Text style={sig.title}>{t('contract.sign_pad_title')}</Text>
+        <Text style={sig.hint}>{t('contract.sign_pad_hint')}</Text>
 
         <View
           style={sig.canvas}
@@ -189,23 +190,23 @@ function SignaturePadModal({ onConfirm, onCancel }: SignaturePadProps) {
         >
           {/* Visual strokes using positioned views */}
           {!hasSignature && (
-            <Text style={sig.placeholder}>← 여기에 서명하세요</Text>
+            <Text style={sig.placeholder}>{t('contract.sign_pad_placeholder')}</Text>
           )}
         </View>
 
         <View style={sig.actions}>
           <TouchableOpacity style={sig.clearBtn} onPress={handleClear}>
-            <Text style={sig.clearBtnText}>다시 쓰기</Text>
+            <Text style={sig.clearBtnText}>{t('contract.sign_pad_clear')}</Text>
           </TouchableOpacity>
           <TouchableOpacity style={sig.cancelBtn} onPress={onCancel}>
-            <Text style={sig.cancelBtnText}>취소</Text>
+            <Text style={sig.cancelBtnText}>{t('common.cancel')}</Text>
           </TouchableOpacity>
           <TouchableOpacity
             style={[sig.confirmBtn, !hasSignature && sig.confirmBtnDisabled]}
             onPress={handleConfirm}
             disabled={!hasSignature}
           >
-            <Text style={sig.confirmBtnText}>확인</Text>
+            <Text style={sig.confirmBtnText}>{t('common.confirm')}</Text>
           </TouchableOpacity>
         </View>
       </View>

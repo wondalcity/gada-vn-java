@@ -31,6 +31,15 @@ export class FirebaseService implements OnModuleInit {
     await this.app.auth().revokeRefreshTokens(uid);
   }
 
+  async updateFirebaseUser(uid: string, updates: { email?: string; password?: string }): Promise<void> {
+    const updateData: admin.auth.UpdateRequest = {};
+    if (updates.email) updateData.email = updates.email;
+    if (updates.password) updateData.password = updates.password;
+    if (Object.keys(updateData).length > 0) {
+      await this.app.auth().updateUser(uid, updateData);
+    }
+  }
+
   async getOrCreateUserByPhone(phone: string): Promise<{ uid: string; isNew: boolean }> {
     try {
       const user = await this.app.auth().getUserByPhoneNumber(phone);

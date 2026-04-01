@@ -1,3 +1,4 @@
+import { getTranslations } from 'next-intl/server'
 import { Link } from '@/components/navigation'
 import type { Province } from '@/lib/api/public'
 
@@ -6,7 +7,8 @@ interface Props {
   locale: string
 }
 
-export function ProvinceGrid({ provinces, locale }: Props) {
+export async function ProvinceGrid({ provinces, locale }: Props) {
+  const t = await getTranslations({ locale, namespace: 'landing' })
   const displayProvinces = provinces.slice(0, 10)
 
   return (
@@ -21,7 +23,7 @@ export function ProvinceGrid({ provinces, locale }: Props) {
             {p.nameVi}
           </p>
           <p className="text-xs text-[#98A2B2] mt-1 group-hover:text-[#0669F7] transition-colors">
-            공고 보기 →
+            {t('provinces.view_jobs')}
           </p>
         </Link>
       ))}

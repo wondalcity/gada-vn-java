@@ -45,7 +45,7 @@ export default function WorkerJobFeed() {
     const today = new Date().toISOString().split('T')[0];
     const days = ['일', '월', '화', '수', '목', '금', '토'];
     const dayLabel = days[date.getDay()];
-    if (dateStr === today) return `오늘(${dayLabel})`;
+    if (dateStr === today) return `${t('jobs.today')}(${dayLabel})`;
     const month = date.getMonth() + 1;
     const day = date.getDate();
     return `${month}/${day}(${dayLabel})`;
@@ -82,7 +82,7 @@ export default function WorkerJobFeed() {
         contentContainerStyle={styles.list}
         ListEmptyComponent={
           <View style={styles.empty}>
-            <Text style={styles.emptyText}>이 날의 일자리가 없습니다</Text>
+            <Text style={styles.emptyText}>{t('jobs.no_jobs_today')}</Text>
           </View>
         }
       />

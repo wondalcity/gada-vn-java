@@ -1,9 +1,9 @@
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { cookies } from 'next/headers'
+import { getTranslations } from 'next-intl/server'
 import { fetchPublicJobBySlug } from '@/lib/api/public'
 import { apiClient } from '@/lib/api/client'
-import { Link } from '@/components/navigation'
 import JobDetailView from '@/components/jobs/JobDetailView'
 import { JobListGrid } from '@/components/jobs/JobListGrid'
 import { WorkerSignupCTA } from '@/components/public/WorkerSignupCTA'
@@ -47,7 +47,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function JobDetailPage({ params }: Props) {
   const { locale, slug } = await params
-  const cookieStore = await cookies()
+  const [cookieStore, t] = await Promise.all([
+    cookies(),
+    getTranslations({ locale, namespace: 'jobs' }),
+  ])
   const token = cookieStore.get('gada_session')?.value
 
   const job = await fetchPublicJobBySlug(slug, locale).catch(() => null)
@@ -100,67 +103,39 @@ export default async function JobDetailPage({ params }: Props) {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
 
-      <div className="max-w-[1760px] mx-auto px-4 sm:px-6 xl:px-20 py-8">
+      {/* Breadcrumb */}
+      <div className="max-w-[1120px] mx-auto px-4 sm:px-6 pt-6 pb-0">
         <Breadcrumb
           items={[
-            { label: '홈', href: '/' },
-            { label: '공고 목록', href: '/jobs' },
+            { label: t('listing.breadcrumb_home'), href: '/' },
+            { label: t('listing.breadcrumb_jobs'), href: '/jobs' },
             { label: job.titleKo },
           ]}
         />
-
-        <JobDetailView
-          job={job}
-          locale={locale}
-          isLoggedIn={!!token}
-          initialApplicationId={existingApplication?.applicationId}
-          initialApplicationStatus={existingApplication?.status}
-          initialNotes={existingApplication?.notes ?? undefined}
-        />
-
-        {/* Site card */}
-        {job.site && (
-          <div className="mt-8 p-4 bg-white rounded-lg border border-[#EFF1F5]">
-            <p className="text-sm text-[#98A2B2] mb-1">근무 현장</p>
-            <Link
-              href={`/sites/${job.site.slug}`}
-              className="font-semibold text-[#25282A] hover:text-[#0669F7]"
-            >
-              {job.site.nameKo}
-            </Link>
-            <p className="text-sm text-[#98A2B2] mt-1">📍 {job.site.address}</p>
-            <Link
-              href={`/sites/${job.site.slug}`}
-              className="text-sm text-[#0669F7] mt-2 inline-block"
-            >
-              현장 정보 보기 →
-            </Link>
-          </div>
-        )}
-
-        {/* Province link */}
-        {job.site?.provinceSlug && (
-          <div className="mt-4">
-            <Link
-              href={`/locations/${job.site.provinceSlug}`}
-              className="text-sm text-[#0669F7] hover:underline"
-            >
-              📍 {job.site.province} 지역 다른 공고 보기 →
-            </Link>
-          </div>
-        )}
-
-        {/* Related jobs */}
-        {job.relatedJobs && job.relatedJobs.length > 0 && (
-          <section className="mt-10">
-            <h2 className="text-xl font-bold text-[#25282A] mb-4">같은 직종 다른 공고</h2>
-            <JobListGrid jobs={job.relatedJobs} locale={locale} />
-          </section>
-        )}
       </div>
 
+      {/* Detail view (gallery + content + booking card) */}
+      <JobDetailView
+        job={job}
+        locale={locale}
+        isLoggedIn={!!token}
+        initialApplicationId={existingApplication?.applicationId}
+        initialApplicationStatus={existingApplication?.status}
+        initialNotes={existingApplication?.notes ?? undefined}
+      />
+
+      {/* Related jobs */}
+      {job.relatedJobs && job.relatedJobs.length > 0 && (
+        <section className="max-w-[1120px] mx-auto px-4 sm:px-6 pb-12">
+          <div className="border-t border-[#DDDDDD] pt-10">
+            <h2 className="text-[20px] font-semibold text-[#222222] mb-6">{t('detail.related_jobs')}</h2>
+            <JobListGrid jobs={job.relatedJobs} locale={locale} />
+          </div>
+        </section>
+      )}
+
       {/* Signup CTA */}
-      <WorkerSignupCTA />
+      <WorkerSignupCTA locale={locale} />
     </>
   )
 }

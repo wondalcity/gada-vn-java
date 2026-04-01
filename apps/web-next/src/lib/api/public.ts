@@ -121,46 +121,66 @@ export async function fetchPublicJobs(params: {
   const cacheOptions = params.lat != null || params.q
     ? { cache: 'no-store' as const }  // geo/search results skip CDN cache
     : { next: { revalidate: 60, tags: ['JOBS_LISTING'] as string[] } }
-  const res = await fetch(`${BASE}/public/jobs?${qs}`, cacheOptions)
-  if (!res.ok) return { jobs: [], total: 0, page: 1, totalPages: 0 }
-  const json = await res.json()
-  return json.data
+  try {
+    const res = await fetch(`${BASE}/public/jobs?${qs}`, cacheOptions)
+    if (!res.ok) return { jobs: [], total: 0, page: 1, totalPages: 0 }
+    const json = await res.json()
+    return json.data
+  } catch {
+    return { jobs: [], total: 0, page: 1, totalPages: 0 }
+  }
 }
 
 export async function fetchPublicJobBySlug(slug: string, locale = 'ko'): Promise<PublicJobDetail | null> {
-  const res = await fetch(`${BASE}/public/jobs/${slug}?locale=${locale}`, {
-    cache: 'no-store',
-  })
-  if (!res.ok) return null
-  const json = await res.json()
-  return json.data
+  try {
+    const res = await fetch(`${BASE}/public/jobs/${slug}?locale=${locale}`, {
+      cache: 'no-store',
+    })
+    if (!res.ok) return null
+    const json = await res.json()
+    return json.data
+  } catch {
+    return null
+  }
 }
 
 export async function fetchPublicSiteBySlug(slug: string, locale = 'ko'): Promise<PublicSite | null> {
-  const res = await fetch(`${BASE}/public/sites/${slug}?locale=${locale}`, {
-    cache: 'no-store',
-  })
-  if (!res.ok) return null
-  const json = await res.json()
-  return json.data
+  try {
+    const res = await fetch(`${BASE}/public/sites/${slug}?locale=${locale}`, {
+      cache: 'no-store',
+    })
+    if (!res.ok) return null
+    const json = await res.json()
+    return json.data
+  } catch {
+    return null
+  }
 }
 
 export async function fetchProvinces(locale = 'ko'): Promise<Province[]> {
-  const res = await fetch(`${BASE}/public/provinces?locale=${locale}`, {
-    next: { revalidate: 86400, tags: ['PROVINCES'] },
-  })
-  if (!res.ok) return []
-  const json = await res.json()
-  return json.data ?? []
+  try {
+    const res = await fetch(`${BASE}/public/provinces?locale=${locale}`, {
+      next: { revalidate: 86400, tags: ['PROVINCES'] },
+    })
+    if (!res.ok) return []
+    const json = await res.json()
+    return json.data ?? []
+  } catch {
+    return []
+  }
 }
 
 export async function fetchTrades(locale = 'ko'): Promise<Trade[]> {
-  const res = await fetch(`${BASE}/public/trades?locale=${locale}`, {
-    next: { revalidate: 86400, tags: ['TRADES'] },
-  })
-  if (!res.ok) return []
-  const json = await res.json()
-  return json.data ?? []
+  try {
+    const res = await fetch(`${BASE}/public/trades?locale=${locale}`, {
+      next: { revalidate: 86400, tags: ['TRADES'] },
+    })
+    if (!res.ok) return []
+    const json = await res.json()
+    return json.data ?? []
+  } catch {
+    return []
+  }
 }
 
 export async function fetchProvinceBySlug(slug: string, locale = 'ko'): Promise<Province | null> {

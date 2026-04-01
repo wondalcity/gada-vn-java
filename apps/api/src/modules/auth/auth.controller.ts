@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Patch, Post, UseGuards } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { FirebaseAuthGuard } from '../../common/guards/firebase-auth.guard';
 import { CurrentUser, CurrentUserPayload } from '../../common/decorators/current-user.decorator';
@@ -15,6 +15,16 @@ export class AuthController {
   @UseGuards(FirebaseAuthGuard)
   async getMe(@CurrentUser() user: CurrentUserPayload) {
     return this.authService.getMe(user.id);
+  }
+
+  /** Update auth profile (email) from profile settings */
+  @Patch('me')
+  @UseGuards(FirebaseAuthGuard)
+  async updateMe(
+    @CurrentUser() user: CurrentUserPayload,
+    @Body() body: { email?: string },
+  ) {
+    return this.authService.updateProfile(user.id, { email: body.email });
   }
 
   /** Complete profile after OTP login (register page) */
@@ -75,6 +85,17 @@ export class AuthController {
   @Public()
   async socialFacebook(@Body('idToken') idToken: string) {
     return this.authService.socialFacebook(idToken);
+  }
+
+  /** Link phone to Facebook account (after phone OTP verification) */
+  @Post('social/link-phone')
+  @UseGuards(FirebaseAuthGuard)
+  async linkPhone(
+    @CurrentUser() user: CurrentUserPayload,
+    @Body('phoneIdToken') phoneIdToken: string,
+  ) {
+    await this.authService.linkPhone(user.id, phoneIdToken);
+    return { success: true };
   }
 
   /** Logout — revoke Firebase tokens */

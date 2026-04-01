@@ -3,6 +3,7 @@
 import * as React from 'react'
 import Link from 'next/link'
 import { useParams } from 'next/navigation'
+import { useTranslations } from 'next-intl'
 import { getSessionCookie } from '@/lib/auth/session'
 import { apiClient } from '@/lib/api/client'
 import type { HireWithContract } from '@/types/contract'
@@ -138,6 +139,7 @@ function PeopleIllustration() {
 }
 
 export default function ManagerHiresClient() {
+  const t = useTranslations('common')
   const idToken = getSessionCookie()
   const params = useParams()
   const locale = (params?.locale as string) ?? 'ko'
@@ -197,10 +199,10 @@ export default function ManagerHiresClient() {
         token: idToken,
         body: JSON.stringify({ applicationId: hireId }),
       })
-      showToast('계약서가 생성되었습니다.')
+      showToast(t('manager_hires.contract_created'))
       load()
     } catch (err) {
-      const msg = err instanceof Error ? err.message : '계약서 생성 중 오류가 발생했습니다.'
+      const msg = err instanceof Error ? err.message : t('manager_hires.contract_create_error')
       showToast(msg)
     } finally {
       setCreatingContractFor(null)
@@ -225,7 +227,7 @@ export default function ManagerHiresClient() {
   if (isLoading) {
     return (
       <div className="max-w-[1760px] mx-auto px-4 py-6">
-        <h1 className="text-xl font-bold text-[#25282A] mb-6">합격자 관리</h1>
+        <h1 className="text-xl font-bold text-[#25282A] mb-6">{t('manager_hires.title')}</h1>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           {[1, 2, 3].map((i) => (
             <div
@@ -246,10 +248,10 @@ export default function ManagerHiresClient() {
   return (
     <div className="max-w-[1760px] mx-auto px-4 py-6">
       <div className="flex items-center gap-3 mb-2">
-        <h1 className="text-xl font-bold text-[#25282A]">합격자 관리</h1>
+        <h1 className="text-xl font-bold text-[#25282A]">{t('manager_hires.title')}</h1>
         {isDemo && (
           <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-700 border border-amber-200">
-            데모 데이터
+            {t('manager_hires.demo_badge')}
           </span>
         )}
       </div>
@@ -259,11 +261,11 @@ export default function ManagerHiresClient() {
         <div className="flex gap-4 mb-4">
           <div className="flex-1 bg-blue-50 rounded-2xl p-3 text-center">
             <p className="text-2xl font-bold text-[#0669F7]">{displayHires.length}</p>
-            <p className="text-xs text-[#98A2B2] mt-0.5">전체 합격자</p>
+            <p className="text-xs text-[#98A2B2] mt-0.5">{t('manager_hires.total_accepted')}</p>
           </div>
           <div className="flex-1 bg-green-50 rounded-2xl p-3 text-center">
             <p className="text-2xl font-bold text-green-600">{contractedCount}</p>
-            <p className="text-xs text-[#98A2B2] mt-0.5">계약 완료</p>
+            <p className="text-xs text-[#98A2B2] mt-0.5">{t('manager_hires.contracted_count')}</p>
           </div>
         </div>
       )}
@@ -275,7 +277,7 @@ export default function ManagerHiresClient() {
             type="search"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="근로자 이름 또는 전화번호 검색"
+            placeholder={t('manager_hires.search_placeholder')}
             className="w-full px-3 py-2.5 border border-[#EFF1F5] rounded-2xl text-sm text-[#25282A] placeholder-[#98A2B2] focus:outline-none focus:border-[#0669F7]"
           />
         </div>
@@ -284,11 +286,11 @@ export default function ManagerHiresClient() {
       {displayHires.length === 0 ? (
         <div className="py-16 text-center">
           <PeopleIllustration />
-          <p className="text-[#98A2B2] text-sm font-medium">합격자가 없습니다.</p>
-          <p className="text-[#98A2B2] text-xs mt-1">지원자를 합격 처리하면 여기에 표시됩니다.</p>
+          <p className="text-[#98A2B2] text-sm font-medium">{t('manager_hires.empty_title')}</p>
+          <p className="text-[#98A2B2] text-xs mt-1">{t('manager_hires.empty_subtitle')}</p>
         </div>
       ) : filteredHires.length === 0 ? (
-        <p className="text-center text-[#98A2B2] text-sm py-12">검색 결과가 없습니다.</p>
+        <p className="text-center text-[#98A2B2] text-sm py-12">{t('manager_hires.no_search_results')}</p>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           {filteredHires.map((hire) => (
@@ -314,7 +316,7 @@ export default function ManagerHiresClient() {
                       : 'bg-blue-50 text-blue-700 border border-blue-200'
                   }`}
                 >
-                  {hire.status === 'CONTRACTED' ? '계약완료' : '합격'}
+                  {hire.status === 'CONTRACTED' ? t('manager_hires.status_contracted') : t('manager_hires.status_accepted')}
                 </span>
               </div>
 
@@ -341,7 +343,7 @@ export default function ManagerHiresClient() {
                       href={`/${locale}/manager/contracts/${hire.contract.id}`}
                       className="px-4 py-1.5 rounded-full bg-[#0669F7] text-white font-medium text-xs hover:bg-blue-700 transition-colors"
                     >
-                      계약서 보기
+                      {t('manager_hires.view_contract')}
                     </Link>
                     {hire.contract.status === 'FULLY_SIGNED' && hire.contract.downloadUrl && (
                       <button
@@ -349,7 +351,7 @@ export default function ManagerHiresClient() {
                         onClick={() => window.open(hire.contract!.downloadUrl!, '_blank')}
                         className="px-4 py-1.5 rounded-full border border-[#EFF1F5] text-[#25282A] font-medium text-xs hover:border-[#0669F7] hover:text-[#0669F7] transition-colors"
                       >
-                        다운로드
+                        {t('manager_hires.download')}
                       </button>
                     )}
                   </div>
@@ -360,7 +362,7 @@ export default function ManagerHiresClient() {
                     disabled={creatingContractFor === hire.id}
                     className="px-4 py-1.5 rounded-full border border-[#0669F7] text-[#0669F7] font-medium text-xs hover:bg-[#0669F7] hover:text-white transition-colors disabled:opacity-40"
                   >
-                    {creatingContractFor === hire.id ? '생성 중...' : '계약서 생성'}
+                    {creatingContractFor === hire.id ? t('manager_hires.creating_contract') : t('manager_hires.create_contract')}
                   </button>
                 )}
               </div>

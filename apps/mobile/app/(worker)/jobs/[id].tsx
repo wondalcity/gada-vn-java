@@ -47,8 +47,8 @@ export default function JobDetailScreen() {
       const data = await api.get<JobWithSite>(`/jobs/${id}`);
       setJob(data);
     } catch {
-      Alert.alert('오류', '일자리 정보를 불러올 수 없습니다.', [
-        { text: '확인', onPress: () => router.back() },
+      Alert.alert(t('common.error'), t('jobs.load_fail'), [
+        { text: t('common.confirm'), onPress: () => router.back() },
       ]);
     } finally {
       setLoading(false);
@@ -62,15 +62,15 @@ export default function JobDetailScreen() {
     setApplying(true);
     try {
       await api.post(`/jobs/${id}/apply`);
-      Alert.alert('지원 완료 ✅', '일자리에 성공적으로 지원했습니다.\n결과는 알림으로 안내드립니다.', [
-        { text: '확인', onPress: () => router.back() },
+      Alert.alert(t('jobs.apply_success_title'), t('jobs.apply_success_body'), [
+        { text: t('common.confirm'), onPress: () => router.back() },
       ]);
     } catch (err) {
       const message =
         err instanceof ApiError && err.statusCode === 409
-          ? '이미 지원한 일자리입니다.'
-          : '지원에 실패했습니다. 다시 시도해 주세요.';
-      Alert.alert('오류', message);
+          ? t('jobs.already_applied')
+          : t('jobs.apply_fail');
+      Alert.alert(t('common.error'), message);
     } finally {
       setApplying(false);
     }
@@ -92,7 +92,7 @@ export default function JobDetailScreen() {
     year: 'numeric', month: 'long', day: 'numeric', weekday: 'short',
   });
   const timeLabel =
-    job.startTime && job.endTime ? `${job.startTime} ~ ${job.endTime}` : '시간 미정';
+    job.startTime && job.endTime ? `${job.startTime} ~ ${job.endTime}` : t('jobs.time_tbd');
 
   // Bottom bar height: button (16+20+16) + padding (16) + safe area bottom
   const bottomBarHeight = 68 + 16 + insets.bottom;
@@ -122,38 +122,38 @@ export default function JobDetailScreen() {
           <Text style={styles.siteName}>{job.site?.name ?? job.title}</Text>
           <Text style={styles.address}>{job.site?.address}</Text>
           {job.distanceKm !== undefined && (
-            <Text style={styles.distanceBadge}>📍 내 위치에서 {job.distanceKm.toFixed(1)}km</Text>
+            <Text style={styles.distanceBadge}>{t('jobs.distance_from_me', { km: job.distanceKm.toFixed(1) })}</Text>
           )}
         </View>
 
         {/* Wage highlight */}
         <View style={styles.wageCard}>
-          <Text style={styles.wageLabel}>일당</Text>
+          <Text style={styles.wageLabel}>{t('jobs.wage_label')}</Text>
           <Text style={styles.wage}>₫{new Intl.NumberFormat('ko-KR').format(job.dailyWage)}</Text>
           <View style={[styles.slotBadge, isFull && styles.slotBadgeFull]}>
             <Text style={styles.slotBadgeText}>
-              {isFull ? '마감' : `${job.slotsTotal - job.slotsFilled}자리 남음`}
+              {isFull ? t('jobs.closed_label') : t('jobs.slots_remaining', { count: job.slotsTotal - job.slotsFilled })}
             </Text>
           </View>
         </View>
 
         {/* Info rows */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>근무 정보</Text>
-          <InfoRow icon="📅" label="근무일" value={workDateLabel} />
-          <InfoRow icon="⏰" label="근무 시간" value={timeLabel} />
-          <InfoRow icon="👷" label="모집 인원" value={`${job.slotsTotal}명 (현재 ${job.slotsFilled}명)`} />
+          <Text style={styles.sectionTitle}>{t('jobs.section_work_info')}</Text>
+          <InfoRow icon="📅" label={t('jobs.info_work_date')} value={workDateLabel} />
+          <InfoRow icon="⏰" label={t('jobs.info_work_time')} value={timeLabel} />
+          <InfoRow icon="👷" label={t('jobs.info_headcount')} value={t('jobs.info_headcount_value', { total: job.slotsTotal, filled: job.slotsFilled })} />
         </View>
 
         {/* Benefits */}
         {Object.keys(job.benefits ?? {}).length > 0 && (
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>제공 혜택</Text>
+            <Text style={styles.sectionTitle}>{t('jobs.section_benefits')}</Text>
             <View style={styles.tagRow}>
-              {job.benefits?.meals && <BenefitTag label="🍱 식사 제공" />}
-              {job.benefits?.transport && <BenefitTag label="🚌 교통 지원" />}
-              {job.benefits?.accommodation && <BenefitTag label="🏠 숙소 제공" />}
-              {job.benefits?.insurance && <BenefitTag label="🛡️ 보험 적용" />}
+              {job.benefits?.meals && <BenefitTag label={t('jobs.benefit_meals')} />}
+              {job.benefits?.transport && <BenefitTag label={t('jobs.benefit_transport')} />}
+              {job.benefits?.accommodation && <BenefitTag label={t('jobs.benefit_accommodation')} />}
+              {job.benefits?.insurance && <BenefitTag label={t('jobs.benefit_insurance')} />}
             </View>
           </View>
         )}
@@ -161,7 +161,7 @@ export default function JobDetailScreen() {
         {/* Description */}
         {job.description && (
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>상세 내용</Text>
+            <Text style={styles.sectionTitle}>{t('jobs.section_description')}</Text>
             <Text style={styles.description}>{job.description}</Text>
           </View>
         )}
@@ -179,7 +179,7 @@ export default function JobDetailScreen() {
             <ActivityIndicator color="#fff" />
           ) : (
             <Text style={styles.applyBtnText}>
-              {isFull ? '마감된 일자리입니다' : '지원하기'}
+              {isFull ? t('jobs.apply_confirm_closed') : t('jobs.apply_button')}
             </Text>
           )}
         </TouchableOpacity>
@@ -189,17 +189,17 @@ export default function JobDetailScreen() {
       <Modal visible={confirmVisible} transparent animationType="fade">
         <View style={styles.overlay}>
           <View style={styles.modal}>
-            <Text style={styles.modalTitle}>지원 확인</Text>
+            <Text style={styles.modalTitle}>{t('jobs.apply_confirm_title')}</Text>
             <Text style={styles.modalBody}>
               <Text style={{ fontWeight: '700' }}>{job.site?.name ?? job.title}</Text>
-              {'\n'}({workDateLabel}){'\n\n'}위 일자리에 지원하시겠습니까?
+              {'\n'}({workDateLabel}){'\n\n'}{t('jobs.apply_confirm_body')}
             </Text>
             <View style={styles.modalActions}>
               <TouchableOpacity style={styles.cancelBtn} onPress={() => setConfirmVisible(false)}>
-                <Text style={styles.cancelBtnText}>취소</Text>
+                <Text style={styles.cancelBtnText}>{t('common.cancel')}</Text>
               </TouchableOpacity>
               <TouchableOpacity style={styles.confirmBtn} onPress={handleApply}>
-                <Text style={styles.confirmBtnText}>지원하기</Text>
+                <Text style={styles.confirmBtnText}>{t('jobs.apply_button')}</Text>
               </TouchableOpacity>
             </View>
           </View>

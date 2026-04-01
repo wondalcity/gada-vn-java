@@ -1,24 +1,64 @@
 {
   "listing": {
     "meta": {
-      "title": "베트남 건설 일자리 | GADA VN",
-      "description": "베트남 전국 건설 현장 일자리를 찾아보세요."
+      "title": "건설 일자리 목록 | GADA VN",
+      "description": "베트남 전역 건설 현장 일용직 공고를 한 곳에서 확인하세요. 직종별, 지역별 필터 검색 지원."
     },
-    "heading": "건설 일자리",
+    "heading": "건설 일자리 공고",
+    "breadcrumb_home": "홈",
+    "breadcrumb_jobs": "공고 목록",
+    "search_placeholder": "공고명 또는 현장명 검색...",
+    "all_provinces": "전체 지역",
+    "all_trades": "전체 직종",
+    "select_province": "지역 선택",
+    "select_trade": "직종 선택",
+    "search_button": "검색하기",
+    "search_aria": "검색",
+    "search_close": "닫기",
+    "no_results": "결과 없음",
+    "searching": "검색...",
     "filter": {
       "province": "지역",
       "trade": "직종",
       "date": "날짜",
       "all_provinces": "전체 지역",
       "all_trades": "전체 직종",
-      "reset": "초기화"
+      "status": "모집 상태",
+      "my_location": "내 위치",
+      "use_location": "현재 위치 사용",
+      "finding_location": "위치 찾는 중...",
+      "radius": "반경",
+      "reset": "필터 초기화",
+      "status_open": "모집중",
+      "status_closing_soon": "마감임박",
+      "status_closed": "모집마감",
+      "geo_error_unsupported": "이 브라우저는 위치 기능을 지원하지 않습니다.",
+      "geo_error_denied": "위치 권한이 거부되었습니다.",
+      "active_location": "위치 필터 중",
+      "clear_location_aria": "위치 필터 제거"
     },
     "sort": {
       "latest": "최신순",
       "wage_high": "급여 높은순"
     },
     "empty": "조건에 맞는 일자리가 없습니다.",
+    "empty_search": "\"{q}\" 검색 결과가 없습니다.",
+    "empty_geo": "주변에 조건에 맞는 공고가 없습니다. 반경을 넓혀보세요.",
     "count": "{count}개의 일자리"
+  },
+  "card": {
+    "status": {
+      "open": "모집중",
+      "filled": "마감",
+      "cancelled": "취소",
+      "completed": "완료"
+    },
+    "closing_soon": "마감임박",
+    "per_day": "/ 일",
+    "headcount": "모집 현황",
+    "slots_left": "잔여 {n}명",
+    "deadline": "마감",
+    "other": "기타"
   },
   "detail": {
     "meta": {
@@ -32,7 +72,51 @@
     "trade": "직종",
     "requirements": "자격 요건",
     "benefits": "복리후생",
-    "site": "현장 정보"
+    "site": "현장 정보",
+    "status": {
+      "open": "모집중",
+      "filled": "마감",
+      "cancelled": "취소",
+      "completed": "완료"
+    },
+    "work_date": "근무일",
+    "work_hours": "근무 시간",
+    "slots_section": "모집 인원",
+    "apply_deadline": "지원 마감",
+    "benefits_section": "제공 혜택",
+    "description_section": "상세 내용",
+    "requirements_section": "지원 조건",
+    "site_section": "근무 현장",
+    "per_day_label": "/ 1일",
+    "daily_wage_label": "일급",
+    "view_all_photos": "사진 모두 보기",
+    "view_map": "지도에서 보기 →",
+    "show_more": "더 보기 →",
+    "show_less": "접기",
+    "benefit_meal": "식사 제공",
+    "benefit_meal_desc": "현장에서 식사를 제공합니다",
+    "benefit_transport": "교통비 지원",
+    "benefit_transport_desc": "출퇴근 교통비를 지원합니다",
+    "benefit_accommodation": "숙박 제공",
+    "benefit_accommodation_desc": "현장 인근 숙박을 제공합니다",
+    "benefit_insurance": "산재보험",
+    "benefit_insurance_desc": "산업재해 보험에 가입되어 있습니다",
+    "slots_left_n": "{n}명 남음",
+    "slots_filled_of": "{filled}명 지원 완료 / 총 {total}명 모집",
+    "slots_left_booking": "{n}자리 남음",
+    "deadline_sub": "마감 이후에는 지원이 불가합니다",
+    "min_experience": "최소 경력",
+    "experience_months": "{months}개월 이상",
+    "experience_years": "{years}년 이상",
+    "experience_years_months": "{years}년 {months}개월 이상",
+    "trust_signal": "지원 후 관리자가 검토합니다",
+    "booking_headcount": "모집 현황",
+    "booking_work_date": "근무일",
+    "booking_work_hours": "근무 시간",
+    "related_jobs": "같은 직종 다른 공고",
+    "view_site": "현장 정보 보기 →",
+    "other_province_jobs": "📍 {province} 지역 다른 공고 보기 →",
+    "back_to_list": "일자리 목록"
   },
   "province": {
     "meta": {
@@ -46,5 +130,46 @@
     "already_applied": "이미 지원한 일자리입니다.",
     "job_closed": "마감된 일자리입니다.",
     "login_required": "지원하려면 로그인이 필요합니다."
+  },
+  "apply_btn": {
+    "apply": "지원하기",
+    "confirm": "신청하기",
+    "cancel": "취소",
+    "save": "저장",
+    "saving": "저장 중...",
+    "withdraw": "지원 취소",
+    "withdrawing": "취소 중...",
+    "login_required": "로그인 후 지원하기",
+    "deadline_expired": "지원 마감",
+    "job_closed": "마감된 공고입니다",
+    "applied_title": "신청완료됨",
+    "view_applications": "지원 현황 보기",
+    "applications_status": "지원 현황",
+    "add_message": "+ 메시지 추가",
+    "edit_message": "수정",
+    "note_section": "관리자에게 메시지 (선택사항)",
+    "note_edit_section": "관리자에게 메시지 수정",
+    "note_placeholder": "간단한 자기소개나 경력을 적어보세요",
+    "confirm_title": "지원 확인",
+    "status": {
+      "applied": "검토중",
+      "hired": "합격",
+      "completed": "계약완료",
+      "rejected": "불합격",
+      "withdrawn": "취소됨"
+    },
+    "error": {
+      "already_applied": "이미 지원한 공고입니다",
+      "job_full": "모집이 완료되었습니다",
+      "job_not_open": "마감된 공고입니다",
+      "apply_generic": "지원 중 오류가 발생했습니다",
+      "cancel_generic": "취소 중 오류가 발생했습니다"
+    },
+    "withdraw_modal": {
+      "title": "지원 취소",
+      "message": "지원을 취소하시겠습니까? 취소 후에는 다시 지원할 수 있습니다.",
+      "confirm": "취소하기",
+      "cancel": "돌아가기"
+    }
   }
 }

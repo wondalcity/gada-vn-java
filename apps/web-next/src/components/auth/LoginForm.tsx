@@ -1,16 +1,11 @@
 /**
  * LoginForm — client component for the login page.
  *
- * Two auth methods:
- * 1. Phone OTP — primary method for Vietnamese workers
- * 2. Email + password — only if the user registered an email+password
- * 3. Facebook — social login via Firebase OAuth
- *
- * Error handling:
- * - EMAIL_NOT_REGISTERED → "전화번호로 로그인해 주세요."
- * - PHONE_ACCOUNT (email exists but no password) → "전화번호로 로그인해 주세요."
- * - FACEBOOK_ACCOUNT (email exists, no phone, no password) → "페이스북으로 로그인해주세요."
- * - Facebook login with no phone on account → inline phone verification step
+ * Auth methods:
+ * 1. Phone OTP — primary method (Firebase phone auth)
+ * 2. Facebook — social login via Firebase OAuth
+ *    → If Facebook account has a phone number: login immediately
+ *    → If no phone number: collect + verify phone via OTP before completing login
  */
 
 'use client'
@@ -19,7 +14,6 @@ import * as React from 'react'
 import { useTranslations } from 'next-intl'
 import { PhoneInput } from './PhoneInput'
 import { OtpInput } from './OtpInput'
-import { AuthProvider, useAuth } from '../../hooks/useAuth'
 import { setSessionCookie } from '../../lib/auth/session'
 
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'https://api.gada.vn/api/v1'
@@ -39,7 +33,6 @@ async function apiFetch<T>(path: string, options: RequestInit & { token?: string
   return body
 }
 
-type LoginTab  = 'phone' | 'email'
 type LoginStep = 'input' | 'otp' | 'fb_phone' | 'fb_otp'
 
 interface LoginFormInnerProps {
@@ -48,46 +41,37 @@ interface LoginFormInnerProps {
 }
 
 function LoginFormInner({ locale, redirectTo }: LoginFormInnerProps) {
-  const t    = useTranslations('auth')
-  const auth = useAuth()
+  const t = useTranslations('auth')
 
-  // ── State ────────────────────────────────────────────────────────────────
-  const [tab,      setTab]      = React.useState<LoginTab>('phone')
-  const [step,     setStep]     = React.useState<LoginStep>('input')
+  const [step, setStep] = React.useState<LoginStep>('input')
 
   // Phone OTP
-  const [phone,    setPhone]    = React.useState('+84')
-  const [otp,      setOtp]      = React.useState('')
-  const [otpError, setOtpError] = React.useState(false)
+  const [phone,     setPhone]     = React.useState('+84')
+  const [otp,       setOtp]       = React.useState('')
+  const [otpError,  setOtpError]  = React.useState(false)
   const [countdown, setCountdown] = React.useState(0)
 
-  // Email/password
-  const [email,    setEmail]    = React.useState('')
-  const [password, setPassword] = React.useState('')
-  const [showPass, setShowPass] = React.useState(false)
-
   // Facebook phone verification (after Facebook login, phone missing)
-  const [fbToken,  setFbToken]  = React.useState<string | null>(null)
-  const [fbPhone,  setFbPhone]  = React.useState('+84')
-  const [fbOtp,    setFbOtp]    = React.useState('')
-  const [fbOtpError, setFbOtpError] = React.useState(false)
-  const [fbCountdown, setFbCountdown] = React.useState(0)
+  const [fbToken,      setFbToken]      = React.useState<string | null>(null)
+  const [fbPhone,      setFbPhone]      = React.useState('+84')
+  const [fbOtp,        setFbOtp]        = React.useState('')
+  const [fbOtpError,   setFbOtpError]   = React.useState(false)
+  const [fbCountdown,  setFbCountdown]  = React.useState(0)
 
   const [isLoading, setIsLoading] = React.useState(false)
   const [error,     setError]     = React.useState<string | null>(null)
-  const [alertMsg,  setAlertMsg]  = React.useState<string | null>(null)
 
   // ── Countdown timers ──────────────────────────────────────────────────────
   React.useEffect(() => {
     if (countdown <= 0) return
-    const t = setInterval(() => setCountdown(c => c - 1), 1000)
-    return () => clearInterval(t)
+    const timer = setInterval(() => setCountdown(c => c - 1), 1000)
+    return () => clearInterval(timer)
   }, [countdown])
 
   React.useEffect(() => {
     if (fbCountdown <= 0) return
-    const t = setInterval(() => setFbCountdown(c => c - 1), 1000)
-    return () => clearInterval(t)
+    const timer = setInterval(() => setFbCountdown(c => c - 1), 1000)
+    return () => clearInterval(timer)
   }, [fbCountdown])
 
   // ── Phone OTP handlers ────────────────────────────────────────────────────
@@ -98,14 +82,14 @@ function LoginFormInner({ locale, redirectTo }: LoginFormInnerProps) {
     setError(null)
     setIsLoading(true)
     try {
-      await auth.sendOtp(phone)
+      const { sendFirebaseOtp } = await import('../../lib/firebase/auth')
+      await sendFirebaseOtp(phone, 'recaptcha-container')
       setStep('otp')
       setCountdown(60)
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : ''
-      setError(msg.includes('429') || msg.includes('TOO_MANY')
-        ? t('otp.rate_limited')
-        : t('otp.send_failed'))
+      const msg = err instanceof Error ? err.message : String(err)
+      console.error('[sendFirebaseOtp error]', err)
+      setError(msg || t('otp.send_failed'))
     } finally {
       setIsLoading(false)
     }
@@ -117,36 +101,25 @@ function LoginFormInner({ locale, redirectTo }: LoginFormInnerProps) {
     setError(null); setOtpError(false)
     setIsLoading(true)
     try {
-      await auth.verifyOtp(phone, otp.replace(/\s/g, ''), redirectTo)
-    } catch (err: unknown) {
-      setOtpError(true)
-      setError(t('otp.invalid'))
-    } finally {
-      setIsLoading(false)
-    }
-  }
+      const { confirmFirebaseOtp } = await import('../../lib/firebase/auth')
+      const idToken = await confirmFirebaseOtp(otp.replace(/\s/g, ''))
 
-  // ── Email login handler ───────────────────────────────────────────────────
+      const { data } = await apiFetch<{ statusCode: number; data: { isNew: boolean } }>(
+        '/auth/verify-token',
+        { method: 'POST', body: JSON.stringify({ idToken }) },
+      )
 
-  async function handleEmailLogin(e: React.FormEvent) {
-    e.preventDefault()
-    setError(null); setAlertMsg(null)
-    setIsLoading(true)
-    try {
-      await auth.loginEmail(email, password, redirectTo)
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : ''
-      if (msg === 'EMAIL_NOT_REGISTERED' || msg === 'PHONE_ACCOUNT') {
-        // Account has no email registered or uses phone auth
-        setAlertMsg('전화번호로 로그인해 주세요.')
-      } else if (msg === 'FACEBOOK_ACCOUNT') {
-        // Account was created via Facebook OAuth
-        setAlertMsg('페이스북으로 로그인해 주세요.')
-      } else if (msg === 'INVALID_CREDENTIALS') {
-        setError('이메일 또는 비밀번호가 올바르지 않습니다.')
+      setSessionCookie(idToken)
+      if (data.isNew) {
+        window.location.href = `/${locale}/worker`
       } else {
-        setError(t('login.failed'))
+        window.location.href = redirectTo ?? `/${locale}/worker`
       }
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err)
+      console.error('[verifyOtp error]', err)
+      setOtpError(true)
+      setError(msg || t('otp.invalid'))
     } finally {
       setIsLoading(false)
     }
@@ -155,18 +128,15 @@ function LoginFormInner({ locale, redirectTo }: LoginFormInnerProps) {
   // ── Facebook login handler ────────────────────────────────────────────────
 
   async function handleFacebook() {
-    setError(null); setAlertMsg(null)
+    setError(null)
     setIsLoading(true)
     try {
-      // Firebase Facebook OAuth → already a valid Firebase ID Token
       const { idToken } = await (await import('../../lib/firebase/auth')).signInWithFacebook()
 
-      // Backend: upsert user, returns needsPhone + devToken (dev only)
       const { data } = await apiFetch<{
         data: { devToken?: string; isNewUser: boolean; needsPhone: boolean }
       }>('/auth/social/facebook', { method: 'POST', body: JSON.stringify({ idToken }) })
 
-      // Dev: use devToken; Production: idToken IS the Firebase ID Token → use directly
       const sessionToken = data.devToken ?? idToken
 
       if (data.needsPhone) {
@@ -174,16 +144,13 @@ function LoginFormInner({ locale, redirectTo }: LoginFormInnerProps) {
         setFbToken(sessionToken)
         setStep('fb_phone')
       } else {
-        // Phone already on file → complete login
         setSessionCookie(sessionToken)
-        if (data.isNewUser) {
-          window.location.href = `/${locale}/register`
-        } else {
-          window.location.href = redirectTo ?? `/${locale}/worker`
-        }
+        window.location.href = redirectTo ?? `/${locale}/worker`
       }
-    } catch {
-      setError(t('login.facebook_failed'))
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err)
+      console.error('[Facebook login error]', err)
+      setError(msg || t('login.facebook_failed'))
     } finally {
       setIsLoading(false)
     }
@@ -193,15 +160,18 @@ function LoginFormInner({ locale, redirectTo }: LoginFormInnerProps) {
 
   async function handleFbSendOtp(e?: React.FormEvent) {
     e?.preventDefault()
-    if (!fbPhone || fbPhone === '+84') { setError('전화번호를 입력해주세요.'); return }
+    if (!fbPhone || fbPhone === '+84') { setError(t('otp.phone_required')); return }
     setError(null)
     setIsLoading(true)
     try {
-      await apiFetch('/auth/otp/send', { method: 'POST', body: JSON.stringify({ phone: fbPhone }) })
+      const { sendFirebaseOtp } = await import('../../lib/firebase/auth')
+      await sendFirebaseOtp(fbPhone, 'recaptcha-container-fb')
       setStep('fb_otp')
       setFbCountdown(60)
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : '인증번호 전송에 실패했습니다.')
+      const msg = err instanceof Error ? err.message : String(err)
+      console.error('[fbSendOtp error]', err)
+      setError(msg || t('otp.send_failed'))
     } finally {
       setIsLoading(false)
     }
@@ -213,17 +183,20 @@ function LoginFormInner({ locale, redirectTo }: LoginFormInnerProps) {
     setFbOtpError(false); setError(null)
     setIsLoading(true)
     try {
-      // Verify OTP → links phone to the Facebook session account
-      await apiFetch('/auth/otp/verify', {
+      const { confirmFirebaseOtp } = await import('../../lib/firebase/auth')
+      const phoneIdToken = await confirmFirebaseOtp(cleaned)
+      await apiFetch('/auth/social/link-phone', {
         method: 'POST',
-        body: JSON.stringify({ phone: fbPhone, otp: cleaned }),
+        token: fbToken ?? '',
+        body: JSON.stringify({ phoneIdToken }),
       })
-      // Complete login with Facebook token
       setSessionCookie(fbToken ?? '')
       window.location.href = redirectTo ?? `/${locale}/worker`
-    } catch {
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err)
+      console.error('[fbVerifyOtp error]', err)
       setFbOtpError(true)
-      setError('인증번호가 올바르지 않습니다.')
+      setError(msg || t('otp.invalid'))
     } finally {
       setIsLoading(false)
     }
@@ -235,10 +208,11 @@ function LoginFormInner({ locale, redirectTo }: LoginFormInnerProps) {
   if (step === 'fb_phone' || step === 'fb_otp') {
     return (
       <div className="min-h-screen bg-[#F8F8FA] flex flex-col">
+        <div id="recaptcha-container-fb" />
         <div className="bg-white px-6 pt-12 pb-6 text-center border-b border-[#EFF1F5]">
-          <h1 className="text-[24px] font-bold text-[#25282A]">전화번호 인증</h1>
+          <h1 className="text-[24px] font-bold text-[#25282A]">{t('login.fb_phone_title')}</h1>
           <p className="mt-2 text-[14px] text-[#98A2B2]">
-            Facebook 계정의 보안을 위해 전화번호 인증이 필요합니다
+            {t('login.fb_phone_subtitle')}
           </p>
         </div>
 
@@ -247,7 +221,7 @@ function LoginFormInner({ locale, redirectTo }: LoginFormInnerProps) {
             <form onSubmit={handleFbSendOtp} noValidate className="flex flex-col gap-4">
               <div className="flex flex-col gap-2">
                 <p className="text-[14px] font-semibold text-[#25282A]">
-                  전화번호 <span className="text-[#D81A48]">*</span>
+                  {t('login.fb_phone_label')} <span className="text-[#D81A48]">*</span>
                 </p>
                 <PhoneInput value={fbPhone} onChange={setFbPhone} disabled={isLoading} />
               </div>
@@ -257,7 +231,7 @@ function LoginFormInner({ locale, redirectTo }: LoginFormInnerProps) {
                 disabled={isLoading || !fbPhone || fbPhone === '+84'}
                 className="w-full h-14 bg-[#0669F7] text-white rounded-2xl text-[16px] font-bold disabled:opacity-40"
               >
-                {isLoading ? '전송 중...' : '인증번호 발송'}
+                {isLoading ? t('otp.sending') : t('login.fb_send_otp')}
               </button>
             </form>
           )}
@@ -272,13 +246,10 @@ function LoginFormInner({ locale, redirectTo }: LoginFormInnerProps) {
                 <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
                   <path d="M10 12L6 8l4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
                 </svg>
-                번호 다시 입력
+                {t('login.fb_back')}
               </button>
               <p className="text-center text-[14px] text-[#25282A]">
-                <strong>{fbPhone}</strong>으로 인증번호를 전송했습니다
-              </p>
-              <p className="text-center text-[12px] text-[#98A2B2]">
-                개발 환경: <strong className="text-[#0669F7]">999999</strong>
+                {t('login.fb_otp_sent_to', { phone: fbPhone })}
               </p>
               <OtpInput
                 value={fbOtp}
@@ -294,12 +265,12 @@ function LoginFormInner({ locale, redirectTo }: LoginFormInnerProps) {
                 disabled={isLoading || fbOtp.replace(/\s/g, '').length < 6}
                 className="w-full h-14 bg-[#0669F7] text-white rounded-2xl text-[16px] font-bold disabled:opacity-40"
               >
-                {isLoading ? '확인 중...' : '인증 완료'}
+                {isLoading ? t('otp.verifying') : t('login.fb_verify')}
               </button>
               <p className="text-center text-[13px] text-[#98A2B2]">
-                {fbCountdown > 0 ? `${fbCountdown}초 후 재발송 가능` : (
+                {fbCountdown > 0 ? t('otp.resend_in', { seconds: fbCountdown }) : (
                   <button type="button" onClick={handleFbSendOtp} disabled={isLoading} className="text-[#0669F7] underline">
-                    인증번호 재발송
+                    {t('login.fb_resend')}
                   </button>
                 )}
               </p>
@@ -312,6 +283,9 @@ function LoginFormInner({ locale, redirectTo }: LoginFormInnerProps) {
 
   return (
     <div className="min-h-screen bg-[#F2F4F5] flex flex-col">
+      {/* Invisible reCAPTCHA container */}
+      <div id="recaptcha-container" />
+
       {/* Header */}
       <div className="bg-white px-6 pt-12 pb-8 text-center">
         <h1 className="text-[28px] font-bold leading-[35px] text-[#25282A]">GADA VN</h1>
@@ -322,28 +296,8 @@ function LoginFormInner({ locale, redirectTo }: LoginFormInnerProps) {
 
       <div className="flex-1 px-6 py-6 max-w-[480px] mx-auto w-full flex flex-col gap-5">
 
-        {/* Tab selector */}
+        {/* ── 전화번호 입력 ────────────────────────── */}
         {step === 'input' && (
-          <div className="flex bg-[#EFF1F5] rounded-xl p-1">
-            {(['phone', 'email'] as LoginTab[]).map((tabKey) => (
-              <button
-                key={tabKey}
-                onClick={() => { setTab(tabKey); setError(null); setAlertMsg(null) }}
-                className={[
-                  'flex-1 py-2.5 text-[14px] font-bold rounded-lg transition-colors duration-150',
-                  tab === tabKey
-                    ? 'bg-white text-[#0669F7]'
-                    : 'text-[#98A2B2] hover:text-[#25282A]',
-                ].join(' ')}
-              >
-                {tabKey === 'phone' ? t('login.phone_tab') : t('login.email_tab')}
-              </button>
-            ))}
-          </div>
-        )}
-
-        {/* ── 전화번호 OTP ────────────────────────── */}
-        {tab === 'phone' && step === 'input' && (
           <form onSubmit={handleSendOtp} noValidate className="flex flex-col gap-4">
             <PhoneInput
               label={t('login.phone_label')}
@@ -358,13 +312,13 @@ function LoginFormInner({ locale, redirectTo }: LoginFormInnerProps) {
               disabled={isLoading || !phone || phone === '+84'}
               className="w-full h-14 bg-[#0669F7] text-white rounded-2xl text-[16px] font-bold disabled:opacity-40 hover:bg-[#0554D6] transition-colors"
             >
-              {isLoading ? '전송 중...' : t('login.send_otp')}
+              {isLoading ? t('otp.sending') : t('login.send_otp')}
             </button>
           </form>
         )}
 
         {/* ── OTP 입력 ────────────────────────────── */}
-        {tab === 'phone' && step === 'otp' && (
+        {step === 'otp' && (
           <form onSubmit={handleVerifyOtp} noValidate className="flex flex-col gap-6">
             <button
               type="button"
@@ -380,9 +334,6 @@ function LoginFormInner({ locale, redirectTo }: LoginFormInnerProps) {
               <p className="text-[16px] text-[#25282A]">
                 {t('otp.sent_to')} <strong>{phone}</strong>
               </p>
-              <p className="text-[12px] text-[#98A2B2] mt-1">
-                개발 환경: <strong className="text-[#0669F7]">999999</strong>
-              </p>
             </div>
             <OtpInput
               value={otp}
@@ -397,10 +348,10 @@ function LoginFormInner({ locale, redirectTo }: LoginFormInnerProps) {
               disabled={isLoading || otp.replace(/\s/g, '').length < 6}
               className="w-full h-14 bg-[#0669F7] text-white rounded-2xl text-[16px] font-bold disabled:opacity-40"
             >
-              {isLoading ? '확인 중...' : t('otp.verify_button')}
+              {isLoading ? t('otp.verifying') : t('otp.verify_button')}
             </button>
             <p className="text-center text-[14px] text-[#98A2B2]">
-              {countdown > 0 ? `${countdown}초 후 재발송 가능` : (
+              {countdown > 0 ? t('otp.resend_in', { seconds: countdown }) : (
                 <button type="button" onClick={() => handleSendOtp()} disabled={isLoading}
                   className="text-[#0669F7] font-medium underline">
                   {t('otp.resend')}
@@ -410,71 +361,7 @@ function LoginFormInner({ locale, redirectTo }: LoginFormInnerProps) {
           </form>
         )}
 
-        {/* ── 이메일+비밀번호 ──────────────────────── */}
-        {tab === 'email' && step === 'input' && (
-          <form onSubmit={handleEmailLogin} noValidate className="flex flex-col gap-4">
-            {/* Alert banner */}
-            {alertMsg && (
-              <div className="flex items-start gap-3 p-4 bg-[#FFF6F0] border border-[#F5A623]/40 rounded-2xl">
-                <svg width="18" height="18" viewBox="0 0 18 18" fill="none" className="shrink-0 mt-0.5">
-                  <path d="M9 2L16.5 15H1.5L9 2z" stroke="#F5A623" strokeWidth="1.5" strokeLinejoin="round"/>
-                  <path d="M9 7v4M9 12.5v.5" stroke="#F5A623" strokeWidth="1.5" strokeLinecap="round"/>
-                </svg>
-                <p className="text-[14px] text-[#7A4A00] font-medium">{alertMsg}</p>
-              </div>
-            )}
-
-            <div className="flex flex-col gap-1.5">
-              <label className="text-[14px] font-medium text-[#25282A]">{t('login.email_label')}</label>
-              <input
-                type="email"
-                autoComplete="email"
-                value={email}
-                onChange={e => { setEmail(e.target.value); setAlertMsg(null) }}
-                disabled={isLoading}
-                placeholder="example@email.com"
-                className="min-h-[52px] px-4 rounded-2xl border border-[#EFF1F5] text-[16px] outline-none focus:border-[#0669F7] focus:ring-1 focus:ring-[#0669F7] disabled:bg-[#EFF1F5]"
-              />
-            </div>
-
-            <div className="flex flex-col gap-1.5">
-              <label className="text-[14px] font-medium text-[#25282A]">{t('login.password_label')}</label>
-              <div className="relative">
-                <input
-                  type={showPass ? 'text' : 'password'}
-                  autoComplete="current-password"
-                  value={password}
-                  onChange={e => { setPassword(e.target.value); setAlertMsg(null) }}
-                  disabled={isLoading}
-                  className="w-full min-h-[52px] px-4 pr-12 rounded-2xl border border-[#EFF1F5] text-[16px] outline-none focus:border-[#0669F7] focus:ring-1 focus:ring-[#0669F7] disabled:bg-[#EFF1F5]"
-                />
-                <button type="button" onClick={() => setShowPass(v => !v)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-[#98A2B2] p-1">
-                  <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-                    <path d="M2 10s3-6 8-6 8 6 8 6-3 6-8 6-8-6-8-6z" stroke="currentColor" strokeWidth="1.5"/>
-                    <circle cx="10" cy="10" r="2.5" stroke="currentColor" strokeWidth="1.5"/>
-                  </svg>
-                </button>
-              </div>
-            </div>
-
-            {error && <p className="text-[13px] text-[#D81A48]">{error}</p>}
-
-            <button
-              type="submit"
-              disabled={isLoading || !email || !password}
-              className="w-full h-14 bg-[#0669F7] text-white rounded-2xl text-[16px] font-bold disabled:opacity-40 hover:bg-[#0554D6] transition-colors"
-            >
-              {isLoading ? '로그인 중...' : t('login.login_button')}
-            </button>
-
-            <p className="text-[12px] text-[#98A2B2] text-center">
-              이메일+비밀번호 로그인은 회원가입 시 이메일을 등록한 경우에만 사용 가능합니다
-            </p>
-          </form>
-        )}
-
-        {/* ── 구분선 ───────────────────────────────── */}
+        {/* ── 구분선 + 페이스북 ─────────────────────── */}
         {step === 'input' && (
           <>
             <div className="flex items-center gap-3">
@@ -483,7 +370,6 @@ function LoginFormInner({ locale, redirectTo }: LoginFormInnerProps) {
               <div className="flex-1 h-px bg-[#EFF1F5]" />
             </div>
 
-            {/* Facebook login */}
             <button
               type="button"
               onClick={handleFacebook}
@@ -498,7 +384,7 @@ function LoginFormInner({ locale, redirectTo }: LoginFormInnerProps) {
           </>
         )}
 
-        {/* Register link */}
+        {/* 회원가입 링크 */}
         {step === 'input' && (
           <p className="text-center text-[14px] text-[#98A2B2]">
             {t('login.no_account')}{' '}
@@ -513,7 +399,7 @@ function LoginFormInner({ locale, redirectTo }: LoginFormInnerProps) {
   )
 }
 
-// ─── Exported component — wraps with AuthProvider ────────────────────────────
+// ─── Exported component ───────────────────────────────────────────────────────
 
 export interface LoginFormProps {
   locale: string
@@ -521,9 +407,5 @@ export interface LoginFormProps {
 }
 
 export function LoginForm({ locale, redirectTo }: LoginFormProps) {
-  return (
-    <AuthProvider locale={locale}>
-      <LoginFormInner locale={locale} redirectTo={redirectTo} />
-    </AuthProvider>
-  )
+  return <LoginFormInner locale={locale} redirectTo={redirectTo} />
 }

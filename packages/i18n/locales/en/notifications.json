@@ -1,7 +1,17 @@
 {
   "title": "Notifications",
   "empty": "No notifications yet.",
+  "empty_subtitle": "New notifications will appear here",
   "mark_all_read": "Mark All as Read",
+  "marking_all": "Processing...",
+  "unread_count": "{n} unread notifications",
+  "error_load": "Unable to load notifications",
+  "time": {
+    "just_now": "Just now",
+    "minutes_ago": "{n}m ago",
+    "hours_ago": "{n}h ago",
+    "days_ago": "{n}d ago"
+  },
   "types": {
     "application_status": "Application update: {job_title}",
     "contract_ready": "Contract ready to sign: {job_title}",

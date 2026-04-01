@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { api } from '../lib/api'
 import { DEMO_PENDING_MANAGERS, DEMO_WORKERS, DEMO_SITES, DEMO_JOBS } from '../lib/demo-data'
+import { useAdminTranslation } from '../context/LanguageContext'
 
 interface Manager {
   id: string
@@ -17,6 +18,7 @@ interface Result {
 }
 
 export default function Dashboard() {
+  const { t } = useAdminTranslation()
   const [pending, setPending] = useState<Manager[]>([])
   const [total, setTotal] = useState(0)
   const [loading, setLoading] = useState(true)
@@ -45,53 +47,53 @@ export default function Dashboard() {
 
   return (
     <div className="p-8">
-      <h1 className="text-2xl font-bold text-gray-900 mb-8">대시보드</h1>
+      <h1 className="text-2xl font-bold text-gray-900 mb-8">{t('dashboard.title')}</h1>
 
       {isDemo && (
         <div className="mb-6 flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-amber-50 border border-amber-200 text-sm text-amber-700">
-          <span className="font-semibold">데모 데이터</span>
-          <span className="text-amber-600">— API 연결 후 실제 데이터가 표시됩니다</span>
+          <span className="font-semibold">{t('common.demo_data')}</span>
+          <span className="text-amber-600">{t('common.demo_suffix')}</span>
         </div>
       )}
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
         <div className="bg-white rounded-2xl shadow-sm p-5 border border-[#EFF1F5]">
-          <p className="text-xs text-gray-500 mb-1">승인 대기 관리자</p>
+          <p className="text-xs text-gray-500 mb-1">{t('dashboard.pending_managers')}</p>
           <p className="text-3xl font-bold text-[#D81A48]">{total}</p>
         </div>
         <div className="bg-white rounded-2xl shadow-sm p-5 border border-[#EFF1F5]">
-          <p className="text-xs text-gray-500 mb-1">총 근로자</p>
+          <p className="text-xs text-gray-500 mb-1">{t('dashboard.total_workers')}</p>
           <p className="text-3xl font-bold text-[#0669F7]">{isDemo ? DEMO_WORKERS.length : '-'}</p>
         </div>
         <div className="bg-white rounded-2xl shadow-sm p-5 border border-[#EFF1F5]">
-          <p className="text-xs text-gray-500 mb-1">운영 중 현장</p>
+          <p className="text-xs text-gray-500 mb-1">{t('dashboard.active_sites')}</p>
           <p className="text-3xl font-bold text-green-600">{isDemo ? DEMO_SITES.filter((s) => s.status === 'ACTIVE').length : '-'}</p>
         </div>
         <div className="bg-white rounded-2xl shadow-sm p-5 border border-[#EFF1F5]">
-          <p className="text-xs text-gray-500 mb-1">모집 중 공고</p>
+          <p className="text-xs text-gray-500 mb-1">{t('dashboard.open_jobs')}</p>
           <p className="text-3xl font-bold text-yellow-600">{isDemo ? DEMO_JOBS.filter((j) => j.status === 'OPEN').length : '-'}</p>
         </div>
       </div>
 
       <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
         <div className="flex items-center justify-between px-6 py-4 border-b border-[#EFF1F5]">
-          <h2 className="text-base font-semibold text-gray-900">승인 대기 관리자</h2>
-          <Link to="/managers" className="text-sm text-[#0669F7] hover:underline">전체 보기 →</Link>
+          <h2 className="text-base font-semibold text-gray-900">{t('dashboard.table_pending_managers')}</h2>
+          <Link to="/managers" className="text-sm text-[#0669F7] hover:underline">{t('dashboard.view_all')}</Link>
         </div>
         {loading ? (
-          <div className="p-6 text-center text-gray-400 text-sm">로딩 중...</div>
+          <div className="p-6 text-center text-gray-400 text-sm">{t('common.loading')}</div>
         ) : pending.length === 0 ? (
           <div className="py-12 text-center text-gray-400">
             <p className="text-4xl mb-3">✅</p>
-            <p className="text-sm">대기 중인 관리자가 없습니다</p>
+            <p className="text-sm">{t('dashboard.no_pending')}</p>
           </div>
         ) : (
           <table className="w-full">
             <thead className="bg-[#F2F4F5]">
               <tr>
-                <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase">이름</th>
-                <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase">전화번호</th>
-                <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase">가입일</th>
+                <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase">{t('dashboard.col_name')}</th>
+                <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase">{t('dashboard.col_phone')}</th>
+                <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase">{t('dashboard.col_joined')}</th>
                 <th className="px-6 py-3"></th>
               </tr>
             </thead>
@@ -106,7 +108,7 @@ export default function Dashboard() {
                     {new Date(m.created_at).toLocaleDateString('ko-KR')}
                   </td>
                   <td className="px-6 py-4 text-right">
-                    <Link to={`/managers/${m.id}`} className="text-[#0669F7] hover:underline text-sm">상세 →</Link>
+                    <Link to={`/managers/${m.id}`} className="text-[#0669F7] hover:underline text-sm">{t('dashboard.detail_arrow')}</Link>
                   </td>
                 </tr>
               ))}

@@ -4,6 +4,7 @@ import {
   TouchableOpacity, RefreshControl, ActivityIndicator,
 } from 'react-native';
 import { useRouter } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 import { api } from '../../lib/api-client';
 import { Colors, Spacing, Radius, Font } from '../../constants/theme';
 
@@ -20,17 +21,8 @@ interface MyJob {
   contractId?: string;
 }
 
-const TAB_LABELS: { key: WorkStatus; label: string }[] = [
-  { key: 'APPLIED',   label: '지원' },
-  { key: 'HIRED',     label: '채용' },
-  { key: 'COMPLETED', label: '완료' },
-];
+// TAB_LABELS and STATUS_CONFIG are built inside the component to use t()
 
-const STATUS_CONFIG: Record<WorkStatus, { bg: string; text: string; label: string }> = {
-  APPLIED:   { bg: Colors.primaryContainer, text: Colors.primary,          label: '검토 중' },
-  HIRED:     { bg: Colors.successContainer, text: Colors.onSuccessContainer, label: '채용됨' },
-  COMPLETED: { bg: Colors.surfaceContainer, text: Colors.onSurfaceVariant,  label: '완료' },
-};
 
 function formatDate(dateStr: string): string {
   const d = new Date(dateStr);
@@ -43,8 +35,21 @@ function formatVnd(n: number): string {
 }
 
 export default function WorkerWorkScreen() {
+  const { t } = useTranslation();
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<WorkStatus>('APPLIED');
+
+  const TAB_LABELS: { key: WorkStatus; label: string }[] = [
+    { key: 'APPLIED',   label: t('worker.work_tab_applied') },
+    { key: 'HIRED',     label: t('worker.work_tab_hired') },
+    { key: 'COMPLETED', label: t('worker.work_tab_completed') },
+  ];
+
+  const STATUS_CONFIG: Record<WorkStatus, { bg: string; text: string; label: string }> = {
+    APPLIED:   { bg: Colors.primaryContainer, text: Colors.primary,           label: t('worker.work_status_applied') },
+    HIRED:     { bg: Colors.successContainer, text: Colors.onSuccessContainer, label: t('worker.work_status_hired') },
+    COMPLETED: { bg: Colors.surfaceContainer, text: Colors.onSurfaceVariant,   label: t('worker.work_status_completed') },
+  };
   const [allJobs, setAllJobs] = useState<MyJob[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -118,9 +123,9 @@ export default function WorkerWorkScreen() {
           <View style={styles.empty}>
             <Text style={styles.emptyIcon}>📋</Text>
             <Text style={styles.emptyText}>
-              {activeTab === 'APPLIED' ? '지원한 일자리가 없습니다'
-               : activeTab === 'HIRED' ? '채용된 일자리가 없습니다'
-               : '완료된 근무가 없습니다'}
+              {activeTab === 'APPLIED' ? t('worker.no_applied_jobs')
+               : activeTab === 'HIRED' ? t('worker.no_hired_jobs')
+               : t('worker.no_completed_jobs')}
             </Text>
           </View>
         }
@@ -153,7 +158,7 @@ export default function WorkerWorkScreen() {
                   style={styles.contractBtn}
                   onPress={() => router.push({ pathname: '/(worker)/contracts/[id]', params: { id: item.contractId! } })}
                 >
-                  <Text style={styles.contractBtnText}>근로계약서 보기 →</Text>
+                  <Text style={styles.contractBtnText}>{t('worker.view_contract')}</Text>
                 </TouchableOpacity>
               )}
             </TouchableOpacity>

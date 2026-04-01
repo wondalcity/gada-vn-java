@@ -4,6 +4,7 @@ import {
   StyleSheet, Alert, ActivityIndicator,
 } from 'react-native';
 import { useLocalSearchParams } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 import { api } from '../../../../lib/api-client';
 
 type AttendanceStatus = 'ATTENDED' | 'ABSENT' | 'HALF_DAY' | 'PENDING';
@@ -18,16 +19,20 @@ interface AttendanceRecord {
   notes: string | null;
 }
 
-const STATUS_OPTIONS: { value: AttendanceStatus; label: string; color: string }[] = [
-  { value: 'ATTENDED', label: '출근', color: '#4CAF50' },
-  { value: 'ABSENT', label: '결근', color: '#F44336' },
-  { value: 'HALF_DAY', label: '반일', color: '#FF9800' },
-  { value: 'PENDING', label: '미확인', color: '#9E9E9E' },
-];
+// STATUS_OPTIONS built inside component to use t()
+
 
 export default function AttendanceScreen() {
+  const { t } = useTranslation();
   const { id: jobId } = useLocalSearchParams<{ id: string }>();
   const [records, setRecords] = useState<AttendanceRecord[]>([]);
+
+  const STATUS_OPTIONS: { value: AttendanceStatus; label: string; color: string }[] = [
+    { value: 'ATTENDED', label: t('attendance.attended'),    color: '#4CAF50' },
+    { value: 'ABSENT',   label: t('attendance.absent'),     color: '#F44336' },
+    { value: 'HALF_DAY', label: t('attendance.half_day'),   color: '#FF9800' },
+    { value: 'PENDING',  label: t('attendance.unconfirmed'), color: '#9E9E9E' },
+  ];
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState<string | null>(null);
   const [pendingStatus, setPendingStatus] = useState<Record<string, AttendanceStatus>>({});
@@ -52,7 +57,7 @@ export default function AttendanceScreen() {
       await api.put(`/attendance/${recordId}`, { status });
       setRecords((prev) => prev.map((r) => r.id === recordId ? { ...r, status } : r));
     } catch {
-      Alert.alert('오류', '상태 업데이트에 실패했습니다.');
+      Alert.alert(t('common.error'), t('attendance.status_update_fail'));
       // revert
       setPendingStatus((s) => {
         const next = { ...s };
@@ -67,17 +72,17 @@ export default function AttendanceScreen() {
   async function handleBulkConfirm() {
     const changes = Object.entries(pendingStatus);
     if (changes.length === 0) {
-      Alert.alert('알림', '변경된 항목이 없습니다.');
+      Alert.alert(t('common.notice'), t('common.no_changes'));
       return;
     }
 
     Alert.alert(
-      '일괄 저장',
-      `${changes.length}개 항목을 저장하시겠습니까?`,
+      t('common.bulk_save'),
+      t('common.bulk_save_confirm', { count: changes.length }),
       [
-        { text: '취소', style: 'cancel' },
+        { text: t('common.cancel'), style: 'cancel' },
         {
-          text: '저장',
+          text: t('common.save'),
           onPress: async () => {
             const workDate = records[0]?.work_date ?? new Date().toISOString().split('T')[0];
             const bulkRecords = changes.map(([, status]) => {
@@ -92,9 +97,9 @@ export default function AttendanceScreen() {
               await api.post(`/jobs/${jobId}/attendance/bulk`, { records: bulkRecords });
               setPendingStatus({});
               load();
-              Alert.alert('저장 완료', '출역 현황이 저장되었습니다.');
+              Alert.alert(t('common.save_complete'), t('common.bulk_save_complete'));
             } catch {
-              Alert.alert('오류', '저장에 실패했습니다.');
+              Alert.alert(t('common.error'), t('common.save_fail'));
             }
           },
         },
@@ -114,7 +119,7 @@ export default function AttendanceScreen() {
         contentContainerStyle={styles.list}
         ListHeaderComponent={
           <View style={styles.listHeader}>
-            <Text style={styles.headerTitle}>출역 현황</Text>
+            <Text style={styles.headerTitle}>{t('attendance.manage_title')}</Text>
             {records[0]?.work_date && (
               <Text style={styles.headerDate}>
                 {new Date(records[0].work_date).toLocaleDateString('ko-KR', {
@@ -126,7 +131,7 @@ export default function AttendanceScreen() {
         }
         ListEmptyComponent={
           <View style={styles.empty}>
-            <Text style={styles.emptyText}>출역 기록이 없습니다</Text>
+            <Text style={styles.emptyText}>{t('attendance.no_records_manager')}</Text>
           </View>
         }
         renderItem={({ item }) => {
@@ -174,10 +179,10 @@ export default function AttendanceScreen() {
       {Object.keys(pendingStatus).length > 0 && (
         <View style={styles.footer}>
           <Text style={styles.pendingCount}>
-            {Object.keys(pendingStatus).length}개 변경됨
+            {t('common.changed_count', { count: Object.keys(pendingStatus).length })}
           </Text>
           <TouchableOpacity style={styles.saveBtn} onPress={handleBulkConfirm}>
-            <Text style={styles.saveBtnText}>일괄 저장</Text>
+            <Text style={styles.saveBtnText}>{t('common.bulk_save')}</Text>
           </TouchableOpacity>
         </View>
       )}

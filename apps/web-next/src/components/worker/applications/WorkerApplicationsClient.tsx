@@ -1,6 +1,7 @@
 'use client'
 
 import * as React from 'react'
+import { useTranslations } from 'next-intl'
 import { useAuth } from '@/hooks/useAuth'
 import { apiClient } from '@/lib/api/client'
 import type { WorkerApplication, ApplicationStatus } from '@/types/application'
@@ -9,14 +10,6 @@ import ConfirmModal from '@/components/manager/ConfirmModal'
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'https://api.gada.vn/api/v1'
 
 type TabKey = 'all' | 'pending' | 'accepted' | 'rejected' | 'withdrawn'
-
-const TAB_LABELS: Record<TabKey, string> = {
-  all: '전체',
-  pending: '검토중',
-  accepted: '합격',
-  rejected: '불합격',
-  withdrawn: '취소',
-}
 
 const STATUS_TAB_MAP: Record<TabKey, ApplicationStatus | null> = {
   all: null,
@@ -39,12 +32,12 @@ function formatDate(d: string): string {
   }).format(new Date(d))
 }
 
-const STATUS_CONFIG: Record<ApplicationStatus, { label: string; className: string }> = {
-  PENDING: { label: '검토중', className: 'bg-yellow-50 text-yellow-700 border-yellow-200' },
-  ACCEPTED: { label: '합격', className: 'bg-green-50 text-green-700 border-green-200' },
-  REJECTED: { label: '불합격', className: 'bg-red-50 text-[#ED1C24] border-red-200' },
-  WITHDRAWN: { label: '취소', className: 'bg-gray-100 text-[#7A7B7A] border-[#DDDDDD]' },
-  CONTRACTED: { label: '계약완료', className: 'bg-blue-50 text-[#0669F7] border-blue-200' },
+const STATUS_CLASS: Record<ApplicationStatus, string> = {
+  PENDING: 'bg-yellow-50 text-yellow-700 border-yellow-200',
+  ACCEPTED: 'bg-green-50 text-green-700 border-green-200',
+  REJECTED: 'bg-red-50 text-[#ED1C24] border-red-200',
+  WITHDRAWN: 'bg-gray-100 text-[#7A7B7A] border-[#DDDDDD]',
+  CONTRACTED: 'bg-blue-50 text-[#0669F7] border-blue-200',
 }
 
 const DEMO_APPLICATIONS: WorkerApplication[] = [
@@ -96,6 +89,7 @@ const DEMO_APPLICATIONS: WorkerApplication[] = [
 
 export default function WorkerApplicationsClient() {
   const { idToken } = useAuth()
+  const t = useTranslations('common')
   const [applications, setApplications] = React.useState<WorkerApplication[]>([])
   const [isDemo, setIsDemo] = React.useState(false)
   const [activeTab, setActiveTab] = React.useState<TabKey>('all')
@@ -103,6 +97,22 @@ export default function WorkerApplicationsClient() {
   const [withdrawingId, setWithdrawingId] = React.useState<string | null>(null)
   const [confirmWithdrawId, setConfirmWithdrawId] = React.useState<string | null>(null)
   const [error, setError] = React.useState<string | null>(null)
+
+  const TAB_LABELS: Record<TabKey, string> = {
+    all: t('worker_applications.tab_all'),
+    pending: t('worker_applications.tab_pending'),
+    accepted: t('worker_applications.tab_accepted'),
+    rejected: t('worker_applications.tab_rejected'),
+    withdrawn: t('worker_applications.tab_withdrawn'),
+  }
+
+  const STATUS_LABEL: Record<ApplicationStatus, string> = {
+    PENDING: t('worker_applications.status_pending'),
+    ACCEPTED: t('worker_applications.status_accepted'),
+    REJECTED: t('worker_applications.status_rejected'),
+    WITHDRAWN: t('worker_applications.status_withdrawn'),
+    CONTRACTED: t('worker_applications.status_contracted'),
+  }
 
   React.useEffect(() => {
     if (!idToken) {
@@ -122,7 +132,7 @@ export default function WorkerApplicationsClient() {
           setIsDemo(false)
         }
       })
-      .catch(() => setError('지원 내역을 불러올 수 없습니다'))
+      .catch(() => setError(t('worker_applications.fetch_error')))
       .finally(() => setIsLoading(false))
   }, [idToken])
 
@@ -157,7 +167,7 @@ export default function WorkerApplicationsClient() {
       })
       if (!res.ok) {
         const body = await res.json()
-        throw new Error(body.message ?? '취소 실패')
+        throw new Error(body.message ?? t('error.generic'))
       }
     } catch {
       // Revert on error
@@ -171,7 +181,7 @@ export default function WorkerApplicationsClient() {
   if (isLoading) {
     return (
       <div className="py-6">
-        <h1 className="text-xl font-bold text-[#25282A] mb-6">지원 현황</h1>
+        <h1 className="text-xl font-bold text-[#25282A] mb-6">{t('worker_applications.title')}</h1>
         <div className="space-y-3">
           {[1, 2, 3].map(i => (
             <div key={i} className="bg-white rounded-2xl border border-[#EFF1F5] p-4 animate-pulse shadow-sm">
@@ -188,7 +198,7 @@ export default function WorkerApplicationsClient() {
   if (error) {
     return (
       <div className="py-6">
-        <h1 className="text-xl font-bold text-[#25282A] mb-6">지원 현황</h1>
+        <h1 className="text-xl font-bold text-[#25282A] mb-6">{t('worker_applications.title')}</h1>
         <p className="text-[#ED1C24] text-sm">{error}</p>
       </div>
     )
@@ -197,10 +207,10 @@ export default function WorkerApplicationsClient() {
   return (
     <div>
       <div className="py-6 flex items-center gap-3">
-        <h1 className="text-xl font-bold text-[#25282A]">지원 현황</h1>
+        <h1 className="text-xl font-bold text-[#25282A]">{t('worker_applications.title')}</h1>
         {isDemo && (
           <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-700 border border-amber-200">
-            데모 데이터
+            {t('demo_data')}
           </span>
         )}
       </div>
@@ -236,16 +246,15 @@ export default function WorkerApplicationsClient() {
       <div className="py-4 space-y-3">
         {filtered.length === 0 ? (
           <div className="py-16 text-center bg-white rounded-2xl border border-[#EFF1F5]">
-            <p className="text-[#7A7B7A] text-sm">해당 상태의 지원 내역이 없습니다</p>
+            <p className="text-[#7A7B7A] text-sm">{t('worker_applications.empty')}</p>
           </div>
         ) : (
           filtered.map(app => {
-            const statusConfig = STATUS_CONFIG[app.status]
             return (
               <div key={app.id} className="press-effect bg-white rounded-2xl shadow-sm border border-[#EFF1F5] p-4 relative">
                 {/* Status badge */}
-                <span className={`absolute top-4 right-4 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${statusConfig.className}`}>
-                  {statusConfig.label}
+                <span className={`absolute top-4 right-4 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${STATUS_CLASS[app.status]}`}>
+                  {STATUS_LABEL[app.status]}
                 </span>
 
                 {/* Job title */}
@@ -258,7 +267,7 @@ export default function WorkerApplicationsClient() {
                 <p className="text-sm font-semibold text-[#0669F7] mt-1">{formatVND(app.dailyWage)}</p>
 
                 {/* Applied date */}
-                <p className="text-xs text-[#98A2B2] mt-2">지원일: {formatDate(app.appliedAt)}</p>
+                <p className="text-xs text-[#98A2B2] mt-2">{t('worker_applications.applied_at', { date: formatDate(app.appliedAt) })}</p>
 
                 {/* Actions */}
                 <div className="mt-3">
@@ -269,7 +278,7 @@ export default function WorkerApplicationsClient() {
                       disabled={withdrawingId === app.id}
                       className="px-5 py-2 rounded-full border border-[#DDDDDD] text-[#25282A] font-medium text-sm disabled:opacity-40 hover:border-[#0669F7] hover:text-[#0669F7] transition-colors"
                     >
-                      {withdrawingId === app.id ? '취소 중...' : '지원 취소'}
+                      {withdrawingId === app.id ? t('worker_applications.withdrawing') : t('worker_applications.withdraw')}
                     </button>
                   )}
                   {app.status === 'ACCEPTED' && (
@@ -277,7 +286,7 @@ export default function WorkerApplicationsClient() {
                       <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                         <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                       </svg>
-                      합격! 계약 대기 중
+                      {t('worker_applications.accepted_waiting')}
                     </span>
                   )}
                   {app.status === 'CONTRACTED' && (
@@ -285,7 +294,7 @@ export default function WorkerApplicationsClient() {
                       <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                         <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                       </svg>
-                      계약 완료
+                      {t('worker_applications.contracted')}
                     </span>
                   )}
                 </div>
@@ -298,9 +307,9 @@ export default function WorkerApplicationsClient() {
       {/* Confirm withdraw modal */}
       <ConfirmModal
         isOpen={confirmWithdrawId !== null}
-        title="지원 취소"
-        message="지원을 취소하시겠습니까?"
-        confirmLabel="취소하기"
+        title={t('worker_applications.withdraw_confirm_title')}
+        message={t('worker_applications.withdraw_confirm_message')}
+        confirmLabel={t('worker_applications.withdraw_confirm_btn')}
         confirmVariant="danger"
         onConfirm={() => confirmWithdrawId && handleWithdraw(confirmWithdrawId)}
         onCancel={() => setConfirmWithdrawId(null)}

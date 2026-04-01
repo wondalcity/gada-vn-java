@@ -2,6 +2,7 @@
 
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
+import { useTranslations } from 'next-intl'
 import type { Province, Trade } from '@/lib/api/public'
 
 interface Props {
@@ -12,6 +13,7 @@ interface Props {
 
 export function SearchBar({ provinces, trades = [], locale }: Props) {
   const router = useRouter()
+  const t = useTranslations('landing')
   const [keyword, setKeyword] = useState('')
   const [selectedProvince, setSelectedProvince] = useState('')
   const [selectedTrade, setSelectedTrade] = useState('')
@@ -39,7 +41,7 @@ export function SearchBar({ provinces, trades = [], locale }: Props) {
           type="text"
           value={keyword}
           onChange={e => setKeyword(e.target.value)}
-          placeholder="공고명 또는 현장명 검색..."
+          placeholder={t('hero.search_placeholder')}
           className="w-full pl-9 pr-3 py-3 rounded-xl bg-white text-[#25282A] text-sm border-0 focus:outline-none focus:ring-2 focus:ring-white/50 shadow-lg placeholder:text-[#98A2B2]"
         />
       </div>
@@ -51,7 +53,7 @@ export function SearchBar({ provinces, trades = [], locale }: Props) {
           onChange={e => setSelectedProvince(e.target.value)}
           className="flex-1 px-4 py-3 rounded-xl bg-white text-[#25282A] text-sm border-0 focus:outline-none focus:ring-2 focus:ring-white/50 shadow-lg"
         >
-          <option value="">전체 지역</option>
+          <option value="">{t('hero.all_provinces')}</option>
           {provinces.map(p => (
             <option key={p.slug} value={p.slug}>{p.nameVi}</option>
           ))}
@@ -62,9 +64,9 @@ export function SearchBar({ provinces, trades = [], locale }: Props) {
             onChange={e => setSelectedTrade(e.target.value)}
             className="flex-1 px-4 py-3 rounded-xl bg-white text-[#25282A] text-sm border-0 focus:outline-none focus:ring-2 focus:ring-white/50 shadow-lg"
           >
-            <option value="">전체 직종</option>
-            {trades.map(t => (
-              <option key={t.id} value={String(t.id)}>{t.nameKo}</option>
+            <option value="">{t('hero.all_trades')}</option>
+            {trades.map(tr => (
+              <option key={tr.id} value={String(tr.id)}>{tr.nameKo}</option>
             ))}
           </select>
         )}
@@ -76,7 +78,7 @@ export function SearchBar({ provinces, trades = [], locale }: Props) {
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
               d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6-3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
           </svg>
-          지도로 보기
+          {t('hero.map_view')}
         </button>
       </div>
     </form>

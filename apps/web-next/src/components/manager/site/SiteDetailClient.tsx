@@ -3,6 +3,7 @@
 import * as React from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import { useTranslations } from 'next-intl'
 import { getSessionCookie } from '@/lib/auth/session'
 import { apiClient } from '@/lib/api/client'
 import type { Site, SiteStatus, Job } from '@/types/manager-site-job'
@@ -47,6 +48,7 @@ const DEMO_SITES: Record<string, Site & { demoJobs?: Job[] }> = {
 }
 
 export default function SiteDetailClient({ siteId, locale }: SiteDetailClientProps) {
+  const t = useTranslations('common')
   const router = useRouter()
   const idToken = getSessionCookie()
   const [site, setSite] = React.useState<Site | null>(null)
@@ -77,7 +79,7 @@ export default function SiteDetailClient({ siteId, locale }: SiteDetailClientPro
         setSite(siteRes.data)
         setJobs(jobsRes.data)
       })
-      .catch((e) => setError(e instanceof Error ? e.message : '불러오기 실패'))
+      .catch((e) => setError(e instanceof Error ? e.message : t('manager_site_detail.load_error')))
       .finally(() => setIsLoading(false))
   }, [siteId, idToken])
 
@@ -91,7 +93,7 @@ export default function SiteDetailClient({ siteId, locale }: SiteDetailClientPro
       })
       setSite((prev) => prev ? { ...prev, status: newStatus } : prev)
     } catch (e) {
-      alert(e instanceof Error ? e.message : '상태 변경 실패')
+      alert(e instanceof Error ? e.message : t('manager_site_detail.status_change_error'))
     }
   }
 
@@ -106,7 +108,7 @@ export default function SiteDetailClient({ siteId, locale }: SiteDetailClientPro
       })
       router.push(`/${locale}/manager/sites`)
     } catch (e) {
-      alert(e instanceof Error ? e.message : '삭제 실패')
+      alert(e instanceof Error ? e.message : t('manager_site_detail.delete_error'))
     } finally {
       setIsDeleting(false)
       setShowDeleteModal(false)
@@ -131,8 +133,8 @@ export default function SiteDetailClient({ siteId, locale }: SiteDetailClientPro
     <>
       {isDemo && (
         <div className="mb-4 flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-amber-50 border border-amber-200 text-sm text-amber-700">
-          <span className="font-semibold">데모 데이터</span>
-          <span className="text-amber-600">— API 연결 후 실제 데이터가 표시됩니다</span>
+          <span className="font-semibold">{t('manager_site_detail.demo_notice')}</span>
+          <span className="text-amber-600">{t('manager_site_detail.demo_notice_sub')}</span>
         </div>
       )}
       {/* Image Gallery */}
@@ -144,7 +146,7 @@ export default function SiteDetailClient({ siteId, locale }: SiteDetailClientPro
               onClick={() => setLightboxIdx(idx)}
               className="flex-none w-28 h-28 rounded-2xl overflow-hidden border border-[#EFF1F5]"
             >
-              <img src={url} alt={`현장 이미지 ${idx + 1}`} className="w-full h-full object-cover" />
+              <img src={url} alt={t('manager_site_detail.image_alt', { n: idx + 1 })} className="w-full h-full object-cover" />
             </button>
           ))}
         </div>
@@ -164,10 +166,10 @@ export default function SiteDetailClient({ siteId, locale }: SiteDetailClientPro
           <StatusBadge status={site.status} />
         </div>
         <div className="space-y-1.5 text-sm text-[#25282A]">
-          <p><span className="text-[#98A2B2]">주소:</span> {site.address}</p>
-          <p><span className="text-[#98A2B2]">성/시:</span> {site.province}</p>
-          {site.district && <p><span className="text-[#98A2B2]">구/현:</span> {site.district}</p>}
-          {site.siteType && <p><span className="text-[#98A2B2]">유형:</span> {site.siteType}</p>}
+          <p><span className="text-[#98A2B2]">{t('manager_site_detail.address')}:</span> {site.address}</p>
+          <p><span className="text-[#98A2B2]">{t('manager_site_detail.province')}:</span> {site.province}</p>
+          {site.district && <p><span className="text-[#98A2B2]">{t('manager_site_detail.district')}:</span> {site.district}</p>}
+          {site.siteType && <p><span className="text-[#98A2B2]">{t('manager_site_detail.site_type')}:</span> {site.siteType}</p>}
         </div>
       </div>
 
@@ -178,7 +180,7 @@ export default function SiteDetailClient({ siteId, locale }: SiteDetailClientPro
             href={`/${locale}/manager/sites/${siteId}/edit`}
             className="px-5 py-2.5 rounded-full bg-[#0669F7] text-white font-medium text-sm"
           >
-            수정
+            {t('manager_site_detail.edit')}
           </Link>
 
           {/* Status change dropdown */}
@@ -188,9 +190,9 @@ export default function SiteDetailClient({ siteId, locale }: SiteDetailClientPro
               onChange={(e) => handleStatusChange(e.target.value as SiteStatus)}
               className="px-5 py-2.5 rounded-full border border-[#EFF1F5] text-[#25282A] font-medium text-sm bg-white appearance-none pr-8 cursor-pointer"
             >
-              <option value="ACTIVE">운영중으로 변경</option>
-              <option value="PAUSED">일시중지로 변경</option>
-              <option value="COMPLETED">완료로 변경</option>
+              <option value="ACTIVE">{t('manager_site_detail.status_active')}</option>
+              <option value="PAUSED">{t('manager_site_detail.status_paused')}</option>
+              <option value="COMPLETED">{t('manager_site_detail.status_completed')}</option>
             </select>
           </div>
 
@@ -198,7 +200,7 @@ export default function SiteDetailClient({ siteId, locale }: SiteDetailClientPro
             onClick={() => setShowDeleteModal(true)}
             className="px-5 py-2.5 rounded-full border border-[#D81A48] text-[#D81A48] font-medium text-sm"
           >
-            삭제
+            {t('manager_site_detail.delete')}
           </button>
         </div>
       </div>
@@ -206,22 +208,22 @@ export default function SiteDetailClient({ siteId, locale }: SiteDetailClientPro
       {/* Jobs Section */}
       <div className="mb-4">
         <div className="flex items-center justify-between mb-3">
-          <h3 className="text-base font-semibold text-[#25282A]">이 현장의 일자리</h3>
+          <h3 className="text-base font-semibold text-[#25282A]">{t('manager_site_detail.jobs_section_title')}</h3>
           <Link
             href={`/${locale}/manager/sites/${siteId}/jobs/new`}
             className="px-4 py-2 rounded-full bg-[#0669F7] text-white font-medium text-sm"
           >
-            일자리 추가
+            {t('manager_site_detail.add_job')}
           </Link>
         </div>
         {jobs.length === 0 ? (
           <div className="bg-white rounded-2xl shadow-sm border border-[#EFF1F5] p-8 text-center">
-            <p className="text-[#98A2B2] text-sm mb-3">등록된 일자리가 없습니다</p>
+            <p className="text-[#98A2B2] text-sm mb-3">{t('manager_site_detail.no_jobs')}</p>
             <Link
               href={`/${locale}/manager/sites/${siteId}/jobs/new`}
               className="px-5 py-2.5 rounded-full bg-[#0669F7] text-white font-medium text-sm"
             >
-              첫 일자리 등록하기
+              {t('manager_site_detail.add_first_job')}
             </Link>
           </div>
         ) : (
@@ -247,7 +249,7 @@ export default function SiteDetailClient({ siteId, locale }: SiteDetailClientPro
           </button>
           <img
             src={allImages[lightboxIdx]}
-            alt="전체 화면 이미지"
+            alt={t('manager_site_detail.fullscreen_alt')}
             className="max-w-full max-h-full object-contain rounded-2xl"
             onClick={(e) => e.stopPropagation()}
           />
@@ -268,9 +270,9 @@ export default function SiteDetailClient({ siteId, locale }: SiteDetailClientPro
       {/* Delete Confirm Modal */}
       <ConfirmModal
         isOpen={showDeleteModal}
-        title="현장 삭제"
-        message="현장을 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다."
-        confirmLabel="삭제"
+        title={t('manager_site_detail.delete_modal_title')}
+        message={t('manager_site_detail.delete_modal_message')}
+        confirmLabel={t('manager_site_detail.delete_modal_confirm')}
         confirmVariant="danger"
         onConfirm={handleDelete}
         onCancel={() => setShowDeleteModal(false)}

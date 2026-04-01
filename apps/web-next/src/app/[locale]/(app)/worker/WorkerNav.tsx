@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
+import { useTranslations } from 'next-intl'
 
 interface Props {
   locale: string
@@ -9,12 +10,13 @@ interface Props {
 
 export default function WorkerNav({ locale }: Props) {
   const pathname = usePathname()
+  const t = useTranslations('common')
 
   const tabs = [
     {
       key: 'home',
       href: `/${locale}/worker`,
-      label: '홈',
+      label: t('worker_nav.home'),
       active: pathname === `/${locale}/worker`,
       icon: (active: boolean) => (
         <svg className="w-[22px] h-[22px]" fill={active ? 'currentColor' : 'none'} viewBox="0 0 24 24" stroke="currentColor" strokeWidth={active ? 0 : 1.8}>
@@ -25,7 +27,7 @@ export default function WorkerNav({ locale }: Props) {
     {
       key: 'jobs',
       href: `/${locale}/worker/jobs`,
-      label: '일자리',
+      label: t('worker_nav.jobs'),
       active: pathname.startsWith(`/${locale}/worker/jobs`),
       icon: (active: boolean) => (
         <svg className="w-[22px] h-[22px]" fill={active ? 'currentColor' : 'none'} viewBox="0 0 24 24" stroke="currentColor" strokeWidth={active ? 0 : 1.8}>
@@ -36,7 +38,7 @@ export default function WorkerNav({ locale }: Props) {
     {
       key: 'applications',
       href: `/${locale}/worker/applications`,
-      label: '지원현황',
+      label: t('worker_nav.applications'),
       active: pathname.startsWith(`/${locale}/worker/applications`) || pathname.startsWith(`/${locale}/worker/hires`),
       icon: (active: boolean) => (
         <svg className="w-[22px] h-[22px]" fill={active ? 'currentColor' : 'none'} viewBox="0 0 24 24" stroke="currentColor" strokeWidth={active ? 0 : 1.8}>
@@ -47,7 +49,7 @@ export default function WorkerNav({ locale }: Props) {
     {
       key: 'attendance',
       href: `/${locale}/worker/attendance`,
-      label: '출퇴근',
+      label: t('worker_nav.attendance'),
       active: pathname.startsWith(`/${locale}/worker/attendance`),
       icon: (active: boolean) => (
         <svg className="w-[22px] h-[22px]" fill={active ? 'currentColor' : 'none'} viewBox="0 0 24 24" stroke="currentColor" strokeWidth={active ? 0 : 1.8}>
@@ -58,11 +60,23 @@ export default function WorkerNav({ locale }: Props) {
     {
       key: 'profile',
       href: `/${locale}/worker/profile`,
-      label: '프로필',
+      label: t('worker_nav.profile'),
       active: pathname.startsWith(`/${locale}/worker/profile`) || pathname.startsWith(`/${locale}/worker/contracts`),
       icon: (active: boolean) => (
         <svg className="w-[22px] h-[22px]" fill={active ? 'currentColor' : 'none'} viewBox="0 0 24 24" stroke="currentColor" strokeWidth={active ? 0 : 1.8}>
           <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+        </svg>
+      ),
+    },
+    {
+      key: 'settings',
+      href: `/${locale}/worker/settings`,
+      label: t('settings.title'),
+      active: pathname.startsWith(`/${locale}/worker/settings`),
+      icon: (active: boolean) => (
+        <svg className="w-[22px] h-[22px]" fill={active ? 'currentColor' : 'none'} viewBox="0 0 24 24" stroke="currentColor" strokeWidth={active ? 0 : 1.8}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+          <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
         </svg>
       ),
     },

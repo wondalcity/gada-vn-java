@@ -1,9 +1,29 @@
 {
+  "meta": {
+    "title": "GADA VN — Việc làm xây dựng theo ngày tại Việt Nam",
+    "description": "Tìm việc làm xây dựng theo ngày trên toàn Việt Nam. Công việc tại Hà Nội, TP.HCM, Đà Nẵng và nhiều tỉnh thành khác.",
+    "og_description": "Tìm việc làm xây dựng theo ngày trên toàn Việt Nam."
+  },
+  "header": {
+    "jobs_list": "Danh sách việc làm",
+    "register_free": "Đăng ký miễn phí"
+  },
   "hero": {
     "title": "Kết nối công trình xây dựng Việt Nam",
+    "h1": "Việc làm xây dựng Việt Nam",
+    "h1_highlight": "tìm thấy ở một nơi",
     "subtitle": "Nền tảng kết nối công nhân xây dựng lành nghề với các công trình uy tín",
+    "description": "Từ Hà Nội đến TP.HCM, công việc thời vụ tại các công trường trên toàn quốc",
     "cta_worker": "Tìm việc làm",
-    "cta_manager": "Tuyển dụng nhân lực"
+    "cta_manager": "Tuyển dụng nhân lực",
+    "stat_jobs": "Tin tuyển dụng",
+    "stat_cities": "Tỉnh thành",
+    "stat_free": "Miễn phí",
+    "stat_signup": "Đăng ký",
+    "search_placeholder": "Tìm kiếm công việc hoặc công trường...",
+    "all_provinces": "Tất cả tỉnh thành",
+    "all_trades": "Tất cả nghề",
+    "map_view": "Xem bản đồ"
   },
   "stats": {
     "jobs": "{count} việc làm",
@@ -29,12 +49,34 @@
   },
   "provinces": {
     "title": "Việc làm theo tỉnh thành",
-    "view_all": "Xem tất cả"
+    "section_title": "Tìm công việc theo khu vực",
+    "view_all": "Xem tất cả",
+    "view_jobs": "Xem việc làm →"
+  },
+  "jobs": {
+    "section_title": "Tin tuyển dụng mới nhất",
+    "view_all": "Xem tất cả →",
+    "empty": "Hiện chưa có tin tuyển dụng."
+  },
+  "cta": {
+    "title": "Bắt đầu tìm việc ngay bây giờ",
+    "subtitle": "Đăng ký GADA VN và tìm việc làm xây dựng trên toàn Việt Nam",
+    "register": "Đăng ký miễn phí",
+    "view_jobs": "Xem công việc",
+    "have_account": "Đã có tài khoản?",
+    "login": "Đăng nhập"
   },
   "footer": {
     "about": "Giới thiệu",
     "terms": "Điều khoản sử dụng",
     "privacy": "Chính sách bảo mật",
-    "contact": "Liên hệ"
+    "contact": "Liên hệ",
+    "description": "Kết nối việc làm thời vụ tại các công trường xây dựng trên toàn Việt Nam. Công việc tại Hà Nội, TP.HCM, Đà Nẵng và toàn quốc.",
+    "popular_regions": "Khu vực phổ biến",
+    "job_suffix": "việc làm xây dựng",
+    "quick_links": "Liên kết nhanh",
+    "jobs_list": "Danh sách việc làm",
+    "register": "Đăng ký",
+    "login": "Đăng nhập"
   }
 }

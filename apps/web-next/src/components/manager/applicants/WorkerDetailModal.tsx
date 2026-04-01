@@ -1,6 +1,7 @@
 'use client'
 
 import * as React from 'react'
+import { useTranslations } from 'next-intl'
 import type { Applicant } from '@/types/application'
 import ConfirmModal from '@/components/manager/ConfirmModal'
 
@@ -24,12 +25,8 @@ function formatDate(d: string): string {
   }).format(new Date(d))
 }
 
-function formatExperience(months: number): string {
-  const years = Math.floor(months / 12)
-  const rem = months % 12
-  if (years === 0) return `${rem}개월`
-  if (rem === 0) return `${years}년`
-  return `${years}년 ${rem}개월`
+function formatExperienceMonths(months: number): { years: number; rem: number } {
+  return { years: Math.floor(months / 12), rem: months % 12 }
 }
 
 function getInitials(name: string): string {
@@ -47,6 +44,7 @@ export default function WorkerDetailModal({
   slotsFilled,
   slotsTotal,
 }: Props) {
+  const t = useTranslations('common')
   const [showRejectForm, setShowRejectForm] = React.useState(false)
   const [rejectNotes, setRejectNotes] = React.useState('')
   const [showCancelConfirm, setShowCancelConfirm] = React.useState(false)
@@ -137,7 +135,7 @@ export default function WorkerDetailModal({
                 onClick={copyPhone}
                 className="text-xs text-[#0669F7] px-2 py-0.5 rounded border border-[#0669F7]"
               >
-                {copied ? '복사됨' : '복사'}
+                {copied ? t('manager_workers.copied') : t('manager_workers.copy_phone')}
               </button>
             </div>
           )}
@@ -146,7 +144,15 @@ export default function WorkerDetailModal({
           <div className="flex items-center gap-2 text-sm text-[#25282A] mb-3">
             {worker.tradeNameKo && <span className="font-medium">{worker.tradeNameKo}</span>}
             {worker.tradeNameKo && <span className="text-[#98A2B2]">·</span>}
-            <span>경력 {formatExperience(worker.experienceMonths)}</span>
+            <span>{(() => {
+              const { years, rem } = formatExperienceMonths(worker.experienceMonths)
+              const dur = years === 0
+                ? t('manager_workers.exp_months', { months: rem })
+                : rem === 0
+                  ? t('manager_workers.exp_years', { years })
+                  : t('manager_workers.exp_years_months', { years, months: rem })
+              return t('manager_workers.experience', { duration: dur })
+            })()}</span>
           </div>
 
           {/* Badges */}
@@ -156,31 +162,31 @@ export default function WorkerDetailModal({
                 ? 'bg-[#E8FBE8] text-[#1A6B1A]'
                 : 'bg-[#EFF1F5] text-[#98A2B2]'
             }`}>
-              {worker.idVerified ? '✓ ' : ''}신분증 인증완료
+              {worker.idVerified ? '✓ ' : ''}{t('manager_workers.id_verified')}
             </span>
             <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold ${
               worker.hasSignature
                 ? 'bg-[#E8FBE8] text-[#1A6B1A]'
                 : 'bg-[#EFF1F5] text-[#98A2B2]'
             }`}>
-              {worker.hasSignature ? '✓ ' : ''}서명 완료
+              {worker.hasSignature ? '✓ ' : ''}{t('manager_workers.signature_done')}
             </span>
           </div>
 
           {/* Applied date */}
-          <p className="text-xs text-[#98A2B2] mb-4">지원일: {formatDate(appliedAt)}</p>
+          <p className="text-xs text-[#98A2B2] mb-4">{t('manager_workers.applied_at', { date: formatDate(appliedAt) })}</p>
 
           {/* Notes (for rejected) */}
           {status === 'REJECTED' && notes && (
             <div className="bg-[#FDE8EE] rounded-2xl p-3 mb-4">
-              <p className="text-xs text-[#D81A48] mb-1 font-bold">불합격 사유</p>
+              <p className="text-xs text-[#D81A48] mb-1 font-bold">{t('manager_workers.rejection_reason')}</p>
               <p className="text-sm text-[#25282A]">{notes}</p>
             </div>
           )}
 
           {/* Slot info */}
           <div className="text-xs text-[#98A2B2] mb-4">
-            {slotsFilled}/{slotsTotal}명 선발됨
+            {t('manager_workers.slots_filled', { filled: slotsFilled, total: slotsTotal })}
           </div>
 
           {/* Action buttons */}
@@ -194,7 +200,7 @@ export default function WorkerDetailModal({
                     disabled={isActing}
                     className="w-full h-14 rounded-2xl bg-[#0669F7] text-white font-bold text-sm disabled:opacity-40"
                   >
-                    {isActing ? '처리 중...' : '합격 처리'}
+                    {isActing ? t('manager_workers.processing') : t('manager_workers.accept')}
                   </button>
                   <button
                     type="button"
@@ -202,16 +208,16 @@ export default function WorkerDetailModal({
                     disabled={isActing}
                     className="w-full h-14 rounded-2xl bg-[#FDE8EE] text-[#D81A48] font-bold text-sm disabled:opacity-40"
                   >
-                    불합격 처리
+                            {t('manager_workers.reject')}
                   </button>
                 </>
               ) : (
                 <div className="space-y-3">
-                  <p className="text-sm font-bold text-[#25282A]">불합격 사유 (선택)</p>
+                  <p className="text-sm font-bold text-[#25282A]">{t('manager_workers.reject_reason_label')}</p>
                   <textarea
                     className="w-full border border-[#EFF1F5] rounded-2xl p-3 text-sm text-[#25282A] placeholder-[#98A2B2] resize-none focus:outline-none focus:border-[#0669F7]"
                     rows={3}
-                    placeholder="불합격 사유를 입력하세요..."
+                    placeholder={t('manager_workers.reject_reason_placeholder')}
                     value={rejectNotes}
                     onChange={e => setRejectNotes(e.target.value)}
                   />
@@ -221,7 +227,7 @@ export default function WorkerDetailModal({
                       onClick={() => setShowRejectForm(false)}
                       className="flex-1 h-12 rounded-2xl bg-[#EFF1F5] text-[#98A2B2] font-bold text-sm"
                     >
-                      취소
+                      {t('button.cancel')}
                     </button>
                     <button
                       type="button"
@@ -229,7 +235,7 @@ export default function WorkerDetailModal({
                       disabled={isActing}
                       className="flex-1 h-12 rounded-2xl bg-[#FDE8EE] text-[#D81A48] font-bold text-sm disabled:opacity-40"
                     >
-                      {isActing ? '처리 중...' : '확인'}
+                      {isActing ? t('manager_workers.processing') : t('manager_workers.confirm')}
                     </button>
                   </div>
                 </div>
@@ -244,7 +250,7 @@ export default function WorkerDetailModal({
               disabled={isActing}
               className="w-full h-14 rounded-2xl bg-[#FDE8EE] text-[#D81A48] font-bold text-sm disabled:opacity-40"
             >
-              합격 취소
+              {t('manager_workers.cancel_hire')}
             </button>
           )}
         </div>
@@ -253,9 +259,9 @@ export default function WorkerDetailModal({
       {/* Cancel hire confirm modal */}
       <ConfirmModal
         isOpen={showCancelConfirm}
-        title="합격 취소"
-        message="이 지원자의 합격을 취소하시겠습니까?"
-        confirmLabel="취소하기"
+        title={t('manager_workers.cancel_hire_title')}
+        message={t('manager_workers.cancel_hire_message')}
+        confirmLabel={t('manager_workers.cancel_hire_confirm')}
         confirmVariant="danger"
         onConfirm={handleCancelHire}
         onCancel={() => setShowCancelConfirm(false)}

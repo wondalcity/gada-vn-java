@@ -23,7 +23,7 @@ export default function OtpScreen() {
       await confirmation.confirm(otp);
       // Auth state listener in index.tsx will handle routing
     } catch {
-      Alert.alert('오류', '인증번호가 올바르지 않습니다.');
+      Alert.alert(t('common.error'), t('auth.otp_error'));
     } finally {
       setLoading(false);
     }

@@ -4,6 +4,7 @@ import {
   StyleSheet, Alert, ActivityIndicator, RefreshControl,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 import { api, ApiError } from '../../../lib/api-client';
 
 interface Application {
@@ -22,6 +23,7 @@ interface Contract {
 
 export default function ManagerJobDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
+  const { t } = useTranslation();
   const router = useRouter();
   const [applications, setApplications] = useState<Application[]>([]);
   const [loading, setLoading] = useState(true);
@@ -46,24 +48,24 @@ export default function ManagerJobDetailScreen() {
       await api.put(`/applications/${applicationId}/status`, { status: 'ACCEPTED' });
       // Generate contract immediately after acceptance
       const contract = await api.post<Contract>('/contracts/generate', { applicationId });
-      Alert.alert('수락 완료', '지원자를 수락하고 계약서를 생성했습니다.', [
-        { text: '계약서 확인', onPress: () => router.push({ pathname: '/(manager)/contracts/[id]', params: { id: contract.id } }) },
-        { text: '닫기' },
+      Alert.alert(t('jobs.accept_success_title'), t('jobs.accept_success_body'), [
+        { text: t('jobs.view_contract'), onPress: () => router.push({ pathname: '/(manager)/contracts/[id]', params: { id: contract.id } }) },
+        { text: t('common.close') },
       ]);
       load();
     } catch (err) {
-      const msg = err instanceof ApiError ? err.message : '처리에 실패했습니다.';
-      Alert.alert('오류', msg);
+      const msg = err instanceof ApiError ? err.message : t('common.process_fail');
+      Alert.alert(t('common.error'), msg);
     } finally {
       setActionLoading(null);
     }
   }
 
   async function handleReject(applicationId: string) {
-    Alert.alert('거절 확인', '이 지원자를 거절하시겠습니까?', [
-      { text: '취소', style: 'cancel' },
+    Alert.alert(t('jobs.reject_confirm_title'), t('jobs.reject_confirm_body'), [
+      { text: t('common.cancel'), style: 'cancel' },
       {
-        text: '거절',
+        text: t('jobs.reject_button'),
         style: 'destructive',
         onPress: async () => {
           setActionLoading(applicationId);
@@ -71,7 +73,7 @@ export default function ManagerJobDetailScreen() {
             await api.put(`/applications/${applicationId}/status`, { status: 'REJECTED' });
             load();
           } catch {
-            Alert.alert('오류', '처리에 실패했습니다.');
+            Alert.alert(t('common.error'), t('common.process_fail'));
           } finally {
             setActionLoading(null);
           }
@@ -89,7 +91,8 @@ export default function ManagerJobDetailScreen() {
 
   function statusLabel(status: string): string {
     const map: Record<string, string> = {
-      PENDING: '검토 중', ACCEPTED: '수락됨', REJECTED: '거절됨', CONTRACTED: '계약 완료',
+      PENDING: t('jobs.status_pending'), ACCEPTED: t('jobs.status_accepted'),
+      REJECTED: t('jobs.status_rejected'), CONTRACTED: t('jobs.status_contracted'),
     };
     return map[status] ?? status;
   }
@@ -105,11 +108,11 @@ export default function ManagerJobDetailScreen() {
       refreshControl={<RefreshControl refreshing={false} onRefresh={load} colors={['#FF6B2C']} />}
       contentContainerStyle={styles.list}
       ListHeaderComponent={
-        <Text style={styles.header}>지원자 목록 ({applications.length}명)</Text>
+        <Text style={styles.header}>{t('jobs.applicants_header', { count: applications.length })}</Text>
       }
       ListEmptyComponent={
         <View style={styles.empty}>
-          <Text style={styles.emptyText}>아직 지원자가 없습니다</Text>
+          <Text style={styles.emptyText}>{t('jobs.no_applicants')}</Text>
         </View>
       }
       renderItem={({ item }) => (
@@ -125,13 +128,13 @@ export default function ManagerJobDetailScreen() {
 
           <View style={styles.cardMeta}>
             {item.experience_months != null && (
-              <Text style={styles.metaText}>경력 {Math.floor(item.experience_months / 12)}년 {item.experience_months % 12}개월</Text>
+              <Text style={styles.metaText}>{t('jobs.experience_label', { years: Math.floor(item.experience_months / 12), months: item.experience_months % 12 })}</Text>
             )}
             {item.current_province && (
               <Text style={styles.metaText}>📍 {item.current_province}</Text>
             )}
             <Text style={styles.metaText}>
-              지원일 {new Date(item.applied_at).toLocaleDateString('ko-KR')}
+              {t('jobs.applied_date', { date: new Date(item.applied_at).toLocaleDateString('ko-KR') })}
             </Text>
           </View>
 
@@ -142,7 +145,7 @@ export default function ManagerJobDetailScreen() {
                 onPress={() => handleReject(item.id)}
                 disabled={actionLoading === item.id}
               >
-                <Text style={styles.rejectBtnText}>거절</Text>
+                <Text style={styles.rejectBtnText}>{t('jobs.reject_button')}</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={[styles.acceptBtn, actionLoading === item.id && styles.btnLoading]}
@@ -151,7 +154,7 @@ export default function ManagerJobDetailScreen() {
               >
                 {actionLoading === item.id
                   ? <ActivityIndicator size="small" color="#fff" />
-                  : <Text style={styles.acceptBtnText}>수락 + 계약서 발행</Text>
+                  : <Text style={styles.acceptBtnText}>{t('jobs.accept_button')}</Text>
                 }
               </TouchableOpacity>
             </View>

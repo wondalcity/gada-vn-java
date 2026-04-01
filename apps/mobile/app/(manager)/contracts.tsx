@@ -4,6 +4,7 @@ import {
   TouchableOpacity, RefreshControl, ActivityIndicator,
 } from 'react-native';
 import { useRouter } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 import { api } from '../../lib/api-client';
 import { Colors, Spacing, Radius, Font } from '../../constants/theme';
 
@@ -19,12 +20,8 @@ interface Contract {
   dailyWage: number;
 }
 
-const STATUS_CONFIG: Record<ContractStatus, { label: string; bg: string; text: string }> = {
-  PENDING:   { label: '서명 대기', bg: Colors.primaryContainer,  text: Colors.primary },
-  SIGNED:    { label: '서명 완료', bg: Colors.successContainer,  text: Colors.onSuccessContainer },
-  COMPLETED: { label: '완료',     bg: Colors.surfaceContainer,   text: Colors.onSurfaceVariant },
-  CANCELLED: { label: '취소',     bg: Colors.errorContainer,     text: Colors.onErrorContainer },
-};
+// STATUS_CONFIG built inside component to use t()
+
 
 function formatDate(d: string) {
   const date = new Date(d);
@@ -36,16 +33,27 @@ function formatWage(n: number) {
   return new Intl.NumberFormat('ko-KR').format(n) + ' ₫';
 }
 
-const TAB_FILTERS: { key: ContractStatus | 'ALL'; label: string }[] = [
-  { key: 'ALL',       label: '전체' },
-  { key: 'PENDING',   label: '대기' },
-  { key: 'SIGNED',    label: '서명완료' },
-  { key: 'COMPLETED', label: '완료' },
-];
+// TAB_FILTERS built inside component to use t()
+
 
 export default function ManagerContractsScreen() {
+  const { t } = useTranslation();
   const router = useRouter();
   const [contracts, setContracts] = useState<Contract[]>([]);
+
+  const STATUS_CONFIG: Record<ContractStatus, { label: string; bg: string; text: string }> = {
+    PENDING:   { label: t('contract.status_pending'),   bg: Colors.primaryContainer,  text: Colors.primary },
+    SIGNED:    { label: t('contract.status_signed'),    bg: Colors.successContainer,  text: Colors.onSuccessContainer },
+    COMPLETED: { label: t('contract.status_completed'), bg: Colors.surfaceContainer,   text: Colors.onSurfaceVariant },
+    CANCELLED: { label: t('contract.status_cancelled'), bg: Colors.errorContainer,     text: Colors.onErrorContainer },
+  };
+
+  const TAB_FILTERS: { key: ContractStatus | 'ALL'; label: string }[] = [
+    { key: 'ALL',       label: t('contract.filter_all') },
+    { key: 'PENDING',   label: t('contract.filter_pending') },
+    { key: 'SIGNED',    label: t('contract.filter_signed') },
+    { key: 'COMPLETED', label: t('contract.filter_completed') },
+  ];
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [activeFilter, setActiveFilter] = useState<ContractStatus | 'ALL'>('ALL');
@@ -110,7 +118,7 @@ export default function ManagerContractsScreen() {
         ListEmptyComponent={
           <View style={styles.empty}>
             <Text style={styles.emptyIcon}>📄</Text>
-            <Text style={styles.emptyText}>계약서가 없습니다</Text>
+            <Text style={styles.emptyText}>{t('contract.no_contracts')}</Text>
           </View>
         }
         renderItem={({ item }) => {

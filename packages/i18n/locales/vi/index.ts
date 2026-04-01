@@ -6,5 +6,6 @@ import manager from './manager.json'
 import landing from './landing.json'
 import notifications from './notifications.json'
 import validation from './validation.json'
+import locations from './locations.json'
 
-export default { common, auth, jobs, worker, manager, landing, notifications, validation }
+export default { common, auth, jobs, worker, manager, landing, notifications, validation, locations }

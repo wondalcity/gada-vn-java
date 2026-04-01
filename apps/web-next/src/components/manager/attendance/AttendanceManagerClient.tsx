@@ -1,6 +1,7 @@
 'use client'
 
 import * as React from 'react'
+import { useTranslations } from 'next-intl'
 import { getSessionCookie } from '@/lib/auth/session'
 import type { RosterEntry, AttendanceStatus } from '@/types/attendance'
 import { STATUS_LABELS } from '@/lib/attendance'
@@ -13,14 +14,13 @@ interface Props {
   locale: string
 }
 
-const WEEKDAY_LABELS = ['일', '월', '화', '수', '목', '금', '토']
-
-function formatDateKo(date: Date): string {
-  const y = date.getFullYear()
-  const m = date.getMonth() + 1
-  const d = date.getDate()
-  const w = WEEKDAY_LABELS[date.getDay()]
-  return `${y}년 ${m}월 ${d}일 (${w})`
+function formatDate(date: Date, locale: string): string {
+  return new Intl.DateTimeFormat(locale, {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+    weekday: 'short',
+  }).format(date)
 }
 
 function toDateString(date: Date): string {
@@ -58,6 +58,7 @@ interface RosterMeta {
 }
 
 export default function AttendanceManagerClient({ jobId, locale }: Props) {
+  const t = useTranslations('common')
   const idToken = getSessionCookie()
 
   const today = React.useMemo(() => new Date(), [])
@@ -84,7 +85,7 @@ export default function AttendanceManagerClient({ jobId, locale }: Props) {
       .then(async res => {
         if (!res.ok) {
           const body = await res.json().catch(() => ({}))
-          throw new Error(body.message ?? '출근부를 불러올 수 없습니다')
+          throw new Error(body.message ?? t('manager_attendance.error_load'))
         }
         return res.json()
       })
@@ -130,13 +131,13 @@ export default function AttendanceManagerClient({ jobId, locale }: Props) {
       })
       if (!res.ok) {
         const body = await res.json().catch(() => ({}))
-        throw new Error(body.message ?? '저장에 실패했습니다')
+        throw new Error(body.message ?? t('manager_attendance.error_save'))
       }
       // Mark as clean and update savedDrafts
       setDrafts(prev => prev.map(d => d.workerId === workerId ? { ...d, isDirty: false } : d))
       setSavedDrafts(prev => prev.map(d => d.workerId === workerId ? { ...draft, isDirty: false } : d))
     } catch (err) {
-      setSaveError(err instanceof Error ? err.message : '저장에 실패했습니다')
+      setSaveError(err instanceof Error ? err.message : t('manager_attendance.error_save'))
     } finally {
       setSavingId(null)
     }
@@ -168,12 +169,12 @@ export default function AttendanceManagerClient({ jobId, locale }: Props) {
       })
       if (!res.ok) {
         const body = await res.json().catch(() => ({}))
-        throw new Error(body.message ?? '저장에 실패했습니다')
+        throw new Error(body.message ?? t('manager_attendance.error_save'))
       }
       setDrafts(prev => prev.map(d => ({ ...d, isDirty: false })))
       setSavedDrafts(drafts.map(d => ({ ...d, isDirty: false })))
     } catch (err) {
-      setSaveError(err instanceof Error ? err.message : '저장에 실패했습니다')
+      setSaveError(err instanceof Error ? err.message : t('manager_attendance.error_save'))
     } finally {
       setIsSavingAll(false)
     }
@@ -204,20 +205,20 @@ export default function AttendanceManagerClient({ jobId, locale }: Props) {
               type="button"
               onClick={() => setSelectedDate(d => addDays(d, -1))}
               className="p-1.5 rounded-2xl border border-[#EFF1F5] hover:border-gray-400 transition-colors"
-              aria-label="전날"
+              aria-label={t('manager_attendance.prev_day')}
             >
               <svg className="w-4 h-4 text-[#25282A]" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" aria-hidden="true">
                 <polyline points="10,3 5,8 10,13" />
               </svg>
             </button>
             <span className="text-sm font-semibold text-[#25282A] min-w-[160px] text-center">
-              {formatDateKo(selectedDate)}
+              {formatDate(selectedDate, locale)}
             </span>
             <button
               type="button"
               onClick={() => setSelectedDate(d => addDays(d, 1))}
               className="p-1.5 rounded-2xl border border-[#EFF1F5] hover:border-gray-400 transition-colors"
-              aria-label="다음날"
+              aria-label={t('manager_attendance.next_day')}
             >
               <svg className="w-4 h-4 text-[#25282A]" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" aria-hidden="true">
                 <polyline points="6,3 11,8 6,13" />
@@ -229,7 +230,7 @@ export default function AttendanceManagerClient({ jobId, locale }: Props) {
             onClick={() => setSelectedDate(today)}
             className="px-3 py-1.5 rounded-2xl border border-[#EFF1F5] text-xs text-[#98A2B2] hover:border-[#0669F7] hover:text-[#0669F7] transition-colors"
           >
-            오늘
+            {t('manager_attendance.today')}
           </button>
         </div>
 
@@ -241,14 +242,14 @@ export default function AttendanceManagerClient({ jobId, locale }: Props) {
             )}
             <div className="flex items-center gap-2 flex-wrap">
               <span className="text-xs text-[#98A2B2]">
-                {totalWorkers}명 출근 예정 · {attendedCount}명 출근 확인됨
+                {t('manager_attendance.workers_scheduled', { total: totalWorkers, attended: attendedCount })}
               </span>
               <div className="flex items-center gap-1.5 flex-wrap">
                 {[
-                  { label: '출근', count: attendedCount, cls: 'bg-green-50 text-green-700 border-green-200' },
-                  { label: '반차', count: halfDayCount, cls: 'bg-yellow-50 text-yellow-700 border-yellow-200' },
-                  { label: '결근', count: absentCount, cls: 'bg-red-50 text-[#D81A48] border-red-200' },
-                  { label: '미확인', count: pendingCount, cls: 'bg-gray-100 text-[#98A2B2] border-[#EFF1F5]' },
+                  { label: t('manager_attendance.status_attended'), count: attendedCount, cls: 'bg-green-50 text-green-700 border-green-200' },
+                  { label: t('manager_attendance.status_half_day'), count: halfDayCount, cls: 'bg-yellow-50 text-yellow-700 border-yellow-200' },
+                  { label: t('manager_attendance.status_absent'), count: absentCount, cls: 'bg-red-50 text-[#D81A48] border-red-200' },
+                  { label: t('manager_attendance.status_pending'), count: pendingCount, cls: 'bg-gray-100 text-[#98A2B2] border-[#EFF1F5]' },
                 ].map(({ label, count, cls }) => (
                   <span key={label} className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium border ${cls}`}>
                     {label} {count}
@@ -267,7 +268,7 @@ export default function AttendanceManagerClient({ jobId, locale }: Props) {
               onClick={markAllPresent}
               className="px-3 py-1.5 rounded-2xl border border-[#EFF1F5] text-xs text-[#25282A] font-medium hover:border-[#0669F7] hover:text-[#0669F7] transition-colors"
             >
-              전체 출근
+              {t('manager_attendance.mark_all_present')}
             </button>
             <button
               type="button"
@@ -275,12 +276,12 @@ export default function AttendanceManagerClient({ jobId, locale }: Props) {
               disabled={isSavingAll || dirtyCount === 0}
               className="px-4 py-1.5 rounded-2xl bg-[#0669F7] text-white text-xs font-medium disabled:opacity-50 hover:bg-blue-700 transition-colors"
             >
-              {isSavingAll ? '저장 중...' : '일괄 저장'}
+              {isSavingAll ? t('manager_attendance.saving') : t('manager_attendance.save_all')}
             </button>
             {dirtyCount > 0 && (
               <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-orange-50 text-orange-600 border border-orange-200">
                 <span className="w-1.5 h-1.5 rounded-full bg-orange-400" />
-                {dirtyCount}명 미저장
+                {t('manager_attendance.unsaved_count', { count: dirtyCount })}
               </span>
             )}
           </div>
@@ -318,13 +319,13 @@ export default function AttendanceManagerClient({ jobId, locale }: Props) {
               onClick={() => setSelectedDate(new Date(selectedDate))}
               className="px-4 py-2 rounded-2xl border border-[#EFF1F5] text-sm text-[#25282A] hover:border-[#0669F7] transition-colors"
             >
-              다시 시도
+              {t('manager_attendance.retry')}
             </button>
           </div>
         ) : drafts.length === 0 ? (
           <div className="py-16 text-center">
-            <p className="text-[#98A2B2] text-sm font-medium">출근 예정 근로자가 없습니다</p>
-            <p className="text-[#98A2B2] text-xs mt-1">이 날짜에 배정된 근로자가 없습니다</p>
+            <p className="text-[#98A2B2] text-sm font-medium">{t('manager_attendance.empty_title')}</p>
+            <p className="text-[#98A2B2] text-xs mt-1">{t('manager_attendance.empty_subtitle')}</p>
           </div>
         ) : (
           <>

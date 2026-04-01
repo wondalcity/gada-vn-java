@@ -1,14 +1,14 @@
 'use client'
 
 import * as React from 'react'
-import { useRouter } from 'next/navigation'
+import { useTranslations } from 'next-intl'
+import { useRouter, usePathname } from '@/i18n/navigation'
 import { getSessionCookie, clearSessionCookie } from '@/lib/auth/session'
 import { getGoogleMapsLoader } from '@/lib/maps/loader'
 
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'https://api.gada.vn/api/v1'
 const CDN_DOMAIN = process.env.NEXT_PUBLIC_CDN_DOMAIN ?? ''
 
-/** Convert an S3 key or any URL to a displayable URL using the CDN domain. */
 function toCdnUrl(urlOrKey: string | null): string | null {
   if (!urlOrKey) return null
   if (urlOrKey.startsWith('http') || urlOrKey.startsWith('blob:') || urlOrKey.startsWith('data:')) return urlOrKey
@@ -52,24 +52,6 @@ interface WorkerProfile {
 
 type Tab = 'basic' | 'experience' | 'address' | 'bank' | 'id' | 'signature'
 
-const TABS: { id: Tab; label: string }[] = [
-  { id: 'basic',      label: '기본정보' },
-  { id: 'experience', label: '직종/경력' },
-  { id: 'address',    label: '주소' },
-  { id: 'bank',       label: '계좌' },
-  { id: 'id',         label: '신분증' },
-  { id: 'signature',  label: '서명' },
-]
-
-const TAB_DESCRIPTIONS: Record<Tab, string> = {
-  basic:      '이름, 생년월일, 성별 등 기본 인적 사항을 관리합니다.',
-  experience: '보유 직종과 경력을 입력하면 더 적합한 공고를 추천받을 수 있습니다.',
-  address:    '현재 거주지 주소를 설정합니다.',
-  bank:       '급여 수령을 위한 계좌 정보를 등록합니다.',
-  id:         '신분증을 등록하면 플랫폼 신뢰도가 높아집니다.',
-  signature:  '계약서 서명에 사용될 전자서명을 등록합니다.',
-}
-
 function NavIcon({ tab }: { tab: Tab }) {
   if (tab === 'basic') return (
     <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
@@ -86,9 +68,12 @@ function NavIcon({ tab }: { tab: Tab }) {
   if (tab === 'id') return (
     <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V5a2 2 0 114 0v1m-4 0a2 2 0 104 0m-5 8a2 2 0 100-4 2 2 0 000 4zm0 0c1.306 0 2.417.835 2.83 2M9 14a3.001 3.001 0 00-2.83 2M15 11h3m-3 4h2" /></svg>
   )
-  // signature
-  return (
+  if (tab === 'signature') return (
     <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
+  )
+  // language
+  return (
+    <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129" /></svg>
   )
 }
 
@@ -98,7 +83,7 @@ async function fileToDataUrl(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader()
     reader.onload = () => resolve(reader.result as string)
-    reader.onerror = () => reject(new Error('파일 변환 실패'))
+    reader.onerror = () => reject(new Error('File conversion failed'))
     reader.readAsDataURL(file)
   })
 }
@@ -110,7 +95,7 @@ async function uploadFile(token: string, file: File, folder: string): Promise<st
       headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
       body: JSON.stringify({ fileName: file.name, contentType: file.type, folder }),
     })
-    if (!presignRes.ok) throw new Error('업로드 URL 발급 실패')
+    if (!presignRes.ok) throw new Error('Upload URL request failed')
     const { data: presign } = await presignRes.json()
 
     if (presign.isLocal) {
@@ -121,7 +106,7 @@ async function uploadFile(token: string, file: File, folder: string): Promise<st
         headers: { Authorization: `Bearer ${token}` },
         body: fd,
       })
-      if (!res.ok) throw new Error('로컬 업로드 실패')
+      if (!res.ok) throw new Error('Local upload failed')
       const { data } = await res.json()
       return data.key
     }
@@ -131,10 +116,9 @@ async function uploadFile(token: string, file: File, folder: string): Promise<st
       headers: { 'Content-Type': file.type },
       body: file,
     })
-    if (!uploadRes.ok) throw new Error('업로드 실패')
+    if (!uploadRes.ok) throw new Error('Upload failed')
     return presign.key
   } catch (e) {
-    // Network error (API server unavailable) — store as data URL locally
     if (e instanceof TypeError) return fileToDataUrl(file)
     throw e
   }
@@ -149,7 +133,6 @@ async function saveProfile(token: string, data: Record<string, unknown>): Promis
     })
     return res.ok
   } catch (e) {
-    // Network error (API server unavailable) — treat as success for local dev
     if (e instanceof TypeError) return true
     throw e
   }
@@ -189,7 +172,8 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 
 const inputCls = 'w-full px-3 py-2.5 rounded-lg border border-[#EFF1F5] focus:outline-none focus:border-[#0669F7] text-sm text-[#25282A] bg-white'
 
-function SaveButton({ saving, onClick, label = '저장' }: { saving: boolean; onClick: () => void; label?: string }) {
+function SaveButton({ saving, onClick, label }: { saving: boolean; onClick: () => void; label: string }) {
+  const t = useTranslations('worker')
   return (
     <button
       type="button"
@@ -197,7 +181,7 @@ function SaveButton({ saving, onClick, label = '저장' }: { saving: boolean; on
       disabled={saving}
       className="w-full mt-6 py-3 rounded-full bg-[#0669F7] text-white font-medium text-sm disabled:opacity-40 hover:bg-blue-700 transition-colors"
     >
-      {saving ? '저장 중...' : label}
+      {saving ? t('profile_tabs.shared_saving') : label}
     </button>
   )
 }
@@ -205,6 +189,7 @@ function SaveButton({ saving, onClick, label = '저장' }: { saving: boolean; on
 // ── Upload Zone ──────────────────────────────────────────────────────────────
 
 function UploadZone({ label, url, onChange }: { label: string; url: string | null; onChange: (file: File) => void }) {
+  const t = useTranslations('worker')
   const ref = React.useRef<HTMLInputElement>(null)
   return (
     <div className="flex-1">
@@ -221,7 +206,7 @@ function UploadZone({ label, url, onChange }: { label: string; url: string | nul
             <svg className="w-6 h-6 text-[#98A2B2] mx-auto mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
             </svg>
-            <span className="text-xs text-[#98A2B2]">사진 선택</span>
+            <span className="text-xs text-[#98A2B2]">{t('profile_tabs.id.photo_select')}</span>
           </div>
         )}
       </button>
@@ -234,12 +219,15 @@ function UploadZone({ label, url, onChange }: { label: string; url: string | nul
 // ── Basic Info Tab ───────────────────────────────────────────────────────────
 
 function BasicTab({ profile, onSaved }: { profile: WorkerProfile; onSaved: (p: Partial<WorkerProfile>) => void }) {
+  const t = useTranslations('worker')
   const [fullName, setFullName] = React.useState(profile.full_name ?? '')
   const [dob, setDob] = React.useState(profile.date_of_birth?.split('T')[0] ?? '')
   const [gender, setGender] = React.useState<'MALE' | 'FEMALE' | 'OTHER' | ''>(profile.gender ?? '')
   const [bio, setBio] = React.useState(profile.bio ?? '')
+  const [email, setEmail] = React.useState(profile.email ?? '')
   const [saving, setSaving] = React.useState(false)
   const [error, setError] = React.useState('')
+  const [emailError, setEmailError] = React.useState('')
   const [profileImageUrl, setProfileImageUrl] = React.useState<string | null>(toCdnUrl(profile.profile_image_url))
   const [imageUploading, setImageUploading] = React.useState(false)
   const [imageError, setImageError] = React.useState('')
@@ -262,10 +250,10 @@ function BasicTab({ profile, onSaved }: { profile: WorkerProfile; onSaved: (p: P
         setProfileImageUrl(url)
         onSaved({ profile_image_url: url })
       } else {
-        setImageError('이미지 저장에 실패했습니다')
+        setImageError(t('profile_tabs.basic.img_fail'))
       }
     } catch (e) {
-      setImageError(e instanceof Error ? e.message : '업로드에 실패했습니다')
+      setImageError(e instanceof Error ? e.message : t('profile_tabs.basic.upload_fail'))
     } finally { setImageUploading(false) }
   }
 
@@ -275,15 +263,28 @@ function BasicTab({ profile, onSaved }: { profile: WorkerProfile; onSaved: (p: P
   }
 
   async function save() {
-    if (!fullName.trim()) { setError('이름을 입력해주세요'); return }
-    if (!dob) { setError('생년월일을 입력해주세요'); return }
-    if (!gender) { setError('성별을 선택해주세요'); return }
-    setError(''); setSaving(true)
+    if (!fullName.trim()) { setError(t('profile_tabs.basic.error_name')); return }
+    if (!dob) { setError(t('profile_tabs.basic.error_dob')); return }
+    if (!gender) { setError(t('profile_tabs.basic.error_gender')); return }
+    if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      setEmailError(t('profile_tabs.basic.error_email')); return
+    }
+    setError(''); setEmailError(''); setSaving(true)
     try {
-      const ok = await saveProfile(token!, { fullName: fullName.trim(), dateOfBirth: dob, gender, bio: bio.trim() || null })
-      if (ok) onSaved({ full_name: fullName.trim(), date_of_birth: dob, gender: gender as 'MALE'|'FEMALE'|'OTHER', bio: bio.trim() || null })
-      else setError('저장에 실패했습니다')
-    } catch { setError('저장 중 오류가 발생했습니다') }
+      const [profileOk, emailRes] = await Promise.all([
+        saveProfile(token!, { fullName: fullName.trim(), dateOfBirth: dob, gender, bio: bio.trim() || null }),
+        fetch(`${API_BASE}/auth/me`, {
+          method: 'PATCH',
+          headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: email.trim() || null }),
+        }),
+      ])
+      if (profileOk && emailRes.ok) {
+        onSaved({ full_name: fullName.trim(), date_of_birth: dob, gender: gender as 'MALE'|'FEMALE'|'OTHER', bio: bio.trim() || null, email: email.trim() || null })
+      } else {
+        setError(t('profile_tabs.basic.save_fail'))
+      }
+    } catch { setError(t('profile_tabs.basic.save_error')) }
     finally { setSaving(false) }
   }
 
@@ -294,7 +295,7 @@ function BasicTab({ profile, onSaved }: { profile: WorkerProfile; onSaved: (p: P
         <div className="relative shrink-0">
           <div className="w-20 h-20 rounded-full bg-[#F2F4F5] border-2 border-[#EFF1F5] overflow-hidden flex items-center justify-center">
             {profileImageUrl ? (
-              <img src={profileImageUrl} alt="프로필 사진" className="w-full h-full object-cover" />
+              <img src={profileImageUrl} alt={t('profile_tabs.basic.full_name')} className="w-full h-full object-cover" />
             ) : (
               <svg className="w-8 h-8 text-[#C8CBD0]" fill="currentColor" viewBox="0 0 24 24">
                 <path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z" />
@@ -313,57 +314,78 @@ function BasicTab({ profile, onSaved }: { profile: WorkerProfile; onSaved: (p: P
         <div className="flex flex-col gap-1.5">
           <button type="button" onClick={() => imageInputRef.current?.click()} disabled={imageUploading}
             className="px-4 py-2 rounded-full bg-[#0669F7] text-white text-xs font-medium disabled:opacity-40">
-            {profileImageUrl ? '사진 변경' : '사진 등록'}
+            {profileImageUrl ? t('profile_tabs.basic.photo_change') : t('profile_tabs.basic.photo_register')}
           </button>
           {profileImageUrl && (
             <button type="button" onClick={handleDeleteProfileImage}
               className="px-4 py-2 rounded-full border border-[#D81A48] text-[#D81A48] text-xs font-medium">
-              사진 삭제
+              {t('profile_tabs.basic.photo_delete')}
             </button>
           )}
-          <p className="text-xs text-[#98A2B2]">JPG, PNG, WebP (최대 10MB)</p>
+          <p className="text-xs text-[#98A2B2]">{t('profile_tabs.basic.photo_hint')}</p>
         </div>
         <input ref={imageInputRef} type="file" accept="image/jpeg,image/png,image/webp" className="hidden"
           onChange={e => { const f = e.target.files?.[0]; if (f) handleProfileImage(f) }} />
       </div>
       {imageError && <p className="text-xs text-[#D81A48]">{imageError}</p>}
 
-      <Field label="이름 *">
-        <input type="text" value={fullName} onChange={e => setFullName(e.target.value)} placeholder="이름" className={inputCls} />
+      <Field label={t('profile_tabs.basic.full_name')}>
+        <input type="text" value={fullName} onChange={e => setFullName(e.target.value)}
+          placeholder={t('profile_tabs.basic.name_placeholder')} className={inputCls} />
       </Field>
-      <Field label="생년월일 *">
+      <Field label={t('profile_tabs.basic.dob')}>
         <input type="date" value={dob} max={maxDate} onChange={e => setDob(e.target.value)} className={inputCls} />
       </Field>
-      <Field label="성별 *">
+      <Field label={t('profile_tabs.basic.gender')}>
         <div className="flex gap-2">
           {(['MALE','FEMALE','OTHER'] as const).map(g => (
             <button key={g} type="button" onClick={() => setGender(g)}
               className={`flex-1 py-2.5 rounded-lg border-2 text-sm font-medium transition-all ${gender === g ? 'border-[#0669F7] bg-blue-50 text-[#0669F7]' : 'border-[#EFF1F5] text-[#98A2B2]'}`}>
-              {g === 'MALE' ? '남성' : g === 'FEMALE' ? '여성' : '기타'}
+              {g === 'MALE' ? t('profile_tabs.basic.male') : g === 'FEMALE' ? t('profile_tabs.basic.female') : t('profile_tabs.basic.other')}
             </button>
           ))}
         </div>
       </Field>
-      <Field label="자기소개">
+      <Field label={t('profile_tabs.basic.bio')}>
         <textarea rows={3} maxLength={500} value={bio} onChange={e => setBio(e.target.value)}
-          placeholder="간단한 자기소개를 입력하세요" className={`${inputCls} resize-none`} />
+          placeholder={t('profile_tabs.basic.bio_placeholder')} className={`${inputCls} resize-none`} />
         <p className="text-xs text-[#98A2B2] text-right mt-1">{bio.length}/500</p>
       </Field>
+      {/* 전화번호 (읽기전용) */}
+      {profile.phone && (
+        <Field label={t('profile_tabs.basic.phone_label')}>
+          <div className={`${inputCls} bg-[#F8F8FA] text-[#98A2B2] cursor-not-allowed`}>
+            {profile.phone}
+          </div>
+        </Field>
+      )}
+
+      {/* 이메일 */}
+      <Field label={t('profile_tabs.basic.email_label')}>
+        <input
+          type="email"
+          value={email}
+          onChange={e => { setEmail(e.target.value); setEmailError('') }}
+          placeholder={t('profile_tabs.basic.email_placeholder')}
+          className={inputCls}
+        />
+      </Field>
+      {emailError && <p className="text-xs text-[#D81A48] mt-1">{emailError}</p>}
+
       {error && <p className="text-xs text-[#D81A48]">{error}</p>}
-      <SaveButton saving={saving} onClick={save} />
+      <SaveButton saving={saving} onClick={save} label={t('profile_tabs.shared_save')} />
     </div>
   )
 }
 
-// ── Experience Tab (multi-trade) ─────────────────────────────────────────────
+// ── Experience Tab ───────────────────────────────────────────────────────────
 
 function ExperienceTab({ profile, onSaved }: { profile: WorkerProfile; onSaved: (p: Partial<WorkerProfile>) => void }) {
+  const t = useTranslations('worker')
   const [trades, setTrades] = React.useState<Trade[]>([])
-  const [tradeSkills, setTradeSkills] = React.useState<TradeSkill[]>([])
   const [loading, setLoading] = React.useState(true)
   const [search, setSearch] = React.useState('')
   const [saving, setSaving] = React.useState(false)
-  // selectedTradeIds: Map<tradeId, years>
   const [selectedMap, setSelectedMap] = React.useState<Map<number, number>>(new Map())
 
   const token = getSessionCookie()
@@ -375,7 +397,6 @@ function ExperienceTab({ profile, onSaved }: { profile: WorkerProfile; onSaved: 
         .then(r => r.ok ? r.json() : { data: [] }).then(b => b.data ?? []),
     ]).then(([tradesData, skillsData]) => {
       setTrades(tradesData)
-      setTradeSkills(skillsData)
       const map = new Map<number, number>()
       for (const s of skillsData as TradeSkill[]) map.set(s.trade_id, s.years)
       setSelectedMap(map)
@@ -431,31 +452,29 @@ function ExperienceTab({ profile, onSaved }: { profile: WorkerProfile; onSaved: 
     finally { setSaving(false) }
   }
 
-  if (loading) return <div className="py-8 text-center text-sm text-[#98A2B2]">로딩 중...</div>
+  if (loading) return <div className="py-8 text-center text-sm text-[#98A2B2]">{t('profile_tabs.experience.loading')}</div>
 
   return (
     <div className="space-y-4">
-      {/* Selected trades chips */}
       {selectedTrades.length > 0 && (
         <div className="space-y-2">
-          <p className="text-xs font-medium text-[#98A2B2]">선택된 직종 ({selectedTrades.length}개)</p>
+          <p className="text-xs font-medium text-[#98A2B2]">{t('profile_tabs.experience.selected', { count: selectedTrades.length })}</p>
           {selectedTrades
             .sort((a, b) => (selectedMap.get(b.id) ?? 0) - (selectedMap.get(a.id) ?? 0))
-            .map(t => (
-              <div key={t.id} className="flex items-center gap-2 p-2.5 bg-blue-50 border border-[#0669F7] rounded-lg">
+            .map(tr => (
+              <div key={tr.id} className="flex items-center gap-2 p-2.5 bg-blue-50 border border-[#0669F7] rounded-lg">
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-[#0669F7] truncate">{t.nameKo}</p>
+                  <p className="text-sm font-medium text-[#0669F7] truncate">{tr.nameKo}</p>
                 </div>
                 <div className="flex items-center gap-1 shrink-0">
                   <input
-                    type="number"
-                    min={0} max={50}
-                    value={selectedMap.get(t.id) ?? 0}
-                    onChange={e => setYears(t.id, Number(e.target.value))}
+                    type="number" min={0} max={50}
+                    value={selectedMap.get(tr.id) ?? 0}
+                    onChange={e => setYears(tr.id, Number(e.target.value))}
                     className="w-14 px-2 py-1 rounded border border-[#0669F7] text-sm text-center bg-white focus:outline-none"
                   />
-                  <span className="text-xs text-[#98A2B2]">년</span>
-                  <button type="button" onClick={() => toggleTrade(t.id)}
+                  <span className="text-xs text-[#98A2B2]">{t('profile_tabs.experience.years_unit')}</span>
+                  <button type="button" onClick={() => toggleTrade(tr.id)}
                     className="ml-1 w-5 h-5 rounded-full bg-[#D81A48] text-white text-xs flex items-center justify-center">✕</button>
                 </div>
               </div>
@@ -463,26 +482,25 @@ function ExperienceTab({ profile, onSaved }: { profile: WorkerProfile; onSaved: 
         </div>
       )}
 
-      {/* Trade search */}
-      <Field label="직종 검색 (다중 선택 가능)">
+      <Field label={t('profile_tabs.experience.search_label')}>
         <input type="text" value={search} onChange={e => setSearch(e.target.value)}
-          placeholder="직종 검색 (예: 도장, 용접...)" className={inputCls} />
+          placeholder={t('profile_tabs.experience.search_placeholder')} className={inputCls} />
       </Field>
 
       <div className="max-h-52 overflow-y-auto rounded-lg border border-[#EFF1F5]">
         {filtered.length === 0 ? (
-          <div className="p-4 text-center text-sm text-[#98A2B2]">검색 결과가 없습니다</div>
+          <div className="p-4 text-center text-sm text-[#98A2B2]">{t('profile_tabs.experience.no_results')}</div>
         ) : (
           <ul>
-            {filtered.map(t => {
-              const isSelected = selectedMap.has(t.id)
+            {filtered.map(tr => {
+              const isSelected = selectedMap.has(tr.id)
               return (
-                <li key={t.id}>
-                  <button type="button" onClick={() => toggleTrade(t.id)}
+                <li key={tr.id}>
+                  <button type="button" onClick={() => toggleTrade(tr.id)}
                     className={`w-full flex items-center justify-between px-4 py-3 text-left hover:bg-gray-50 border-b border-[#EFF1F5] last:border-0 ${isSelected ? 'bg-blue-50' : ''}`}>
                     <div>
-                      <p className={`text-sm font-medium ${isSelected ? 'text-[#0669F7]' : 'text-[#25282A]'}`}>{t.nameKo}</p>
-                      <p className="text-xs text-[#98A2B2]">{t.nameVi}</p>
+                      <p className={`text-sm font-medium ${isSelected ? 'text-[#0669F7]' : 'text-[#25282A]'}`}>{tr.nameKo}</p>
+                      <p className="text-xs text-[#98A2B2]">{tr.nameVi}</p>
                     </div>
                     {isSelected && <span className="text-[#0669F7] text-lg">✓</span>}
                   </button>
@@ -493,8 +511,8 @@ function ExperienceTab({ profile, onSaved }: { profile: WorkerProfile; onSaved: 
         )}
       </div>
 
-      <p className="text-xs text-[#98A2B2]">직종을 탭하여 선택/해제하고, 각 직종별 경력 연수를 입력하세요.</p>
-      <SaveButton saving={saving} onClick={save} />
+      <p className="text-xs text-[#98A2B2]">{t('profile_tabs.experience.hint')}</p>
+      <SaveButton saving={saving} onClick={save} label={t('profile_tabs.shared_save')} />
     </div>
   )
 }
@@ -511,6 +529,7 @@ interface SavedLocation {
 }
 
 function AddressTab({ profile, onSaved }: { profile: WorkerProfile; onSaved: (p: Partial<WorkerProfile>) => void }) {
+  const t = useTranslations('worker')
   const inputRef = React.useRef<HTMLInputElement>(null)
   const acRef = React.useRef<google.maps.places.Autocomplete | null>(null)
   const [mapsLoaded, setMapsLoaded] = React.useState(false)
@@ -523,7 +542,7 @@ function AddressTab({ profile, onSaved }: { profile: WorkerProfile; onSaved: (p:
   const [saving, setSaving] = React.useState(false)
   const [savedLocations, setSavedLocations] = React.useState<SavedLocation[]>([])
   const [savingLocation, setSavingLocation] = React.useState(false)
-  const [locationLabel, setLocationLabel] = React.useState('집')
+  const [locationLabel, setLocationLabel] = React.useState(t('profile_tabs.address.default_location_label'))
   const [locationSaved, setLocationSaved] = React.useState(false)
 
   React.useEffect(() => {
@@ -552,7 +571,6 @@ function AddressTab({ profile, onSaved }: { profile: WorkerProfile; onSaved: (p:
     })
   }, [mapsLoaded])
 
-  // Load existing saved locations
   React.useEffect(() => {
     const token = getSessionCookie()
     if (!token) return
@@ -582,10 +600,9 @@ function AddressTab({ profile, onSaved }: { profile: WorkerProfile; onSaved: (p:
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify({
-          label: locationLabel || '집',
+          label: locationLabel || t('profile_tabs.address.default_location_label'),
           address: addressLabel || province || null,
-          lat,
-          lng,
+          lat, lng,
           isDefault: savedLocations.length === 0,
         }),
       })
@@ -619,18 +636,21 @@ function AddressTab({ profile, onSaved }: { profile: WorkerProfile; onSaved: (p:
   return (
     <div className="space-y-4">
       {!mapsError ? (
-        <Field label="주소 검색">
+        <Field label={t('profile_tabs.address.search_label')}>
           <input ref={inputRef} type="text" defaultValue={profile.current_province ?? ''}
-            placeholder={mapsLoaded ? '베트남 주소 검색...' : '지도 로딩 중...'} disabled={!mapsLoaded}
+            placeholder={mapsLoaded ? t('profile_tabs.address.search_placeholder') : t('profile_tabs.address.maps_loading')}
+            disabled={!mapsLoaded}
             className={`${inputCls} disabled:bg-gray-50`} />
         </Field>
       ) : (
         <>
-          <Field label="성/시">
-            <input type="text" value={province} onChange={e => setProvince(e.target.value)} placeholder="예: Hà Nội" className={inputCls} />
+          <Field label={t('profile_tabs.address.province_label')}>
+            <input type="text" value={province} onChange={e => setProvince(e.target.value)}
+              placeholder={t('profile_tabs.address.province_placeholder')} className={inputCls} />
           </Field>
-          <Field label="군/구">
-            <input type="text" value={district} onChange={e => setDistrict(e.target.value)} placeholder="예: Quận 1" className={inputCls} />
+          <Field label={t('profile_tabs.address.district_label')}>
+            <input type="text" value={district} onChange={e => setDistrict(e.target.value)}
+              placeholder={t('profile_tabs.address.district_placeholder')} className={inputCls} />
           </Field>
         </>
       )}
@@ -643,16 +663,15 @@ function AddressTab({ profile, onSaved }: { profile: WorkerProfile; onSaved: (p:
         </div>
       )}
 
-      {/* Save as job search location */}
       {canSaveLocation && !locationSaved && (
         <div className="p-3 bg-[#E6F0FE] rounded-lg border border-[#0669F7]">
-          <p className="text-xs font-medium text-[#0669F7] mb-2">📍 일자리 검색에 이 위치 저장</p>
+          <p className="text-xs font-medium text-[#0669F7] mb-2">{t('profile_tabs.address.save_location_title')}</p>
           <div className="flex gap-2">
             <input
               type="text"
               value={locationLabel}
               onChange={e => setLocationLabel(e.target.value)}
-              placeholder="위치 이름 (예: 집, 현장)"
+              placeholder={t('profile_tabs.address.location_label_placeholder')}
               className="flex-1 px-3 py-1.5 text-sm border border-[#0669F7] rounded-lg bg-white outline-none focus:ring-1 focus:ring-[#0669F7]"
             />
             <button
@@ -661,20 +680,19 @@ function AddressTab({ profile, onSaved }: { profile: WorkerProfile; onSaved: (p:
               disabled={savingLocation || !locationLabel.trim()}
               className="px-4 py-1.5 text-sm font-medium bg-[#0669F7] text-white rounded-lg disabled:opacity-50 whitespace-nowrap"
             >
-              {savingLocation ? '저장 중...' : '저장'}
+              {savingLocation ? t('profile_tabs.address.location_saving') : t('profile_tabs.address.location_save')}
             </button>
           </div>
         </div>
       )}
 
       {locationSaved && (
-        <p className="text-xs text-[#0669F7] font-medium">✓ 일자리 검색 위치로 저장되었습니다</p>
+        <p className="text-xs text-[#0669F7] font-medium">{t('profile_tabs.address.location_saved')}</p>
       )}
 
-      {/* Existing saved locations */}
       {savedLocations.length > 0 && (
         <div>
-          <p className="text-xs font-medium text-[#98A2B2] mb-2">저장된 검색 위치</p>
+          <p className="text-xs font-medium text-[#98A2B2] mb-2">{t('profile_tabs.address.saved_locations_title')}</p>
           <div className="flex flex-col gap-1.5">
             {savedLocations.map(loc => (
               <div key={loc.id} className="flex items-center gap-2 px-3 py-2 bg-white border border-[#EFF1F5] rounded-lg">
@@ -683,19 +701,16 @@ function AddressTab({ profile, onSaved }: { profile: WorkerProfile; onSaved: (p:
                   <p className="text-sm font-medium text-[#25282A] truncate">{loc.label}</p>
                   {loc.address && <p className="text-xs text-[#98A2B2] truncate">{loc.address}</p>}
                 </div>
-                <button
-                  type="button"
-                  onClick={() => deleteLocation(loc.id)}
+                <button type="button" onClick={() => deleteLocation(loc.id)}
                   className="text-[#98A2B2] hover:text-[#D81A48] text-sm font-bold shrink-0"
-                  aria-label="삭제"
-                >✕</button>
+                  aria-label="delete">✕</button>
               </div>
             ))}
           </div>
         </div>
       )}
 
-      <SaveButton saving={saving} onClick={save} />
+      <SaveButton saving={saving} onClick={save} label={t('profile_tabs.shared_save')} />
     </div>
   )
 }
@@ -703,6 +718,7 @@ function AddressTab({ profile, onSaved }: { profile: WorkerProfile; onSaved: (p:
 // ── Bank Tab ─────────────────────────────────────────────────────────────────
 
 function BankTab({ profile, onSaved }: { profile: WorkerProfile; onSaved: (p: Partial<WorkerProfile>) => void }) {
+  const t = useTranslations('worker')
   const [bankName, setBankName] = React.useState(profile.bank_name ?? '')
   const [accountNumber, setAccountNumber] = React.useState(profile.bank_account_number ?? '')
   const [bankBookUrl, setBankBookUrl] = React.useState<string | null>(toCdnUrl(profile.bank_book_url))
@@ -722,10 +738,10 @@ function BankTab({ profile, onSaved }: { profile: WorkerProfile; onSaved: (p: Pa
         setBankBookUrl(previewUrl)
         onSaved({ bank_book_url: previewUrl })
       } else {
-        setError('통장사본 저장에 실패했습니다')
+        setError(t('profile_tabs.bank.upload_fail'))
       }
     } catch (e) {
-      setError(e instanceof Error ? e.message : '업로드에 실패했습니다')
+      setError(e instanceof Error ? e.message : t('profile_tabs.bank.upload_fail'))
     } finally { setUploading(false) }
   }
 
@@ -734,34 +750,36 @@ function BankTab({ profile, onSaved }: { profile: WorkerProfile; onSaved: (p: Pa
     try {
       const ok = await saveProfile(token!, { bankName: bankName.trim() || null, bankAccountNumber: accountNumber.trim() || null })
       if (ok) onSaved({ bank_name: bankName.trim() || null, bank_account_number: accountNumber.trim() || null })
-      else setError('저장에 실패했습니다')
-    } catch { setError('저장 중 오류가 발생했습니다') }
+      else setError(t('profile_tabs.bank.save_fail'))
+    } catch { setError(t('profile_tabs.bank.save_error')) }
     finally { setSaving(false) }
   }
 
   return (
     <div className="space-y-4">
-      <Field label="은행명">
+      <Field label={t('profile_tabs.bank.bank_name_label')}>
         <input type="text" value={bankName} onChange={e => setBankName(e.target.value)}
-          placeholder="예: Vietcombank, BIDV, Agribank" className={inputCls} />
+          placeholder={t('profile_tabs.bank.bank_name_placeholder')} className={inputCls} />
       </Field>
-      <Field label="계좌번호">
+      <Field label={t('profile_tabs.bank.account_label')}>
         <input type="text" value={accountNumber} onChange={e => setAccountNumber(e.target.value)}
-          placeholder="계좌번호를 입력하세요" className={inputCls} />
+          placeholder={t('profile_tabs.bank.account_placeholder')} className={inputCls} />
       </Field>
 
       <div>
-        <p className="text-xs font-medium text-[#98A2B2] mb-1">통장사본 {uploading && <span className="text-[#0669F7]">업로드 중...</span>}</p>
+        <p className="text-xs font-medium text-[#98A2B2] mb-1">
+          {t('profile_tabs.bank.bankbook_label')} {uploading && <span className="text-[#0669F7]">{t('profile_tabs.bank.bankbook_uploading')}</span>}
+        </p>
         <UploadZone label="" url={bankBookUrl} onChange={handleBankBookFile} />
-        <p className="text-xs text-[#98A2B2] mt-1">통장 첫 페이지(은행명·계좌번호·이름이 보이는 면)를 촬영해 업로드하세요.</p>
+        <p className="text-xs text-[#98A2B2] mt-1">{t('profile_tabs.bank.bankbook_hint')}</p>
       </div>
 
       <p className="text-xs text-[#98A2B2] bg-gray-50 rounded-lg p-3 border border-[#EFF1F5]">
-        계좌 정보는 급여 지급 및 정산 시에만 사용됩니다.
+        {t('profile_tabs.bank.privacy_notice')}
       </p>
 
       {error && <p className="text-xs text-[#D81A48]">{error}</p>}
-      <SaveButton saving={saving} onClick={save} />
+      <SaveButton saving={saving} onClick={save} label={t('profile_tabs.shared_save')} />
     </div>
   )
 }
@@ -769,16 +787,18 @@ function BankTab({ profile, onSaved }: { profile: WorkerProfile; onSaved: (p: Pa
 // ── ID Tab ───────────────────────────────────────────────────────────────────
 
 function StatusBadge({ verified, hasDoc }: { verified: boolean; hasDoc: boolean }) {
+  const t = useTranslations('worker')
   if (verified) return (
-    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-green-50 text-green-700 border border-green-200">✓ 인증완료</span>
+    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-green-50 text-green-700 border border-green-200">✓ {t('profile_tabs.id.status_verified')}</span>
   )
   if (hasDoc) return (
-    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-yellow-50 text-yellow-700 border border-yellow-200">검토중</span>
+    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-yellow-50 text-yellow-700 border border-yellow-200">{t('profile_tabs.id.status_pending')}</span>
   )
-  return <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-[#98A2B2] border border-[#EFF1F5]">미등록</span>
+  return <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-[#98A2B2] border border-[#EFF1F5]">{t('profile_tabs.id.status_none')}</span>
 }
 
 function IdTab({ profile, onSaved }: { profile: WorkerProfile; onSaved: (p: Partial<WorkerProfile>) => void }) {
+  const t = useTranslations('worker')
   const [idNumber, setIdNumber] = React.useState(profile.id_number ?? '')
   const [frontUrl, setFrontUrl] = React.useState<string | null>(toCdnUrl(profile.id_front_url))
   const [backUrl, setBackUrl] = React.useState<string | null>(toCdnUrl(profile.id_back_url))
@@ -799,9 +819,9 @@ function IdTab({ profile, onSaved }: { profile: WorkerProfile; onSaved: (p: Part
       if (ok) {
         const url = URL.createObjectURL(file)
         setFrontUrl(url); onSaved({ id_front_url: url })
-        setSuccess('앞면이 저장되었습니다.')
-      } else setError('앞면 저장 실패')
-    } catch (e) { setError(e instanceof Error ? e.message : '업로드 실패') }
+        setSuccess(t('profile_tabs.id.front_saved'))
+      } else setError(t('profile_tabs.id.front_fail'))
+    } catch (e) { setError(e instanceof Error ? e.message : t('profile_tabs.id.upload_fail')) }
     finally { setUploading(null) }
   }
 
@@ -814,9 +834,9 @@ function IdTab({ profile, onSaved }: { profile: WorkerProfile; onSaved: (p: Part
       if (ok) {
         const url = URL.createObjectURL(file)
         setBackUrl(url); onSaved({ id_back_url: url })
-        setSuccess('뒷면이 저장되었습니다.')
-      } else setError('뒷면 저장 실패')
-    } catch (e) { setError(e instanceof Error ? e.message : '업로드 실패') }
+        setSuccess(t('profile_tabs.id.back_saved'))
+      } else setError(t('profile_tabs.id.back_fail'))
+    } catch (e) { setError(e instanceof Error ? e.message : t('profile_tabs.id.upload_fail')) }
     finally { setUploading(null) }
   }
 
@@ -824,44 +844,45 @@ function IdTab({ profile, onSaved }: { profile: WorkerProfile; onSaved: (p: Part
     setSaving(true); setError(''); setSuccess('')
     try {
       const ok = await saveProfile(token!, { idNumber: idNumber.trim() || null })
-      if (ok) { onSaved({ id_number: idNumber.trim() || null }); setSuccess('신분증 번호가 저장되었습니다.') }
-      else setError('저장에 실패했습니다')
-    } catch { setError('저장 중 오류가 발생했습니다') }
+      if (ok) { onSaved({ id_number: idNumber.trim() || null }); setSuccess(t('profile_tabs.id.number_saved')) }
+      else setError(t('profile_tabs.id.save_fail'))
+    } catch { setError(t('profile_tabs.id.save_error')) }
     finally { setSaving(false) }
   }
 
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <p className="text-sm font-medium text-[#25282A]">신분증 등록</p>
+        <p className="text-sm font-medium text-[#25282A]">{t('profile_tabs.id.section_title')}</p>
         <StatusBadge verified={profile.id_verified} hasDoc={hasDoc} />
       </div>
 
       <div className="flex gap-3">
-        <UploadZone label={uploading === 'front' ? '앞면 업로드 중...' : '앞면'} url={frontUrl} onChange={handleFront} />
-        <UploadZone label={uploading === 'back' ? '뒷면 업로드 중...' : '뒷면'} url={backUrl} onChange={handleBack} />
+        <UploadZone label={uploading === 'front' ? t('profile_tabs.id.front_uploading') : t('profile_tabs.id.front')} url={frontUrl} onChange={handleFront} />
+        <UploadZone label={uploading === 'back' ? t('profile_tabs.id.back_uploading') : t('profile_tabs.id.back')} url={backUrl} onChange={handleBack} />
       </div>
+
       {uploading && (
         <div className="flex items-center gap-2 text-xs text-[#0669F7]">
           <svg className="w-3.5 h-3.5 animate-spin" fill="none" viewBox="0 0 24 24">
             <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
             <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
           </svg>
-          {uploading === 'front' ? '앞면' : '뒷면'} 이미지 저장 중...
+          {t('profile_tabs.id.uploading_label')}
         </div>
       )}
 
       <div>
         <label className="block text-xs font-medium text-[#98A2B2] mb-1">
-          신분증 번호 <span className="text-[#98A2B2] font-normal">(베트남 ID 또는 여권번호)</span>
+          {t('profile_tabs.id.number_label')} <span className="text-[#98A2B2] font-normal">{t('profile_tabs.id.number_hint')}</span>
         </label>
         <input type="text" value={idNumber} onChange={e => setIdNumber(e.target.value)}
-          placeholder="신분증 번호를 입력하세요" className={inputCls} />
+          placeholder={t('profile_tabs.id.number_placeholder')} className={inputCls} />
       </div>
 
       {error && <p className="text-xs text-[#D81A48]">{error}</p>}
       {success && <p className="text-xs text-green-700">{success}</p>}
-      <SaveButton saving={saving} onClick={save} label="번호 저장" />
+      <SaveButton saving={saving} onClick={save} label={t('profile_tabs.id.save_button')} />
     </div>
   )
 }
@@ -935,6 +956,7 @@ function useSignaturePad(canvasRef: React.RefObject<HTMLCanvasElement | null>) {
 }
 
 function SignatureTab({ profile, onSaved }: { profile: WorkerProfile; onSaved: (p: Partial<WorkerProfile>) => void }) {
+  const t = useTranslations('worker')
   const canvasRef = React.useRef<HTMLCanvasElement>(null)
   const { initCanvas, startDrawing, draw, stopDrawing, clear, getBlob, checkIsEmpty } = useSignaturePad(canvasRef)
   const [existingUrl, setExistingUrl] = React.useState<string | null>(toCdnUrl(profile.signature_url))
@@ -970,24 +992,24 @@ function SignatureTab({ profile, onSaved }: { profile: WorkerProfile; onSaved: (
   }, [startDrawing, draw, stopDrawing])
 
   async function handleSave() {
-    if (checkIsEmpty()) { setError('서명을 입력해주세요.'); return }
+    if (checkIsEmpty()) { setError(t('profile_tabs.signature.error_empty')); return }
     setSaving(true); setError(''); setSuccess('')
     try {
       const blob = await getBlob()
-      if (!blob) throw new Error('서명 이미지 생성 실패')
+      if (!blob) throw new Error(t('profile_tabs.signature.save_fail'))
       const file = new File([blob], 'signature.png', { type: 'image/png' })
       const key = await uploadFile(token!, file, 'worker-signatures')
       const ok = await saveProfile(token!, { signatureS3Key: key })
       if (ok) {
         const url = toCdnUrl(key) ?? URL.createObjectURL(blob)
         setExistingUrl(url); onSaved({ signature_url: url })
-        setSuccess('서명이 저장되었습니다.')
+        setSuccess(t('profile_tabs.signature.saved'))
         clear()
       } else {
-        setError('저장에 실패했습니다')
+        setError(t('profile_tabs.signature.save_fail'))
       }
     } catch (e) {
-      setError(e instanceof Error ? e.message : '저장 중 오류가 발생했습니다')
+      setError(e instanceof Error ? e.message : t('profile_tabs.signature.save_error'))
     } finally { setSaving(false) }
   }
 
@@ -995,21 +1017,23 @@ function SignatureTab({ profile, onSaved }: { profile: WorkerProfile; onSaved: (
     <div className="space-y-4">
       {existingUrl && (
         <div>
-          <p className="text-xs font-medium text-[#98A2B2] mb-1">현재 서명</p>
+          <p className="text-xs font-medium text-[#98A2B2] mb-1">{t('profile_tabs.signature.current_label')}</p>
           <div className="border border-[#EFF1F5] rounded-lg p-3 bg-gray-50">
-            <img src={existingUrl} alt="현재 서명" className="max-h-20 object-contain mx-auto" />
+            <img src={existingUrl} alt={t('profile_tabs.signature.current_label')} className="max-h-20 object-contain mx-auto" />
           </div>
-          <p className="text-xs text-[#98A2B2] mt-1">아래에 새 서명을 입력하면 덮어쓰기됩니다.</p>
+          <p className="text-xs text-[#98A2B2] mt-1">{t('profile_tabs.signature.overwrite_hint')}</p>
         </div>
       )}
 
       <div>
-        <p className="text-xs font-medium text-[#98A2B2] mb-1">{existingUrl ? '새 서명 입력' : '서명 입력'}</p>
+        <p className="text-xs font-medium text-[#98A2B2] mb-1">
+          {existingUrl ? t('profile_tabs.signature.new_label') : t('profile_tabs.signature.input_label')}
+        </p>
         <canvas
           ref={canvasRef}
           style={{ width: '100%', height: '160px', border: '1px solid #EFF1F5', borderRadius: '8px', touchAction: 'none', display: 'block', cursor: 'crosshair', backgroundColor: '#FAFAFA' }}
         />
-        <p className="text-xs text-[#98A2B2] mt-1">손가락이나 마우스로 서명하세요</p>
+        <p className="text-xs text-[#98A2B2] mt-1">{t('profile_tabs.signature.draw_hint')}</p>
       </div>
 
       {error && <p className="text-xs text-[#D81A48]">{error}</p>}
@@ -1017,19 +1041,92 @@ function SignatureTab({ profile, onSaved }: { profile: WorkerProfile; onSaved: (
 
       <div className="flex gap-3">
         <button type="button" onClick={() => { clear(); setError(''); setSuccess('') }}
-          className="flex-1 py-3 rounded-full border border-[#EFF1F5] text-[#25282A] font-medium text-sm">지우기</button>
+          className="flex-1 py-3 rounded-full border border-[#EFF1F5] text-[#25282A] font-medium text-sm">
+          {t('profile_tabs.signature.clear')}
+        </button>
         <button type="button" onClick={handleSave} disabled={saving}
           className="flex-1 py-3 rounded-full bg-[#0669F7] text-white font-medium text-sm disabled:opacity-40">
-          {saving ? '저장 중...' : '저장'}
+          {saving ? t('profile_tabs.signature.saving') : t('profile_tabs.signature.save')}
         </button>
       </div>
     </div>
   )
 }
 
-// ── Completion bar ────────────────────────────────────────────────────────────
+// ── Language Tab ─────────────────────────────────────────────────────────────
+
+function LanguageTab({ currentLocale }: { currentLocale: string }) {
+  const t = useTranslations('worker')
+  const router = useRouter()
+  const pathname = usePathname()
+  const [pending, setPending] = React.useState<string | null>(null)
+
+  const LOCALES = [
+    { code: 'ko', label: t('profile_tabs.language.ko'), flag: '🇰🇷' },
+    { code: 'vi', label: t('profile_tabs.language.vi'), flag: '🇻🇳' },
+    { code: 'en', label: t('profile_tabs.language.en'), flag: '🇺🇸' },
+  ]
+
+  function handleSelect(code: string) {
+    if (code === currentLocale) return
+    setPending(code)
+    router.replace(pathname, { locale: code as 'ko' | 'vi' | 'en' })
+  }
+
+  return (
+    <div className="space-y-5">
+      <div>
+        <h2 className="text-base font-semibold text-[#25282A]">{t('profile_tabs.language.title')}</h2>
+        <p className="text-xs text-[#98A2B2] mt-1">{t('profile_tabs.language.subtitle')}</p>
+      </div>
+
+      <div className="flex flex-col gap-3">
+        {LOCALES.map(({ code, label, flag }) => {
+          const isCurrent = code === currentLocale
+          const isLoading = pending === code
+          return (
+            <button
+              key={code}
+              type="button"
+              onClick={() => handleSelect(code)}
+              disabled={!!pending}
+              className={[
+                'flex items-center gap-4 px-5 py-4 rounded-2xl border-2 text-left transition-all',
+                isCurrent
+                  ? 'border-[#0669F7] bg-blue-50'
+                  : 'border-[#EFF1F5] bg-white hover:border-[#0669F7]/40 hover:bg-gray-50',
+                !!pending && !isCurrent ? 'opacity-40' : '',
+              ].join(' ')}
+            >
+              <span className="text-2xl">{flag}</span>
+              <div className="flex-1">
+                <p className={`text-sm font-semibold ${isCurrent ? 'text-[#0669F7]' : 'text-[#25282A]'}`}>{label}</p>
+                {isCurrent && (
+                  <p className="text-xs text-[#0669F7] mt-0.5">{t('profile_tabs.language.current_suffix')}</p>
+                )}
+              </div>
+              {isLoading ? (
+                <svg className="w-4 h-4 text-[#0669F7] animate-spin shrink-0" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                </svg>
+              ) : isCurrent ? (
+                <svg className="w-5 h-5 text-[#0669F7] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                </svg>
+              ) : null}
+            </button>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
+// ── Profile Completion Bar ────────────────────────────────────────────────────
 
 function ProfileCompletionBar({ profile }: { profile: WorkerProfile }) {
+  const t = useTranslations('worker')
   const checks = [
     !!profile.full_name, !!profile.date_of_birth, !!profile.gender,
     !!profile.primary_trade_id, !!profile.current_province, !!profile.bank_name,
@@ -1050,11 +1147,11 @@ function ProfileCompletionBar({ profile }: { profile: WorkerProfile }) {
     <div className={`rounded-2xl px-4 py-3 border ${theme.card}`}>
       <div className="flex items-start gap-3">
         <div className="flex-1 min-w-0">
-          <p className="text-xs font-semibold text-[#98A2B2] mb-2">프로필 완성도</p>
+          <p className="text-xs font-semibold text-[#98A2B2] mb-2">{t('profile_tabs.completion_label')}</p>
           <div className="h-2.5 bg-white/70 rounded-full overflow-hidden">
             <div className={`h-full ${theme.bar} rounded-full transition-all duration-500`} style={{ width: `${pct}%` }} />
           </div>
-          <p className={`text-xs mt-1.5 font-medium ${theme.sub}`}>{done}/{checks.length} 항목 완성</p>
+          <p className={`text-xs mt-1.5 font-medium ${theme.sub}`}>{t('profile_tabs.completion_items', { done, total: checks.length })}</p>
         </div>
         <p className={`text-3xl font-bold tabular-nums leading-none mt-0.5 shrink-0 ${theme.pct}`}>
           {pct}<span className="text-base font-semibold">%</span>
@@ -1067,34 +1164,17 @@ function ProfileCompletionBar({ profile }: { profile: WorkerProfile }) {
 // ── Main ─────────────────────────────────────────────────────────────────────
 
 const EMPTY_PROFILE: WorkerProfile = {
-  full_name: '',
-  date_of_birth: '',
-  gender: null,
-  bio: null,
-  primary_trade_id: null,
-  trade_name_ko: null,
-  experience_months: 0,
-  current_province: null,
-  current_district: null,
-  lat: null,
-  lng: null,
-  id_number: null,
-  id_verified: false,
-  id_front_url: null,
-  id_back_url: null,
-  signature_url: null,
-  profile_image_url: null,
-  bank_name: null,
-  bank_account_number: null,
-  bank_book_url: null,
-  terms_accepted: false,
-  privacy_accepted: false,
-  profile_complete: false,
-  phone: null,
-  email: null,
+  full_name: '', date_of_birth: '', gender: null, bio: null,
+  primary_trade_id: null, trade_name_ko: null, experience_months: 0,
+  current_province: null, current_district: null, lat: null, lng: null,
+  id_number: null, id_verified: false, id_front_url: null, id_back_url: null,
+  signature_url: null, profile_image_url: null, bank_name: null,
+  bank_account_number: null, bank_book_url: null, terms_accepted: false,
+  privacy_accepted: false, profile_complete: false, phone: null, email: null,
 }
 
-export default function WorkerProfileTabs({ locale: _locale }: { locale: string }) {
+export default function WorkerProfileTabs({ locale }: { locale: string }) {
+  const t = useTranslations('worker')
   const router = useRouter()
   const [activeTab, setActiveTab] = React.useState<Tab>('basic')
   const [profile, setProfile] = React.useState<WorkerProfile | null>(null)
@@ -1103,6 +1183,24 @@ export default function WorkerProfileTabs({ locale: _locale }: { locale: string 
   const [toast, setToast] = React.useState<{ message: string; type: 'success' | 'error' } | null>(null)
 
   const token = getSessionCookie()
+
+  const TABS: { id: Tab; label: string }[] = [
+    { id: 'basic',      label: t('profile_tabs.tabs.basic') },
+    { id: 'experience', label: t('profile_tabs.tabs.experience') },
+    { id: 'address',    label: t('profile_tabs.tabs.address') },
+    { id: 'bank',       label: t('profile_tabs.tabs.bank') },
+    { id: 'id',         label: t('profile_tabs.tabs.id') },
+    { id: 'signature',  label: t('profile_tabs.tabs.signature') },
+  ]
+
+  const TAB_DESCRIPTIONS: Record<Tab, string> = {
+    basic:      t('profile_tabs.tab_desc.basic'),
+    experience: t('profile_tabs.tab_desc.experience'),
+    address:    t('profile_tabs.tab_desc.address'),
+    bank:       t('profile_tabs.tab_desc.bank'),
+    id:         t('profile_tabs.tab_desc.id'),
+    signature:  t('profile_tabs.tab_desc.signature'),
+  }
 
   React.useEffect(() => {
     if (!token) {
@@ -1117,7 +1215,6 @@ export default function WorkerProfileTabs({ locale: _locale }: { locale: string 
           setProfile(res.data as WorkerProfile)
           setIsNew(false)
         } else {
-          // Logged in but no profile yet — show empty form
           setProfile(EMPTY_PROFILE)
           setIsNew(true)
         }
@@ -1128,20 +1225,20 @@ export default function WorkerProfileTabs({ locale: _locale }: { locale: string 
 
   React.useEffect(() => {
     if (!toast) return
-    const t = setTimeout(() => setToast(null), 3000)
-    return () => clearTimeout(t)
+    const timer = setTimeout(() => setToast(null), 3000)
+    return () => clearTimeout(timer)
   }, [toast])
 
   function handleSaved(partial: Partial<WorkerProfile>) {
     setProfile(prev => prev ? { ...prev, ...partial } : prev)
     setIsNew(false)
-    setToast({ message: '저장되었습니다', type: 'success' })
+    setToast({ message: t('profile_tabs.saved'), type: 'success' })
   }
 
   if (loading) {
     return (
       <div className="py-6">
-        <h1 className="text-xl font-bold text-[#25282A] mb-6">프로필 관리</h1>
+        <h1 className="text-xl font-bold text-[#25282A] mb-6">{t('profile_tabs.title')}</h1>
         <div className="bg-white rounded-2xl border border-[#EFF1F5] p-6 shadow-sm">
           <Skeleton />
         </div>
@@ -1151,7 +1248,7 @@ export default function WorkerProfileTabs({ locale: _locale }: { locale: string 
 
   if (!profile) {
     return (
-      <div className="py-6 text-center text-[#98A2B2] text-sm">프로필 정보를 불러올 수 없습니다.</div>
+      <div className="py-6 text-center text-[#98A2B2] text-sm">{t('profile_tabs.load_fail')}</div>
     )
   }
 
@@ -1164,27 +1261,25 @@ export default function WorkerProfileTabs({ locale: _locale }: { locale: string 
         <div className="flex items-start justify-between gap-3">
           <div>
             <div className="flex items-center gap-2.5">
-              <h1 className="text-xl font-bold text-[#25282A]">프로필 관리</h1>
+              <h1 className="text-xl font-bold text-[#25282A]">{t('profile_tabs.title')}</h1>
               {isNew && (
                 <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-700 border border-blue-200">
-                  신규 등록
+                  {t('profile_tabs.new_badge')}
                 </span>
               )}
             </div>
             <p className="text-xs text-[#98A2B2] mt-1">{TAB_DESCRIPTIONS[activeTab]}</p>
           </div>
-          {/* Completion bar — desktop inline */}
           <div className="hidden md:block w-72 shrink-0">
             <ProfileCompletionBar profile={profile} />
           </div>
         </div>
-        {/* Completion bar — mobile */}
         <div className="md:hidden mt-3">
           <ProfileCompletionBar profile={profile} />
         </div>
       </div>
 
-      {/* Tab bar — sticky below app bar */}
+      {/* Tab bar */}
       <div
         className="sticky z-10 bg-white border-b border-[#EFF1F5]"
         style={{ top: 'var(--app-bar-height, 56px)' }}
@@ -1208,14 +1303,14 @@ export default function WorkerProfileTabs({ locale: _locale }: { locale: string 
         </div>
       </div>
 
-      {/* Content card */}
+      {/* Content */}
       <div className="py-4">
         {isNew && (
           <div className="mb-4 px-3 py-2 rounded-xl bg-blue-50 border border-blue-200 flex items-center gap-2 text-xs text-blue-700">
             <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
-            아직 프로필 정보가 없습니다. 각 탭에서 정보를 입력하고 저장해주세요.
+            {t('profile_tabs.new_hint')}
           </div>
         )}
         <div className="bg-white rounded-2xl border border-[#EFF1F5] shadow-sm p-5 md:p-8">
@@ -1226,18 +1321,17 @@ export default function WorkerProfileTabs({ locale: _locale }: { locale: string 
           {activeTab === 'id'         && <IdTab profile={profile} onSaved={handleSaved} />}
           {activeTab === 'signature'  && <SignatureTab profile={profile} onSaved={handleSaved} />}
 
-          {/* Logout — mobile only, shown at bottom of basic info tab */}
           {activeTab === 'basic' && (
             <div className="md:hidden mt-6 pt-5 border-t border-[#EFF1F5]">
               <button
                 type="button"
-                onClick={() => { clearSessionCookie(); router.push(`/${_locale}/login`) }}
+                onClick={() => { clearSessionCookie(); router.push(`/${locale}/login` as never) }}
                 className="w-full flex items-center justify-center gap-2 py-3 rounded-2xl border border-[#EFF1F5] text-[#98A2B2] text-sm font-medium hover:border-[#D81A48] hover:text-[#D81A48] hover:bg-[#FDE8EE] transition-colors"
               >
                 <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
                 </svg>
-                로그아웃
+                {t('profile_tabs.logout')}
               </button>
             </div>
           )}

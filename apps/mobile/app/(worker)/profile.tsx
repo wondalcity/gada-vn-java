@@ -2,11 +2,12 @@
 import { useEffect, useState, useCallback } from 'react';
 import {
   View, Text, ScrollView, TouchableOpacity, StyleSheet,
-  TextInput, Alert, ActivityIndicator, Image, KeyboardAvoidingView, Platform,
+  TextInput, Alert, ActivityIndicator, Image, KeyboardAvoidingView, Platform, Modal,
 } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
+import i18n, { SUPPORTED_LANGUAGES, changeAppLanguage, LangCode } from '../../lib/i18n';
 import { api, ApiError } from '../../lib/api-client';
 import { signOut } from '../../lib/firebase';
 import { useAuthStore } from '../../store/auth.store';
@@ -57,7 +58,7 @@ type Section = 'basic' | 'bank' | 'id' | null;
 async function pickImage(): Promise<string | null> {
   const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
   if (status !== 'granted') {
-    Alert.alert('권한 필요', '사진 라이브러리 접근 권한이 필요합니다.');
+    Alert.alert(i18n.t('common.permission_required'), i18n.t('common.photo_permission'));
     return null;
   }
   const result = await ImagePicker.launchImageLibraryAsync({
@@ -84,9 +85,9 @@ async function uploadImageToApi(dataUrl: string, folder: string): Promise<string
 // ── Section Header ────────────────────────────────────────────────────────────
 
 function SectionHeader({
-  title, icon, isOpen, onToggle, badge,
+  title, icon, isOpen, onToggle, badge, badgeDone,
 }: {
-  title: string; icon: string; isOpen: boolean; onToggle: () => void; badge?: string;
+  title: string; icon: string; isOpen: boolean; onToggle: () => void; badge?: string; badgeDone?: boolean;
 }) {
   return (
     <TouchableOpacity style={sec.header} onPress={onToggle} activeOpacity={0.7}>
@@ -94,8 +95,8 @@ function SectionHeader({
         <Text style={sec.icon}>{icon}</Text>
         <Text style={sec.title}>{title}</Text>
         {badge ? (
-          <View style={[sec.badge, badge === '완료' ? sec.badgeDone : sec.badgeWarn]}>
-            <Text style={[sec.badgeText, badge === '완료' ? sec.badgeTextDone : sec.badgeTextWarn]}>
+          <View style={[sec.badge, badgeDone ? sec.badgeDone : sec.badgeWarn]}>
+            <Text style={[sec.badgeText, badgeDone ? sec.badgeTextDone : sec.badgeTextWarn]}>
               {badge}
             </Text>
           </View>
@@ -109,6 +110,7 @@ function SectionHeader({
 // ── Basic Info Section ────────────────────────────────────────────────────────
 
 function BasicSection({ profile, onSaved }: { profile: WorkerProfile; onSaved: (p: Partial<WorkerProfile>) => void }) {
+  const { t } = useTranslation();
   const [fullName, setFullName] = useState(profile.full_name ?? '');
   const [dob, setDob] = useState(profile.date_of_birth?.split('T')[0] ?? '');
   const [gender, setGender] = useState<'MALE' | 'FEMALE' | 'OTHER' | ''>(profile.gender ?? '');
@@ -127,12 +129,12 @@ function BasicSection({ profile, onSaved }: { profile: WorkerProfile; onSaved: (
         setAvatarUrl(dataUrl);
         onSaved({ profile_image_url: dataUrl });
       }
-    } catch { Alert.alert('오류', '사진 업로드에 실패했습니다.'); }
+    } catch { Alert.alert(t('common.error'), t('worker.avatar_upload_fail')); }
     finally { setSaving(false); }
   }
 
   async function handleSave() {
-    if (!fullName.trim()) { Alert.alert('확인', '이름을 입력해주세요.'); return; }
+    if (!fullName.trim()) { Alert.alert(t('common.confirm'), t('worker.name_required')); return; }
     setSaving(true);
     try {
       await api.put('/workers/me', {
@@ -142,9 +144,9 @@ function BasicSection({ profile, onSaved }: { profile: WorkerProfile; onSaved: (
         bio: bio.trim() || null,
       });
       onSaved({ full_name: fullName.trim(), date_of_birth: dob || null, gender: (gender || null) as 'MALE' | 'FEMALE' | 'OTHER' | null, bio: bio.trim() || null });
-      Alert.alert('저장 완료', '기본 정보가 저장되었습니다.');
+      Alert.alert(t('common.save_complete'), t('worker.basic_save_success'));
     } catch (e) {
-      Alert.alert('오류', e instanceof ApiError ? e.message : '저장에 실패했습니다.');
+      Alert.alert(t('common.error'), e instanceof ApiError ? e.message : t('common.save_fail'));
     } finally { setSaving(false); }
   }
 
@@ -159,16 +161,16 @@ function BasicSection({ profile, onSaved }: { profile: WorkerProfile; onSaved: (
             <Text style={s.avatarPlaceholder}>👤</Text>
           )}
         </View>
-        <Text style={s.avatarCta}>{avatarUrl ? '사진 변경' : '사진 등록'}</Text>
+        <Text style={s.avatarCta}>{avatarUrl ? t('worker.avatar_change') : t('worker.avatar_register')}</Text>
       </TouchableOpacity>
 
-      <FieldLabel label="이름 *" />
-      <TextInput style={s.input} value={fullName} onChangeText={setFullName} placeholder="이름 입력" placeholderTextColor="#C0C4CF" />
+      <FieldLabel label={t('worker.field_name')} />
+      <TextInput style={s.input} value={fullName} onChangeText={setFullName} placeholder={t('worker.field_name_placeholder')} placeholderTextColor="#C0C4CF" />
 
-      <FieldLabel label="생년월일" />
+      <FieldLabel label={t('worker.field_dob')} />
       <TextInput style={s.input} value={dob} onChangeText={setDob} placeholder="YYYY-MM-DD" placeholderTextColor="#C0C4CF" keyboardType="numeric" />
 
-      <FieldLabel label="성별" />
+      <FieldLabel label={t('worker.field_gender')} />
       <View style={s.genderRow}>
         {(['MALE', 'FEMALE', 'OTHER'] as const).map(g => (
           <TouchableOpacity
@@ -176,17 +178,17 @@ function BasicSection({ profile, onSaved }: { profile: WorkerProfile; onSaved: (
             onPress={() => setGender(g === gender ? '' : g)} activeOpacity={0.7}
           >
             <Text style={[s.genderText, gender === g && s.genderTextActive]}>
-              {g === 'MALE' ? '남성' : g === 'FEMALE' ? '여성' : '기타'}
+              {g === 'MALE' ? t('worker.gender_male') : g === 'FEMALE' ? t('worker.gender_female') : t('worker.gender_other')}
             </Text>
           </TouchableOpacity>
         ))}
       </View>
 
-      <FieldLabel label="자기소개" />
+      <FieldLabel label={t('worker.field_bio')} />
       <TextInput
         style={[s.input, { height: 80, textAlignVertical: 'top' }]}
         value={bio} onChangeText={setBio}
-        placeholder="간단한 자기소개를 입력하세요" placeholderTextColor="#C0C4CF"
+        placeholder={t('worker.field_bio_placeholder')} placeholderTextColor="#C0C4CF"
         multiline maxLength={300}
       />
 
@@ -198,6 +200,7 @@ function BasicSection({ profile, onSaved }: { profile: WorkerProfile; onSaved: (
 // ── Bank Section ──────────────────────────────────────────────────────────────
 
 function BankSection({ profile, onSaved }: { profile: WorkerProfile; onSaved: (p: Partial<WorkerProfile>) => void }) {
+  const { t } = useTranslation();
   const [bankName, setBankName] = useState(profile.bank_name ?? '');
   const [accountNumber, setAccountNumber] = useState(profile.bank_account_number ?? '');
   const [bookUrl, setBookUrl] = useState<string | null>(profile.bank_book_url);
@@ -214,7 +217,7 @@ function BankSection({ profile, onSaved }: { profile: WorkerProfile; onSaved: (p
         setBookUrl(dataUrl);
         onSaved({ bank_book_url: dataUrl });
       }
-    } catch { Alert.alert('오류', '통장사본 업로드에 실패했습니다.'); }
+    } catch { Alert.alert(t('common.error'), t('worker.bank_book_upload_fail')); }
     finally { setSaving(false); }
   }
 
@@ -226,26 +229,26 @@ function BankSection({ profile, onSaved }: { profile: WorkerProfile; onSaved: (p
         bankAccountNumber: accountNumber.trim() || null,
       });
       onSaved({ bank_name: bankName.trim() || null, bank_account_number: accountNumber.trim() || null });
-      Alert.alert('저장 완료', '계좌 정보가 저장되었습니다.');
+      Alert.alert(t('common.save_complete'), t('worker.bank_save_success'));
     } catch (e) {
-      Alert.alert('오류', e instanceof ApiError ? e.message : '저장에 실패했습니다.');
+      Alert.alert(t('common.error'), e instanceof ApiError ? e.message : t('common.save_fail'));
     } finally { setSaving(false); }
   }
 
   return (
     <View style={sec.body}>
-      <FieldLabel label="은행명" />
+      <FieldLabel label={t('worker.field_bank_name')} />
       <TextInput style={s.input} value={bankName} onChangeText={setBankName} placeholder="예: Vietcombank, BIDV" placeholderTextColor="#C0C4CF" />
 
-      <FieldLabel label="계좌번호" />
-      <TextInput style={s.input} value={accountNumber} onChangeText={setAccountNumber} placeholder="계좌번호 입력" placeholderTextColor="#C0C4CF" keyboardType="numeric" />
+      <FieldLabel label={t('worker.field_account_number')} />
+      <TextInput style={s.input} value={accountNumber} onChangeText={setAccountNumber} placeholder={t('worker.field_account_number_placeholder')} placeholderTextColor="#C0C4CF" keyboardType="numeric" />
 
-      <FieldLabel label="통장사본" />
+      <FieldLabel label={t('worker.field_bank_book')} />
       <TouchableOpacity style={s.photoZone} onPress={handlePickBook} disabled={saving} activeOpacity={0.7}>
         {bookUrl ? (
           <Image source={{ uri: bookUrl }} style={s.photoZoneImg} resizeMode="cover" />
         ) : (
-          <Text style={s.photoZonePlaceholder}>📷 사진 선택</Text>
+          <Text style={s.photoZonePlaceholder}>{t('worker.photo_select')}</Text>
         )}
       </TouchableOpacity>
 
@@ -257,6 +260,7 @@ function BankSection({ profile, onSaved }: { profile: WorkerProfile; onSaved: (p
 // ── ID Section ────────────────────────────────────────────────────────────────
 
 function IdSection({ profile, onSaved }: { profile: WorkerProfile; onSaved: (p: Partial<WorkerProfile>) => void }) {
+  const { t } = useTranslation();
   const [idNumber, setIdNumber] = useState(profile.id_number ?? '');
   const [frontUrl, setFrontUrl] = useState<string | null>(profile.id_front_url);
   const [backUrl, setBackUrl] = useState<string | null>(profile.id_back_url);
@@ -274,7 +278,7 @@ function IdSection({ profile, onSaved }: { profile: WorkerProfile; onSaved: (p: 
         if (side === 'front') { setFrontUrl(dataUrl); onSaved({ id_front_url: dataUrl }); }
         else { setBackUrl(dataUrl); onSaved({ id_back_url: dataUrl }); }
       }
-    } catch { Alert.alert('오류', '신분증 사진 업로드에 실패했습니다.'); }
+    } catch { Alert.alert(t('common.error'), t('worker.id_upload_fail')); }
     finally { setSaving(false); }
   }
 
@@ -283,9 +287,9 @@ function IdSection({ profile, onSaved }: { profile: WorkerProfile; onSaved: (p: 
     try {
       await api.put('/workers/me', { idNumber: idNumber.trim() || null });
       onSaved({ id_number: idNumber.trim() || null });
-      Alert.alert('저장 완료', '신분증 번호가 저장되었습니다.');
+      Alert.alert(t('common.save_complete'), t('worker.id_save_success'));
     } catch (e) {
-      Alert.alert('오류', e instanceof ApiError ? e.message : '저장에 실패했습니다.');
+      Alert.alert(t('common.error'), e instanceof ApiError ? e.message : t('common.save_fail'));
     } finally { setSaving(false); }
   }
 
@@ -293,16 +297,16 @@ function IdSection({ profile, onSaved }: { profile: WorkerProfile; onSaved: (p: 
     <View style={sec.body}>
       {profile.id_verified && (
         <View style={s.verifiedBadge}>
-          <Text style={s.verifiedText}>✓ 신분증 인증 완료</Text>
+          <Text style={s.verifiedText}>{t('worker.id_verified')}</Text>
         </View>
       )}
 
-      <FieldLabel label="신분증 번호 (베트남 ID 또는 여권번호)" />
-      <TextInput style={s.input} value={idNumber} onChangeText={setIdNumber} placeholder="신분증 번호 입력" placeholderTextColor="#C0C4CF" />
-      <SaveBtn saving={saving} onPress={handleSaveNumber} label="번호 저장" />
+      <FieldLabel label={t('worker.field_id_number')} />
+      <TextInput style={s.input} value={idNumber} onChangeText={setIdNumber} placeholder={t('worker.field_id_number_placeholder')} placeholderTextColor="#C0C4CF" />
+      <SaveBtn saving={saving} onPress={handleSaveNumber} label={t('worker.number_save')} />
 
       <View style={{ height: 12 }} />
-      <FieldLabel label="신분증 사진" />
+      <FieldLabel label={t('worker.field_id_photo')} />
       <View style={s.idPhotoRow}>
         <TouchableOpacity style={[s.idPhotoZone, frontUrl && s.idPhotoZoneDone]} onPress={() => handlePickId('front')} disabled={saving} activeOpacity={0.7}>
           {frontUrl ? (
@@ -310,7 +314,7 @@ function IdSection({ profile, onSaved }: { profile: WorkerProfile; onSaved: (p: 
           ) : (
             <>
               <Text style={s.idPhotoIcon}>📷</Text>
-              <Text style={s.idPhotoLabel}>앞면</Text>
+              <Text style={s.idPhotoLabel}>{t('worker.id_front')}</Text>
             </>
           )}
         </TouchableOpacity>
@@ -320,7 +324,7 @@ function IdSection({ profile, onSaved }: { profile: WorkerProfile; onSaved: (p: 
           ) : (
             <>
               <Text style={s.idPhotoIcon}>📷</Text>
-              <Text style={s.idPhotoLabel}>뒷면</Text>
+              <Text style={s.idPhotoLabel}>{t('worker.id_back')}</Text>
             </>
           )}
         </TouchableOpacity>
@@ -336,13 +340,15 @@ function FieldLabel({ label }: { label: string }) {
   return <Text style={s.fieldLabel}>{label}</Text>;
 }
 
-function SaveBtn({ saving, onPress, label = '저장' }: { saving: boolean; onPress: () => void; label?: string }) {
+function SaveBtn({ saving, onPress, label }: { saving: boolean; onPress: () => void; label?: string }) {
+  const { t } = useTranslation();
+  const btnLabel = label ?? t('common.save');
   return (
     <TouchableOpacity
       style={[s.saveBtn, saving && { opacity: 0.5 }]}
       onPress={onPress} disabled={saving} activeOpacity={0.8}
     >
-      {saving ? <ActivityIndicator color="#fff" size="small" /> : <Text style={s.saveBtnText}>{label}</Text>}
+      {saving ? <ActivityIndicator color="#fff" size="small" /> : <Text style={s.saveBtnText}>{btnLabel}</Text>}
     </TouchableOpacity>
   );
 }
@@ -350,6 +356,7 @@ function SaveBtn({ saving, onPress, label = '저장' }: { saving: boolean; onPre
 // ── Completion bar ────────────────────────────────────────────────────────────
 
 function CompletionBar({ profile }: { profile: WorkerProfile }) {
+  const { t } = useTranslation();
   const checks = [
     !!profile.full_name, !!profile.date_of_birth, !!profile.gender,
     !!profile.bank_name, !!profile.id_front_url, !!profile.signature_url,
@@ -360,13 +367,13 @@ function CompletionBar({ profile }: { profile: WorkerProfile }) {
   return (
     <View style={s.completionWrap}>
       <View style={s.completionRow}>
-        <Text style={s.completionLabel}>프로필 완성도</Text>
+        <Text style={s.completionLabel}>{t('worker.profile_completion')}</Text>
         <Text style={[s.completionPct, { color: barColor }]}>{pct}%</Text>
       </View>
       <View style={s.completionTrack}>
         <View style={[s.completionFill, { width: `${pct}%` as any, backgroundColor: barColor }]} />
       </View>
-      <Text style={s.completionSub}>{done}/{checks.length} 항목 완성</Text>
+      <Text style={s.completionSub}>{t('worker.completion_items', { done, total: checks.length })}</Text>
     </View>
   );
 }
@@ -380,6 +387,7 @@ export default function WorkerProfileScreen() {
   const [profile, setProfile] = useState<WorkerProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [openSection, setOpenSection] = useState<Section>('basic');
+  const [langModalVisible, setLangModalVisible] = useState(false);
 
   const load = useCallback(async () => {
     try {
@@ -404,10 +412,10 @@ export default function WorkerProfileScreen() {
   }
 
   async function handleLogout() {
-    Alert.alert('로그아웃', '정말 로그아웃 하시겠습니까?', [
-      { text: '취소', style: 'cancel' },
+    Alert.alert(t('worker.logout_confirm_title'), t('worker.logout_confirm_body'), [
+      { text: t('common.cancel'), style: 'cancel' },
       {
-        text: '로그아웃', style: 'destructive',
+        text: t('worker.logout'), style: 'destructive',
         onPress: async () => { await signOut(); clearUser(); router.replace('/(auth)/phone'); },
       },
     ]);
@@ -443,7 +451,7 @@ export default function WorkerProfileScreen() {
               <View style={s.avatarEditBadge}><Text style={{ fontSize: 12 }}>✏️</Text></View>
             </View>
           </TouchableOpacity>
-          <Text style={s.headerName}>{p.full_name ?? '이름 미등록'}</Text>
+          <Text style={s.headerName}>{p.full_name ?? t('worker.name_unregistered')}</Text>
           {p.phone && <Text style={s.headerPhone}>{formatPhone(p.phone)}</Text>}
           <View style={{ marginTop: 12, width: '100%' }}>
             <CompletionBar profile={p} />
@@ -453,17 +461,18 @@ export default function WorkerProfileScreen() {
         {/* Basic Info */}
         <View style={sec.card}>
           <SectionHeader
-            title="기본 정보"
+            title={t('worker.section_basic')}
             icon="👤"
             isOpen={openSection === 'basic'}
             onToggle={() => toggleSection('basic')}
-            badge={basicDone ? '완료' : '미완성'}
+            badge={basicDone ? t('worker.badge_done') : t('worker.badge_incomplete')}
+            badgeDone={basicDone}
           />
           {openSection === 'basic' && <BasicSection profile={p} onSaved={handleSaved} />}
           {openSection === 'basic' && (
             <View style={s.logoutInBasic}>
               <TouchableOpacity style={s.logoutInBasicBtn} onPress={handleLogout} activeOpacity={0.7}>
-                <Text style={s.logoutInBasicText}>로그아웃</Text>
+                <Text style={s.logoutInBasicText}>{t('worker.logout')}</Text>
               </TouchableOpacity>
             </View>
           )}
@@ -472,11 +481,12 @@ export default function WorkerProfileScreen() {
         {/* Bank */}
         <View style={sec.card}>
           <SectionHeader
-            title="급여 계좌"
+            title={t('worker.section_bank')}
             icon="🏦"
             isOpen={openSection === 'bank'}
             onToggle={() => toggleSection('bank')}
-            badge={bankDone ? '완료' : '미등록'}
+            badge={bankDone ? t('worker.badge_done') : t('worker.badge_unregistered')}
+            badgeDone={bankDone}
           />
           {openSection === 'bank' && <BankSection profile={p} onSaved={handleSaved} />}
         </View>
@@ -484,11 +494,12 @@ export default function WorkerProfileScreen() {
         {/* ID */}
         <View style={sec.card}>
           <SectionHeader
-            title="신분증"
+            title={t('worker.section_id')}
             icon="🪪"
             isOpen={openSection === 'id'}
             onToggle={() => toggleSection('id')}
-            badge={p.id_verified ? '인증완료' : idDone ? '검토중' : '미등록'}
+            badge={p.id_verified ? t('worker.badge_verified') : idDone ? t('worker.badge_in_review') : t('worker.badge_unregistered')}
+            badgeDone={p.id_verified}
           />
           {openSection === 'id' && <IdSection profile={p} onSaved={handleSaved} />}
         </View>
@@ -502,9 +513,9 @@ export default function WorkerProfileScreen() {
           <View style={sec.header}>
             <View style={sec.headerLeft}>
               <Text style={sec.icon}>✍️</Text>
-              <Text style={sec.title}>서명 / 계약</Text>
+              <Text style={sec.title}>{t('worker.section_signature')}</Text>
               {p.signature_url && (
-                <View style={sec.badge}><Text style={sec.badgeText}>등록됨</Text></View>
+                <View style={sec.badge}><Text style={sec.badgeText}>{t('worker.badge_registered')}</Text></View>
               )}
             </View>
             <Text style={sec.arrow}>›</Text>
@@ -514,10 +525,9 @@ export default function WorkerProfileScreen() {
         {/* Settings rows */}
         <View style={sec.card}>
           {[
-            { label: t('profile.push_notifications'), icon: '🔔' },
-            { label: t('profile.language'), icon: '🌐' },
-            { label: t('profile.terms'), icon: '📄' },
-            { label: t('profile.privacy'), icon: '🔒' },
+            { label: t('profile.push_notifications'), icon: '🔔', onPress: undefined },
+            { label: t('profile.terms'), icon: '📄', onPress: undefined },
+            { label: t('profile.privacy'), icon: '🔒', onPress: undefined },
           ].map((item, i) => (
             <TouchableOpacity key={item.label} style={[sec.header, i > 0 && { borderTopWidth: 0.5, borderColor: '#F2F4F5' }]} activeOpacity={0.7}>
               <View style={sec.headerLeft}>
@@ -527,7 +537,43 @@ export default function WorkerProfileScreen() {
               <Text style={sec.arrow}>›</Text>
             </TouchableOpacity>
           ))}
+          <TouchableOpacity
+            style={[sec.header, { borderTopWidth: 0.5, borderColor: '#F2F4F5' }]}
+            onPress={() => setLangModalVisible(true)}
+            activeOpacity={0.7}
+          >
+            <View style={sec.headerLeft}>
+              <Text style={sec.icon}>🌐</Text>
+              <Text style={sec.title}>{t('profile.language')}</Text>
+            </View>
+            <Text style={[sec.arrow, { fontSize: 12, color: '#98A2B2' }]}>
+              {SUPPORTED_LANGUAGES.find(l => l.code === i18n.language)?.flag ?? '🌐'} ›
+            </Text>
+          </TouchableOpacity>
         </View>
+
+        {/* Language selection modal */}
+        <Modal visible={langModalVisible} transparent animationType="slide" onRequestClose={() => setLangModalVisible(false)}>
+          <TouchableOpacity style={s.modalOverlay} activeOpacity={1} onPress={() => setLangModalVisible(false)}>
+            <View style={s.modalSheet}>
+              <Text style={s.modalTitle}>{t('profile.language')}</Text>
+              {SUPPORTED_LANGUAGES.map(lang => (
+                <TouchableOpacity
+                  key={lang.code}
+                  style={[s.langOption, i18n.language === lang.code && s.langOptionActive]}
+                  onPress={async () => {
+                    await changeAppLanguage(lang.code as LangCode);
+                    setLangModalVisible(false);
+                  }}
+                >
+                  <Text style={s.langFlag}>{lang.flag}</Text>
+                  <Text style={[s.langLabel, i18n.language === lang.code && s.langLabelActive]}>{lang.label}</Text>
+                  {i18n.language === lang.code && <Text style={s.langCheck}>✓</Text>}
+                </TouchableOpacity>
+              ))}
+            </View>
+          </TouchableOpacity>
+        </Modal>
 
         {isManager && (
           <TouchableOpacity
@@ -535,7 +581,7 @@ export default function WorkerProfileScreen() {
             onPress={() => router.navigate('/(manager)/' as never)}
             activeOpacity={0.8}
           >
-            <Text style={s.managerSwitchText}>관리자 화면으로 전환 →</Text>
+            <Text style={s.managerSwitchText}>{t('worker.switch_to_manager')}</Text>
           </TouchableOpacity>
         )}
 
@@ -611,4 +657,13 @@ const s = StyleSheet.create({
   logoutInBasic: { borderTopWidth: 0.5, borderColor: '#F2F4F5', paddingHorizontal: 16, paddingVertical: 12 },
   logoutInBasicBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, paddingVertical: 12, borderRadius: 12, borderWidth: 1, borderColor: '#EFF1F5' },
   logoutInBasicText: { color: '#98A2B2', fontSize: 14, fontWeight: '600' },
+  modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'flex-end' },
+  modalSheet: { backgroundColor: '#fff', borderTopLeftRadius: 20, borderTopRightRadius: 20, padding: 24, paddingBottom: 40 },
+  modalTitle: { fontSize: 16, fontWeight: '700', color: '#25282A', marginBottom: 16, textAlign: 'center' },
+  langOption: { flexDirection: 'row', alignItems: 'center', paddingVertical: 14, paddingHorizontal: 16, borderRadius: 12, marginBottom: 8, backgroundColor: '#F9FAFB' },
+  langOptionActive: { backgroundColor: '#EFF5FF', borderWidth: 1.5, borderColor: '#0669F7' },
+  langFlag: { fontSize: 22, marginRight: 12 },
+  langLabel: { fontSize: 15, fontWeight: '600', color: '#25282A', flex: 1 },
+  langLabelActive: { color: '#0669F7' },
+  langCheck: { fontSize: 16, color: '#0669F7', fontWeight: '700' },
 });

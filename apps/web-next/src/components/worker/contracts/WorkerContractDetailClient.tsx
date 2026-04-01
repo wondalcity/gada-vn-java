@@ -3,6 +3,7 @@
 import * as React from 'react'
 import Link from 'next/link'
 import { useParams } from 'next/navigation'
+import { useTranslations } from 'next-intl'
 import { useAuth } from '@/hooks/useAuth'
 import { apiClient } from '@/lib/api/client'
 import { useSignatureCanvas } from '@/hooks/useSignatureCanvas'
@@ -34,6 +35,7 @@ function SignaturePad({
 }) {
   const { canvasRef, hasDrawn, startDrawing, draw, stopDrawing, clear, getDataUrl, checkIsEmpty } =
     useSignatureCanvas()
+  const t = useTranslations('common')
   const [isSigning, setIsSigning] = React.useState(false)
   const [error, setError] = React.useState<string | null>(null)
 
@@ -59,7 +61,7 @@ function SignaturePad({
   }, [startDrawing, draw, stopDrawing, canvasRef])
 
   async function handleSign() {
-    if (checkIsEmpty()) { setError('서명을 입력해 주세요.'); return }
+    if (checkIsEmpty()) { setError(t('worker_contracts.sign_error_empty')); return }
     setIsSigning(true)
     setError(null)
     try {
@@ -71,7 +73,7 @@ function SignaturePad({
       })
       onSuccess()
     } catch (err) {
-      setError(err instanceof Error ? err.message : '서명 중 오류가 발생했습니다.')
+      setError(err instanceof Error ? err.message : t('worker_contracts.sign_error_generic'))
     } finally {
       setIsSigning(false)
     }
@@ -79,7 +81,7 @@ function SignaturePad({
 
   return (
     <div className="space-y-3">
-      <p className="text-sm font-semibold text-[#25282A]">서명 입력</p>
+      <p className="text-sm font-semibold text-[#25282A]">{t('worker_contracts.sign_input_label')}</p>
       <div className="relative border-2 border-dashed border-[#C8D8FF] rounded-xl overflow-hidden bg-[#FAFCFF]">
         <canvas
           ref={canvasRef}
@@ -93,11 +95,11 @@ function SignaturePad({
         />
         {!hasDrawn && (
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-            <p className="text-sm text-[#B2C4E0]">여기에 서명하세요</p>
+            <p className="text-sm text-[#B2C4E0]">{t('worker_contracts.sign_placeholder')}</p>
           </div>
         )}
       </div>
-      <p className="text-xs text-[#98A2B2]">손가락이나 마우스로 서명하세요</p>
+      <p className="text-xs text-[#98A2B2]">{t('worker_contracts.sign_hint')}</p>
       {error && (
         <div className="p-3 bg-red-50 border border-red-200 rounded-xl text-sm text-[#ED1C24]">
           {error}
@@ -109,7 +111,7 @@ function SignaturePad({
           onClick={() => { clear(); setError(null) }}
           className="flex-1 py-3 rounded-full border border-[#DDDDDD] text-[#25282A] font-medium text-sm hover:border-[#0669F7] hover:text-[#0669F7] transition-colors"
         >
-          지우기
+          {t('worker_contracts.sign_clear')}
         </button>
         <button
           type="button"
@@ -117,7 +119,7 @@ function SignaturePad({
           disabled={isSigning || !hasDrawn}
           className="flex-1 py-3 rounded-full bg-[#0669F7] text-white font-semibold text-sm disabled:opacity-40 hover:bg-blue-700 transition-colors"
         >
-          {isSigning ? '서명 중...' : '서명 완료'}
+          {isSigning ? t('worker_contracts.sign_signing') : t('worker_contracts.sign_complete')}
         </button>
       </div>
     </div>
@@ -208,6 +210,7 @@ function SignatureBox({
   canSign?: boolean
   onSignClick?: () => void
 }) {
+  const t = useTranslations('common')
   const signed = !!signedAt
   if (!signed && canSign && onSignClick) {
     return (
@@ -220,7 +223,7 @@ function SignatureBox({
         <div className="w-10 h-10 rounded-full bg-[#0669F7] flex items-center justify-center shadow-sm">
           <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
         </div>
-        <p className="text-xs font-bold text-[#0669F7]">서명하기</p>
+        <p className="text-xs font-bold text-[#0669F7]">{t('worker_contracts.sig_sign_now')}</p>
       </button>
     )
   }
@@ -231,7 +234,7 @@ function SignatureBox({
         <div className="w-10 h-10 rounded-full bg-[#F2F4F5] flex items-center justify-center">
           <svg className="w-5 h-5 text-[#C8CBD0]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
         </div>
-        <p className="text-xs text-[#C8CBD0]">서명 대기</p>
+        <p className="text-xs text-[#C8CBD0]">{t('worker_contracts.sig_pending')}</p>
       </div>
     )
   }
@@ -248,7 +251,7 @@ function SignatureBox({
         </div>
         <p className="text-xs text-green-600 flex items-center gap-1">
           <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
-          확인
+          {t('worker_contracts.sig_view')}
         </p>
       </button>
     )
@@ -259,12 +262,13 @@ function SignatureBox({
       <div className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center">
         <span className="text-2xl">✅</span>
       </div>
-      <p className="text-xs text-green-600">서명 완료</p>
+      <p className="text-xs text-green-600">{t('worker_contracts.sig_done')}</p>
     </div>
   )
 }
 
 function SignatureStatusCard({ contract, onSignClick }: { contract: Contract; onSignClick?: () => void }) {
+  const t = useTranslations('common')
   const [viewingUrl, setViewingUrl] = React.useState<string | null>(null)
   const canWorkerSign = contract.status === 'PENDING_WORKER_SIGN'
   return (
@@ -276,22 +280,22 @@ function SignatureStatusCard({ contract, onSignClick }: { contract: Contract; on
         >
           <div className="relative max-w-sm w-full bg-white rounded-2xl overflow-hidden shadow-2xl" onClick={e => e.stopPropagation()}>
             <div className="px-4 py-3 border-b border-[#EFF1F5] flex items-center justify-between">
-              <p className="text-sm font-semibold text-[#25282A]">서명 이미지</p>
+              <p className="text-sm font-semibold text-[#25282A]">{t('worker_contracts.sig_image')}</p>
               <button type="button" onClick={() => setViewingUrl(null)} className="w-7 h-7 rounded-full bg-[#F2F4F5] flex items-center justify-center text-[#98A2B2] hover:bg-[#EFF1F5]">
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
               </button>
             </div>
             <div className="p-4 bg-gray-50 flex items-center justify-center min-h-[160px]">
-              <img src={viewingUrl} alt="서명" className="max-w-full max-h-64 object-contain" />
+              <img src={viewingUrl} alt={t('worker_contracts.sig_image')} className="max-w-full max-h-64 object-contain" />
             </div>
           </div>
         </div>
       )}
       <div className="bg-white rounded-2xl shadow-sm border border-[#EFF1F5] p-4 space-y-3">
-        <p className="text-sm font-semibold text-[#25282A]">서명 현황</p>
+        <p className="text-sm font-semibold text-[#25282A]">{t('worker_contracts.signature_title')}</p>
         <div className="grid grid-cols-2 gap-3">
           <SignatureBox
-            label="근로자 서명"
+            label={t('worker_contracts.sig_worker')}
             signedAt={contract.workerSignedAt}
             sigUrl={contract.workerSigUrl}
             onView={setViewingUrl}
@@ -299,7 +303,7 @@ function SignatureStatusCard({ contract, onSignClick }: { contract: Contract; on
             onSignClick={canWorkerSign ? onSignClick : undefined}
           />
           <SignatureBox
-            label="사업주 서명"
+            label={t('worker_contracts.sig_manager')}
             signedAt={contract.managerSignedAt}
             sigUrl={contract.companySigUrl ?? contract.managerSigUrl}
             onView={setViewingUrl}
@@ -316,6 +320,7 @@ interface Props {
 
 export default function WorkerContractDetailClient({ contractId }: Props) {
   const { idToken } = useAuth()
+  const t = useTranslations('common')
   const params = useParams()
   const locale = (params?.locale as string) ?? 'ko'
   const documentRef = React.useRef<HTMLDivElement>(null)
@@ -325,7 +330,7 @@ export default function WorkerContractDetailClient({ contractId }: Props) {
   )
   const [isLoading, setIsLoading] = React.useState(!isDemo)
   const [error, setError] = React.useState<string | null>(
-    isDemo && !DEMO_CONTRACT_MAP[contractId] ? '계약서를 찾을 수 없습니다.' : null
+    isDemo && !DEMO_CONTRACT_MAP[contractId] ? t('worker_contracts.not_found') : null
   )
   const [successMessage, setSuccessMessage] = React.useState<string | null>(null)
   const [showSignModal, setShowSignModal] = React.useState(false)
@@ -337,15 +342,15 @@ export default function WorkerContractDetailClient({ contractId }: Props) {
     setError(null)
     apiClient<Contract>(`/contracts/${contractId}`, { token: idToken })
       .then(({ data }) => setContract(data))
-      .catch(() => setError('계약서를 불러올 수 없습니다.'))
+      .catch(() => setError(t('worker_contracts.fetch_error')))
       .finally(() => setIsLoading(false))
-  }, [contractId, idToken, isDemo])
+  }, [contractId, idToken, isDemo, t])
 
   React.useEffect(() => { load() }, [load])
 
   function handleSignSuccess() {
     setShowSignModal(false)
-    setSuccessMessage('서명이 완료되었습니다! 사업주 서명을 기다리고 있습니다.')
+    setSuccessMessage(t('worker_contracts.sign_success'))
     if (!isDemo) load()
   }
 
@@ -368,11 +373,11 @@ export default function WorkerContractDetailClient({ contractId }: Props) {
       <div className="py-6">
         <Link href={`/${locale}/worker/contracts` as never} className="hidden md:inline-flex items-center gap-1.5 text-sm text-[#98A2B2] hover:text-[#25282A] mb-4 transition-colors">
           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" /></svg>
-          계약서 목록
+          {t('worker_contracts.list_back')}
         </Link>
-        <p className="text-[#ED1C24] text-sm mb-4">{error ?? '계약서를 찾을 수 없습니다.'}</p>
+        <p className="text-[#ED1C24] text-sm mb-4">{error ?? t('worker_contracts.not_found')}</p>
         <button type="button" onClick={load} className="px-5 py-2.5 rounded-full bg-[#0669F7] text-white font-medium text-sm">
-          다시 시도
+          {t('worker_contracts.retry')}
         </button>
       </div>
     )
@@ -394,7 +399,7 @@ export default function WorkerContractDetailClient({ contractId }: Props) {
             onClick={e => e.stopPropagation()}
           >
             <div className="flex items-center justify-between px-5 pt-5 pb-3">
-              <p className="text-base font-bold text-[#25282A]">근로자 서명</p>
+              <p className="text-base font-bold text-[#25282A]">{t('worker_contracts.modal_title')}</p>
               <button
                 type="button"
                 onClick={() => setShowSignModal(false)}
@@ -414,7 +419,7 @@ export default function WorkerContractDetailClient({ contractId }: Props) {
       <div className="flex items-center justify-between">
         <Link href={`/${locale}/worker/contracts` as never} className="hidden md:inline-flex items-center gap-1.5 text-sm text-[#98A2B2] hover:text-[#25282A] transition-colors">
           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" /></svg>
-          계약서 목록
+          {t('worker_contracts.list_back')}
         </Link>
         <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold ${statusColor}`}>
           {statusLabel}
@@ -433,19 +438,19 @@ export default function WorkerContractDetailClient({ contractId }: Props) {
       {contract.status === 'PENDING_WORKER_SIGN' && (
         <div className="p-4 bg-amber-50 border border-amber-200 rounded-xl flex items-start gap-3">
           <svg className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
-          <p className="text-sm font-medium text-amber-700">서명이 필요합니다. 계약 내용을 확인한 후 하단 서명란에 서명해 주세요.</p>
+          <p className="text-sm font-medium text-amber-700">{t('worker_contracts.banner_need_sign')}</p>
         </div>
       )}
       {contract.status === 'PENDING_MANAGER_SIGN' && (
         <div className="p-4 bg-blue-50 border border-blue-200 rounded-xl flex items-start gap-3">
           <svg className="w-5 h-5 text-blue-500 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-          <p className="text-sm font-medium text-blue-700">근로자 서명이 완료되었습니다. 사업주 서명을 기다리고 있습니다.</p>
+          <p className="text-sm font-medium text-blue-700">{t('worker_contracts.banner_waiting_manager')}</p>
         </div>
       )}
       {contract.status === 'FULLY_SIGNED' && (
         <div className="p-4 bg-green-50 border border-green-200 rounded-xl flex items-start gap-3">
           <svg className="w-5 h-5 text-green-500 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-          <p className="text-sm font-medium text-green-700">계약이 완료되었습니다. 양측이 모두 서명하였습니다.</p>
+          <p className="text-sm font-medium text-green-700">{t('worker_contracts.banner_fully_signed')}</p>
         </div>
       )}
 
@@ -456,7 +461,7 @@ export default function WorkerContractDetailClient({ contractId }: Props) {
             <svg className="w-4 h-4 text-[#0669F7]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
             </svg>
-            <span className="text-sm font-semibold text-[#25282A]">근로계약서</span>
+            <span className="text-sm font-semibold text-[#25282A]">{t('worker_contracts.document_title')}</span>
           </div>
           <ContractDownloadButton documentRef={documentRef} contractId={contract.id} />
         </div>
@@ -467,27 +472,27 @@ export default function WorkerContractDetailClient({ contractId }: Props) {
 
       {/* Contract info card */}
       <div className="bg-white rounded-2xl shadow-sm border border-[#EFF1F5] p-4 space-y-3">
-        <p className="text-sm font-semibold text-[#25282A]">계약 정보</p>
+        <p className="text-sm font-semibold text-[#25282A]">{t('worker_contracts.info_title')}</p>
         <div className="space-y-2 text-sm">
           <div className="flex justify-between">
-            <span className="text-[#98A2B2]">일자리</span>
+            <span className="text-[#98A2B2]">{t('worker_contracts.info_job')}</span>
             <span className="text-[#25282A] font-medium text-right max-w-[60%]">{contract.jobTitle}</span>
           </div>
           <div className="flex justify-between">
-            <span className="text-[#98A2B2]">현장</span>
+            <span className="text-[#98A2B2]">{t('worker_contracts.info_site')}</span>
             <span className="text-[#25282A] text-right max-w-[60%]">{contract.siteName}</span>
           </div>
           <div className="flex justify-between">
-            <span className="text-[#98A2B2]">근무일</span>
+            <span className="text-[#98A2B2]">{t('worker_contracts.info_work_date')}</span>
             <span className="text-[#25282A] font-medium">{formatDate(contract.workDate)}</span>
           </div>
           <div className="flex justify-between">
-            <span className="text-[#98A2B2]">일당</span>
+            <span className="text-[#98A2B2]">{t('worker_contracts.info_daily_wage')}</span>
             <span className="text-[#0669F7] font-bold">{formatVND(contract.dailyWage)}</span>
           </div>
           {contract.managerName && (
             <div className="flex justify-between">
-              <span className="text-[#98A2B2]">담당 사업주</span>
+              <span className="text-[#98A2B2]">{t('worker_contracts.info_manager')}</span>
               <span className="text-[#25282A]">{contract.managerName}</span>
             </div>
           )}

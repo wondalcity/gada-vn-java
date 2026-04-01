@@ -1,24 +1,64 @@
 {
   "listing": {
     "meta": {
-      "title": "Việc làm xây dựng tại Việt Nam | GADA VN",
-      "description": "Tìm kiếm việc làm tại các công trình xây dựng trên toàn quốc."
+      "title": "Danh sách việc làm xây dựng | GADA VN",
+      "description": "Tìm kiếm việc làm tại các công trình xây dựng trên toàn quốc theo nghề và khu vực."
     },
-    "heading": "Việc làm xây dựng",
+    "heading": "Tin tuyển dụng xây dựng",
+    "breadcrumb_home": "Trang chủ",
+    "breadcrumb_jobs": "Danh sách việc làm",
+    "search_placeholder": "Tìm kiếm tên tin hoặc công trình...",
+    "all_provinces": "Tất cả tỉnh thành",
+    "all_trades": "Tất cả nghề",
+    "select_province": "Chọn tỉnh thành",
+    "select_trade": "Chọn nghề",
+    "search_button": "Tìm kiếm",
+    "search_aria": "Tìm kiếm",
+    "search_close": "Đóng",
+    "no_results": "Không có kết quả",
+    "searching": "Đang tìm...",
     "filter": {
       "province": "Tỉnh / Thành phố",
       "trade": "Nghề",
       "date": "Ngày",
       "all_provinces": "Tất cả tỉnh thành",
       "all_trades": "Tất cả nghề",
-      "reset": "Đặt lại"
+      "status": "Trạng thái tuyển dụng",
+      "my_location": "Vị trí của tôi",
+      "use_location": "Dùng vị trí hiện tại",
+      "finding_location": "Đang tìm vị trí...",
+      "radius": "Bán kính",
+      "reset": "Xóa bộ lọc",
+      "status_open": "Đang tuyển",
+      "status_closing_soon": "Sắp hết hạn",
+      "status_closed": "Đã đóng",
+      "geo_error_unsupported": "Trình duyệt này không hỗ trợ tính năng vị trí.",
+      "geo_error_denied": "Quyền truy cập vị trí bị từ chối.",
+      "active_location": "Đang lọc theo vị trí",
+      "clear_location_aria": "Xóa bộ lọc vị trí"
     },
     "sort": {
       "latest": "Mới nhất",
       "wage_high": "Lương cao nhất"
     },
     "empty": "Không có việc làm phù hợp với điều kiện tìm kiếm.",
+    "empty_search": "Không có kết quả cho \"{q}\".",
+    "empty_geo": "Không có tin tuyển dụng phù hợp gần bạn. Hãy thử mở rộng bán kính.",
     "count": "{count} việc làm"
+  },
+  "card": {
+    "status": {
+      "open": "Đang tuyển",
+      "filled": "Đã đủ",
+      "cancelled": "Đã hủy",
+      "completed": "Hoàn thành"
+    },
+    "closing_soon": "Sắp hết hạn",
+    "per_day": "/ ngày",
+    "headcount": "Tình trạng tuyển",
+    "slots_left": "Còn {n} chỗ",
+    "deadline": "Đã đủ",
+    "other": "Khác"
   },
   "detail": {
     "meta": {
@@ -32,7 +72,51 @@
     "trade": "Nghề",
     "requirements": "Yêu cầu",
     "benefits": "Phúc lợi",
-    "site": "Thông tin công trình"
+    "site": "Thông tin công trình",
+    "status": {
+      "open": "Đang tuyển",
+      "filled": "Đã đủ",
+      "cancelled": "Đã hủy",
+      "completed": "Hoàn thành"
+    },
+    "work_date": "Ngày làm việc",
+    "work_hours": "Giờ làm việc",
+    "slots_section": "Số lượng tuyển",
+    "apply_deadline": "Hạn nộp đơn",
+    "benefits_section": "Phúc lợi",
+    "description_section": "Mô tả chi tiết",
+    "requirements_section": "Yêu cầu ứng tuyển",
+    "site_section": "Công trình làm việc",
+    "per_day_label": "/ ngày",
+    "daily_wage_label": "Lương ngày",
+    "view_all_photos": "Xem tất cả ảnh",
+    "view_map": "Xem trên bản đồ →",
+    "show_more": "Xem thêm →",
+    "show_less": "Thu gọn",
+    "benefit_meal": "Bao bữa ăn",
+    "benefit_meal_desc": "Công trình cung cấp bữa ăn",
+    "benefit_transport": "Hỗ trợ đi lại",
+    "benefit_transport_desc": "Hỗ trợ chi phí đi lại",
+    "benefit_accommodation": "Bao chỗ ở",
+    "benefit_accommodation_desc": "Cung cấp chỗ ở gần công trình",
+    "benefit_insurance": "Bảo hiểm tai nạn",
+    "benefit_insurance_desc": "Có bảo hiểm tai nạn lao động",
+    "slots_left_n": "Còn {n} chỗ",
+    "slots_filled_of": "{filled} đã ứng tuyển / tổng {total} người",
+    "slots_left_booking": "Còn {n} chỗ",
+    "deadline_sub": "Không thể ứng tuyển sau hạn nộp đơn",
+    "min_experience": "Kinh nghiệm tối thiểu",
+    "experience_months": "Trên {months} tháng",
+    "experience_years": "Trên {years} năm",
+    "experience_years_months": "Trên {years} năm {months} tháng",
+    "trust_signal": "Quản lý sẽ xét duyệt đơn sau khi nộp",
+    "booking_headcount": "Tình trạng tuyển",
+    "booking_work_date": "Ngày làm việc",
+    "booking_work_hours": "Giờ làm việc",
+    "related_jobs": "Tin tuyển dụng cùng nghề",
+    "view_site": "Xem thông tin công trình →",
+    "other_province_jobs": "📍 Xem thêm việc làm tại {province} →",
+    "back_to_list": "Danh sách việc làm"
   },
   "province": {
     "meta": {
@@ -46,5 +130,46 @@
     "already_applied": "Bạn đã ứng tuyển vị trí này rồi.",
     "job_closed": "Tin tuyển dụng đã đóng.",
     "login_required": "Vui lòng đăng nhập để ứng tuyển."
+  },
+  "apply_btn": {
+    "apply": "Ứng tuyển",
+    "confirm": "Xác nhận ứng tuyển",
+    "cancel": "Hủy",
+    "save": "Lưu",
+    "saving": "Đang lưu...",
+    "withdraw": "Rút đơn",
+    "withdrawing": "Đang rút...",
+    "login_required": "Đăng nhập để ứng tuyển",
+    "deadline_expired": "Hết hạn ứng tuyển",
+    "job_closed": "Tin đã đóng",
+    "applied_title": "Đã ứng tuyển",
+    "view_applications": "Xem đơn ứng tuyển",
+    "applications_status": "Đơn ứng tuyển",
+    "add_message": "+ Thêm tin nhắn",
+    "edit_message": "Sửa",
+    "note_section": "Tin nhắn cho quản lý (tùy chọn)",
+    "note_edit_section": "Sửa tin nhắn cho quản lý",
+    "note_placeholder": "Giới thiệu bản thân hoặc kinh nghiệm của bạn",
+    "confirm_title": "Xác nhận ứng tuyển",
+    "status": {
+      "applied": "Đang xét duyệt",
+      "hired": "Đã trúng tuyển",
+      "completed": "Đã ký hợp đồng",
+      "rejected": "Không trúng tuyển",
+      "withdrawn": "Đã rút đơn"
+    },
+    "error": {
+      "already_applied": "Bạn đã ứng tuyển rồi",
+      "job_full": "Đã đủ người tuyển",
+      "job_not_open": "Tin tuyển dụng đã đóng",
+      "apply_generic": "Đã xảy ra lỗi khi ứng tuyển",
+      "cancel_generic": "Đã xảy ra lỗi khi rút đơn"
+    },
+    "withdraw_modal": {
+      "title": "Rút đơn ứng tuyển",
+      "message": "Bạn có chắc muốn rút đơn? Sau khi rút, bạn có thể ứng tuyển lại.",
+      "confirm": "Rút đơn",
+      "cancel": "Quay lại"
+    }
   }
 }

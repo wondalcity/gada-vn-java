@@ -1,7 +1,17 @@
 {
   "title": "Thông báo",
   "empty": "Không có thông báo nào.",
+  "empty_subtitle": "Thông báo mới sẽ hiển thị ở đây",
   "mark_all_read": "Đánh dấu tất cả đã đọc",
+  "marking_all": "Đang xử lý...",
+  "unread_count": "{n} thông báo chưa đọc",
+  "error_load": "Không thể tải thông báo",
+  "time": {
+    "just_now": "Vừa xong",
+    "minutes_ago": "{n} phút trước",
+    "hours_ago": "{n} giờ trước",
+    "days_ago": "{n} ngày trước"
+  },
   "types": {
     "application_status": "Kết quả ứng tuyển: {job_title}",
     "contract_ready": "Hợp đồng đã sẵn sàng: {job_title}",

@@ -18,23 +18,23 @@ export default function WorkerLayout() {
         name="index"
         options={{
           title: t('jobs.nearby'),
-          tabBarLabel: '일자리',
+          tabBarLabel: t('jobs.nearby'),
           tabBarIcon: ({ color }) => <Text style={{ color, fontSize: 20 }}>🏗️</Text>,
         }}
       />
       <Tabs.Screen
         name="work"
         options={{
-          title: '지원현황',
-          tabBarLabel: '지원현황',
+          title: t('manager.tab_workers'),
+          tabBarLabel: t('manager.tab_workers_label'),
           tabBarIcon: ({ color }) => <Text style={{ color, fontSize: 20 }}>📋</Text>,
         }}
       />
       <Tabs.Screen
         name="attendance"
         options={{
-          title: '출퇴근',
-          tabBarLabel: '출퇴근',
+          title: t('attendance.title'),
+          tabBarLabel: t('attendance.title'),
           tabBarIcon: ({ color }) => <Text style={{ color, fontSize: 20 }}>⏱️</Text>,
         }}
       />
@@ -42,7 +42,7 @@ export default function WorkerLayout() {
         name="notifications"
         options={{
           title: t('notifications.title'),
-          tabBarLabel: '알림',
+          tabBarLabel: t('notifications.title'),
           tabBarIcon: ({ color }) => <Text style={{ color, fontSize: 20 }}>🔔</Text>,
         }}
       />
@@ -50,7 +50,7 @@ export default function WorkerLayout() {
         name="profile"
         options={{
           title: t('profile.title'),
-          tabBarLabel: '프로필',
+          tabBarLabel: t('profile.title'),
           tabBarIcon: ({ color }) => <Text style={{ color, fontSize: 20 }}>👤</Text>,
         }}
       />
@@ -59,7 +59,7 @@ export default function WorkerLayout() {
         name="jobs/[id]"
         options={{
           href: null,
-          title: '공고 상세',
+          title: t('manager.screen_job_detail'),
           headerShown: true,
           tabBarStyle: { display: 'none' },
           headerLeft: undefined, // use default Expo back button
@@ -69,7 +69,7 @@ export default function WorkerLayout() {
         name="contracts/[id]"
         options={{
           href: null,
-          title: '계약서',
+          title: t('manager.screen_contract'),
           headerShown: true,
           tabBarStyle: { display: 'none' },
         }}

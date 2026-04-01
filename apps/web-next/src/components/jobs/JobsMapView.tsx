@@ -4,6 +4,7 @@ import React, { useEffect, useRef, useState, useCallback } from 'react'
 import { GoogleMap, useJsApiLoader, OverlayView, Circle, type Libraries } from '@react-google-maps/api'
 import type { PublicJob } from '@/lib/api/public'
 import { Link } from '@/components/navigation'
+import { formatDate as fmtDate, formatDateShort as fmtDateShort } from '@/lib/utils/date'
 
 const GOOGLE_MAPS_API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY ?? ''
 // Must be stable reference to prevent re-loading
@@ -23,17 +24,6 @@ function formatVnd(n: number) {
   return `₫${(n / 1000).toFixed(0)}K`
 }
 
-function formatDateShort(dateStr: string) {
-  return new Date(dateStr).toLocaleDateString('ko-KR', {
-    month: 'numeric', day: 'numeric', weekday: 'short',
-  })
-}
-
-function formatDateLong(dateStr: string) {
-  return new Date(dateStr).toLocaleDateString('ko-KR', {
-    year: 'numeric', month: 'long', day: 'numeric', weekday: 'short',
-  })
-}
 
 const STATUS_CONFIG = {
   OPEN:      { label: '모집중',  bg: '#D1F3D3', text: '#024209', dot: '#00C800' },
@@ -94,6 +84,7 @@ function WageMarker({
 
 function AirbnbJobCard({
   job,
+  locale,
   isSelected,
   isHovered,
   onMouseEnter,
@@ -101,6 +92,7 @@ function AirbnbJobCard({
   onClick,
 }: {
   job: PublicJob
+  locale: string
   isSelected: boolean
   isHovered: boolean
   onMouseEnter: () => void
@@ -141,7 +133,7 @@ function AirbnbJobCard({
       <div className="flex-1 min-w-0">
         <p className="text-xs text-[#7A7B7A] truncate">{job.siteNameKo} · {job.provinceNameVi}</p>
         <p className="text-sm font-semibold text-[#25282A] line-clamp-2 leading-snug mt-0.5">{job.titleKo}</p>
-        <p className="text-xs text-[#7A7B7A] mt-0.5">{formatDateShort(job.workDate)}</p>
+        <p className="text-xs text-[#7A7B7A] mt-0.5">{fmtDateShort(job.workDate, locale)}</p>
         <div className="flex items-center justify-between mt-1">
           <p className="text-sm font-bold text-[#25282A]">
             {new Intl.NumberFormat('ko-KR').format(job.dailyWage)}{' '}
@@ -162,10 +154,12 @@ function AirbnbJobCard({
 
 function MapPopupCard({
   job,
+  locale,
   onClose,
   basePath = '/worker/jobs',
 }: {
   job: PublicJob
+  locale: string
   onClose: () => void
   basePath?: string
 }) {
@@ -213,7 +207,7 @@ function MapPopupCard({
       <div className="p-4">
         <h3 className="text-sm font-bold text-[#25282A] line-clamp-2 leading-snug mb-1">{job.titleKo}</h3>
         <p className="text-xs text-[#7A7B7A] truncate mb-0.5">{job.siteNameKo} · {job.provinceNameVi}</p>
-        <p className="text-xs text-[#7A7B7A] mb-3">{formatDateLong(job.workDate)}</p>
+        <p className="text-xs text-[#7A7B7A] mb-3">{fmtDate(job.workDate, locale)}</p>
 
         <div className="flex items-center justify-between mb-3">
           <p className="text-base font-bold text-[#25282A]">
@@ -444,6 +438,7 @@ export default function JobsMapView({
         <React.Fragment key={job.id}>
           <AirbnbJobCard
             job={job}
+            locale={locale}
             isHovered={hoveredJobId === job.id}
             isSelected={selectedJobId === job.id}
             onMouseEnter={() => setHoveredJobId(job.id)}
@@ -462,6 +457,7 @@ export default function JobsMapView({
             <React.Fragment key={job.id}>
               <AirbnbJobCard
                 job={job}
+                locale={locale}
                 isHovered={hoveredJobId === job.id}
                 isSelected={selectedJobId === job.id}
                 onMouseEnter={() => setHoveredJobId(job.id)}
@@ -584,6 +580,7 @@ export default function JobsMapView({
           {selectedJob && (
             <MapPopupCard
               job={selectedJob}
+              locale={locale}
               onClose={() => setSelectedJobId(null)}
               basePath={basePath}
             />

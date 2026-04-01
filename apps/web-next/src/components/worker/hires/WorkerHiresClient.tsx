@@ -2,6 +2,7 @@
 
 import * as React from 'react'
 import Link from 'next/link'
+import { useTranslations } from 'next-intl'
 import { getSessionCookie } from '@/lib/auth/session'
 import { apiClient } from '@/lib/api/client'
 import type { Hire } from '@/types/application'
@@ -97,6 +98,7 @@ function BuildingIllustration() {
 
 export default function WorkerHiresClient() {
   const idToken = getSessionCookie()
+  const t = useTranslations('common')
   const params = useParams()
   const locale = (params?.locale as string) ?? 'ko'
   const [hires, setHires] = React.useState<HireWithContractId[]>([])
@@ -115,7 +117,7 @@ export default function WorkerHiresClient() {
   if (isLoading) {
     return (
       <div className="py-6">
-        <h1 className="text-xl font-bold text-[#25282A] mb-6">합격 내역</h1>
+        <h1 className="text-xl font-bold text-[#25282A] mb-6">{t('worker_hires.title')}</h1>
         <div className="space-y-3">
           {[1, 2, 3].map(i => (
             <div key={i} className="bg-white rounded-2xl shadow-sm border border-[#EFF1F5] p-4 animate-pulse">
@@ -132,7 +134,7 @@ export default function WorkerHiresClient() {
   if (error) {
     return (
       <div className="py-6">
-        <h1 className="text-xl font-bold text-[#25282A] mb-6">합격 내역</h1>
+        <h1 className="text-xl font-bold text-[#25282A] mb-6">{t('worker_hires.title')}</h1>
         <p className="text-[#D81A48] text-sm">{error}</p>
       </div>
     )
@@ -144,10 +146,10 @@ export default function WorkerHiresClient() {
   return (
     <div className="pb-10">
       <div className="py-6 flex items-center gap-3">
-        <h1 className="text-xl font-bold text-[#25282A]">합격 내역</h1>
+        <h1 className="text-xl font-bold text-[#25282A]">{t('worker_hires.title')}</h1>
         {isDemo && (
           <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-700 border border-amber-200">
-            데모 데이터
+            {t('demo_data')}
           </span>
         )}
       </div>
@@ -155,8 +157,8 @@ export default function WorkerHiresClient() {
       {displayHires.length === 0 ? (
         <div className="py-16 text-center bg-white rounded-2xl border border-[#EFF1F5] shadow-sm">
           <BuildingIllustration />
-          <p className="text-[#98A2B2] text-sm font-medium">합격된 일자리가 없습니다</p>
-          <p className="text-[#98A2B2] text-xs mt-1">지원한 공고에서 합격 소식을 기다려주세요</p>
+          <p className="text-[#98A2B2] text-sm font-medium">{t('worker_hires.empty')}</p>
+          <p className="text-[#98A2B2] text-xs mt-1">{t('worker_hires.empty_subtitle')}</p>
         </div>
       ) : (
         <div className="space-y-3">
@@ -164,7 +166,7 @@ export default function WorkerHiresClient() {
             <div key={hire.id} className="bg-white rounded-2xl shadow-sm border border-[#EFF1F5] p-4 relative">
               {/* Accepted badge */}
               <span className="absolute top-4 right-4 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-50 text-green-700 border border-green-200">
-                합격
+                {t('worker_hires.badge_accepted')}
               </span>
 
               {/* Job title */}
@@ -184,7 +186,7 @@ export default function WorkerHiresClient() {
 
               {/* Manager info */}
               {hire.managerName && (
-                <p className="text-xs text-[#98A2B2] mt-1">담당자: {hire.managerName}</p>
+                <p className="text-xs text-[#98A2B2] mt-1">{t('worker_hires.manager_label', { name: hire.managerName })}</p>
               )}
 
               {/* Contract link + attendance link */}
@@ -194,14 +196,14 @@ export default function WorkerHiresClient() {
                     href={`/${locale}/worker/contracts/${hire.contractId ?? hire.id}`}
                     className="px-4 py-2 rounded-full bg-[#0669F7] text-white font-medium text-xs"
                   >
-                    계약서 보기
+                    {t('worker_hires.view_contract')}
                   </Link>
                 )}
                 <Link
                   href={`/${locale}/worker/attendance?jobId=${hire.jobId}`}
                   className="px-4 py-2 rounded-full border border-[#EFF1F5] text-[#98A2B2] font-medium text-xs hover:border-[#0669F7] hover:text-[#0669F7] transition-colors"
                 >
-                  출근 현황 보기
+                  {t('worker_hires.view_attendance')}
                 </Link>
               </div>
             </div>
@@ -209,7 +211,7 @@ export default function WorkerHiresClient() {
         </div>
       )}
       <div className="mt-6 pt-4 border-t border-[#EFF1F5]">
-        <p className="text-xs text-[#98A2B2] text-center">총 {displayHires.length}건의 합격 내역</p>
+        <p className="text-xs text-[#98A2B2] text-center">{t('worker_hires.total_count', { count: displayHires.length })}</p>
       </div>
     </div>
   )

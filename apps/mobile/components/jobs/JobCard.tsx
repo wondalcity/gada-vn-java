@@ -19,9 +19,9 @@ export default function JobCard({ job }: Props) {
   async function handleApply() {
     try {
       await api.post(`/jobs/${job.id}/apply`);
-      Alert.alert('지원 완료', '성공적으로 지원했습니다.');
+      Alert.alert(t('jobs.apply_success_title'), t('jobs.apply_success_short'));
     } catch (err) {
-      Alert.alert('오류', '지원에 실패했습니다.');
+      Alert.alert(t('common.error'), t('jobs.apply_fail_short'));
     }
   }
 

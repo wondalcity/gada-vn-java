@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import { api } from '../lib/api'
+import { useAdminTranslation } from '../context/LanguageContext'
 
 function formatPhone(phone: string | null | undefined): string {
   if (!phone) return '-'
@@ -63,26 +64,8 @@ interface SiteOption {
 
 type TabKey = 'basic' | 'site' | 'docs' | 'approval' | 'sites'
 
-const TABS: { key: TabKey; label: string }[] = [
-  { key: 'basic', label: '기본 정보' },
-  { key: 'site', label: '사업장 정보' },
-  { key: 'docs', label: '서류 확인' },
-  { key: 'approval', label: '승인 정보' },
-  { key: 'sites', label: '현장 배정' },
-]
-
-const SITE_STATUS_LABEL: Record<string, string> = {
-  ACTIVE: '운영 중',
-  PAUSED: '일시 중지',
-  COMPLETED: '완료',
-}
-const SITE_STATUS_CLASS: Record<string, string> = {
-  ACTIVE: 'bg-green-100 text-green-700',
-  PAUSED: 'bg-yellow-100 text-yellow-700',
-  COMPLETED: 'bg-[#EFF1F5] text-[#98A2B2]',
-}
-
 export default function ManagerDetail() {
+  const { t } = useAdminTranslation()
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
   const [manager, setManager] = useState<Manager | null>(null)
@@ -102,6 +85,25 @@ export default function ManagerDetail() {
   const [siteSearch, setSiteSearch] = useState('')
   const [assigning, setAssigning] = useState(false)
   const [unassigning, setUnassigning] = useState<string | null>(null)
+
+  const TABS: { key: TabKey; label: string }[] = [
+    { key: 'basic', label: t('manager_detail.tab_basic') },
+    { key: 'site', label: t('manager_detail.tab_site') },
+    { key: 'docs', label: t('manager_detail.tab_docs') },
+    { key: 'approval', label: t('manager_detail.tab_approval') },
+    { key: 'sites', label: t('manager_detail.tab_sites') },
+  ]
+
+  const SITE_STATUS_LABEL: Record<string, string> = {
+    ACTIVE: t('manager_detail.site_status_active'),
+    PAUSED: t('manager_detail.site_status_paused'),
+    COMPLETED: t('manager_detail.site_status_completed'),
+  }
+  const SITE_STATUS_CLASS: Record<string, string> = {
+    ACTIVE: 'bg-green-100 text-green-700',
+    PAUSED: 'bg-yellow-100 text-yellow-700',
+    COMPLETED: 'bg-[#EFF1F5] text-[#98A2B2]',
+  }
 
   useEffect(() => {
     api.get<Manager>(`/admin/managers/${id}`)
@@ -145,9 +147,9 @@ export default function ManagerDetail() {
         representativeGender: form.representative_gender,
         contactPhone: form.contact_phone,
       })
-      showToast('success', '저장되었습니다.')
+      showToast('success', t('manager_detail.save_success'))
     } catch {
-      showToast('error', '저장 실패. 다시 시도해주세요.')
+      showToast('error', t('manager_detail.save_failed'))
     } finally {
       setSaving(false)
     }
@@ -163,16 +165,16 @@ export default function ManagerDetail() {
         firstSiteName: form.first_site_name,
         firstSiteAddress: form.first_site_address,
       })
-      showToast('success', '저장되었습니다.')
+      showToast('success', t('manager_detail.save_success'))
     } catch {
-      showToast('error', '저장 실패. 다시 시도해주세요.')
+      showToast('error', t('manager_detail.save_failed'))
     } finally {
       setSaving(false)
     }
   }
 
   async function approve() {
-    if (!confirm('승인하시겠습니까?')) return
+    if (!confirm(t('manager_detail.confirm_approve'))) return
     setProcessing(true)
     try {
       await api.post(`/admin/managers/${id}/approve`)
@@ -184,7 +186,7 @@ export default function ManagerDetail() {
 
   async function reject() {
     if (!rejectReason.trim()) {
-      showToast('error', '반려 사유를 입력해주세요.')
+      showToast('error', t('manager_detail.reject_reason_required'))
       return
     }
     setProcessing(true)
@@ -203,9 +205,9 @@ export default function ManagerDetail() {
       const assigned = await api.get<AssignedSite[]>(`/admin/managers/${id}/sites`)
       setAssignedSites(Array.isArray(assigned) ? assigned : [])
       setSiteSearch('')
-      showToast('success', '현장이 배정되었습니다.')
+      showToast('success', t('manager_detail.site_assigned'))
     } catch {
-      showToast('error', '현장 배정 실패.')
+      showToast('error', t('manager_detail.site_assign_failed'))
     } finally {
       setAssigning(false)
     }
@@ -216,35 +218,35 @@ export default function ManagerDetail() {
     try {
       await api.delete(`/admin/managers/${id}/sites/${siteId}`)
       setAssignedSites((prev) => prev.filter((s) => s.id !== siteId))
-      showToast('success', '현장 배정이 해제되었습니다.')
+      showToast('success', t('manager_detail.site_unassigned'))
     } catch {
-      showToast('error', '해제 실패.')
+      showToast('error', t('manager_detail.site_unassign_failed'))
     } finally {
       setUnassigning(null)
     }
   }
 
   async function revoke() {
-    if (!confirm('권한을 해제하시겠습니까?')) return
+    if (!confirm(t('manager_detail.confirm_revoke'))) return
     setProcessing(true)
     try {
       await api.post(`/admin/managers/${id}/revoke`)
       setManager((prev) => prev ? { ...prev, approval_status: 'REVOKED' } : null)
-      showToast('success', '권한이 해제되었습니다.')
+      showToast('success', t('manager_detail.revoked'))
     } catch {
-      showToast('error', '처리 실패.')
+      showToast('error', t('manager_detail.revoke_failed'))
     } finally {
       setProcessing(false)
     }
   }
 
-  if (loading) return <div className="p-8 text-center text-gray-400">로딩 중...</div>
-  if (!manager) return <div className="p-8 text-center text-[#D81A48]">관리자를 찾을 수 없습니다</div>
+  if (loading) return <div className="p-8 text-center text-gray-400">{t('common.loading')}</div>
+  if (!manager) return <div className="p-8 text-center text-[#D81A48]">{t('manager_detail.not_found')}</div>
 
   const statusLabel =
-    manager.approval_status === 'APPROVED' ? '승인됨' :
-    manager.approval_status === 'REJECTED' ? '반려됨' :
-    manager.approval_status === 'REVOKED' ? '해제됨' : '대기 중'
+    manager.approval_status === 'APPROVED' ? t('manager_detail.status_approved') :
+    manager.approval_status === 'REJECTED' ? t('manager_detail.status_rejected') :
+    manager.approval_status === 'REVOKED' ? t('manager_detail.status_revoked') : t('manager_detail.status_pending')
 
   const statusClass =
     manager.approval_status === 'APPROVED' ? 'bg-green-100 text-green-700' :
@@ -254,7 +256,7 @@ export default function ManagerDetail() {
 
   return (
     <div className="p-8 max-w-2xl">
-      <Link to="/managers" className="text-gray-400 hover:text-gray-600 text-sm mb-4 inline-block">← 목록으로</Link>
+      <Link to="/managers" className="text-gray-400 hover:text-gray-600 text-sm mb-4 inline-block">{t('common.back_to_list')}</Link>
 
       {toast && (
         <div className={`rounded-2xl p-4 mb-5 text-sm border ${
@@ -295,13 +297,13 @@ export default function ManagerDetail() {
                 disabled={processing}
                 className="flex-1 bg-green-500 hover:bg-green-600 text-white font-semibold py-2.5 rounded-2xl transition-colors text-sm disabled:opacity-50"
               >
-                승인
+                {t('manager_detail.approve')}
               </button>
               <button
                 onClick={() => setShowRejectForm(!showRejectForm)}
                 className="flex-1 bg-[#D81A48] hover:bg-[#B01539] text-white font-semibold py-2.5 rounded-2xl transition-colors text-sm"
               >
-                반려
+                {t('manager_detail.reject')}
               </button>
             </>
           )}
@@ -311,7 +313,7 @@ export default function ManagerDetail() {
               disabled={processing}
               className="px-5 py-2.5 border border-[#F4B0C0] text-[#D81A48] hover:bg-[#FDE8EE] font-semibold rounded-2xl transition-colors text-sm disabled:opacity-50"
             >
-              권한 해제
+              {t('manager_detail.revoke')}
             </button>
           )}
           {(manager.approval_status === 'REJECTED' || manager.approval_status === 'REVOKED') && (
@@ -320,27 +322,27 @@ export default function ManagerDetail() {
               disabled={processing}
               className="px-5 py-2.5 bg-blue-500 hover:bg-blue-600 text-white font-semibold rounded-2xl transition-colors text-sm disabled:opacity-50"
             >
-              재심사 (승인 처리)
+              {t('manager_detail.re_approve')}
             </button>
           )}
         </div>
 
         {showRejectForm && (
           <div className="mt-4">
-            <label className="block text-xs font-medium text-gray-500 mb-2">반려 사유</label>
+            <label className="block text-xs font-medium text-gray-500 mb-2">{t('manager_detail.reject_reason_label')}</label>
             <textarea
               value={rejectReason}
               onChange={(e) => setRejectReason(e.target.value)}
               rows={3}
               className="w-full border border-[#EFF1F5] rounded-2xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-red-400 resize-none mb-3"
-              placeholder="반려 사유를 입력하세요"
+              placeholder={t('manager_detail.reject_reason_placeholder')}
             />
             <button
               onClick={reject}
               disabled={processing}
               className="w-full bg-[#D81A48] hover:bg-[#B01539] text-white font-semibold py-2.5 rounded-2xl transition-colors text-sm disabled:opacity-50"
             >
-              반려 확정
+              {t('manager_detail.reject_confirm')}
             </button>
           </div>
         )}
@@ -348,15 +350,15 @@ export default function ManagerDetail() {
 
       {/* Tab Bar */}
       <div className="flex gap-1 bg-[#EFF1F5] rounded-2xl p-1 mb-5">
-        {TABS.map((t) => (
+        {TABS.map((tabItem) => (
           <button
-            key={t.key}
-            onClick={() => setTab(t.key)}
+            key={tabItem.key}
+            onClick={() => setTab(tabItem.key)}
             className={`flex-1 py-2 rounded-2xl text-sm font-medium transition-all ${
-              tab === t.key ? 'bg-white shadow-sm text-[#0669F7] font-semibold' : 'text-gray-500 hover:text-gray-700'
+              tab === tabItem.key ? 'bg-white shadow-sm text-[#0669F7] font-semibold' : 'text-gray-500 hover:text-gray-700'
             }`}
           >
-            {t.label}
+            {tabItem.label}
           </button>
         ))}
       </div>
@@ -364,97 +366,97 @@ export default function ManagerDetail() {
       {/* Tab Content */}
       <div className="bg-white rounded-2xl shadow-sm p-6 space-y-4">
 
-        {/* 기본 정보 */}
+        {/* Basic Info */}
         {tab === 'basic' && (
           <>
-            <Field label="사업 유형">
+            <Field label={t('manager_detail.field_business_type')}>
               <select className={INPUT} value={form.business_type ?? ''} onChange={(e) => patch({ business_type: e.target.value })}>
-                <option value="INDIVIDUAL">개인</option>
-                <option value="CORPORATE">법인</option>
+                <option value="INDIVIDUAL">{t('manager_detail.business_type_individual')}</option>
+                <option value="CORPORATE">{t('manager_detail.business_type_corporate')}</option>
               </select>
             </Field>
             {form.business_type === 'CORPORATE' && (
-              <Field label="회사명">
+              <Field label={t('manager_detail.field_company_name')}>
                 <input className={INPUT} value={form.company_name ?? ''} onChange={(e) => patch({ company_name: e.target.value })} />
               </Field>
             )}
-            <Field label="대표자명">
+            <Field label={t('manager_detail.field_representative')}>
               <input className={INPUT} value={form.representative_name ?? ''} onChange={(e) => patch({ representative_name: e.target.value })} />
             </Field>
-            <Field label="대표자 생년월일">
+            <Field label={t('manager_detail.field_representative_dob')}>
               <input type="date" className={INPUT} value={form.representative_dob ?? ''} onChange={(e) => patch({ representative_dob: e.target.value })} />
             </Field>
-            <Field label="대표자 성별">
+            <Field label={t('manager_detail.field_representative_gender')}>
               <select className={INPUT} value={form.representative_gender ?? ''} onChange={(e) => patch({ representative_gender: e.target.value })}>
-                <option value="">선택 안 함</option>
-                <option value="MALE">남성</option>
-                <option value="FEMALE">여성</option>
-                <option value="OTHER">기타</option>
+                <option value="">{t('manager_detail.field_gender_none')}</option>
+                <option value="MALE">{t('manager_detail.field_gender_male')}</option>
+                <option value="FEMALE">{t('manager_detail.field_gender_female')}</option>
+                <option value="OTHER">{t('manager_detail.field_gender_other')}</option>
               </select>
             </Field>
-            <Field label="연락처 전화번호">
+            <Field label={t('manager_detail.field_contact_phone')}>
               <input className={INPUT} value={form.contact_phone ?? ''} onChange={(e) => patch({ contact_phone: e.target.value })} />
             </Field>
-            <SaveButton saving={saving} onClick={saveBasic} />
+            <SaveButton saving={saving} onClick={saveBasic} label={t('common.save')} savingLabel={t('common.saving')} />
           </>
         )}
 
-        {/* 사업장 정보 */}
+        {/* Business Info */}
         {tab === 'site' && (
           <>
-            <Field label="사업자등록번호">
+            <Field label={t('manager_detail.field_reg_number')}>
               <input className={INPUT} value={form.business_reg_number ?? ''} onChange={(e) => patch({ business_reg_number: e.target.value })} />
             </Field>
-            <Field label="사업장 주소">
+            <Field label={t('manager_detail.field_contact_address')}>
               <textarea className={INPUT + ' resize-none'} rows={2} value={form.contact_address ?? ''} onChange={(e) => patch({ contact_address: e.target.value })} />
             </Field>
-            <Field label="성/시 (Province)">
+            <Field label={t('manager_detail.field_province')}>
               <input className={INPUT} value={form.province ?? ''} onChange={(e) => patch({ province: e.target.value })} />
             </Field>
-            <Field label="첫 번째 현장명">
+            <Field label={t('manager_detail.field_first_site_name')}>
               <input className={INPUT} value={form.first_site_name ?? ''} onChange={(e) => patch({ first_site_name: e.target.value })} />
             </Field>
-            <Field label="첫 번째 현장 주소">
+            <Field label={t('manager_detail.field_first_site_address')}>
               <input className={INPUT} value={form.first_site_address ?? ''} onChange={(e) => patch({ first_site_address: e.target.value })} />
             </Field>
-            <SaveButton saving={saving} onClick={saveSite} />
+            <SaveButton saving={saving} onClick={saveSite} label={t('common.save')} savingLabel={t('common.saving')} />
           </>
         )}
 
-        {/* 서류 확인 */}
+        {/* Documents */}
         {tab === 'docs' && (
           <>
-            <h3 className="text-sm font-semibold text-gray-700 mb-2">첨부 서류 이미지</h3>
+            <h3 className="text-sm font-semibold text-gray-700 mb-2">{t('manager_detail.docs_title')}</h3>
             <div className="space-y-5">
-              <ImageField label="사업자등록증" url={manager.business_reg_url} />
-              <ImageField label="서명" url={manager.signature_url} />
-              <ImageField label="프로필 사진" url={manager.profile_picture_url} />
+              <ImageField label={t('manager_detail.doc_reg_cert')} url={manager.business_reg_url} notRegisteredLabel={t('common.not_registered')} />
+              <ImageField label={t('manager_detail.doc_signature')} url={manager.signature_url} notRegisteredLabel={t('common.not_registered')} />
+              <ImageField label={t('manager_detail.doc_profile_picture')} url={manager.profile_picture_url} notRegisteredLabel={t('common.not_registered')} />
             </div>
           </>
         )}
 
-        {/* 승인 정보 */}
+        {/* Approval Info */}
         {tab === 'approval' && (
           <>
             <div>
-              <label className="block text-xs font-medium text-gray-500 mb-1">승인 상태</label>
+              <label className="block text-xs font-medium text-gray-500 mb-1">{t('manager_detail.approval_status_label')}</label>
               <span className={`inline-block px-3 py-1 rounded-full text-sm font-medium ${statusClass}`}>
                 {statusLabel}
               </span>
             </div>
-            <ReadOnlyField label="승인일" value={manager.approved_at ? new Date(manager.approved_at).toLocaleString('ko-KR') : '-'} />
+            <ReadOnlyField label={t('manager_detail.approval_date')} value={manager.approved_at ? new Date(manager.approved_at).toLocaleString('ko-KR') : '-'} />
             <div>
-              <label className="block text-xs font-medium text-gray-500 mb-1">반려 사유</label>
+              <label className="block text-xs font-medium text-gray-500 mb-1">{t('manager_detail.rejection_reason')}</label>
               <p className="text-sm text-gray-700 bg-[#EFF1F5] rounded-2xl px-3 py-2.5 border border-[#EFF1F5] min-h-[2.5rem]">
                 {manager.rejection_reason ?? '-'}
               </p>
             </div>
-            <ReadOnlyField label="가입일" value={new Date(manager.created_at).toLocaleString('ko-KR')} />
-            <ReadOnlyField label="전화번호 (인증)" value={formatPhone(manager.phone)} />
+            <ReadOnlyField label={t('manager_detail.joined')} value={new Date(manager.created_at).toLocaleString('ko-KR')} />
+            <ReadOnlyField label={t('manager_detail.verified_phone')} value={formatPhone(manager.phone)} />
           </>
         )}
 
-        {/* 현장 배정 */}
+        {/* Site Assignment */}
         {tab === 'sites' && (
           <SiteAssignmentTab
             assignedSites={assignedSites}
@@ -466,6 +468,9 @@ export default function ManagerDetail() {
             unassigning={unassigning}
             onAssign={assignSite}
             onUnassign={unassignSite}
+            siteStatusLabel={SITE_STATUS_LABEL}
+            siteStatusClass={SITE_STATUS_CLASS}
+            t={t}
           />
         )}
       </div>
@@ -485,6 +490,9 @@ function SiteAssignmentTab({
   unassigning,
   onAssign,
   onUnassign,
+  siteStatusLabel,
+  siteStatusClass,
+  t,
 }: {
   assignedSites: AssignedSite[]
   allSites: SiteOption[]
@@ -495,6 +503,9 @@ function SiteAssignmentTab({
   unassigning: string | null
   onAssign: (siteId: string) => void
   onUnassign: (siteId: string) => void
+  siteStatusLabel: Record<string, string>
+  siteStatusClass: Record<string, string>
+  t: (key: string) => string
 }) {
   const assignedIds = new Set(assignedSites.map((s) => s.id))
 
@@ -506,7 +517,7 @@ function SiteAssignmentTab({
   })
 
   if (loading) {
-    return <div className="py-8 text-center text-gray-400 text-sm">로딩 중...</div>
+    return <div className="py-8 text-center text-gray-400 text-sm">{t('manager_detail.site_loading')}</div>
   }
 
   return (
@@ -515,14 +526,14 @@ function SiteAssignmentTab({
       {/* Currently assigned sites */}
       <div>
         <div className="flex items-center justify-between mb-3">
-          <p className="text-sm font-semibold text-gray-700">배정된 현장</p>
-          <span className="text-xs text-[#98A2B2]">{assignedSites.length}개</span>
+          <p className="text-sm font-semibold text-gray-700">{t('manager_detail.sites_assigned')}</p>
+          <span className="text-xs text-[#98A2B2]">{assignedSites.length}</span>
         </div>
 
         {assignedSites.length === 0 ? (
           <div className="rounded-2xl border border-dashed border-[#EFF1F5] py-8 text-center">
-            <p className="text-sm text-[#98A2B2]">배정된 현장이 없습니다.</p>
-            <p className="text-xs text-[#98A2B2] mt-1">아래에서 현장을 선택해 배정하세요.</p>
+            <p className="text-sm text-[#98A2B2]">{t('manager_detail.sites_none')}</p>
+            <p className="text-xs text-[#98A2B2] mt-1">{t('manager_detail.sites_none_hint')}</p>
           </div>
         ) : (
           <div className="space-y-2">
@@ -531,13 +542,13 @@ function SiteAssignmentTab({
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
                     <p className="text-sm font-medium text-gray-900 truncate">{s.name}</p>
-                    <span className={`shrink-0 px-2 py-0.5 text-xs rounded-full ${SITE_STATUS_CLASS[s.status] ?? 'bg-[#EFF1F5] text-[#98A2B2]'}`}>
-                      {SITE_STATUS_LABEL[s.status] ?? s.status}
+                    <span className={`shrink-0 px-2 py-0.5 text-xs rounded-full ${siteStatusClass[s.status] ?? 'bg-[#EFF1F5] text-[#98A2B2]'}`}>
+                      {siteStatusLabel[s.status] ?? s.status}
                     </span>
                   </div>
                   <p className="text-xs text-[#98A2B2] mt-0.5 truncate">{s.address}</p>
                   <p className="text-xs text-[#98A2B2]">
-                    배정일: {new Date(s.assigned_at).toLocaleDateString('ko-KR')}
+                    {t('manager_detail.assigned_date')}{new Date(s.assigned_at).toLocaleDateString('ko-KR')}
                   </p>
                 </div>
                 <button
@@ -545,7 +556,7 @@ function SiteAssignmentTab({
                   disabled={unassigning === s.id}
                   className="shrink-0 text-xs text-[#D81A48] border border-[#F4B0C0] rounded-xl px-3 py-1.5 hover:bg-[#FDE8EE] disabled:opacity-50 transition-colors"
                 >
-                  {unassigning === s.id ? '해제 중...' : '배정 해제'}
+                  {unassigning === s.id ? t('manager_detail.unassigning') : t('manager_detail.unassign')}
                 </button>
               </div>
             ))}
@@ -555,20 +566,20 @@ function SiteAssignmentTab({
 
       {/* Site picker */}
       <div>
-        <p className="text-sm font-semibold text-gray-700 mb-3">현장 추가</p>
+        <p className="text-sm font-semibold text-gray-700 mb-3">{t('manager_detail.site_add')}</p>
         <input
           type="text"
           value={siteSearch}
           onChange={(e) => setSiteSearch(e.target.value)}
-          placeholder="현장명 또는 주소 검색..."
+          placeholder={t('manager_detail.site_search_placeholder')}
           className="w-full border border-[#EFF1F5] rounded-2xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#0669F7] mb-3"
         />
 
         {filteredSites.length === 0 ? (
           <div className="py-6 text-center text-sm text-[#98A2B2]">
             {allSites.length === 0
-              ? '등록된 현장이 없습니다.'
-              : '검색 결과가 없거나 모든 현장이 배정되었습니다.'}
+              ? t('manager_detail.site_no_sites')
+              : t('manager_detail.site_no_results')}
           </div>
         ) : (
           <div className="border border-[#EFF1F5] rounded-2xl overflow-hidden max-h-72 overflow-y-auto">
@@ -580,8 +591,8 @@ function SiteAssignmentTab({
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium text-gray-900 truncate">{s.name}</p>
                   <p className="text-xs text-[#98A2B2] truncate">{s.address}</p>
-                  <span className={`mt-0.5 inline-block px-2 py-0.5 text-xs rounded-full ${SITE_STATUS_CLASS[s.status] ?? 'bg-[#EFF1F5] text-[#98A2B2]'}`}>
-                    {SITE_STATUS_LABEL[s.status] ?? s.status}
+                  <span className={`mt-0.5 inline-block px-2 py-0.5 text-xs rounded-full ${siteStatusClass[s.status] ?? 'bg-[#EFF1F5] text-[#98A2B2]'}`}>
+                    {siteStatusLabel[s.status] ?? s.status}
                   </span>
                 </div>
                 <button
@@ -589,7 +600,7 @@ function SiteAssignmentTab({
                   disabled={assigning}
                   className="shrink-0 text-xs bg-[#0669F7] text-white rounded-xl px-3 py-1.5 hover:bg-[#0550C4] disabled:opacity-50 transition-colors font-medium"
                 >
-                  {assigning ? '배정 중...' : '배정'}
+                  {assigning ? t('manager_detail.assigning') : t('manager_detail.assign')}
                 </button>
               </div>
             ))}
@@ -620,7 +631,7 @@ function ReadOnlyField({ label, value }: { label: string; value: string }) {
   )
 }
 
-function ImageField({ label, url }: { label: string; url: string | null | undefined }) {
+function ImageField({ label, url, notRegisteredLabel }: { label: string; url: string | null | undefined; notRegisteredLabel: string }) {
   return (
     <div>
       <label className="block text-xs font-medium text-gray-500 mb-2">{label}</label>
@@ -629,20 +640,20 @@ function ImageField({ label, url }: { label: string; url: string | null | undefi
           <img src={url} alt={label} className="max-w-xs rounded border border-[#EFF1F5] hover:opacity-90 transition-opacity" />
         </a>
       ) : (
-        <div className="inline-block px-3 py-1.5 bg-[#EFF1F5] text-[#98A2B2] text-xs rounded-2xl border border-[#EFF1F5]">미등록</div>
+        <div className="inline-block px-3 py-1.5 bg-[#EFF1F5] text-[#98A2B2] text-xs rounded-2xl border border-[#EFF1F5]">{notRegisteredLabel}</div>
       )}
     </div>
   )
 }
 
-function SaveButton({ saving, onClick }: { saving: boolean; onClick: () => void }) {
+function SaveButton({ saving, onClick, label, savingLabel }: { saving: boolean; onClick: () => void; label: string; savingLabel: string }) {
   return (
     <button
       onClick={onClick}
       disabled={saving}
       className="w-full bg-[#0669F7] hover:bg-[#0550C4] text-white font-semibold py-2.5 rounded-2xl transition-colors text-sm disabled:opacity-50"
     >
-      {saving ? '저장 중...' : '저장'}
+      {saving ? savingLabel : label}
     </button>
   )
 }

@@ -1,0 +1,34 @@
+{
+  "meta": {
+    "title": "Construction Jobs by Region | GADA VN",
+    "description": "Browse construction site jobs by province across Vietnam."
+  },
+  "breadcrumb_home": "Home",
+  "breadcrumb_locations": "Jobs by Region",
+  "heading": "Construction Jobs by Region",
+  "subtitle": "Construction site jobs in {count} provinces",
+  "loading": "Loading region information.",
+  "all_regions": "All Regions",
+  "regions": {
+    "red_river_delta": "Red River Delta",
+    "northeast": "Northeast",
+    "northwest": "Northwest",
+    "north_central": "North Central",
+    "south_central": "South Central Coast",
+    "central_highlands": "Central Highlands",
+    "southeast": "Southeast",
+    "mekong_delta": "Mekong Delta",
+    "north": "North",
+    "vietnam": "Vietnam"
+  },
+  "province": {
+    "view_jobs": "View Jobs"
+  },
+  "other_regions": "Browse other regions",
+  "view_all_jobs": "All Job Listings →",
+  "dropdown": {
+    "nav_label": "Jobs by Region",
+    "major_cities": "Major Cities",
+    "view_all_map": "View all regions"
+  }
+}

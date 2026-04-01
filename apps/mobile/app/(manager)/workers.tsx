@@ -5,6 +5,7 @@ import {
   Linking, Alert,
 } from 'react-native';
 import { useRouter } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 import { api } from '../../lib/api-client';
 import { Colors, Spacing, Radius, Font } from '../../constants/theme';
 
@@ -32,19 +33,8 @@ const DEMO_APPLICATIONS: WorkerApplication[] = [
   { id: 'dapp-6', jobId: 'djob-2', jobTitle: '서초 오피스텔 미장 작업', workDate: '2026-04-07', workerId: 'dw-6', workerName: '강지훈', workerPhone: '+82 10-6789-0123', workerTrades: ['미장공'], experienceYears: 1, status: 'REJECTED' },
 ]
 
-const STATUS_CONFIG: Record<ApplicationStatus, { bg: string; text: string; label: string }> = {
-  APPLIED:   { bg: Colors.primaryContainer, text: Colors.primary,           label: '지원' },
-  HIRED:     { bg: Colors.successContainer, text: Colors.onSuccessContainer, label: '채용' },
-  REJECTED:  { bg: Colors.errorContainer,   text: Colors.onErrorContainer,   label: '거절' },
-  COMPLETED: { bg: Colors.surfaceContainer, text: Colors.onSurfaceVariant,   label: '완료' },
-};
+// STATUS_CONFIG and TAB_FILTERS built inside component to use t()
 
-const TAB_FILTERS: { key: ApplicationStatus | 'ALL'; label: string }[] = [
-  { key: 'ALL',      label: '전체' },
-  { key: 'APPLIED',  label: '지원' },
-  { key: 'HIRED',    label: '채용' },
-  { key: 'COMPLETED', label: '완료' },
-];
 
 function formatDate(dateStr: string): string {
   const d = new Date(dateStr);
@@ -67,8 +57,23 @@ function formatPhone(phone: string | null | undefined): string {
 }
 
 export default function ManagerWorkersScreen() {
+  const { t } = useTranslation();
   const router = useRouter();
   const [applications, setApplications] = useState<WorkerApplication[]>([]);
+
+  const STATUS_CONFIG: Record<ApplicationStatus, { bg: string; text: string; label: string }> = {
+    APPLIED:   { bg: Colors.primaryContainer, text: Colors.primary,           label: t('manager.tab_filter_applied') },
+    HIRED:     { bg: Colors.successContainer, text: Colors.onSuccessContainer, label: t('manager.tab_filter_hired') },
+    REJECTED:  { bg: Colors.errorContainer,   text: Colors.onErrorContainer,   label: t('manager.worker_reject_button') },
+    COMPLETED: { bg: Colors.surfaceContainer, text: Colors.onSurfaceVariant,   label: t('manager.tab_filter_completed') },
+  };
+
+  const TAB_FILTERS: { key: ApplicationStatus | 'ALL'; label: string }[] = [
+    { key: 'ALL',       label: t('manager.tab_filter_all') },
+    { key: 'APPLIED',   label: t('manager.tab_filter_applied') },
+    { key: 'HIRED',     label: t('manager.tab_filter_hired') },
+    { key: 'COMPLETED', label: t('manager.tab_filter_completed') },
+  ];
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [activeFilter, setActiveFilter] = useState<ApplicationStatus | 'ALL'>('ALL');
@@ -92,21 +97,21 @@ export default function ManagerWorkersScreen() {
       await api.patch(`/manager/applications/${applicationId}/accept`);
       loadApplications();
     } catch {
-      Alert.alert('오류', '채용 처리에 실패했습니다.');
+      Alert.alert(t('common.error'), t('manager.worker_hire_fail'));
     }
   }
 
   async function handleReject(applicationId: string) {
-    Alert.alert('거절', '이 지원자를 거절하시겠습니까?', [
-      { text: '취소', style: 'cancel' },
+    Alert.alert(t('manager.worker_reject_title'), t('manager.worker_reject_body'), [
+      { text: t('common.cancel'), style: 'cancel' },
       {
-        text: '거절', style: 'destructive',
+        text: t('manager.worker_reject_button'), style: 'destructive',
         onPress: async () => {
           try {
             await api.patch(`/manager/applications/${applicationId}/reject`);
             loadApplications();
           } catch {
-            Alert.alert('오류', '거절 처리에 실패했습니다.');
+            Alert.alert(t('common.error'), t('manager.worker_reject_fail'));
           }
         },
       },
@@ -161,7 +166,7 @@ export default function ManagerWorkersScreen() {
         ListEmptyComponent={
           <View style={styles.empty}>
             <Text style={styles.emptyIcon}>👷</Text>
-            <Text style={styles.emptyText}>지원자가 없습니다</Text>
+            <Text style={styles.emptyText}>{t('manager.worker_no_applicants')}</Text>
           </View>
         }
         renderItem={({ item }) => {
@@ -194,7 +199,7 @@ export default function ManagerWorkersScreen() {
                   ))}
                   {item.experienceYears !== undefined && (
                     <View style={styles.chip}>
-                      <Text style={styles.chipText}>경력 {item.experienceYears}년</Text>
+                      <Text style={styles.chipText}>{t('manager.worker_experience', { years: item.experienceYears })}</Text>
                     </View>
                   )}
                 </View>
@@ -218,7 +223,7 @@ export default function ManagerWorkersScreen() {
                   style={styles.callBtn}
                   onPress={() => handleCall(item.workerPhone)}
                 >
-                  <Text style={styles.callBtnText}>📞 전화</Text>
+                  <Text style={styles.callBtnText}>{t('manager.worker_call_button')}</Text>
                 </TouchableOpacity>
 
                 {item.status === 'APPLIED' && (
@@ -227,13 +232,13 @@ export default function ManagerWorkersScreen() {
                       style={styles.rejectBtn}
                       onPress={() => handleReject(item.id)}
                     >
-                      <Text style={styles.rejectBtnText}>거절</Text>
+                      <Text style={styles.rejectBtnText}>{t('manager.worker_reject_action')}</Text>
                     </TouchableOpacity>
                     <TouchableOpacity
                       style={styles.hireBtn}
                       onPress={() => handleHire(item.id)}
                     >
-                      <Text style={styles.hireBtnText}>채용</Text>
+                      <Text style={styles.hireBtnText}>{t('manager.worker_hire_action')}</Text>
                     </TouchableOpacity>
                   </>
                 )}

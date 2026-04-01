@@ -2,6 +2,7 @@
 
 import * as React from 'react'
 import Link from 'next/link'
+import { useTranslations } from 'next-intl'
 import { getSessionCookie } from '@/lib/auth/session'
 import { apiClient } from '@/lib/api/client'
 
@@ -130,6 +131,7 @@ function useSignaturePad(canvasRef: React.RefObject<HTMLCanvasElement | null>) {
 
 export default function SignaturePadForm({ locale }: { locale: string }) {
   const idToken = getSessionCookie()
+  const t = useTranslations('common')
   const canvasRef = React.useRef<HTMLCanvasElement>(null)
   const { initCanvas, startDrawing, draw, stopDrawing, clear, getBlob, checkIsEmpty } =
     useSignaturePad(canvasRef)
@@ -193,7 +195,7 @@ export default function SignaturePadForm({ locale }: { locale: string }) {
   async function handleSave() {
     if (!idToken) return
     if (checkIsEmpty()) {
-      setErrorMessage('서명을 입력해주세요.')
+      setErrorMessage(t('worker_signature.error_empty'))
       return
     }
 
@@ -202,8 +204,8 @@ export default function SignaturePadForm({ locale }: { locale: string }) {
     setSuccessMessage(null)
 
     try {
-      // 서명 업로드 API는 현재 준비 중입니다.
-      setErrorMessage('서명 저장 기능은 현재 준비 중입니다.')
+      // Signature upload API is currently under development.
+      setErrorMessage(t('worker_signature.not_available'))
     } finally {
       setIsSaving(false)
     }
@@ -221,10 +223,10 @@ export default function SignaturePadForm({ locale }: { locale: string }) {
         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
         </svg>
-        프로필로 돌아가기
+        {t('worker_signature.back_to_profile')}
       </Link>
 
-      <h1 className="text-xl font-semibold text-[#25282A] mb-6">서명 등록</h1>
+      <h1 className="text-xl font-semibold text-[#25282A] mb-6">{t('worker_signature.title')}</h1>
 
       {isLoading ? (
         <div className="bg-white rounded-2xl shadow-sm border border-[#EFF1F5] p-5 space-y-4">
@@ -236,22 +238,22 @@ export default function SignaturePadForm({ locale }: { locale: string }) {
           {/* Existing signature */}
           {existingSignatureUrl && (
             <div>
-              <p className="block text-sm font-medium text-[#25282A] mb-2">현재 서명</p>
+              <p className="block text-sm font-medium text-[#25282A] mb-2">{t('worker_signature.current')}</p>
               <div className="border border-[#EFF1F5] rounded-2xl p-3 bg-gray-50">
                 <img
                   src={existingSignatureUrl}
-                  alt="현재 서명"
+                  alt={t('worker_signature.current_alt')}
                   className="max-h-24 object-contain mx-auto"
                 />
               </div>
-              <p className="text-xs text-[#98A2B2] mt-1">아래에 새 서명을 입력하면 덮어쓰기됩니다.</p>
+              <p className="text-xs text-[#98A2B2] mt-1">{t('worker_signature.overwrite_hint')}</p>
             </div>
           )}
 
           {/* Canvas */}
           <div>
             <p className="block text-sm font-medium text-[#25282A] mb-2">
-              {existingSignatureUrl ? '새 서명 입력' : '서명 입력'}
+              {existingSignatureUrl ? t('worker_signature.new_input') : t('worker_signature.input')}
             </p>
             <canvas
               ref={canvasRef}
@@ -266,7 +268,7 @@ export default function SignaturePadForm({ locale }: { locale: string }) {
                 backgroundColor: '#FAFAFA',
               }}
             />
-            <p className="text-xs text-[#98A2B2] mt-1">손가락이나 마우스로 서명하세요</p>
+            <p className="text-xs text-[#98A2B2] mt-1">{t('worker_signature.hint')}</p>
           </div>
 
           {/* Success / error */}
@@ -292,7 +294,7 @@ export default function SignaturePadForm({ locale }: { locale: string }) {
               }}
               className="flex-1 py-3 rounded-full border border-[#EFF1F5] text-[#25282A] font-medium text-sm hover:border-[#0669F7] hover:text-[#0669F7] transition-colors"
             >
-              지우기
+              {t('worker_signature.clear')}
             </button>
             <button
               type="button"
@@ -300,7 +302,7 @@ export default function SignaturePadForm({ locale }: { locale: string }) {
               disabled={isSaving}
               className="flex-1 py-3 rounded-full bg-[#0669F7] text-white font-medium disabled:opacity-50 text-sm hover:bg-blue-700 transition-colors"
             >
-              {isSaving ? '저장 중...' : '저장'}
+              {isSaving ? t('worker_signature.saving') : t('worker_signature.save')}
             </button>
           </div>
         </div>

@@ -1,3 +1,4 @@
+import { getTranslations } from 'next-intl/server'
 import { Link } from '@/components/navigation'
 
 interface Props {
@@ -5,14 +6,22 @@ interface Props {
 }
 
 const TOP_PROVINCES = [
-  { nameKo: '하노이',  slug: 'ha-noi' },
-  { nameKo: '호치민',  slug: 'ho-chi-minh-city' },
-  { nameKo: '다낭',    slug: 'da-nang' },
-  { nameKo: '하이퐁',  slug: 'hai-phong' },
-  { nameKo: '빈즈엉',  slug: 'binh-duong' },
+  { nameKo: '하노이',  nameVi: 'Hà Nội',         nameEn: 'Hanoi',             slug: 'ha-noi' },
+  { nameKo: '호치민',  nameVi: 'TP. Hồ Chí Minh', nameEn: 'Ho Chi Minh City', slug: 'ho-chi-minh-city' },
+  { nameKo: '다낭',    nameVi: 'Đà Nẵng',          nameEn: 'Da Nang',          slug: 'da-nang' },
+  { nameKo: '하이퐁',  nameVi: 'Hải Phòng',        nameEn: 'Hai Phong',        slug: 'hai-phong' },
+  { nameKo: '빈즈엉',  nameVi: 'Bình Dương',       nameEn: 'Binh Duong',       slug: 'binh-duong' },
 ]
 
-export function PublicFooter({ locale }: Props) {
+function getProvinceName(p: typeof TOP_PROVINCES[0], locale: string) {
+  if (locale === 'vi') return p.nameVi
+  if (locale === 'en') return p.nameEn
+  return p.nameKo
+}
+
+export async function PublicFooter({ locale }: Props) {
+  const t = await getTranslations({ locale, namespace: 'landing' })
+
   return (
     <footer className="bg-[#1A1D23] text-white">
       <div className="max-w-[1760px] mx-auto px-4 sm:px-6 xl:px-20 py-12">
@@ -21,13 +30,13 @@ export function PublicFooter({ locale }: Props) {
           <div>
             <span className="text-2xl font-black text-[#0669F7] tracking-tight">GADA</span>
             <p className="mt-3 text-sm text-[#9CA3AF] leading-relaxed">
-              베트남 전역 건설 현장의 일용직 일자리를 연결합니다. 하노이, 호치민, 다낭 등 전국 건설 현장 공고.
+              {t('footer.description')}
             </p>
           </div>
 
-          {/* 인기 지역 */}
+          {/* Popular regions */}
           <div>
-            <h3 className="text-sm font-semibold text-white mb-4 uppercase tracking-wide">인기 지역</h3>
+            <h3 className="text-sm font-semibold text-white mb-4 uppercase tracking-wide">{t('footer.popular_regions')}</h3>
             <ul className="space-y-2">
               {TOP_PROVINCES.map(p => (
                 <li key={p.slug}>
@@ -35,30 +44,30 @@ export function PublicFooter({ locale }: Props) {
                     href={`/locations/${p.slug}`}
                     className="text-sm text-[#9CA3AF] hover:text-white transition-colors"
                   >
-                    {p.nameKo} 건설 일자리
+                    {getProvinceName(p, locale)} {t('footer.job_suffix')}
                   </Link>
                 </li>
               ))}
             </ul>
           </div>
 
-          {/* 빠른 링크 */}
+          {/* Quick links */}
           <div>
-            <h3 className="text-sm font-semibold text-white mb-4 uppercase tracking-wide">빠른 링크</h3>
+            <h3 className="text-sm font-semibold text-white mb-4 uppercase tracking-wide">{t('footer.quick_links')}</h3>
             <ul className="space-y-2">
               <li>
                 <Link href="/jobs" className="text-sm text-[#9CA3AF] hover:text-white transition-colors">
-                  공고 목록
+                  {t('footer.jobs_list')}
                 </Link>
               </li>
               <li>
                 <Link href="/register" className="text-sm text-[#9CA3AF] hover:text-white transition-colors">
-                  회원가입
+                  {t('footer.register')}
                 </Link>
               </li>
               <li>
                 <Link href="/login" className="text-sm text-[#9CA3AF] hover:text-white transition-colors">
-                  로그인
+                  {t('footer.login')}
                 </Link>
               </li>
             </ul>

@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
+import { getTranslations } from 'next-intl/server'
 import { fetchProvinces } from '@/lib/api/public'
 import { Breadcrumb } from '@/components/public/Breadcrumb'
 
@@ -11,9 +12,10 @@ export const revalidate = 86400
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { locale } = await params
+  const t = await getTranslations({ locale, namespace: 'locations' })
   return {
-    title: '지역별 건설 일자리 | GADA VN',
-    description: '베트남 전 지역 건설 현장 일용직 공고를 지역별로 확인하세요.',
+    title: t('meta.title'),
+    description: t('meta.description'),
     alternates: {
       canonical: `https://gada.vn/${locale}/locations`,
       languages: {
@@ -31,34 +33,34 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 const PROVINCE_THEMES: Record<string, {
   gradient: string
   icon: string
-  region: string
+  regionKey: string
 }> = {
-  'hn':    { gradient: 'from-[#1A1A2E] to-[#16213E]', icon: '🏛️', region: '홍강 델타' },
-  'hcm':   { gradient: 'from-[#0F3460] to-[#533483]', icon: '🌆', region: '동남부' },
-  'dn':    { gradient: 'from-[#0A3D62] to-[#1289A7]', icon: '🌊', region: '남중부' },
-  'hp':    { gradient: 'from-[#006266] to-[#1289A7]', icon: '⚓', region: '홍강 델타' },
-  'ct':    { gradient: 'from-[#1B6CA8] to-[#006266]', icon: '🛶', region: '메콩 델타' },
-  'bd':    { gradient: 'from-[#6A3093] to-[#A044FF]', icon: '🏭', region: '동남부' },
-  'dn-t':  { gradient: 'from-[#134E5E] to-[#71B280]', icon: '🌿', region: '동남부' },
-  'qni':   { gradient: 'from-[#1565C0] to-[#42A5F5]', icon: '⛰️', region: '동북부' },
-  'br-vt': { gradient: 'from-[#E65C00] to-[#F9D423]', icon: '🛢️', region: '동남부' },
-  'la':    { gradient: 'from-[#1D8348] to-[#27AE60]', icon: '🌾', region: '메콩 델타' },
+  'hn':    { gradient: 'from-[#1A1A2E] to-[#16213E]', icon: '🏛️', regionKey: 'red_river_delta' },
+  'hcm':   { gradient: 'from-[#0F3460] to-[#533483]', icon: '🌆', regionKey: 'southeast' },
+  'dn':    { gradient: 'from-[#0A3D62] to-[#1289A7]', icon: '🌊', regionKey: 'south_central' },
+  'hp':    { gradient: 'from-[#006266] to-[#1289A7]', icon: '⚓', regionKey: 'red_river_delta' },
+  'ct':    { gradient: 'from-[#1B6CA8] to-[#006266]', icon: '🛶', regionKey: 'mekong_delta' },
+  'bd':    { gradient: 'from-[#6A3093] to-[#A044FF]', icon: '🏭', regionKey: 'southeast' },
+  'dn-t':  { gradient: 'from-[#134E5E] to-[#71B280]', icon: '🌿', regionKey: 'southeast' },
+  'qni':   { gradient: 'from-[#1565C0] to-[#42A5F5]', icon: '⛰️', regionKey: 'northeast' },
+  'br-vt': { gradient: 'from-[#E65C00] to-[#F9D423]', icon: '🛢️', regionKey: 'southeast' },
+  'la':    { gradient: 'from-[#1D8348] to-[#27AE60]', icon: '🌾', regionKey: 'mekong_delta' },
 }
 
 // Region-based fallback gradients keyed by province slug prefix
-const REGION_GRADIENTS: Array<{ test: (slug: string) => boolean; gradient: string; region: string }> = [
+const REGION_GRADIENTS: Array<{ test: (slug: string) => boolean; gradient: string; regionKey: string }> = [
   { test: (s) => ['ha-', 'bac-', 'vinh-', 'hung-', 'ninh-binh', 'thai-', 'tuyen-', 'cao-', 'lang-', 'lao-', 'yen-', 'hoa-', 'son-', 'dien-'].some(p => s.startsWith(p)),
-    gradient: 'from-[#1a3a5c] to-[#2d6a9f]', region: '북부' },
+    gradient: 'from-[#1a3a5c] to-[#2d6a9f]', regionKey: 'north' },
   { test: (s) => ['thanh-', 'nghe-', 'ha-tinh', 'quang-binh', 'quang-tri', 'thua-thien'].some(p => s.startsWith(p)),
-    gradient: 'from-[#5c3a1a] to-[#9f6a2d]', region: '북중부' },
+    gradient: 'from-[#5c3a1a] to-[#9f6a2d]', regionKey: 'north_central' },
   { test: (s) => ['quang-', 'binh-dinh', 'phu-yen', 'khanh-hoa', 'ninh-thuan', 'binh-thuan'].some(p => s.startsWith(p)),
-    gradient: 'from-[#1a5c4a] to-[#2d9f7a]', region: '남중부' },
+    gradient: 'from-[#1a5c4a] to-[#2d9f7a]', regionKey: 'south_central' },
   { test: (s) => ['kon-tum', 'gia-lai', 'dak-lak', 'dak-nong', 'lam-dong'].some(p => s.startsWith(p)),
-    gradient: 'from-[#2d5c1a] to-[#4a9f2d]', region: '중부 고원' },
+    gradient: 'from-[#2d5c1a] to-[#4a9f2d]', regionKey: 'central_highlands' },
   { test: (s) => ['ba-ria', 'binh-phuoc', 'tay-ninh'].some(p => s.startsWith(p)),
-    gradient: 'from-[#5c1a4a] to-[#9f2d7a]', region: '동남부' },
+    gradient: 'from-[#5c1a4a] to-[#9f2d7a]', regionKey: 'southeast' },
   { test: (s) => ['an-giang', 'ben-tre', 'dong-thap', 'hau-giang', 'kien-giang', 'soc-trang', 'tien-giang', 'tra-vinh', 'vinh-long', 'bac-lieu', 'ca-mau'].some(p => s.startsWith(p)),
-    gradient: 'from-[#1a5c3a] to-[#2d9f5a]', region: '메콩 델타' },
+    gradient: 'from-[#1a5c3a] to-[#2d9f5a]', regionKey: 'mekong_delta' },
 ]
 
 function getProvinceTheme(slug: string) {
@@ -67,12 +69,13 @@ function getProvinceTheme(slug: string) {
   return {
     gradient: match?.gradient ?? 'from-[#2c3e50] to-[#3498db]',
     icon: '🏗️',
-    region: match?.region ?? '베트남',
+    regionKey: match?.regionKey ?? 'vietnam',
   }
 }
 
 export default async function LocationsPage({ params }: Props) {
   const { locale } = await params
+  const t = await getTranslations({ locale, namespace: 'locations' })
   const provinces = await fetchProvinces(locale).catch(() => [])
 
   // Pin major provinces first
@@ -86,20 +89,20 @@ export default async function LocationsPage({ params }: Props) {
     <div className="max-w-[1760px] mx-auto px-4 sm:px-6 xl:px-20 py-8">
       <Breadcrumb
         items={[
-          { label: '홈', href: '/' },
-          { label: '지역별 공고' },
+          { label: t('breadcrumb_home'), href: '/' },
+          { label: t('breadcrumb_locations') },
         ]}
       />
 
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-[#25282A]">지역별 건설 일자리</h1>
+        <h1 className="text-3xl font-bold text-[#25282A]">{t('heading')}</h1>
         <p className="text-sm text-[#98A2B2] mt-1">
-          베트남 {provinces.length}개 지역의 건설 현장 공고
+          {t('subtitle', { count: provinces.length })}
         </p>
       </div>
 
       {provinces.length === 0 ? (
-        <div className="text-center py-16 text-[#98A2B2]">지역 정보를 불러오는 중입니다.</div>
+        <div className="text-center py-16 text-[#98A2B2]">{t('loading')}</div>
       ) : (
         <>
           {/* ── Featured provinces (top 5) ─────────────────────────── */}
@@ -139,7 +142,7 @@ export default async function LocationsPage({ params }: Props) {
                     <p className="text-white font-bold text-sm leading-tight">{province.nameVi}</p>
                     <p className="text-white/60 text-[11px] mt-0.5">{province.nameEn}</p>
                     <span className="inline-block mt-1.5 text-[10px] font-semibold px-2 py-0.5 rounded-full bg-white/20 text-white/90">
-                      {theme.region}
+                      {t(`regions.${theme.regionKey}` as any)}
                     </span>
                   </div>
 
@@ -155,7 +158,7 @@ export default async function LocationsPage({ params }: Props) {
           </div>
 
           {/* ── All provinces grid ─────────────────────────────────── */}
-          <h2 className="text-sm font-bold text-[#98A2B2] uppercase tracking-wider mb-3 mt-6">전체 지역</h2>
+          <h2 className="text-sm font-bold text-[#98A2B2] uppercase tracking-wider mb-3 mt-6">{t('all_regions')}</h2>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2.5">
             {sorted.slice(5).map((province) => {
               const theme = getProvinceTheme(province.slug)

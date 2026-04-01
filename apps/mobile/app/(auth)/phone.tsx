@@ -26,7 +26,7 @@ export default function PhoneScreen() {
       const confirmation = await signInWithPhoneOtp(`${countryCode}${phone}`);
       router.push({ pathname: '/(auth)/otp', params: { confirmationToken: JSON.stringify(confirmation) } });
     } catch (err) {
-      Alert.alert('오류', '인증번호 전송에 실패했습니다. 다시 시도해주세요.');
+      Alert.alert(t('common.error'), t('auth.otp_send_fail'));
     } finally {
       setLoading(false);
     }
@@ -38,8 +38,8 @@ export default function PhoneScreen() {
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
       <View style={styles.inner}>
-        <Text style={styles.title}>가다 VN</Text>
-        <Text style={styles.subtitle}>전화번호로 시작하세요</Text>
+        <Text style={styles.title}>{t('auth.gada_title')}</Text>
+        <Text style={styles.subtitle}>{t('auth.phone_start')}</Text>
 
         <View style={styles.phoneRow}>
           {COUNTRY_CODES.map((c) => (

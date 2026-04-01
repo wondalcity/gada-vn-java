@@ -2,6 +2,7 @@
 
 import * as React from 'react'
 import Link from 'next/link'
+import { useTranslations } from 'next-intl'
 import { getSessionCookie } from '@/lib/auth/session'
 
 // ─── Types ───────────────────────────────────────────────────────────────────
@@ -28,12 +29,13 @@ function getVerifiedStatus(status: IdDocumentStatus): VerifiedStatus {
 
 interface UploadZoneProps {
   label: string
+  tapLabel: string
   currentUrl: string | null
   preview: string | null
   onFileChange: (file: File) => void
 }
 
-function UploadZone({ label, currentUrl, preview, onFileChange }: UploadZoneProps) {
+function UploadZone({ label, tapLabel, currentUrl, preview, onFileChange }: UploadZoneProps) {
   const inputRef = React.useRef<HTMLInputElement>(null)
   const displayUrl = preview ?? currentUrl
 
@@ -64,7 +66,7 @@ function UploadZone({ label, currentUrl, preview, onFileChange }: UploadZoneProp
                 d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
               />
             </svg>
-            <span className="text-xs text-[#98A2B2]">탭하여 사진 선택</span>
+            <span className="text-xs text-[#98A2B2]">{tapLabel}</span>
           </div>
         )}
       </button>
@@ -84,7 +86,7 @@ function UploadZone({ label, currentUrl, preview, onFileChange }: UploadZoneProp
 
 // ─── Status badge ─────────────────────────────────────────────────────────────
 
-function VerifiedBadge({ status }: { status: VerifiedStatus }) {
+function VerifiedBadge({ status, labels }: { status: VerifiedStatus; labels: { verified: string; review: string; unregistered: string } }) {
   if (status === 'verified') {
     return (
       <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium bg-green-50 text-green-700 border border-green-200">
@@ -95,7 +97,7 @@ function VerifiedBadge({ status }: { status: VerifiedStatus }) {
             clipRule="evenodd"
           />
         </svg>
-        인증 완료
+        {labels.verified}
       </span>
     )
   }
@@ -110,13 +112,13 @@ function VerifiedBadge({ status }: { status: VerifiedStatus }) {
             d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
           />
         </svg>
-        검토 중
+        {labels.review}
       </span>
     )
   }
   return (
     <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium bg-gray-100 text-[#98A2B2] border border-[#EFF1F5]">
-      미등록
+      {labels.unregistered}
     </span>
   )
 }
@@ -125,6 +127,7 @@ function VerifiedBadge({ status }: { status: VerifiedStatus }) {
 
 export default function IdUploadForm({ locale }: { locale: string }) {
   const idToken = getSessionCookie()
+  const t = useTranslations('common')
 
   const [status, setStatus] = React.useState<IdDocumentStatus>({
     idNumber: null,
@@ -176,8 +179,8 @@ export default function IdUploadForm({ locale }: { locale: string }) {
     setSuccessMessage(null)
 
     try {
-      // 신분증 업로드 API는 현재 준비 중입니다.
-      setErrorMessage('신분증 업로드 기능은 현재 준비 중입니다.')
+      // ID upload API is currently under development.
+      setErrorMessage(t('worker_id_upload.not_available'))
     } finally {
       setIsUploading(false)
     }
@@ -197,12 +200,12 @@ export default function IdUploadForm({ locale }: { locale: string }) {
         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
         </svg>
-        프로필로 돌아가기
+        {t('worker_id_upload.back_to_profile')}
       </Link>
 
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-xl font-semibold text-[#25282A]">신분증 등록</h1>
-        {!isLoading && <VerifiedBadge status={verifiedStatus} />}
+        <h1 className="text-xl font-semibold text-[#25282A]">{t('worker_id_upload.title')}</h1>
+        {!isLoading && <VerifiedBadge status={verifiedStatus} labels={{ verified: t('worker_id_upload.verified'), review: t('worker_id_upload.review'), unregistered: t('worker_id_upload.unregistered') }} />}
       </div>
 
       {/* Loading skeleton */}
@@ -218,13 +221,15 @@ export default function IdUploadForm({ locale }: { locale: string }) {
             {/* Upload zones */}
             <div className="flex gap-3">
               <UploadZone
-                label="신분증 앞면"
+                label={t('worker_id_upload.front')}
+                tapLabel={t('worker_id_upload.tap_to_select')}
                 currentUrl={status.idFrontUrl}
                 preview={frontPreview}
                 onFileChange={handleFrontFile}
               />
               <UploadZone
-                label="신분증 뒷면"
+                label={t('worker_id_upload.back_side')}
+                tapLabel={t('worker_id_upload.tap_to_select')}
                 currentUrl={status.idBackUrl}
                 preview={backPreview}
                 onFileChange={handleBackFile}
@@ -234,15 +239,15 @@ export default function IdUploadForm({ locale }: { locale: string }) {
             {/* ID number */}
             <div>
               <label htmlFor="idNumber" className="block text-sm font-medium text-[#25282A] mb-1">
-                신분증 번호
-                <span className="ml-1 text-xs text-[#98A2B2] font-normal">(베트남 ID 또는 여권번호)</span>
+                {t('worker_id_upload.id_number_label')}
+                <span className="ml-1 text-xs text-[#98A2B2] font-normal">{t('worker_id_upload.id_number_hint')}</span>
               </label>
               <input
                 id="idNumber"
                 type="text"
                 value={idNumber}
                 onChange={(e) => setIdNumber(e.target.value)}
-                placeholder="신분증 번호를 입력하세요"
+                placeholder={t('worker_id_upload.id_number_placeholder')}
                 className="w-full px-3 py-2 rounded-2xl border border-[#EFF1F5] focus:outline-none focus:border-[#0669F7] text-sm text-[#25282A]"
               />
             </div>
@@ -265,7 +270,7 @@ export default function IdUploadForm({ locale }: { locale: string }) {
               disabled={isUploading || (!frontFile && !backFile && !idNumber)}
               className="w-full py-3 rounded-full bg-[#0669F7] text-white font-medium disabled:opacity-50 text-sm hover:bg-blue-700 transition-colors"
             >
-              {isUploading ? '업로드 중...' : '제출하기'}
+              {isUploading ? t('worker_id_upload.uploading') : t('worker_id_upload.submit')}
             </button>
           </form>
         </div>
@@ -294,7 +299,7 @@ export default function IdUploadForm({ locale }: { locale: string }) {
                 d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
               />
             </svg>
-            <p className="text-sm text-[#25282A] font-medium">업로드 중...</p>
+            <p className="text-sm text-[#25282A] font-medium">{t('worker_id_upload.uploading')}</p>
           </div>
         </div>
       )}

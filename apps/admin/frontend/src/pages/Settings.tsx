@@ -7,7 +7,7 @@ const LOCALES: { code: AdminLocale; flag: string }[] = [
 ]
 
 export default function Settings() {
-  const t = useAdminTranslation()
+  const { t } = useAdminTranslation()
   const { locale, setLocale } = useLanguage()
 
   return (

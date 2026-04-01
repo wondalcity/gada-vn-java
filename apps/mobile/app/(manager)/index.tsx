@@ -4,29 +4,36 @@ import {
   TouchableOpacity, RefreshControl, ActivityIndicator,
 } from 'react-native';
 import { useRouter } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 import { api } from '../../lib/api-client';
 import type { JobWithSite } from '@gada-vn/core';
 
 type JobStatus = 'OPEN' | 'FILLED' | 'CANCELLED' | 'COMPLETED';
 
-const STATUS_TABS: { key: JobStatus | 'ALL'; label: string }[] = [
-  { key: 'ALL',       label: '전체' },
-  { key: 'OPEN',      label: '모집중' },
-  { key: 'FILLED',    label: '마감' },
-  { key: 'COMPLETED', label: '완료' },
-  { key: 'CANCELLED', label: '취소' },
-];
-
 const STATUS_COLOR: Record<string, string> = {
   OPEN: '#4CAF50', FILLED: '#FF9800', CANCELLED: '#9E9E9E', COMPLETED: '#2196F3',
 };
-const STATUS_LABEL: Record<string, string> = {
-  OPEN: '모집 중', FILLED: '마감', CANCELLED: '취소됨', COMPLETED: '완료',
-};
+
+// STATUS_TABS and STATUS_LABEL are built inside the component to use t()
+
 
 export default function ManagerJobsScreen() {
+  const { t } = useTranslation();
   const router = useRouter();
   const [jobs, setJobs] = useState<JobWithSite[]>([]);
+
+  const STATUS_TABS: { key: JobStatus | 'ALL'; label: string }[] = [
+    { key: 'ALL',       label: t('jobs.status_all') },
+    { key: 'OPEN',      label: t('jobs.status_open') },
+    { key: 'FILLED',    label: t('jobs.status_filled') },
+    { key: 'COMPLETED', label: t('jobs.status_completed') },
+    { key: 'CANCELLED', label: t('jobs.status_cancelled') },
+  ];
+
+  const STATUS_LABEL: Record<string, string> = {
+    OPEN: t('jobs.status_open_label'), FILLED: t('jobs.status_filled_label'),
+    CANCELLED: t('jobs.status_cancelled_label'), COMPLETED: t('jobs.status_completed_label'),
+  };
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [activeTab, setActiveTab] = useState<JobStatus | 'ALL'>('ALL');
@@ -97,8 +104,8 @@ export default function ManagerJobsScreen() {
         contentContainerStyle={styles.list}
         ListEmptyComponent={
           <View style={styles.empty}>
-            <Text style={styles.emptyText}>등록된 일자리가 없습니다</Text>
-            <Text style={styles.hint}>아래 + 버튼으로 새 일자리를 등록하세요</Text>
+            <Text style={styles.emptyText}>{t('jobs.no_jobs')}</Text>
+            <Text style={styles.hint}>{t('jobs.no_jobs_hint')}</Text>
           </View>
         }
         renderItem={({ item }) => {
@@ -122,7 +129,7 @@ export default function ManagerJobsScreen() {
               </Text>
               <View style={styles.cardFooter}>
                 <Text style={styles.wage}>₫{new Intl.NumberFormat('ko-KR').format(item.dailyWage)}</Text>
-                <Text style={styles.slots}>{item.slotsFilled}/{item.slotsTotal}명</Text>
+                <Text style={styles.slots}>{t('jobs.slots_count', { filled: item.slotsFilled, total: item.slotsTotal })}</Text>
               </View>
             </TouchableOpacity>
           );

@@ -14,12 +14,13 @@ interface Props {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { locale } = await params
+  const t = await getTranslations({ locale, namespace: 'landing' })
   return {
-    title: 'GADA VN — 베트남 건설 일용직 구인구직',
-    description: '베트남 전역 건설 현장의 일용직 일자리를 찾아보세요. 하노이, 호치민, 다낭 등 지역별 공고.',
+    title: t('meta.title'),
+    description: t('meta.description'),
     openGraph: {
-      title: 'GADA VN — 베트남 건설 일용직 구인구직',
-      description: '베트남 전역 건설 현장의 일용직 일자리를 찾아보세요.',
+      title: t('meta.title'),
+      description: t('meta.og_description'),
       type: 'website',
       locale: locale === 'ko' ? 'ko_KR' : locale === 'vi' ? 'vi_VN' : 'en_US',
       url: `https://gada.vn/${locale}`,
@@ -37,6 +38,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function LandingPage({ params }: Props) {
   const { locale } = await params
+  const t = await getTranslations({ locale, namespace: 'landing' })
 
   const [jobsResult, provinces, trades] = await Promise.all([
     fetchPublicJobs({ page: 1, locale }),
@@ -51,7 +53,7 @@ export default async function LandingPage({ params }: Props) {
   const jsonLd = {
     '@context': 'https://schema.org',
     '@type': 'ItemList',
-    name: 'GADA VN 최신 건설 일자리',
+    name: t('jobs.section_title'),
     itemListElement: latestJobs.map((job, i) => ({
       '@type': 'ListItem',
       position: i + 1,
@@ -71,11 +73,11 @@ export default async function LandingPage({ params }: Props) {
       <section className="bg-gradient-to-br from-[#0F2247] to-[#0669F7] py-16 md:py-24">
         <div className="max-w-[1760px] mx-auto px-4 sm:px-6 xl:px-20 text-center">
           <h1 className="text-3xl md:text-5xl font-black text-white leading-tight mb-4">
-            베트남 건설 일자리<br />
-            <span className="text-blue-200">한 곳에서 찾는다</span>
+            {t('hero.h1')}<br />
+            <span className="text-blue-200">{t('hero.h1_highlight')}</span>
           </h1>
           <p className="text-base md:text-lg text-blue-100 mb-8">
-            하노이부터 호치민까지, 전국 건설 현장 일용직 공고
+            {t('hero.description')}
           </p>
 
           {/* Search bar (client component for interactivity) */}
@@ -85,17 +87,17 @@ export default async function LandingPage({ params }: Props) {
           <div className="mt-10 flex flex-wrap items-center justify-center gap-8">
             <div className="text-center">
               <p className="text-2xl font-black text-white">{totalJobs.toLocaleString()}+</p>
-              <p className="text-xs text-blue-200 mt-0.5">활성 공고</p>
+              <p className="text-xs text-blue-200 mt-0.5">{t('hero.stat_jobs')}</p>
             </div>
             <div className="w-px h-8 bg-white/20 hidden sm:block" />
             <div className="text-center">
               <p className="text-2xl font-black text-white">{totalCities}+</p>
-              <p className="text-xs text-blue-200 mt-0.5">도시</p>
+              <p className="text-xs text-blue-200 mt-0.5">{t('hero.stat_cities')}</p>
             </div>
             <div className="w-px h-8 bg-white/20 hidden sm:block" />
             <div className="text-center">
-              <p className="text-2xl font-black text-white">무료</p>
-              <p className="text-xs text-blue-200 mt-0.5">회원가입</p>
+              <p className="text-2xl font-black text-white">{t('hero.stat_free')}</p>
+              <p className="text-xs text-blue-200 mt-0.5">{t('hero.stat_signup')}</p>
             </div>
           </div>
         </div>
@@ -104,7 +106,7 @@ export default async function LandingPage({ params }: Props) {
       {/* Province grid */}
       <section className="py-12 md:py-16 bg-white">
         <div className="max-w-[1760px] mx-auto px-4 sm:px-6 xl:px-20">
-          <h2 className="text-xl font-bold text-[#25282A] mb-6">지역별 공고 찾기</h2>
+          <h2 className="text-xl font-bold text-[#25282A] mb-6">{t('provinces.section_title')}</h2>
           <ProvinceGrid provinces={provinces} locale={locale} />
         </div>
       </section>
@@ -113,24 +115,24 @@ export default async function LandingPage({ params }: Props) {
       <section className="py-12 md:py-16 bg-[#F2F4F5]">
         <div className="max-w-[1760px] mx-auto px-4 sm:px-6 xl:px-20">
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xl font-bold text-[#25282A]">최신 공고</h2>
+            <h2 className="text-xl font-bold text-[#25282A]">{t('jobs.section_title')}</h2>
             <a
               href={`/${locale}/jobs`}
               className="text-sm text-[#0669F7] hover:underline font-medium"
             >
-              전체 보기 →
+              {t('jobs.view_all')}
             </a>
           </div>
           <JobListGrid
             jobs={latestJobs}
             locale={locale}
-            emptyMessage="현재 등록된 공고가 없습니다."
+            emptyMessage={t('jobs.empty')}
           />
         </div>
       </section>
 
       {/* CTA */}
-      <WorkerSignupCTA />
+      <WorkerSignupCTA locale={locale} />
     </>
   )
 }

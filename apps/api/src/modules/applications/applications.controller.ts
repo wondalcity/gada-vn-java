@@ -13,9 +13,9 @@ import { CurrentUser, CurrentUserPayload } from '../../common/decorators/current
 export class ApplicationsController {
   constructor(private readonly applicationsService: ApplicationsService) {}
 
-  // Worker applies to a job
+  // Worker (or manager applying as worker) applies to a job
   @Post('jobs/:jobId/apply')
-  @Roles('WORKER')
+  @Roles('WORKER', 'MANAGER')
   async applyToJob(
     @Param('jobId') jobId: string,
     @CurrentUser() user: CurrentUserPayload,
@@ -24,9 +24,9 @@ export class ApplicationsController {
     return this.applicationsService.apply(user.id, jobId, body);
   }
 
-  // Worker withdraws (cancels) a PENDING application
+  // Worker (or manager) withdraws (cancels) a PENDING application
   @Delete('applications/:id')
-  @Roles('WORKER')
+  @Roles('WORKER', 'MANAGER')
   async withdrawApplication(
     @Param('id') id: string,
     @CurrentUser() user: CurrentUserPayload,
@@ -34,15 +34,25 @@ export class ApplicationsController {
     return this.applicationsService.withdraw(id, user.id);
   }
 
-  // Worker fetches their own applications
+  // Worker (or manager) fetches their own applications
   @Get('applications/mine')
-  @Roles('WORKER')
+  @Roles('WORKER', 'MANAGER')
   async getMyApplications(
     @CurrentUser() user: CurrentUserPayload,
     @Query('page') page = 1,
     @Query('limit') limit = 20,
   ) {
     return this.applicationsService.findByWorker(user.id, +page, +limit);
+  }
+
+  // Worker (or manager) checks their own application for a specific job
+  @Get('jobs/:jobId/my-application')
+  @Roles('WORKER', 'MANAGER')
+  async getMyApplicationForJob(
+    @Param('jobId') jobId: string,
+    @CurrentUser() user: CurrentUserPayload,
+  ) {
+    return this.applicationsService.findByWorkerAndJob(user.id, jobId);
   }
 
   // Manager fetches applications for a specific job

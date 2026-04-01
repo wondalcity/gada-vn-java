@@ -1,9 +1,29 @@
 {
+  "meta": {
+    "title": "GADA VN — 베트남 건설 일용직 구인구직",
+    "description": "베트남 전역 건설 현장의 일용직 일자리를 찾아보세요. 하노이, 호치민, 다낭 등 지역별 공고.",
+    "og_description": "베트남 전역 건설 현장의 일용직 일자리를 찾아보세요."
+  },
+  "header": {
+    "jobs_list": "공고 목록",
+    "register_free": "무료 가입"
+  },
   "hero": {
-    "title": "베트남 건설 현장을 연결합니다",
+    "title": "베트남 건설 일자리를 연결합니다",
+    "h1": "베트남 건설 일자리",
+    "h1_highlight": "한 곳에서 찾는다",
     "subtitle": "숙련된 건설 근로자와 신뢰할 수 있는 현장을 연결하는 플랫폼",
+    "description": "하노이부터 호치민까지, 전국 건설 현장 일용직 공고",
     "cta_worker": "일자리 찾기",
-    "cta_manager": "인력 채용하기"
+    "cta_manager": "인력 채용하기",
+    "stat_jobs": "활성 공고",
+    "stat_cities": "도시",
+    "stat_free": "무료",
+    "stat_signup": "회원가입",
+    "search_placeholder": "공고명 또는 현장명 검색...",
+    "all_provinces": "전체 지역",
+    "all_trades": "전체 직종",
+    "map_view": "지도로 보기"
   },
   "stats": {
     "jobs": "{count}개 일자리",
@@ -29,12 +49,34 @@
   },
   "provinces": {
     "title": "지역별 일자리",
-    "view_all": "전체 보기"
+    "section_title": "지역별 공고 찾기",
+    "view_all": "전체 보기",
+    "view_jobs": "공고 보기 →"
+  },
+  "jobs": {
+    "section_title": "최신 공고",
+    "view_all": "전체 보기 →",
+    "empty": "현재 등록된 공고가 없습니다."
+  },
+  "cta": {
+    "title": "지금 바로 구직을 시작하세요",
+    "subtitle": "GADA VN에 가입하고 베트남 전역의 건설 일자리를 찾아보세요",
+    "register": "무료 회원가입",
+    "view_jobs": "공고 보기",
+    "have_account": "이미 계정이 있나요?",
+    "login": "로그인"
   },
   "footer": {
     "about": "회사 소개",
     "terms": "이용약관",
     "privacy": "개인정보처리방침",
-    "contact": "문의하기"
+    "contact": "문의하기",
+    "description": "베트남 전역 건설 현장의 일용직 일자리를 연결합니다. 하노이, 호치민, 다낭 등 전국 건설 현장 공고.",
+    "popular_regions": "인기 지역",
+    "job_suffix": "건설 일자리",
+    "quick_links": "빠른 링크",
+    "jobs_list": "공고 목록",
+    "register": "회원가입",
+    "login": "로그인"
   }
 }

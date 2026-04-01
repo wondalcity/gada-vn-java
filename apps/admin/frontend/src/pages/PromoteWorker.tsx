@@ -1,6 +1,7 @@
 import { useState, useCallback } from 'react'
 import { Link } from 'react-router-dom'
 import { api } from '../lib/api'
+import { useAdminTranslation } from '../context/LanguageContext'
 
 function formatPhone(phone: string | null | undefined): string {
   if (!phone) return '-'
@@ -31,6 +32,7 @@ interface WorkerDetail extends Worker {
 }
 
 export default function PromoteWorker() {
+  const { t } = useAdminTranslation()
   const [searchQuery, setSearchQuery] = useState('')
   const [searchResults, setSearchResults] = useState<Worker[]>([])
   const [searching, setSearching] = useState(false)
@@ -63,11 +65,11 @@ export default function PromoteWorker() {
       )
       setSearchResults(res.data ?? [])
     } catch (err: any) {
-      setError(err.message ?? '검색 실패')
+      setError(err.message ?? t('promote_worker.search_failed'))
     } finally {
       setSearching(false)
     }
-  }, [searchQuery])
+  }, [searchQuery, t])
 
   const handleSelectWorker = useCallback(async (worker: Worker) => {
     setLoadingDetail(true)
@@ -76,7 +78,7 @@ export default function PromoteWorker() {
     try {
       const detail = await api.get<WorkerDetail>(`/admin/workers/${worker.id}`)
       if (!detail.user_id) {
-        setError('이 근로자의 user_id를 찾을 수 없습니다.')
+        setError(t('promote_worker.no_user_id'))
         return
       }
       setSelectedWorker({ ...detail, id: worker.id })
@@ -85,17 +87,17 @@ export default function PromoteWorker() {
         setContactPhone(detail.phone)
       }
     } catch (err: any) {
-      setError(err.message ?? '근로자 정보를 불러오지 못했습니다.')
+      setError(err.message ?? t('promote_worker.load_failed'))
     } finally {
       setLoadingDetail(false)
     }
-  }, [contactPhone])
+  }, [contactPhone, t])
 
   const handleSubmit = useCallback(async (e: React.FormEvent) => {
     e.preventDefault()
     if (!selectedWorker) return
     if (!representativeName.trim()) {
-      setError('담당자명은 필수입니다.')
+      setError(t('promote_worker.representative_required'))
       return
     }
 
@@ -118,14 +120,14 @@ export default function PromoteWorker() {
       })
       setSuccess(true)
     } catch (err: any) {
-      setError(err.message ?? '지정에 실패했습니다.')
+      setError(err.message ?? t('promote_worker.submit_failed'))
     } finally {
       setSubmitting(false)
     }
   }, [
     selectedWorker, businessType, representativeName, companyName,
     representativeDob, representativeGender, businessRegNumber,
-    contactPhone, contactAddress, province, firstSiteName, firstSiteAddress,
+    contactPhone, contactAddress, province, firstSiteName, firstSiteAddress, t,
   ])
 
   if (success) {
@@ -134,15 +136,15 @@ export default function PromoteWorker() {
         <div className="max-w-2xl mx-auto">
           <div className="bg-green-50 border border-green-200 rounded-2xl p-8 text-center">
             <div className="text-4xl mb-3">✅</div>
-            <h2 className="text-xl font-bold text-green-800 mb-2">관리자 지정 완료</h2>
+            <h2 className="text-xl font-bold text-green-800 mb-2">{t('promote_worker.success_title')}</h2>
             <p className="text-green-700 text-sm mb-6">
-              {selectedWorker?.full_name} 님이 관리자로 지정되었습니다.
+              {selectedWorker?.full_name} {t('promote_worker.success_body')}
             </p>
             <Link
               to="/managers?status=APPROVED"
               className="inline-block bg-[#0669F7] text-white px-6 py-2.5 rounded-2xl text-sm font-medium hover:bg-[#0550C4] transition-colors"
             >
-              관리자 목록 보기
+              {t('promote_worker.view_managers')}
             </Link>
           </div>
         </div>
@@ -152,8 +154,8 @@ export default function PromoteWorker() {
 
   return (
     <div className="p-8">
-      <h1 className="text-2xl font-bold text-gray-900 mb-2">관리자 직접 지정</h1>
-      <p className="text-sm text-gray-500 mb-6">근로자를 검색하여 관리자로 즉시 지정합니다.</p>
+      <h1 className="text-2xl font-bold text-gray-900 mb-2">{t('promote_worker.title')}</h1>
+      <p className="text-sm text-gray-500 mb-6">{t('promote_worker.subtitle')}</p>
 
       {error && (
         <div className="bg-[#FDE8EE] border border-[#F4B0C0] text-[#D81A48] rounded-2xl p-4 mb-6 text-sm">
@@ -163,20 +165,20 @@ export default function PromoteWorker() {
 
       {/* Warning notice */}
       <div className="bg-yellow-50 border border-yellow-300 rounded-2xl p-4 mb-6 text-sm text-yellow-800">
-        <span className="font-semibold">⚠️ 직접 지정은 실제 검증이 완료된 경우에만 사용하세요.</span>
+        <span className="font-semibold">{t('promote_worker.warning')}</span>
         <br />
-        지정 즉시 해당 근로자는 관리자 권한이 활성화됩니다.
+        {t('promote_worker.warning_body')}
       </div>
 
       {/* Section 1: Worker Search */}
       <div className="bg-white rounded-2xl shadow-sm p-6 mb-6 max-w-2xl">
-        <h2 className="text-base font-semibold text-gray-800 mb-4">1. 근로자 검색</h2>
+        <h2 className="text-base font-semibold text-gray-800 mb-4">{t('promote_worker.section1')}</h2>
         <form onSubmit={handleSearch} className="flex gap-2 mb-4">
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="이름 또는 전화번호 검색"
+            placeholder={t('promote_worker.search_placeholder')}
             className="flex-1 border border-[#EFF1F5] rounded-2xl px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0669F7]"
           />
           <button
@@ -184,12 +186,12 @@ export default function PromoteWorker() {
             disabled={searching}
             className="bg-[#0669F7] text-white px-4 py-2 rounded-2xl text-sm font-medium disabled:opacity-50"
           >
-            {searching ? '검색 중...' : '검색'}
+            {searching ? t('promote_worker.searching') : t('promote_worker.search_btn')}
           </button>
         </form>
 
         {loadingDetail && (
-          <div className="text-center text-gray-400 text-sm py-4">근로자 정보 불러오는 중...</div>
+          <div className="text-center text-gray-400 text-sm py-4">{t('promote_worker.loading_detail')}</div>
         )}
 
         {searchResults.length > 0 && !selectedWorker && !loadingDetail && (
@@ -206,11 +208,11 @@ export default function PromoteWorker() {
                 </div>
                 <div className="flex items-center gap-2">
                   {w.id_verified ? (
-                    <span className="px-2 py-0.5 text-xs rounded-full bg-green-100 text-green-700">신분증 인증</span>
+                    <span className="px-2 py-0.5 text-xs rounded-full bg-green-100 text-green-700">{t('promote_worker.id_verified')}</span>
                   ) : (
-                    <span className="px-2 py-0.5 text-xs rounded-full bg-[#EFF1F5] text-[#98A2B2]">미인증</span>
+                    <span className="px-2 py-0.5 text-xs rounded-full bg-[#EFF1F5] text-[#98A2B2]">{t('promote_worker.id_unverified')}</span>
                   )}
-                  <span className="text-[#0669F7] text-xs">선택 →</span>
+                  <span className="text-[#0669F7] text-xs">{t('promote_worker.select_arrow')}</span>
                 </div>
               </button>
             ))}
@@ -227,7 +229,7 @@ export default function PromoteWorker() {
               onClick={() => { setSelectedWorker(null); setSearchResults([]) }}
               className="text-xs text-gray-400 hover:text-gray-600"
             >
-              다시 선택
+              {t('promote_worker.reselect')}
             </button>
           </div>
         )}
@@ -237,13 +239,13 @@ export default function PromoteWorker() {
       {selectedWorker && (
         <form onSubmit={handleSubmit} className="max-w-2xl">
           <div className="bg-white rounded-2xl shadow-sm p-6 mb-6">
-            <h2 className="text-base font-semibold text-gray-800 mb-4">2. 관리자 정보 입력</h2>
+            <h2 className="text-base font-semibold text-gray-800 mb-4">{t('promote_worker.section2')}</h2>
 
             <div className="space-y-4">
               {/* Business Type */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  사업자 유형 <span className="text-[#D81A48]">*</span>
+                  {t('promote_worker.field_business_type')} <span className="text-[#D81A48]">*</span>
                 </label>
                 <select
                   value={businessType}
@@ -251,15 +253,15 @@ export default function PromoteWorker() {
                   className="w-full border border-[#EFF1F5] rounded-2xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0669F7]"
                   required
                 >
-                  <option value="INDIVIDUAL">개인</option>
-                  <option value="CORPORATE">법인</option>
+                  <option value="INDIVIDUAL">{t('promote_worker.business_individual')}</option>
+                  <option value="CORPORATE">{t('promote_worker.business_corporate')}</option>
                 </select>
               </div>
 
               {/* Representative Name */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  담당자명 <span className="text-[#D81A48]">*</span>
+                  {t('promote_worker.field_representative')} <span className="text-[#D81A48]">*</span>
                 </label>
                 <input
                   type="text"
@@ -273,7 +275,7 @@ export default function PromoteWorker() {
               {/* Company Name — only for CORPORATE */}
               {businessType === 'CORPORATE' && (
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">회사명</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">{t('promote_worker.field_company')}</label>
                   <input
                     type="text"
                     value={companyName}
@@ -285,7 +287,7 @@ export default function PromoteWorker() {
 
               {/* Date of Birth */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">생년월일</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">{t('promote_worker.field_dob')}</label>
                 <input
                   type="date"
                   value={representativeDob}
@@ -296,22 +298,22 @@ export default function PromoteWorker() {
 
               {/* Gender */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">성별</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">{t('promote_worker.field_gender')}</label>
                 <select
                   value={representativeGender}
                   onChange={(e) => setRepresentativeGender(e.target.value)}
                   className="w-full border border-[#EFF1F5] rounded-2xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0669F7]"
                 >
-                  <option value="">선택 안 함</option>
-                  <option value="MALE">남성</option>
-                  <option value="FEMALE">여성</option>
-                  <option value="OTHER">기타</option>
+                  <option value="">{t('promote_worker.gender_none')}</option>
+                  <option value="MALE">{t('promote_worker.gender_male')}</option>
+                  <option value="FEMALE">{t('promote_worker.gender_female')}</option>
+                  <option value="OTHER">{t('promote_worker.gender_other')}</option>
                 </select>
               </div>
 
               {/* Business Reg Number */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">사업자등록번호</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">{t('promote_worker.field_reg_number')}</label>
                 <input
                   type="text"
                   value={businessRegNumber}
@@ -322,7 +324,7 @@ export default function PromoteWorker() {
 
               {/* Contact Phone */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">연락처</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">{t('promote_worker.field_phone')}</label>
                 <input
                   type="text"
                   value={contactPhone}
@@ -333,7 +335,7 @@ export default function PromoteWorker() {
 
               {/* Contact Address */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">사업장 주소</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">{t('promote_worker.field_address')}</label>
                 <input
                   type="text"
                   value={contactAddress}
@@ -344,7 +346,7 @@ export default function PromoteWorker() {
 
               {/* Province */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">지역</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">{t('promote_worker.field_region')}</label>
                 <input
                   type="text"
                   value={province}
@@ -355,7 +357,7 @@ export default function PromoteWorker() {
 
               {/* First Site Name */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">첫 번째 현장명</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">{t('promote_worker.field_first_site')}</label>
                 <input
                   type="text"
                   value={firstSiteName}
@@ -366,7 +368,7 @@ export default function PromoteWorker() {
 
               {/* First Site Address */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">현장 주소</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">{t('promote_worker.field_first_site_address')}</label>
                 <input
                   type="text"
                   value={firstSiteAddress}
@@ -382,7 +384,7 @@ export default function PromoteWorker() {
             disabled={submitting}
             className="w-full bg-[#0669F7] text-white py-3 rounded-2xl text-sm font-semibold hover:bg-[#0550C4] transition-colors disabled:opacity-50"
           >
-            {submitting ? '처리 중...' : '관리자로 지정하기'}
+            {submitting ? t('promote_worker.submitting') : t('promote_worker.submit')}
           </button>
         </form>
       )}

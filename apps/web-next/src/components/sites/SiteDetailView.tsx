@@ -134,10 +134,7 @@ export function SiteDetailView({ site, jobs, locale }: Props) {
 
       {/* CTA */}
       {jobs.length > 0 && (
-        <WorkerSignupCTA
-          title={`${site.nameKo}에서 일하고 싶으세요?`}
-          subtitle="GADA VN에 가입하고 지금 바로 지원해보세요"
-        />
+        <WorkerSignupCTA locale={locale} />
       )}
     </div>
   )

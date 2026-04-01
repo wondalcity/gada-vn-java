@@ -127,6 +127,13 @@ export class AuthRepository {
     };
   }
 
+  async updatePhone(userId: string, phone: string) {
+    await this.db.query(
+      'UPDATE auth.users SET phone = $1, updated_at = NOW() WHERE id = $2',
+      [phone, userId],
+    );
+  }
+
   async updateProfile(userId: string, data: { name?: string; email?: string }) {
     // Update email if provided
     if (data.email) {

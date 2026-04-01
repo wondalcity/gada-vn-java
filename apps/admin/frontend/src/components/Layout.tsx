@@ -37,7 +37,7 @@ const ROLE_LABEL_KEYS: Record<string, string> = {
 // ── Change Password Modal ─────────────────────────────────────────────────────
 
 function ChangePasswordModal({ onClose }: { onClose: () => void }) {
-  const t = useAdminTranslation()
+  const { t } = useAdminTranslation()
   const [oldPw, setOldPw] = useState('')
   const [newPw, setNewPw] = useState('')
   const [confirm, setConfirm] = useState('')
@@ -109,7 +109,7 @@ function ChangePasswordModal({ onClose }: { onClose: () => void }) {
 export default function Layout() {
   const navigate = useNavigate()
   const { user, can, loading } = useAuth()
-  const t = useAdminTranslation()
+  const { t } = useAdminTranslation()
   const [showChangePw, setShowChangePw] = useState(false)
 
   async function handleLogout() {

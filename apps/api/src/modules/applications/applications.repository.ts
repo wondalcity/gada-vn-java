@@ -65,6 +65,20 @@ export class ApplicationsRepository {
   }
 
   async create(userId: string, jobId: string, _data: Record<string, unknown>) {
+    // Auto-create a minimal worker_profile if the user doesn't have one yet
+    // (e.g. manager applying as a worker). Uses representative_name from manager_profiles
+    // if available, otherwise falls back to a placeholder.
+    await this.db.query(
+      `INSERT INTO app.worker_profiles (user_id, full_name, experience_months)
+       SELECT u.id,
+              COALESCE(mp.representative_name, u.phone, u.email, 'Unknown'),
+              0
+       FROM auth.users u
+       LEFT JOIN app.manager_profiles mp ON mp.user_id = u.id
+       WHERE u.id = $1
+       ON CONFLICT (user_id) DO NOTHING`,
+      [userId],
+    );
     const { rows } = await this.db.query(
       `INSERT INTO app.job_applications (worker_id, job_id, status, applied_at)
        SELECT wp.id, $2, 'PENDING', NOW()

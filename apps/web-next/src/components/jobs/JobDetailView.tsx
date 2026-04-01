@@ -2,8 +2,10 @@
 
 import * as React from 'react'
 import Link from 'next/link'
+import { useTranslations } from 'next-intl'
 import type { PublicJobDetail } from '@/lib/api/public'
 import ApplyButton from './ApplyButton'
+import { formatDate as fmtDate, formatDateShort as fmtDateShort } from '@/lib/utils/date'
 
 interface Props {
   job: PublicJobDetail & {
@@ -27,18 +29,6 @@ interface Props {
 
 function formatVND(n: number): string {
   return new Intl.NumberFormat('ko-KR').format(n) + ' ₫'
-}
-
-function formatDate(d: string): string {
-  return new Intl.DateTimeFormat('ko-KR', {
-    year: 'numeric', month: 'long', day: 'numeric', weekday: 'short',
-  }).format(new Date(d))
-}
-
-function formatDateShort(d: string): string {
-  return new Intl.DateTimeFormat('ko-KR', {
-    month: 'long', day: 'numeric', weekday: 'short',
-  }).format(new Date(d))
 }
 
 function parseJsonField<T>(raw: unknown): T | null {
@@ -70,22 +60,22 @@ function parseRequirements(raw: unknown) {
 
 // ── Status badge ─────────────────────────────────────────────────────────────
 
-const JOB_STATUS: Record<string, { label: string; bg: string; text: string; dot: string }> = {
-  OPEN:      { label: '모집중',  bg: '#E8FBE8', text: '#1A6B1A', dot: '#00C800' },
-  FILLED:    { label: '마감',    bg: '#FDE8EE', text: '#D81A48', dot: '#D81A48' },
-  CANCELLED: { label: '취소',    bg: '#EFF1F5', text: '#98A2B2', dot: '#DBDFE9' },
-  COMPLETED: { label: '완료',    bg: '#EFF1F5', text: '#98A2B2', dot: '#DBDFE9' },
+const JOB_STATUS_COLORS: Record<string, { bg: string; text: string; dot: string }> = {
+  OPEN:      { bg: '#E8FBE8', text: '#1A6B1A', dot: '#00C800' },
+  FILLED:    { bg: '#FDE8EE', text: '#D81A48', dot: '#D81A48' },
+  CANCELLED: { bg: '#EFF1F5', text: '#98A2B2', dot: '#DBDFE9' },
+  COMPLETED: { bg: '#EFF1F5', text: '#98A2B2', dot: '#DBDFE9' },
 }
 
-function StatusPill({ status }: { status: string }) {
-  const cfg = JOB_STATUS[status] ?? JOB_STATUS.OPEN
+function StatusPill({ status, label }: { status: string; label: string }) {
+  const cfg = JOB_STATUS_COLORS[status] ?? JOB_STATUS_COLORS.OPEN
   return (
     <span
       className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold shrink-0"
       style={{ background: cfg.bg, color: cfg.text }}
     >
       <span className="w-1.5 h-1.5 rounded-full" style={{ background: cfg.dot }} />
-      {cfg.label}
+      {label}
     </span>
   )
 }
@@ -151,7 +141,7 @@ function Lightbox({
 
 // ── Gallery ───────────────────────────────────────────────────────────────────
 
-function SiteImageGallery({ images, title }: { images: string[]; title: string }) {
+function SiteImageGallery({ images, title, viewAllPhotos }: { images: string[]; title: string; viewAllPhotos: string }) {
   const [activeIdx, setActiveIdx] = React.useState(0)
   const [lightboxOpen, setLightboxOpen] = React.useState(false)
 
@@ -223,7 +213,7 @@ function SiteImageGallery({ images, title }: { images: string[]; title: string }
           )}
         </div>
 
-        {/* "사진 모두 보기" button */}
+        {/* "View all photos" button */}
         <button
           onClick={() => { setLightboxOpen(true); setActiveIdx(0) }}
           className="absolute bottom-4 right-4 flex items-center gap-2 bg-white text-[#25282A] text-sm font-bold px-4 py-2 rounded-xl border border-[#EFF1F5] hover:bg-[#F2F4F5] transition-colors"
@@ -232,7 +222,7 @@ function SiteImageGallery({ images, title }: { images: string[]; title: string }
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
           </svg>
-          사진 모두 보기
+          {viewAllPhotos}
         </button>
       </div>
 
@@ -243,21 +233,19 @@ function SiteImageGallery({ images, title }: { images: string[]; title: string }
   )
 }
 
-// ── Section divider ───────────────────────────────────────────────────────────
-
-function Divider() {
-  return <div className="border-t border-[#EFF1F5] my-8" />
-}
-
 // ── Mobile apply bar (wage + apply button combined) ───────────────────────────
 
 function MobileApplyBar({
   dailyWage,
   workDate,
+  dailyWageLabel,
+  locale,
   applyProps,
 }: {
   dailyWage: number
   workDate: string
+  dailyWageLabel: string
+  locale: string
   applyProps: React.ComponentProps<typeof ApplyButton>
 }) {
   return (
@@ -271,12 +259,12 @@ function MobileApplyBar({
       <div className="flex items-center gap-3 px-4 py-3">
         {/* Wage summary */}
         <div className="flex-1 min-w-0">
-          <p className="text-[11px] text-[#98A2B2] font-medium leading-none mb-0.5">일급</p>
+          <p className="text-[11px] text-[#98A2B2] font-medium leading-none mb-0.5">{dailyWageLabel}</p>
           <p className="text-[20px] font-bold text-[#0669F7] leading-tight truncate">
             {formatVND(dailyWage)}
           </p>
           {workDate && (
-            <p className="text-[11px] text-[#98A2B2] mt-0.5 truncate">{formatDateShort(workDate)}</p>
+            <p className="text-[11px] text-[#98A2B2] mt-0.5 truncate">{fmtDateShort(workDate, locale)}</p>
           )}
         </div>
 
@@ -291,22 +279,22 @@ function MobileApplyBar({
 
 // ── Expandable text ───────────────────────────────────────────────────────────
 
-function ExpandableText({ text }: { text: string }) {
+function ExpandableText({ text, showMore, showLess }: { text: string; showMore: string; showLess: string }) {
   const [expanded, setExpanded] = React.useState(false)
   const LIMIT = 200
   const isLong = text.length > LIMIT
 
   return (
     <div>
-      <p className="text-sm text-[#25282A] leading-7 whitespace-pre-wrap">
+      <p className="text-[15px] text-[#222222] leading-7 whitespace-pre-wrap">
         {isLong && !expanded ? text.slice(0, LIMIT) + '...' : text}
       </p>
       {isLong && (
         <button
           onClick={() => setExpanded(v => !v)}
-          className="mt-3 text-sm font-bold text-[#25282A] underline underline-offset-2 hover:text-[#0669F7] transition-colors"
+          className="mt-3 text-sm font-semibold text-[#222222] underline underline-offset-2 hover:text-[#0669F7] transition-colors"
         >
-          {expanded ? '접기' : '더 보기 →'}
+          {expanded ? showLess : showMore}
         </button>
       )}
     </div>
@@ -318,13 +306,11 @@ function ExpandableText({ text }: { text: string }) {
 function StatRow({ icon, label, value, sub }: { icon: React.ReactNode; label: string; value: React.ReactNode; sub?: string }) {
   return (
     <div className="flex items-start gap-4">
-      <div className="w-10 h-10 rounded-2xl bg-[#F2F4F5] flex items-center justify-center shrink-0 text-[#25282A]">
-        {icon}
-      </div>
-      <div className="flex-1 min-w-0 pt-0.5">
-        <p className="text-sm font-bold text-[#25282A]">{label}</p>
-        <div className="text-sm text-[#98A2B2] mt-0.5">{value}</div>
-        {sub && <p className="text-xs text-[#98A2B2] mt-0.5">{sub}</p>}
+      <div className="shrink-0 text-[#717171] mt-0.5">{icon}</div>
+      <div className="flex-1 min-w-0">
+        <p className="text-[15px] font-semibold text-[#222222]">{label}</p>
+        <div className="text-[15px] text-[#717171] mt-0.5">{value}</div>
+        {sub && <p className="text-sm text-[#717171] mt-0.5">{sub}</p>}
       </div>
     </div>
   )
@@ -335,12 +321,10 @@ function StatRow({ icon, label, value, sub }: { icon: React.ReactNode; label: st
 function BenefitRow({ emoji, label, desc }: { emoji: string; label: string; desc: string }) {
   return (
     <div className="flex items-start gap-4">
-      <div className="w-10 h-10 rounded-2xl bg-[#E8FBE8] flex items-center justify-center shrink-0 text-lg">
-        {emoji}
-      </div>
-      <div className="flex-1 pt-0.5">
-        <p className="text-sm font-bold text-[#25282A]">{label}</p>
-        <p className="text-xs text-[#98A2B2] mt-0.5">{desc}</p>
+      <div className="text-2xl shrink-0 mt-0.5">{emoji}</div>
+      <div className="flex-1">
+        <p className="text-[15px] font-semibold text-[#222222]">{label}</p>
+        <p className="text-sm text-[#717171] mt-0.5">{desc}</p>
       </div>
     </div>
   )
@@ -352,6 +336,7 @@ export default function JobDetailView({
   job, locale, isLoggedIn = false,
   initialApplicationId, initialApplicationStatus, initialNotes,
 }: Props) {
+  const t = useTranslations('jobs')
   const benefits = parseBenefits(job.benefits)
   const requirements = parseRequirements(job.requirements)
 
@@ -376,10 +361,10 @@ export default function JobDetailView({
   }, [rawImages, coverUrl])
 
   const activeBenefits = benefits ? [
-    benefits.meals        && { emoji: '🍱', label: '식사 제공',  desc: '현장에서 식사를 제공합니다' },
-    benefits.transport    && { emoji: '🚌', label: '교통비 지원', desc: '출퇴근 교통비를 지원합니다' },
-    benefits.accommodation && { emoji: '🏠', label: '숙박 제공',  desc: '현장 인근 숙박을 제공합니다' },
-    benefits.insurance    && { emoji: '🛡️', label: '산재보험',   desc: '산업재해 보험에 가입되어 있습니다' },
+    benefits.meals        && { emoji: '🍱', label: t('detail.benefit_meal'),          desc: t('detail.benefit_meal_desc') },
+    benefits.transport    && { emoji: '🚌', label: t('detail.benefit_transport'),      desc: t('detail.benefit_transport_desc') },
+    benefits.accommodation && { emoji: '🏠', label: t('detail.benefit_accommodation'), desc: t('detail.benefit_accommodation_desc') },
+    benefits.insurance    && { emoji: '🛡️', label: t('detail.benefit_insurance'),     desc: t('detail.benefit_insurance_desc') },
   ].filter(Boolean) as { emoji: string; label: string; desc: string }[] : []
 
   const applyProps = {
@@ -394,142 +379,146 @@ export default function JobDetailView({
     return (
       <>
         {/* Title section */}
-        <div className="pt-5 md:pt-0 pb-6 border-b border-[#EFF1F5]">
+        <div className="pt-5 md:pt-0 pb-8 border-b border-[#DDDDDD]">
           <div className="flex items-start justify-between gap-3 mb-2">
-            <h1 className="text-2xl md:text-[28px] font-bold text-[#25282A] leading-tight">{job.titleKo}</h1>
-            <StatusPill status={job.status} />
+            <h1 className="text-[26px] md:text-[30px] font-semibold text-[#222222] leading-tight">{job.titleKo}</h1>
+            <StatusPill status={job.status} label={t(`detail.status.${job.status.toLowerCase()}` as any) ?? job.status} />
           </div>
-          <p className="text-sm text-[#98A2B2] mt-1">
+          <p className="text-[15px] text-[#717171] mt-1">
             {siteName} · {job.provinceNameVi}
           </p>
           {job.tradeNameKo && (
-            <span className="inline-flex items-center gap-1.5 mt-3 px-3 py-1.5 rounded-full bg-[#EFF1F5] text-[#98A2B2] text-xs font-bold">
-              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
+            <span className="inline-flex items-center gap-1.5 mt-3 px-3 py-1 rounded-full bg-[#F7F7F7] text-[#717171] text-xs font-semibold border border-[#DDDDDD]">
               {job.tradeNameKo}
             </span>
           )}
         </div>
 
         {/* Key stats */}
-        <div className="py-6 border-b border-[#EFF1F5] space-y-5">
+        <div className="py-8 border-b border-[#DDDDDD] space-y-6">
           <StatRow
             icon={<svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>}
-            label="근무일"
-            value={workDate ? formatDate(workDate) : '-'}
+            label={t('detail.work_date')}
+            value={workDate ? fmtDate(workDate, locale) : '-'}
           />
           {job.startTime && job.endTime && (
             <StatRow
               icon={<svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>}
-              label="근무 시간"
+              label={t('detail.work_hours')}
               value={`${job.startTime} – ${job.endTime}`}
             />
           )}
           {slotsTotal > 0 && (
             <div className="flex items-start gap-4">
-              <div className="w-10 h-10 rounded-2xl bg-[#F2F4F5] flex items-center justify-center shrink-0">
-                <svg className="w-5 h-5 text-[#25282A]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+              <div className="shrink-0 text-[#717171] mt-0.5">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
               </div>
-              <div className="flex-1 pt-0.5">
-                <div className="flex items-center justify-between mb-1.5">
-                  <p className="text-sm font-bold text-[#25282A]">모집 인원</p>
-                  <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${slotsProgress >= 80 ? 'bg-[#FDE8EE] text-[#D81A48]' : 'bg-[#E6F0FE] text-[#0669F7]'}`}>
-                    {slotsLeft > 0 ? `${slotsLeft}명 남음` : '마감'}
+              <div className="flex-1">
+                <div className="flex items-center justify-between mb-2">
+                  <p className="text-[15px] font-semibold text-[#222222]">{t('detail.slots_section')}</p>
+                  <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${slotsProgress >= 80 ? 'bg-[#FDE8EE] text-[#D81A48]' : 'bg-[#E6F0FE] text-[#0669F7]'}`}>
+                    {slotsLeft > 0 ? t('detail.slots_left_n', { n: slotsLeft }) : t('card.deadline')}
                   </span>
                 </div>
-                <div className="w-full bg-[#EFF1F5] rounded-full h-2">
-                  <div className="h-2 rounded-full transition-all" style={{ width: `${slotsProgress}%`, background: slotsProgress >= 80 ? '#D81A48' : '#0669F7' }} />
+                <div className="w-full bg-[#EBEBEB] rounded-full h-1.5">
+                  <div className="h-1.5 rounded-full transition-all" style={{ width: `${slotsProgress}%`, background: slotsProgress >= 80 ? '#D81A48' : '#0669F7' }} />
                 </div>
-                <p className="text-xs text-[#98A2B2] mt-1">{slotsFilled}명 지원 완료 / 총 {slotsTotal}명 모집</p>
+                <p className="text-sm text-[#717171] mt-1.5">{t('detail.slots_filled_of', { filled: slotsFilled, total: slotsTotal })}</p>
               </div>
             </div>
           )}
           {job.endDate && (
             <StatRow
               icon={<svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>}
-              label="지원 마감"
-              value={formatDate(job.endDate)}
-              sub="마감 이후에는 지원이 불가합니다"
+              label={t('detail.apply_deadline')}
+              value={fmtDate(job.endDate, locale)}
+              sub={t('detail.deadline_sub')}
             />
           )}
         </div>
 
         {/* Benefits */}
         {activeBenefits.length > 0 && (
-          <>
-            <div className="py-6 border-b border-[#EFF1F5]">
-              <h2 className="text-lg font-bold text-[#25282A] mb-5">제공 혜택</h2>
-              <div className="space-y-5">
-                {activeBenefits.map(b => <BenefitRow key={b.label} {...b} />)}
-              </div>
+          <div className="py-8 border-b border-[#DDDDDD]">
+            <h2 className="text-[20px] font-semibold text-[#222222] mb-6">{t('detail.benefits_section')}</h2>
+            <div className="space-y-5">
+              {activeBenefits.map(b => <BenefitRow key={b.label} {...b} />)}
             </div>
-          </>
+          </div>
         )}
 
         {/* Description */}
         {description && (
-          <div className="py-6 border-b border-[#EFF1F5]">
-            <h2 className="text-lg font-bold text-[#25282A] mb-4">상세 내용</h2>
-            <ExpandableText text={description} />
+          <div className="py-8 border-b border-[#DDDDDD]">
+            <h2 className="text-[20px] font-semibold text-[#222222] mb-4">{t('detail.description_section')}</h2>
+            <ExpandableText text={description} showMore={t('detail.show_more')} showLess={t('detail.show_less')} />
           </div>
         )}
 
         {/* Requirements */}
         {requirements && (requirements.minExperienceMonths || requirements.notes) && (
-          <div className="py-6 border-b border-[#EFF1F5]">
-            <h2 className="text-lg font-bold text-[#25282A] mb-4">지원 조건</h2>
+          <div className="py-8 border-b border-[#DDDDDD]">
+            <h2 className="text-[20px] font-semibold text-[#222222] mb-4">{t('detail.requirements_section')}</h2>
             <div className="space-y-3">
               {requirements.minExperienceMonths != null && requirements.minExperienceMonths > 0 && (
-                <div className="flex items-center gap-3 p-4 bg-[#F2F4F5] rounded-2xl">
-                  <div className="w-9 h-9 rounded-xl bg-[#E6F0FE] flex items-center justify-center shrink-0">
-                    <svg className="w-4.5 h-4.5 text-[#0669F7]" fill="none" stroke="currentColor" viewBox="0 0 24 24" width="18" height="18"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" /></svg>
+                <div className="flex items-center gap-3 p-4 bg-[#F7F7F7] rounded-xl border border-[#EBEBEB]">
+                  <div className="shrink-0 text-[#0669F7]">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="20" height="20"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" /></svg>
                   </div>
                   <div>
-                    <p className="text-xs text-[#98A2B2] font-bold">최소 경력</p>
-                    <p className="text-sm font-bold text-[#25282A] mt-0.5">
-                      {requirements.minExperienceMonths >= 12
-                        ? `${Math.floor(requirements.minExperienceMonths / 12)}년${requirements.minExperienceMonths % 12 > 0 ? ` ${requirements.minExperienceMonths % 12}개월` : ''} 이상`
-                        : `${requirements.minExperienceMonths}개월 이상`}
+                    <p className="text-xs text-[#717171] font-semibold">{t('detail.min_experience')}</p>
+                    <p className="text-[15px] font-semibold text-[#222222] mt-0.5">
+                      {(() => {
+                        const m = requirements.minExperienceMonths!
+                        if (m < 12) return t('detail.experience_months' as any, { months: m })
+                        const years = Math.floor(m / 12)
+                        const rem = m % 12
+                        if (rem === 0) return t('detail.experience_years' as any, { years })
+                        return t('detail.experience_years_months' as any, { years, months: rem })
+                      })()}
                     </p>
                   </div>
                 </div>
               )}
               {requirements.notes && (
-                <p className="text-sm text-[#25282A] leading-7 whitespace-pre-wrap">{requirements.notes}</p>
+                <p className="text-[15px] text-[#222222] leading-7 whitespace-pre-wrap">{requirements.notes}</p>
               )}
             </div>
           </div>
         )}
 
         {/* Site card */}
-        <div className="py-6">
-          <h2 className="text-lg font-bold text-[#25282A] mb-4">근무 현장</h2>
-          <div className="flex items-start gap-4 p-4 bg-white rounded-2xl" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
-            <div className="w-14 h-14 rounded-2xl overflow-hidden bg-[#F2F4F5] shrink-0">
+        <div className="py-8 border-b border-[#DDDDDD]">
+          <h2 className="text-[20px] font-semibold text-[#222222] mb-4">{t('detail.site_section')}</h2>
+          <div className="flex items-start gap-4 p-5 rounded-xl border border-[#DDDDDD] hover:border-[#222222] transition-colors">
+            <div className="w-16 h-16 rounded-xl overflow-hidden bg-[#F7F7F7] shrink-0">
               {job.site.coverImageUrl ? (
                 <img src={job.site.coverImageUrl} alt={siteName} className="w-full h-full object-cover" />
               ) : (
                 <div className="w-full h-full bg-gradient-to-br from-[#0669F7] to-[#0550C4] flex items-center justify-center">
-                  <span className="text-xl font-black text-white/60">{siteName.charAt(0)}</span>
+                  <span className="text-2xl font-bold text-white/60">{siteName.charAt(0)}</span>
                 </div>
               )}
             </div>
             <div className="flex-1 min-w-0">
-              <p className="font-bold text-[#25282A] text-sm">{siteName}</p>
+              <p className="font-semibold text-[#222222] text-[15px]">{siteName}</p>
               {job.site.nameVi && job.site.nameVi !== siteName && (
-                <p className="text-xs text-[#98A2B2] mt-0.5">{job.site.nameVi}</p>
+                <p className="text-sm text-[#717171] mt-0.5">{job.site.nameVi}</p>
               )}
-              <div className="flex items-center gap-1 mt-1.5">
-                <svg className="w-3.5 h-3.5 text-[#98A2B2] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
-                <p className="text-xs text-[#98A2B2] truncate">{job.site.address}</p>
-              </div>
+              {job.site.address && (
+                <div className="flex items-center gap-1.5 mt-1.5">
+                  <svg className="w-3.5 h-3.5 text-[#717171] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                  <p className="text-sm text-[#717171] truncate">{job.site.address}</p>
+                </div>
+              )}
               {job.site.lat && job.site.lng && (
                 <a
                   href={`https://maps.google.com/?q=${job.site.lat},${job.site.lng}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1 mt-2 text-xs font-bold text-[#0669F7] hover:underline"
+                  className="inline-flex items-center gap-1 mt-2 text-sm font-semibold text-[#222222] underline underline-offset-2 hover:text-[#0669F7] transition-colors"
                 >
-                  지도에서 보기 →
+                  {t('detail.view_map')}
                 </a>
               )}
             </div>
@@ -543,39 +532,39 @@ export default function JobDetailView({
 
   function renderBookingCard() {
     return (
-      <div className="bg-white rounded-2xl p-6 border border-[#EFF1F5]" style={{ boxShadow: '0 4px 24px rgba(0,0,0,0.10)' }}>
+      <div className="bg-white rounded-2xl p-6 border border-[#DDDDDD]" style={{ boxShadow: '0 6px 20px rgba(0,0,0,0.12)' }}>
         {/* Wage */}
         <div className="flex items-baseline gap-1.5 mb-5">
-          <span className="text-3xl font-bold text-[#0669F7]">{formatVND(dailyWage)}</span>
-          <span className="text-sm text-[#98A2B2] font-medium">/ 1일</span>
+          <span className="text-[28px] font-bold text-[#222222]">{formatVND(dailyWage)}</span>
+          <span className="text-sm text-[#717171]">{t('detail.per_day_label')}</span>
         </div>
 
-        {/* Key info */}
-        <div className="border border-[#EFF1F5] rounded-2xl divide-y divide-[#EFF1F5] mb-5">
+        {/* Key info grid */}
+        <div className="border border-[#DDDDDD] rounded-xl divide-y divide-[#DDDDDD] mb-4">
           {workDate && (
             <div className="px-4 py-3">
-              <p className="text-[10px] font-bold text-[#98A2B2] uppercase tracking-wider mb-1">근무일</p>
-              <p className="text-sm font-bold text-[#25282A]">{formatDateShort(workDate)}</p>
+              <p className="text-[11px] font-semibold text-[#717171] uppercase tracking-wider mb-1">{t('detail.booking_work_date')}</p>
+              <p className="text-sm font-semibold text-[#222222]">{fmtDateShort(workDate, locale)}</p>
             </div>
           )}
           {job.startTime && job.endTime && (
             <div className="px-4 py-3">
-              <p className="text-[10px] font-bold text-[#98A2B2] uppercase tracking-wider mb-1">근무 시간</p>
-              <p className="text-sm font-bold text-[#25282A]">{job.startTime} – {job.endTime}</p>
+              <p className="text-[11px] font-semibold text-[#717171] uppercase tracking-wider mb-1">{t('detail.booking_work_hours')}</p>
+              <p className="text-sm font-semibold text-[#222222]">{job.startTime} – {job.endTime}</p>
             </div>
           )}
           {slotsTotal > 0 && (
             <div className="px-4 py-3">
-              <div className="flex items-center justify-between mb-1.5">
-                <p className="text-[10px] font-bold text-[#98A2B2] uppercase tracking-wider">모집 현황</p>
-                <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${slotsProgress >= 80 ? 'bg-[#FDE8EE] text-[#D81A48]' : 'bg-[#E6F0FE] text-[#0669F7]'}`}>
-                  {slotsLeft > 0 ? `${slotsLeft}자리 남음` : '마감'}
+              <div className="flex items-center justify-between mb-2">
+                <p className="text-[11px] font-semibold text-[#717171] uppercase tracking-wider">{t('detail.booking_headcount')}</p>
+                <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-full ${slotsProgress >= 80 ? 'bg-[#FDE8EE] text-[#D81A48]' : 'bg-[#E6F0FE] text-[#0669F7]'}`}>
+                  {slotsLeft > 0 ? t('detail.slots_left_booking', { n: slotsLeft }) : t('card.deadline')}
                 </span>
               </div>
-              <div className="w-full bg-[#EFF1F5] rounded-full h-1.5">
+              <div className="w-full bg-[#EBEBEB] rounded-full h-1.5">
                 <div className="h-1.5 rounded-full" style={{ width: `${slotsProgress}%`, background: slotsProgress >= 80 ? '#D81A48' : '#0669F7' }} />
               </div>
-              <p className="text-xs text-[#98A2B2] mt-1">{slotsFilled} / {slotsTotal}명</p>
+              <p className="text-xs text-[#717171] mt-1.5">{t('detail.slots_filled_of', { filled: slotsFilled, total: slotsTotal })}</p>
             </div>
           )}
         </div>
@@ -585,17 +574,17 @@ export default function JobDetailView({
 
         {/* Trust signal */}
         <div className="flex items-center justify-center gap-1.5 mt-4">
-          <svg className="w-4 h-4 text-[#98A2B2]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>
-          <p className="text-xs text-[#98A2B2]">지원 후 관리자가 검토합니다</p>
+          <svg className="w-3.5 h-3.5 text-[#717171]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>
+          <p className="text-xs text-[#717171]">{t('detail.trust_signal')}</p>
         </div>
 
         {/* Benefits summary */}
         {activeBenefits.length > 0 && (
-          <div className="mt-4 pt-4 border-t border-[#EFF1F5]">
-            <p className="text-xs font-bold text-[#98A2B2] mb-2.5">제공 혜택</p>
+          <div className="mt-4 pt-4 border-t border-[#DDDDDD]">
+            <p className="text-xs font-semibold text-[#717171] mb-2.5">{t('detail.benefits_section')}</p>
             <div className="flex flex-wrap gap-1.5">
               {activeBenefits.map(b => (
-                <span key={b.label} className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-[#E8FBE8] text-[#1A6B1A] text-xs font-bold">
+                <span key={b.label} className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-[#F7F7F7] text-[#222222] text-xs font-semibold border border-[#EBEBEB]">
                   {b.emoji} {b.label}
                 </span>
               ))}
@@ -609,15 +598,15 @@ export default function JobDetailView({
   // ── Layout ──────────────────────────────────────────────────────────────────
 
   return (
-    <div className="pb-36 md:pb-10">
-      {/* Gallery */}
-      <div className="md:max-w-[1760px] md:mx-auto md:px-6 md:pt-6">
-        <SiteImageGallery images={siteImages} title={job.titleKo} />
+    <div className="pb-36 md:pb-16">
+      {/* Gallery — bounded to content width */}
+      <div className="md:max-w-[1120px] md:mx-auto md:px-6 md:pt-6">
+        <SiteImageGallery images={siteImages} title={job.titleKo} viewAllPhotos={t('detail.view_all_photos')} />
       </div>
 
-      {/* Content */}
-      <div className="max-w-[1760px] mx-auto px-4 md:px-6">
-        <div className="md:grid md:grid-cols-[1fr_380px] md:gap-14 md:items-start">
+      {/* Content — narrowed for readability, Airbnb-style */}
+      <div className="max-w-[1120px] mx-auto px-4 md:px-6">
+        <div className="md:grid md:grid-cols-[1fr_336px] md:gap-16 md:items-start">
 
           {/* Left: main content */}
           <div>
@@ -625,7 +614,7 @@ export default function JobDetailView({
           </div>
 
           {/* Right: sticky booking card (desktop only) */}
-          <div className="hidden md:block">
+          <div className="hidden md:block pt-8">
             <div className="sticky" style={{ top: 'calc(var(--app-bar-height, 56px) + 24px)' }}>
               {renderBookingCard()}
             </div>
@@ -633,11 +622,13 @@ export default function JobDetailView({
         </div>
       </div>
 
-      {/* Mobile: sticky CTA bar (wage info + apply button combined) */}
+      {/* Mobile: sticky CTA bar */}
       <div className="md:hidden">
         <MobileApplyBar
           dailyWage={dailyWage}
           workDate={workDate}
+          dailyWageLabel={t('detail.daily_wage_label')}
+          locale={locale}
           applyProps={applyProps}
         />
       </div>

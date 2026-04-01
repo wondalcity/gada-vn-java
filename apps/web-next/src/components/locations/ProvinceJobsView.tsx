@@ -100,10 +100,7 @@ export function ProvinceJobsView({
       </div>
 
       {/* WorkerSignupCTA */}
-      <WorkerSignupCTA
-        title={`${province.nameVi}에서 건설 일자리를 찾고 있나요?`}
-        subtitle="GADA VN에 가입하고 지역 내 최신 공고를 가장 빠르게 확인하세요"
-      />
+      <WorkerSignupCTA locale={locale} />
 
       {/* Other regions section */}
       <div className="max-w-[1760px] mx-auto px-4 sm:px-6 xl:px-20 py-12">

@@ -1,9 +1,11 @@
 import { View, Text, StyleSheet } from 'react-native';
+import { useTranslation } from 'react-i18next';
 
 export default function ManagerNotifications() {
+  const { t } = useTranslation();
   return (
     <View style={styles.container}>
-      <Text style={styles.empty}>알림이 없습니다</Text>
+      <Text style={styles.empty}>{t('common.no_notifications')}</Text>
     </View>
   );
 }

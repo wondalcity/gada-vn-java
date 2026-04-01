@@ -4,11 +4,13 @@ import {
   StyleSheet, ScrollView, Alert, ActivityIndicator,
 } from 'react-native';
 import { useRouter } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 import { api, ApiError } from '../../lib/api-client';
 
 type BusinessType = 'INDIVIDUAL' | 'COMPANY';
 
 export default function ManagerRegisterScreen() {
+  const { t } = useTranslation();
   const router = useRouter();
   const [businessType, setBusinessType] = useState<BusinessType>('INDIVIDUAL');
   const [representativeName, setRepresentativeName] = useState('');
@@ -29,13 +31,13 @@ export default function ManagerRegisterScreen() {
         contactPhone: contactPhone.trim() || undefined,
       });
       Alert.alert(
-        '신청 완료',
-        '관리자 등록 신청이 접수되었습니다.\n심사 후 승인 알림을 드립니다.',
-        [{ text: '확인', onPress: () => router.replace('/(manager)/') }],
+        t('manager.register_success_title'),
+        t('manager.register_success_body'),
+        [{ text: t('common.confirm'), onPress: () => router.replace('/(manager)/') }],
       );
     } catch (err) {
-      const msg = err instanceof ApiError ? err.message : '등록에 실패했습니다.';
-      Alert.alert('오류', msg);
+      const msg = err instanceof ApiError ? err.message : t('manager.register_fail');
+      Alert.alert(t('common.error'), msg);
     } finally {
       setLoading(false);
     }
@@ -43,11 +45,11 @@ export default function ManagerRegisterScreen() {
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      <Text style={styles.title}>현장 관리자 등록</Text>
-      <Text style={styles.subtitle}>심사 후 일자리 등록이 가능합니다</Text>
+      <Text style={styles.title}>{t('manager.register_title')}</Text>
+      <Text style={styles.subtitle}>{t('manager.register_subtitle')}</Text>
 
       {/* Business type toggle */}
-      <Text style={styles.label}>사업 유형</Text>
+      <Text style={styles.label}>{t('manager.field_business_type')}</Text>
       <View style={styles.segmented}>
         {(['INDIVIDUAL', 'COMPANY'] as BusinessType[]).map((type) => (
           <TouchableOpacity
@@ -56,13 +58,13 @@ export default function ManagerRegisterScreen() {
             onPress={() => setBusinessType(type)}
           >
             <Text style={[styles.segmentText, businessType === type && styles.segmentTextActive]}>
-              {type === 'INDIVIDUAL' ? '개인' : '법인'}
+              {type === 'INDIVIDUAL' ? t('manager.business_individual') : t('manager.business_company')}
             </Text>
           </TouchableOpacity>
         ))}
       </View>
 
-      <Text style={styles.label}>대표자명 *</Text>
+      <Text style={styles.label}>{t('manager.field_representative')}</Text>
       <TextInput
         style={styles.input}
         placeholder="홍길동"
@@ -71,7 +73,7 @@ export default function ManagerRegisterScreen() {
         autoCapitalize="none"
       />
 
-      <Text style={styles.label}>회사명 (선택)</Text>
+      <Text style={styles.label}>{t('manager.field_company_name')}</Text>
       <TextInput
         style={styles.input}
         placeholder="(주)가다건설"
@@ -79,7 +81,7 @@ export default function ManagerRegisterScreen() {
         onChangeText={setCompanyName}
       />
 
-      <Text style={styles.label}>연락처 (선택)</Text>
+      <Text style={styles.label}>{t('manager.field_contact_phone')}</Text>
       <TextInput
         style={styles.input}
         placeholder="010-0000-0000"
@@ -89,9 +91,7 @@ export default function ManagerRegisterScreen() {
       />
 
       <View style={styles.notice}>
-        <Text style={styles.noticeText}>
-          📋 등록 후 관리자 검토가 진행됩니다. 승인까지 1-2 영업일 소요됩니다.
-        </Text>
+        <Text style={styles.noticeText}>{t('manager.register_notice')}</Text>
       </View>
 
       <TouchableOpacity
@@ -102,7 +102,7 @@ export default function ManagerRegisterScreen() {
         {loading ? (
           <ActivityIndicator color="#fff" />
         ) : (
-          <Text style={styles.buttonText}>등록 신청</Text>
+          <Text style={styles.buttonText}>{t('manager.register_button')}</Text>
         )}
       </TouchableOpacity>
     </ScrollView>

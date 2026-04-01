@@ -2,6 +2,7 @@ import { useEffect, useState, useCallback } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { api } from '../lib/api'
 import { DEMO_WORKERS } from '../lib/demo-data'
+import { useAdminTranslation } from '../context/LanguageContext'
 
 function formatPhone(phone: string | null | undefined): string {
   if (!phone) return '-'
@@ -30,6 +31,7 @@ interface Worker {
 const IN = 'w-full border border-[#EFF1F5] rounded-2xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#0669F7]'
 
 function CreateWorkerModal({ onSave, onCancel }: { onSave: (phone: string, fullName: string) => Promise<void>; onCancel: () => void }) {
+  const { t } = useAdminTranslation()
   const [phone, setPhone] = useState('')
   const [fullName, setFullName] = useState('')
   const [saving, setSaving] = useState(false)
@@ -42,7 +44,7 @@ function CreateWorkerModal({ onSave, onCancel }: { onSave: (phone: string, fullN
     try {
       await onSave(phone, fullName)
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : '등록 실패')
+      setError(err instanceof Error ? err.message : t('workers.modal.register_failed'))
     } finally {
       setSaving(false)
     }
@@ -51,21 +53,21 @@ function CreateWorkerModal({ onSave, onCancel }: { onSave: (phone: string, fullN
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
       <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm p-6">
-        <h3 className="text-base font-bold text-gray-900 mb-4">근로자 등록</h3>
+        <h3 className="text-base font-bold text-gray-900 mb-4">{t('workers.modal.title')}</h3>
         {error && <div className="bg-[#FDE8EE] border border-[#F4B0C0] text-[#D81A48] rounded-xl p-3 mb-3 text-sm">{error}</div>}
         <form onSubmit={handleSubmit} className="space-y-3">
           <div>
-            <label className="block text-xs font-medium text-gray-500 mb-1">전화번호 * (베트남 형식: +84...)</label>
+            <label className="block text-xs font-medium text-gray-500 mb-1">{t('workers.modal.phone_label')}</label>
             <input required className={IN} value={phone} onChange={e => setPhone(e.target.value)} placeholder="+84901234567" />
           </div>
           <div>
-            <label className="block text-xs font-medium text-gray-500 mb-1">이름 *</label>
+            <label className="block text-xs font-medium text-gray-500 mb-1">{t('workers.modal.name_label')}</label>
             <input required className={IN} value={fullName} onChange={e => setFullName(e.target.value)} />
           </div>
           <div className="flex gap-2 pt-1">
-            <button type="button" onClick={onCancel} className="flex-1 py-2.5 rounded-xl text-sm font-medium border border-[#EFF1F5] text-gray-600 hover:bg-[#F2F4F5]">취소</button>
+            <button type="button" onClick={onCancel} className="flex-1 py-2.5 rounded-xl text-sm font-medium border border-[#EFF1F5] text-gray-600 hover:bg-[#F2F4F5]">{t('common.cancel')}</button>
             <button type="submit" disabled={saving} className="flex-1 py-2.5 rounded-xl text-sm font-bold bg-[#0669F7] text-white hover:bg-[#0550C4] disabled:opacity-50">
-              {saving ? '등록 중...' : '등록'}
+              {saving ? t('workers.modal.registering') : t('workers.modal.register')}
             </button>
           </div>
         </form>
@@ -75,6 +77,7 @@ function CreateWorkerModal({ onSave, onCancel }: { onSave: (phone: string, fullN
 }
 
 export default function Workers() {
+  const { t } = useAdminTranslation()
   const [searchParams, setSearchParams] = useSearchParams()
   const search = searchParams.get('search') ?? ''
   const [query, setQuery] = useState(search)
@@ -129,18 +132,18 @@ export default function Workers() {
   async function handleCreate(phone: string, fullName: string) {
     await api.post('/admin/workers', { phone, fullName })
     setShowCreate(false)
-    showMsg('근로자가 등록되었습니다')
+    showMsg(t('workers.registered'))
     load(search)
   }
 
   async function handleDelete(worker: Worker) {
-    if (!confirm(`"${worker.full_name}" 근로자를 비활성화하시겠습니까?`)) return
+    if (!confirm(`"${worker.full_name}" ${t('workers.confirm_deactivate')}`)) return
     try {
       await api.delete(`/admin/workers/${worker.id}`)
       setWorkers(prev => prev.filter(w => w.id !== worker.id))
-      showMsg('비활성화되었습니다')
+      showMsg(t('common.deactivated'))
     } catch (err: unknown) {
-      showMsg(err instanceof Error ? err.message : '삭제 실패')
+      showMsg(err instanceof Error ? err.message : t('common.delete_failed'))
     }
   }
 
@@ -160,19 +163,19 @@ export default function Workers() {
       )}
 
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">근로자 관리</h1>
+        <h1 className="text-2xl font-bold text-gray-900">{t('workers.title')}</h1>
         <button
           onClick={() => setShowCreate(true)}
           className="flex items-center gap-2 px-4 py-2 bg-[#0669F7] hover:bg-[#0550C4] text-white text-sm font-medium rounded-2xl transition-colors"
         >
-          + 근로자 등록
+          {t('workers.register')}
         </button>
       </div>
 
       {isDemo && (
         <div className="mb-4 flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-amber-50 border border-amber-200 text-sm text-amber-700">
-          <span className="font-semibold">데모 데이터</span>
-          <span className="text-amber-600">— API 연결 후 실제 데이터가 표시됩니다</span>
+          <span className="font-semibold">{t('common.demo_data')}</span>
+          <span className="text-amber-600">{t('common.demo_suffix')}</span>
         </div>
       )}
 
@@ -181,25 +184,25 @@ export default function Workers() {
           type="text"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          placeholder="이름 또는 전화번호 검색..."
+          placeholder={t('workers.search_placeholder')}
           className="flex-1 border border-[#EFF1F5] rounded-2xl px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0669F7]"
         />
-        <button type="submit" className="bg-[#0669F7] text-white px-4 py-2 rounded-2xl text-sm font-medium">검색</button>
+        <button type="submit" className="bg-[#0669F7] text-white px-4 py-2 rounded-2xl text-sm font-medium">{t('common.search')}</button>
       </form>
 
       <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
         {loading ? (
-          <div className="p-8 text-center text-gray-400 text-sm">로딩 중...</div>
+          <div className="p-8 text-center text-gray-400 text-sm">{t('common.loading')}</div>
         ) : workers.length === 0 ? (
           <div className="py-16 text-center text-gray-400">
             <p className="text-4xl mb-3">👷</p>
-            <p className="text-sm">근로자가 없습니다</p>
+            <p className="text-sm">{t('workers.empty')}</p>
           </div>
         ) : (
           <table className="w-full">
             <thead className="bg-[#F2F4F5]">
               <tr>
-                {['이름', '전화번호', '지역', '신분증 인증', '권한', '가입일', ''].map((h) => (
+                {[t('workers.col_name'), t('workers.col_phone'), t('workers.col_region'), t('workers.col_id_verified'), t('workers.col_role'), t('workers.col_joined'), ''].map((h) => (
                   <th key={h} className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase">{h}</th>
                 ))}
               </tr>
@@ -212,22 +215,22 @@ export default function Workers() {
                   <td className="px-6 py-4 text-sm text-gray-500">{w.current_province ?? '-'}</td>
                   <td className="px-6 py-4">
                     <span className={`px-2 py-1 text-xs rounded-full ${w.id_verified ? 'bg-green-100 text-green-700' : 'bg-[#EFF1F5] text-[#98A2B2]'}`}>
-                      {w.id_verified ? '인증 완료' : '미인증'}
+                      {w.id_verified ? t('workers.id_verified') : t('workers.id_unverified')}
                     </span>
                   </td>
                   <td className="px-6 py-4">
                     {w.is_manager ? (
-                      <span className="px-2 py-1 text-xs rounded-full bg-[#FDBC08]/20 text-yellow-700 font-medium">관리자</span>
+                      <span className="px-2 py-1 text-xs rounded-full bg-[#FDBC08]/20 text-yellow-700 font-medium">{t('workers.role_manager')}</span>
                     ) : (
-                      <span className="px-2 py-1 text-xs rounded-full bg-[#EFF1F5] text-[#98A2B2]">근로자</span>
+                      <span className="px-2 py-1 text-xs rounded-full bg-[#EFF1F5] text-[#98A2B2]">{t('workers.role_worker')}</span>
                     )}
                   </td>
                   <td className="px-6 py-4 text-sm text-gray-400">{new Date(w.created_at).toLocaleDateString('ko-KR')}</td>
                   <td className="px-6 py-4 text-right">
                     <div className="flex gap-3 justify-end items-center">
-                      <Link to={`/workers/${w.id}`} className="text-[#0669F7] hover:underline text-sm">상세 →</Link>
+                      <Link to={`/workers/${w.id}`} className="text-[#0669F7] hover:underline text-sm">{t('common.detail_arrow')}</Link>
                       {!isDemo && (
-                        <button onClick={() => handleDelete(w)} className="text-[#D81A48] text-sm hover:underline">비활성화</button>
+                        <button onClick={() => handleDelete(w)} className="text-[#D81A48] text-sm hover:underline">{t('common.deactivate')}</button>
                       )}
                     </div>
                   </td>
@@ -238,7 +241,7 @@ export default function Workers() {
         )}
       </div>
 
-      <div className="mt-4 text-xs text-gray-400 text-right">총 {total}명</div>
+      <div className="mt-4 text-xs text-gray-400 text-right">{t('workers.total').replace('{n}', String(total))}</div>
     </div>
   )
 }
