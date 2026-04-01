@@ -6,7 +6,11 @@
     "register": "Sign Up",
     "profile": "Profile",
     "notifications": "Notifications",
-    "logout": "Log Out"
+    "logout": "Log Out",
+    "my_account": "My Account",
+    "my_page": "My Page",
+    "applications_status": "Applications",
+    "manager_page": "Manager Page"
   },
   "button": {
     "save": "Save",
@@ -42,5 +46,69 @@
     "ko": "한국어",
     "vi": "Tiếng Việt",
     "en": "English"
+  },
+  "worker_nav": {
+    "home": "Home",
+    "jobs": "Jobs",
+    "applications": "Applications",
+    "attendance": "Attendance",
+    "profile": "Profile"
+  },
+  "worker_sidebar": {
+    "home": "My Page",
+    "applications": "Application Status",
+    "hires": "Hire Status",
+    "attendance": "Attendance",
+    "contracts": "Contracts",
+    "profile": "Profile",
+    "notifications": "Notifications"
+  },
+  "manager_nav": {
+    "home": "Home",
+    "sites": "Sites",
+    "jobs": "Jobs",
+    "hires": "Hiring",
+    "contracts": "Contracts",
+    "settings": "Settings",
+    "sites_full": "Site Management",
+    "jobs_full": "Job Management",
+    "hires_full": "Hire Management",
+    "contracts_full": "Contract Management"
+  },
+  "manager_app_bar": {
+    "back": "Back",
+    "login": "Log In",
+    "search": "Search",
+    "notifications": "Notifications",
+    "page_new_job": "Post Job",
+    "page_edit_site": "Edit Site",
+    "page_site_jobs": "Site Job Listings",
+    "page_new_site": "Add Site",
+    "page_site_detail": "Site Detail",
+    "page_edit_job": "Edit Job",
+    "page_job_applicants": "Applicants",
+    "page_job_attendance": "Attendance Management",
+    "page_job_detail": "Job Detail",
+    "page_hire_detail": "Hire Detail",
+    "page_contract": "Contract"
+  },
+  "worker_profile": {
+    "switch_to_manager": "Switch to Manager View",
+    "apply_manager": "Apply as Manager",
+    "applying": "Applying...",
+    "manager_pending": "Manager Application Pending",
+    "manager_pending_desc": "Our team will review and approve your application",
+    "manager_pending_badge": "Pending"
+  },
+  "settings": {
+    "title": "Settings",
+    "language": {
+      "title": "Language Settings",
+      "subtitle": "Select the display language for the app",
+      "ko": "한국어",
+      "vi": "Tiếng Việt",
+      "en": "English",
+      "current_suffix": "(Current)"
+    }
   }
 }

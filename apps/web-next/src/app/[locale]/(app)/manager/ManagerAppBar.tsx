@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
+import { useTranslations } from 'next-intl'
 import type { AuthUser } from '@/lib/auth/server'
 import { PublicHeaderAuthMenu } from '@/components/public/PublicHeaderAuthMenu'
 import ManagerSearchModal from '@/components/manager/ManagerSearchModal'
@@ -21,29 +22,33 @@ const MANAGER_ROOT_PATHS = (locale: string) => new Set([
   `/${locale}/manager/notifications`,
   `/${locale}/manager/profile`,
   `/${locale}/manager/my-listings`,
+  `/${locale}/manager/settings`,
 ])
 
-function getManagerPageTitle(pathname: string, locale: string): string {
-  if (pathname.startsWith(`/${locale}/manager/sites/`) && pathname.includes('/jobs/new')) return '공고 등록'
-  if (pathname.startsWith(`/${locale}/manager/sites/`) && pathname.endsWith('/edit')) return '현장 수정'
-  if (pathname.startsWith(`/${locale}/manager/sites/`) && pathname.endsWith('/jobs')) return '현장 공고 목록'
-  if (pathname.startsWith(`/${locale}/manager/sites/new`)) return '현장 등록'
-  if (pathname.startsWith(`/${locale}/manager/sites/`)) return '현장 상세'
-  if (pathname.startsWith(`/${locale}/manager/jobs/`) && pathname.endsWith('/edit')) return '공고 수정'
-  if (pathname.startsWith(`/${locale}/manager/jobs/`) && pathname.endsWith('/applicants')) return '지원자 목록'
-  if (pathname.startsWith(`/${locale}/manager/jobs/`) && pathname.endsWith('/attendance')) return '출퇴근 관리'
-  if (pathname.startsWith(`/${locale}/manager/jobs/`)) return '공고 상세'
-  if (pathname.startsWith(`/${locale}/manager/hires/`)) return '채용 상세'
-  if (pathname.startsWith(`/${locale}/manager/contracts/`)) return '계약서'
+type TFn = (key: string) => string
+
+function getManagerPageTitle(pathname: string, locale: string, t: TFn): string {
+  if (pathname.startsWith(`/${locale}/manager/sites/`) && pathname.includes('/jobs/new')) return t('manager_app_bar.page_new_job')
+  if (pathname.startsWith(`/${locale}/manager/sites/`) && pathname.endsWith('/edit')) return t('manager_app_bar.page_edit_site')
+  if (pathname.startsWith(`/${locale}/manager/sites/`) && pathname.endsWith('/jobs')) return t('manager_app_bar.page_site_jobs')
+  if (pathname.startsWith(`/${locale}/manager/sites/new`)) return t('manager_app_bar.page_new_site')
+  if (pathname.startsWith(`/${locale}/manager/sites/`)) return t('manager_app_bar.page_site_detail')
+  if (pathname.startsWith(`/${locale}/manager/jobs/`) && pathname.endsWith('/edit')) return t('manager_app_bar.page_edit_job')
+  if (pathname.startsWith(`/${locale}/manager/jobs/`) && pathname.endsWith('/applicants')) return t('manager_app_bar.page_job_applicants')
+  if (pathname.startsWith(`/${locale}/manager/jobs/`) && pathname.endsWith('/attendance')) return t('manager_app_bar.page_job_attendance')
+  if (pathname.startsWith(`/${locale}/manager/jobs/`)) return t('manager_app_bar.page_job_detail')
+  if (pathname.startsWith(`/${locale}/manager/hires/`)) return t('manager_app_bar.page_hire_detail')
+  if (pathname.startsWith(`/${locale}/manager/contracts/`)) return t('manager_app_bar.page_contract')
   return ''
 }
 
 export function ManagerAppBar({ locale, user }: Props) {
   const pathname = usePathname()
   const router = useRouter()
+  const t = useTranslations('common')
   const [searchOpen, setSearchOpen] = useState(false)
   const isRootPage = MANAGER_ROOT_PATHS(locale).has(pathname)
-  const pageTitle = isRootPage ? '' : getManagerPageTitle(pathname, locale)
+  const pageTitle = isRootPage ? '' : getManagerPageTitle(pathname, locale, t as TFn)
 
   function navClass(href: string, exact = false) {
     const active = exact ? pathname === href : pathname.startsWith(href)
@@ -73,7 +78,7 @@ export function ManagerAppBar({ locale, user }: Props) {
             <button
               type="button"
               onClick={() => router.back()}
-              aria-label="뒤로가기"
+              aria-label={t('manager_app_bar.back')}
               className="w-9 h-9 flex items-center justify-center rounded-full hover:bg-[#EFF1F5] transition-colors -ml-1"
             >
               <svg className="w-5 h-5 text-[#25282A]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
@@ -95,19 +100,22 @@ export function ManagerAppBar({ locale, user }: Props) {
         {/* Desktop nav links */}
         <nav className="hidden md:flex items-center gap-6 text-sm font-medium">
           <Link href={`/${locale}/manager` as never} className={navClass(`/${locale}/manager`, true)}>
-            홈
+            {t('manager_nav.home')}
           </Link>
           <Link href={`/${locale}/manager/sites` as never} className={navClass(`/${locale}/manager/sites`)}>
-            현장 관리
+            {t('manager_nav.sites_full')}
           </Link>
           <Link href={`/${locale}/manager/jobs` as never} className={navClass(`/${locale}/manager/jobs`)}>
-            공고 관리
+            {t('manager_nav.jobs_full')}
           </Link>
           <Link href={`/${locale}/manager/hires` as never} className={navClass(`/${locale}/manager/hires`)}>
-            채용 관리
+            {t('manager_nav.hires_full')}
           </Link>
           <Link href={`/${locale}/manager/contracts` as never} className={navClass(`/${locale}/manager/contracts`)}>
-            계약 관리
+            {t('manager_nav.contracts_full')}
+          </Link>
+          <Link href={`/${locale}/manager/settings` as never} className={navClass(`/${locale}/manager/settings`)}>
+            {t('manager_nav.settings')}
           </Link>
         </nav>
 
@@ -116,7 +124,7 @@ export function ManagerAppBar({ locale, user }: Props) {
           {/* Search button — visible on all sizes */}
           <button
             type="button"
-            aria-label="검색"
+            aria-label={t('manager_app_bar.search')}
             onClick={() => setSearchOpen(true)}
             className="flex items-center justify-center w-9 h-9 rounded-full text-[#98A2B2] hover:text-[#0669F7] hover:bg-[#EFF1F5] transition-colors"
           >
@@ -128,7 +136,7 @@ export function ManagerAppBar({ locale, user }: Props) {
           {/* Notification button — mobile only */}
           <Link
             href={`/${locale}/manager/notifications` as never}
-            aria-label="알림"
+            aria-label={t('manager_app_bar.notifications')}
             className="md:hidden flex items-center justify-center w-9 h-9 rounded-full text-[#98A2B2] hover:text-[#0669F7] hover:bg-[#EFF1F5] transition-colors"
           >
             <svg className="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
@@ -150,7 +158,7 @@ export function ManagerAppBar({ locale, user }: Props) {
               href={`/${locale}/login`}
               className="text-sm font-semibold text-white bg-[#0669F7] hover:bg-blue-700 px-4 py-1.5 rounded-full transition-colors"
             >
-              로그인
+              {t('manager_app_bar.login')}
             </Link>
           )}
         </div>

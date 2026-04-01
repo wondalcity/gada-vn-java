@@ -6,7 +6,11 @@
     "register": "Đăng ký",
     "profile": "Hồ sơ",
     "notifications": "Thông báo",
-    "logout": "Đăng xuất"
+    "logout": "Đăng xuất",
+    "my_account": "Tài khoản của tôi",
+    "my_page": "Trang của tôi",
+    "applications_status": "Tình trạng ứng tuyển",
+    "manager_page": "Trang quản lý"
   },
   "button": {
     "save": "Lưu",
@@ -42,5 +46,69 @@
     "ko": "한국어",
     "vi": "Tiếng Việt",
     "en": "English"
+  },
+  "worker_nav": {
+    "home": "Trang chủ",
+    "jobs": "Việc làm",
+    "applications": "Ứng tuyển",
+    "attendance": "Chấm công",
+    "profile": "Hồ sơ"
+  },
+  "worker_sidebar": {
+    "home": "Trang của tôi",
+    "applications": "Tình trạng ứng tuyển",
+    "hires": "Tình trạng tuyển dụng",
+    "attendance": "Quản lý chấm công",
+    "contracts": "Hợp đồng",
+    "profile": "Quản lý hồ sơ",
+    "notifications": "Thông báo"
+  },
+  "manager_nav": {
+    "home": "Trang chủ",
+    "sites": "Công trường",
+    "jobs": "Tin tuyển dụng",
+    "hires": "Tuyển chọn",
+    "contracts": "Hợp đồng",
+    "settings": "Cài đặt",
+    "sites_full": "Quản lý công trường",
+    "jobs_full": "Quản lý tin đăng",
+    "hires_full": "Quản lý tuyển dụng",
+    "contracts_full": "Quản lý hợp đồng"
+  },
+  "manager_app_bar": {
+    "back": "Quay lại",
+    "login": "Đăng nhập",
+    "search": "Tìm kiếm",
+    "notifications": "Thông báo",
+    "page_new_job": "Đăng tin tuyển dụng",
+    "page_edit_site": "Sửa công trường",
+    "page_site_jobs": "Tin tuyển dụng công trường",
+    "page_new_site": "Thêm công trường",
+    "page_site_detail": "Chi tiết công trường",
+    "page_edit_job": "Sửa tin tuyển dụng",
+    "page_job_applicants": "Danh sách ứng viên",
+    "page_job_attendance": "Quản lý chấm công",
+    "page_job_detail": "Chi tiết tin tuyển dụng",
+    "page_hire_detail": "Chi tiết tuyển dụng",
+    "page_contract": "Hợp đồng"
+  },
+  "worker_profile": {
+    "switch_to_manager": "Chuyển sang màn hình quản lý",
+    "apply_manager": "Đăng ký làm quản lý",
+    "applying": "Đang đăng ký...",
+    "manager_pending": "Đang xét duyệt quản lý",
+    "manager_pending_desc": "Đội vận hành sẽ xét duyệt và phê duyệt",
+    "manager_pending_badge": "Đang xét duyệt"
+  },
+  "settings": {
+    "title": "Cài đặt",
+    "language": {
+      "title": "Cài đặt ngôn ngữ",
+      "subtitle": "Chọn ngôn ngữ hiển thị của ứng dụng",
+      "ko": "한국어",
+      "vi": "Tiếng Việt",
+      "en": "English",
+      "current_suffix": "(Hiện tại)"
+    }
   }
 }

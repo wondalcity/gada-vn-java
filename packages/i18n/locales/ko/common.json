@@ -6,7 +6,11 @@
     "register": "회원가입",
     "profile": "프로필",
     "notifications": "알림",
-    "logout": "로그아웃"
+    "logout": "로그아웃",
+    "my_account": "내 계정",
+    "my_page": "마이페이지",
+    "applications_status": "지원 현황",
+    "manager_page": "관리자 페이지"
   },
   "button": {
     "save": "저장",
@@ -42,5 +46,69 @@
     "ko": "한국어",
     "vi": "Tiếng Việt",
     "en": "English"
+  },
+  "worker_nav": {
+    "home": "홈",
+    "jobs": "일자리",
+    "applications": "지원현황",
+    "attendance": "출퇴근",
+    "profile": "프로필"
+  },
+  "worker_sidebar": {
+    "home": "마이페이지",
+    "applications": "지원 현황",
+    "hires": "채용 현황",
+    "attendance": "출퇴근 관리",
+    "contracts": "계약서",
+    "profile": "프로필 관리",
+    "notifications": "알림"
+  },
+  "manager_nav": {
+    "home": "홈",
+    "sites": "현장",
+    "jobs": "공고",
+    "hires": "채용",
+    "contracts": "계약",
+    "settings": "설정",
+    "sites_full": "현장 관리",
+    "jobs_full": "공고 관리",
+    "hires_full": "채용 관리",
+    "contracts_full": "계약 관리"
+  },
+  "manager_app_bar": {
+    "back": "뒤로가기",
+    "login": "로그인",
+    "search": "검색",
+    "notifications": "알림",
+    "page_new_job": "공고 등록",
+    "page_edit_site": "현장 수정",
+    "page_site_jobs": "현장 공고 목록",
+    "page_new_site": "현장 등록",
+    "page_site_detail": "현장 상세",
+    "page_edit_job": "공고 수정",
+    "page_job_applicants": "지원자 목록",
+    "page_job_attendance": "출퇴근 관리",
+    "page_job_detail": "공고 상세",
+    "page_hire_detail": "채용 상세",
+    "page_contract": "계약서"
+  },
+  "worker_profile": {
+    "switch_to_manager": "관리자 화면으로 전환",
+    "apply_manager": "관리자 신청하기",
+    "applying": "신청 중...",
+    "manager_pending": "관리자 심사 중",
+    "manager_pending_desc": "운영팀이 검토 후 승인합니다",
+    "manager_pending_badge": "심사 중"
+  },
+  "settings": {
+    "title": "설정",
+    "language": {
+      "title": "언어 설정",
+      "subtitle": "앱에 표시될 언어를 선택하세요",
+      "ko": "한국어",
+      "vi": "Tiếng Việt",
+      "en": "English",
+      "current_suffix": "(현재)"
+    }
   }
 }

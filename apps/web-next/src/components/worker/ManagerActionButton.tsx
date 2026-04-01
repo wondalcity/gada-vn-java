@@ -3,6 +3,7 @@
 import * as React from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
+import { useTranslations } from 'next-intl'
 import { getSessionCookie } from '@/lib/auth/session'
 
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'https://api.gada.vn/api/v1'
@@ -16,6 +17,7 @@ interface Props {
 
 export function ManagerActionButton({ locale, isManager, managerStatus, variant }: Props) {
   const router = useRouter()
+  const t = useTranslations('common')
   const [status, setStatus] = React.useState<'idle' | 'loading' | 'pending'>(
     managerStatus === 'pending' ? 'pending' : 'idle',
   )
@@ -57,7 +59,7 @@ export function ManagerActionButton({ locale, isManager, managerStatus, variant 
           <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
           </svg>
-          관리자 화면으로 전환
+          {t('worker_profile.switch_to_manager')}
         </Link>
       )
     }
@@ -72,7 +74,7 @@ export function ManagerActionButton({ locale, isManager, managerStatus, variant 
               <path strokeLinecap="round" strokeLinejoin="round" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
             </svg>
           </div>
-          관리자 화면으로 전환
+          {t('worker_profile.switch_to_manager')}
         </div>
         <svg className="w-4 h-4 text-white/70" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
@@ -88,7 +90,7 @@ export function ManagerActionButton({ locale, isManager, managerStatus, variant 
           <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
-          관리자 심사 중
+          {t('worker_profile.manager_pending')}
         </div>
       )
     }
@@ -101,11 +103,11 @@ export function ManagerActionButton({ locale, isManager, managerStatus, variant 
             </svg>
           </div>
           <div>
-            <p className="text-sm font-bold text-[#856404]">관리자 심사 중</p>
-            <p className="text-xs text-[#856404]/70">운영팀이 검토 후 승인합니다</p>
+            <p className="text-sm font-bold text-[#856404]">{t('worker_profile.manager_pending')}</p>
+            <p className="text-xs text-[#856404]/70">{t('worker_profile.manager_pending_desc')}</p>
           </div>
         </div>
-        <span className="px-2.5 py-1 rounded-lg bg-[#FDBC08] text-white text-xs font-bold">심사 중</span>
+        <span className="px-2.5 py-1 rounded-lg bg-[#FDBC08] text-white text-xs font-bold">{t('worker_profile.manager_pending_badge')}</span>
       </div>
     )
   }
@@ -122,7 +124,7 @@ export function ManagerActionButton({ locale, isManager, managerStatus, variant 
         <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
           <path strokeLinecap="round" strokeLinejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
         </svg>
-        {status === 'loading' ? '신청 중...' : '관리자 신청하기'}
+        {status === 'loading' ? t('worker_profile.applying') : t('worker_profile.apply_manager')}
       </button>
     )
   }
@@ -139,7 +141,7 @@ export function ManagerActionButton({ locale, isManager, managerStatus, variant 
             <path strokeLinecap="round" strokeLinejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
           </svg>
         </div>
-        {status === 'loading' ? '신청 중...' : '관리자 신청하기'}
+        {status === 'loading' ? t('worker_profile.applying') : t('worker_profile.apply_manager')}
       </div>
       <svg className="w-4 h-4 text-[#98A2B2]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
