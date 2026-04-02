@@ -9,9 +9,6 @@ RUN corepack enable && corepack prepare pnpm@9.15.0 --activate
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 COPY apps/web-next/package.json ./apps/web-next/
 COPY packages/ui/package.json ./packages/ui/
-COPY packages/core/package.json ./packages/core/
-COPY packages/i18n/package.json ./packages/i18n/
-COPY packages/types/package.json ./packages/types/
 
 # Install web-next + workspace package dependencies
 RUN pnpm install --filter=@gada/web... --frozen-lockfile
@@ -24,7 +21,6 @@ RUN corepack enable && corepack prepare pnpm@9.15.0 --activate
 COPY --from=deps /repo/node_modules ./node_modules
 COPY --from=deps /repo/apps/web-next/node_modules ./apps/web-next/node_modules
 COPY --from=deps /repo/packages/ui/node_modules ./packages/ui/node_modules
-COPY --from=deps /repo/packages/core/node_modules ./packages/core/node_modules
 COPY . .
 
 # Build args baked into the JS bundle at build time
