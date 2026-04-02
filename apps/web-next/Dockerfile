@@ -58,10 +58,13 @@ RUN addgroup --system --gid 1001 nodejs \
  && adduser  --system --uid 1001 nextjs
 
 COPY --from=builder /repo/apps/web-next/public ./public
-# standalone output includes server.js + its own node_modules at repo root level
-COPY --from=builder --chown=nextjs:nodejs /repo/apps/web-next/.next/standalone ./
-# Copy the app-specific files on top (overwrite with correct paths)
-COPY --from=builder --chown=nextjs:nodejs /repo/apps/web-next/.next/standalone/apps/web-next ./
+# 1. Copy standalone root (contains node_modules/next, node_modules/react, etc.)
+COPY --from=builder --chown=nextjs:nodejs /repo/apps/web-next/.next/standalone/node_modules ./node_modules
+COPY --from=builder --chown=nextjs:nodejs /repo/apps/web-next/.next/standalone/package.json ./package.json
+# 2. Copy app-level server.js and its node_modules
+COPY --from=builder --chown=nextjs:nodejs /repo/apps/web-next/.next/standalone/apps/web-next/server.js ./server.js
+COPY --from=builder --chown=nextjs:nodejs /repo/apps/web-next/.next/standalone/apps/web-next/node_modules ./node_modules/
+# 3. Copy static assets
 COPY --from=builder --chown=nextjs:nodejs /repo/apps/web-next/.next/static ./.next/static
 
 USER nextjs
