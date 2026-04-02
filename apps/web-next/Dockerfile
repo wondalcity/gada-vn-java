@@ -57,6 +57,11 @@ ENV NODE_ENV=production PORT=3000 HOSTNAME=0.0.0.0
 RUN addgroup --system --gid 1001 nodejs \
  && adduser  --system --uid 1001 nextjs
 
+# pnpm standalone symlinks point to ../../../node_modules/.pnpm/...
+# which from /app/node_modules/ resolves to /node_modules/.pnpm/
+# Create the expected path so symlinks resolve correctly.
+RUN mkdir -p /node_modules && ln -s /app/node_modules/.pnpm /node_modules/.pnpm
+
 COPY --from=builder /repo/apps/web-next/public ./public
 # 1. Copy standalone root (contains node_modules/next, node_modules/react, etc.)
 COPY --from=builder --chown=nextjs:nodejs /repo/apps/web-next/.next/standalone/node_modules ./node_modules
