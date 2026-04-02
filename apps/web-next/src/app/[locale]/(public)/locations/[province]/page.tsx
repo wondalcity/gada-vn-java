@@ -3,7 +3,7 @@ import { notFound } from 'next/navigation'
 import { fetchProvinces, fetchProvinceBySlug, fetchPublicJobs, fetchTrades } from '@/lib/api/public'
 import { ProvinceJobsView } from '@/components/locations/ProvinceJobsView'
 
-export const revalidate = 3600
+export const dynamic = 'force-dynamic'
 
 interface Props {
   params: Promise<{ locale: string; province: string }>
