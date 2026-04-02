@@ -3,19 +3,19 @@
 # docker-compose: context: ../../  dockerfile: apps/web-next/Dockerfile
 FROM node:20-alpine AS deps
 WORKDIR /repo
-RUN corepack enable && corepack prepare pnpm@9 --activate
+RUN corepack enable && corepack prepare pnpm@9.15.0 --activate
 
 # Copy workspace manifests first (cache layer)
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 COPY apps/web-next/package.json ./apps/web-next/
 
-# Install only web-next dependencies
-RUN pnpm install --filter=web-next --frozen-lockfile
+# Install only web-next dependencies (package name: @gada/web)
+RUN pnpm install --filter=@gada/web --frozen-lockfile
 
 # ── Stage 2: Build ───────────────────────────────────────────────────────────
 FROM node:20-alpine AS builder
 WORKDIR /repo
-RUN corepack enable && corepack prepare pnpm@9 --activate
+RUN corepack enable && corepack prepare pnpm@9.15.0 --activate
 
 COPY --from=deps /repo/node_modules ./node_modules
 COPY --from=deps /repo/apps/web-next/node_modules ./apps/web-next/node_modules
@@ -44,7 +44,7 @@ ENV NEXT_PUBLIC_API_BASE_URL=$NEXT_PUBLIC_API_BASE_URL \
     NEXT_PUBLIC_CDN_DOMAIN=$NEXT_PUBLIC_CDN_DOMAIN \
     NEXT_PUBLIC_SITE_URL=$NEXT_PUBLIC_SITE_URL
 
-RUN pnpm --filter=web-next build
+RUN pnpm --filter=@gada/web build
 
 # ── Stage 3: Production runner (standalone) ───────────────────────────────────
 FROM node:20-alpine AS runner

@@ -31,6 +31,8 @@ class SecurityConfig {
             .csrf { it.disable() }
             .authorizeHttpRequests { auth ->
                 auth
+                    // Health check — unauthenticated (needed for Docker HEALTHCHECK + nginx)
+                    .requestMatchers("/health").permitAll()
                     // Static assets and login/logout always allowed
                     .requestMatchers("/login", "/assets/**", "/favicon.ico", "/*.js", "/*.css").permitAll()
                     // Accept-invite page and its API call are public (user not yet logged in)
