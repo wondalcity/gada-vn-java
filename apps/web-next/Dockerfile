@@ -8,9 +8,13 @@ RUN corepack enable && corepack prepare pnpm@9.15.0 --activate
 # Copy workspace manifests first (cache layer)
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 COPY apps/web-next/package.json ./apps/web-next/
+COPY packages/ui/package.json ./packages/ui/
+COPY packages/core/package.json ./packages/core/
+COPY packages/i18n/package.json ./packages/i18n/
+COPY packages/types/package.json ./packages/types/
 
-# Install only web-next dependencies (package name: @gada/web)
-RUN pnpm install --filter=@gada/web --frozen-lockfile
+# Install web-next + workspace package dependencies
+RUN pnpm install --filter=@gada/web... --frozen-lockfile
 
 # ── Stage 2: Build ───────────────────────────────────────────────────────────
 FROM node:20-alpine AS builder
