@@ -47,6 +47,8 @@ REDIS_HOST=$(echo "$REDIS_URL" | sed -E 's|redis://([^:@]+@)?([^:]+):[0-9]+.*|\2
 REDIS_PORT=$(echo "$REDIS_URL" | sed -E 's|redis://[^:]*:([0-9]+).*|\1|')
 REDIS_PASSWORD=$(echo "$REDIS_URL" | sed -E 's|redis://:([^@]+)@.*|\1|; t; s|.*||')
 
+DATABASE_NAME=$(echo "$DATABASE_URL" | sed -E 's|.*://[^/]+/([^?]+).*|\1|')
+
 log "All secrets fetched."
 
 if [ "$DRY_RUN" = true ]; then
@@ -133,5 +135,21 @@ NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=
 EOF
 chmod 600 "$DEPLOY_DIR/.env.web"
 log ".env.web written"
+
+# ── .env.postgres (PostgreSQL container init) ─────────────────────────────────
+cat > "$DEPLOY_DIR/.env.postgres" << EOF
+POSTGRES_DB=${DATABASE_NAME}
+POSTGRES_USER=${DATABASE_USER}
+POSTGRES_PASSWORD=${DATABASE_PASSWORD}
+EOF
+chmod 600 "$DEPLOY_DIR/.env.postgres"
+log ".env.postgres written"
+
+# ── .env.redis (Redis container) ──────────────────────────────────────────────
+cat > "$DEPLOY_DIR/.env.redis" << EOF
+REDIS_PASSWORD=${REDIS_PASSWORD}
+EOF
+chmod 600 "$DEPLOY_DIR/.env.redis"
+log ".env.redis written"
 
 log "All .env files ready. Run docker-compose to apply."

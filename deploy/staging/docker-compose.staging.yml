@@ -17,6 +17,44 @@ x-logging: &logging
 services:
 
   # ──────────────────────────────────────────────────────────────
+  # PostgreSQL 16 + PostGIS (kartoza — arm64 compatible)
+  # ──────────────────────────────────────────────────────────────
+  postgres:
+    image: kartoza/postgis:16-3
+    <<: [*restart, *logging]
+    env_file:
+      - .env.postgres
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 60s
+
+  # ──────────────────────────────────────────────────────────────
+  # Redis 7
+  # ──────────────────────────────────────────────────────────────
+  redis:
+    image: redis:7-alpine
+    <<: [*restart, *logging]
+    env_file:
+      - .env.redis
+    command: >
+      sh -c 'if [ -n "$$REDIS_PASSWORD" ];
+             then redis-server --requirepass "$$REDIS_PASSWORD" --appendonly yes;
+             else redis-server --appendonly yes;
+             fi'
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ──────────────────────────────────────────────────────────────
   # Nginx — reverse proxy
   # Port 80:   /v1/* → api   |  /* → web
   # Port 8080: /* → admin panel
@@ -62,6 +100,11 @@ services:
     volumes:
       # Firebase service account JSON (written by fetch-secrets.sh)
       - ./secrets/firebase-service-account.json:/app/firebase-service-account.json:ro
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
     healthcheck:
       test: ["CMD", "wget", "-qO-", "http://localhost:7001/v1/health"]
       interval: 30s
@@ -124,3 +167,7 @@ services:
       timeout: 10s
       start_period: 60s
       retries: 5
+
+volumes:
+  postgres_data:
+  redis_data:
