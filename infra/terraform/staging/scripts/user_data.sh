@@ -1,20 +1,26 @@
 #!/bin/bash
 # Bootstrap: GADA VN staging server (AL2023, arm64)
-# Each major section is isolated — a failure in one section does not abort others.
+# Architecture: Docker Compose — nginx, api, admin, web all run as containers.
+# Host nginx is NOT installed. Node.js is NOT installed (Docker handles runtimes).
+# Each section is isolated — a failure in one section does not abort others.
 
 LOG=/var/log/user-data.log
 exec > >(tee -a "$LOG") 2>&1
 
-ts() { date -u +"%Y-%m-%dT%H:%M:%SZ"; }
-section() { echo ""; echo "=== [$( ts)] $* ==="; }
+ts()      { date -u +"%Y-%m-%dT%H:%M:%SZ"; }
+section() { echo ""; echo "=== [$(ts)] $* ==="; }
 ok()      { echo "  [OK] $*"; }
 warn()    { echo "  [WARN] $*"; }
 
 section "GADA VN staging bootstrap start"
+echo "Instance: $(curl -s -H "X-aws-ec2-metadata-token: $(curl -s -X PUT \
+  'http://169.254.169.254/latest/api/token' \
+  -H 'X-aws-ec2-metadata-token-ttl-seconds: 60')" \
+  http://169.254.169.254/latest/meta-data/instance-id 2>/dev/null || echo unknown)"
 
 ###############################################################################
-# 0. SSM Agent — install + start FIRST so the instance is immediately reachable
-#    via Session Manager, regardless of what else happens below.
+# 0. SSM Agent — FIRST so the instance is reachable via Session Manager
+#    regardless of what else happens below.
 ###############################################################################
 section "0. SSM Agent"
 if dnf install -y amazon-ssm-agent --quiet; then
@@ -33,73 +39,131 @@ fi
 # 1. System update
 ###############################################################################
 section "1. System update"
-dnf update -y --quiet && ok "dnf update done" || warn "dnf update failed (non-fatal)"
+dnf update -y --quiet \
+  && ok "dnf update done" \
+  || warn "dnf update failed (non-fatal)"
 
 ###############################################################################
 # 2. Essential packages
+#    Note: awscli v2 is pre-installed on AL2023 — no separate install needed.
+#    Note: nginx is containerized — NOT installed on the host.
+#    Note: Node.js is NOT installed — Docker handles all runtimes.
 ###############################################################################
 section "2. Essential packages"
-dnf install -y git jq curl wget unzip nginx amazon-cloudwatch-agent --quiet \
-  && ok "packages installed" \
+dnf install -y git jq curl wget unzip amazon-cloudwatch-agent --quiet \
+  && ok "packages installed: git jq curl wget unzip amazon-cloudwatch-agent" \
   || warn "some packages failed"
 
-###############################################################################
-# 3. Node.js 20 LTS
-###############################################################################
-section "3. Node.js 20"
-if curl -fsSL https://rpm.nodesource.com/setup_20.x | bash - && dnf install -y nodejs --quiet; then
-  ok "Node.js $(node --version) installed"
-  npm install -g pnpm@9 && ok "pnpm installed" || warn "pnpm install failed"
+# Verify AWS CLI (pre-installed on AL2023)
+if aws --version &>/dev/null; then
+  ok "aws cli: $(aws --version 2>&1 | head -1)"
 else
-  warn "Node.js install failed"
+  warn "aws cli not found — installing"
+  curl -fsSL "https://awscli.amazonaws.com/awscli-exe-linux-aarch64.zip" -o /tmp/awscliv2.zip \
+    && unzip -q /tmp/awscliv2.zip -d /tmp \
+    && /tmp/aws/install \
+    && rm -rf /tmp/awscliv2.zip /tmp/aws \
+    && ok "aws cli installed" \
+    || warn "aws cli install failed"
 fi
 
 ###############################################################################
-# 4. Swap (2 GB)
+# 3. Docker Engine + Docker Compose plugin
+###############################################################################
+section "3. Docker"
+if ! command -v docker &>/dev/null; then
+  dnf install -y docker --quiet \
+    && ok "docker installed" \
+    || warn "docker install failed"
+else
+  ok "docker already installed: $(docker --version)"
+fi
+
+# Docker Compose plugin (ships with docker package on AL2023; verify)
+if docker compose version &>/dev/null; then
+  ok "docker compose plugin: $(docker compose version)"
+else
+  warn "docker compose plugin not found — installing manually"
+  mkdir -p /usr/local/lib/docker/cli-plugins
+  COMPOSE_VERSION="v2.27.1"
+  curl -fsSL \
+    "https://github.com/docker/compose/releases/download/${COMPOSE_VERSION}/docker-compose-linux-aarch64" \
+    -o /usr/local/lib/docker/cli-plugins/docker-compose \
+    && chmod +x /usr/local/lib/docker/cli-plugins/docker-compose \
+    && ok "docker compose ${COMPOSE_VERSION} installed" \
+    || warn "docker compose manual install failed"
+fi
+
+# Enable + start Docker daemon
+if systemctl enable docker && systemctl start docker; then
+  ok "docker daemon started"
+else
+  warn "docker daemon start failed"
+fi
+
+# Add ec2-user to docker group (no sudo needed for deploy scripts)
+usermod -aG docker ec2-user \
+  && ok "ec2-user added to docker group" \
+  || warn "usermod docker failed"
+
+###############################################################################
+# 4. Swap (2 GB) — t4g.small has 2 GB RAM; swap prevents OOM during builds
 ###############################################################################
 section "4. Swap"
 if [ ! -f /swapfile ]; then
-  fallocate -l 2G /swapfile && chmod 600 /swapfile && mkswap /swapfile && swapon /swapfile \
+  fallocate -l 2G /swapfile \
+    && chmod 600 /swapfile \
+    && mkswap /swapfile \
+    && swapon /swapfile \
     && echo '/swapfile none swap sw 0 0' >> /etc/fstab \
-    && ok "2 GB swap created" \
+    && ok "2 GB swap created and enabled" \
     || warn "swap creation failed"
 else
   ok "swap already exists"
 fi
 
 ###############################################################################
-# 5. Nginx
+# 5. App directory structure
+#    /opt/gada                            — git repo root (cloned manually post-bootstrap)
+#    /opt/gada/deploy/staging/.env.*      — generated by fetch-secrets.sh (chmod 600)
+#    /opt/gada/deploy/staging/secrets/    — Firebase JSON (chmod 700)
 ###############################################################################
-section "5. Nginx"
-systemctl enable nginx && systemctl start nginx && ok "nginx started" || warn "nginx failed"
+section "5. App directory"
+mkdir -p /opt/gada
+mkdir -p /opt/gada/deploy/staging/secrets
+chown -R ec2-user:ec2-user /opt/gada
+chmod 700 /opt/gada/deploy/staging/secrets
+ok "created /opt/gada directory structure"
 
-cat > /etc/nginx/conf.d/gada.conf << 'NGINX'
-server {
-    listen 80 default_server;
-    server_name _;
+# Repo clone must happen manually after bootstrap via SSM.
+# Private repo requires a deploy key at /home/ec2-user/.ssh/id_ed25519.
+# See: docs/deploy/staging-server-bootstrap.md
+warn "Repo not cloned — connect via SSM and run the bootstrap steps"
 
-    location /api/ {
-        proxy_pass         http://127.0.0.1:3000/;
-        proxy_http_version 1.1;
-        proxy_set_header   Host              $host;
-        proxy_set_header   X-Real-IP         $remote_addr;
-        proxy_set_header   X-Forwarded-For   $proxy_add_x_forwarded_for;
-        proxy_set_header   X-Forwarded-Proto $scheme;
-    }
-
-    location / {
-        return 200 'GADA VN staging OK\n';
-        add_header Content-Type text/plain;
-    }
+###############################################################################
+# 6. Docker daemon hardening
+###############################################################################
+section "6. Docker daemon config"
+mkdir -p /etc/docker
+cat > /etc/docker/daemon.json << 'DOCKERD'
+{
+  "log-driver": "json-file",
+  "log-opts": {
+    "max-size": "50m",
+    "max-file": "5"
+  },
+  "live-restore": true
 }
-NGINX
+DOCKERD
 
-nginx -t && systemctl reload nginx && ok "nginx config loaded" || warn "nginx config failed"
+systemctl reload-or-restart docker \
+  && ok "docker daemon config applied" \
+  || warn "docker daemon reload failed"
 
 ###############################################################################
-# 6. CloudWatch agent
+# 7. CloudWatch agent
 ###############################################################################
-section "6. CloudWatch agent"
+section "7. CloudWatch agent"
 mkdir -p /opt/aws/amazon-cloudwatch-agent/etc
 
 cat > /opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json << 'CWA'
@@ -109,19 +173,16 @@ cat > /opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json << 'CWA'
       "files": {
         "collect_list": [
           {
-            "file_path": "/var/log/gada-api.log",
-            "log_group_name": "/gada/staging/api",
-            "log_stream_name": "{instance_id}"
-          },
-          {
-            "file_path": "/var/log/nginx/error.log",
-            "log_group_name": "/gada/staging/nginx",
-            "log_stream_name": "{instance_id}/error"
-          },
-          {
             "file_path": "/var/log/user-data.log",
             "log_group_name": "/gada/staging/bootstrap",
-            "log_stream_name": "{instance_id}"
+            "log_stream_name": "{instance_id}",
+            "timezone": "UTC"
+          },
+          {
+            "file_path": "/var/log/messages",
+            "log_group_name": "/gada/staging/system",
+            "log_stream_name": "{instance_id}",
+            "timezone": "UTC"
           }
         ]
       }
@@ -130,9 +191,13 @@ cat > /opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json << 'CWA'
   "metrics": {
     "namespace": "GADA/Staging",
     "metrics_collected": {
-      "mem": { "measurement": ["mem_used_percent"] },
+      "mem":  { "measurement": ["mem_used_percent"] },
       "swap": { "measurement": ["swap_used_percent"] },
-      "disk": { "measurement": ["disk_used_percent"], "resources": ["/"] }
+      "disk": { "measurement": ["disk_used_percent"], "resources": ["/"] },
+      "cpu":  { "measurement": ["cpu_usage_idle"], "totalcpu": true }
+    },
+    "append_dimensions": {
+      "InstanceId": "${aws:InstanceId}"
     }
   }
 }
@@ -148,39 +213,15 @@ else
 fi
 
 ###############################################################################
-# 7. App directory + systemd service
-###############################################################################
-section "7. App skeleton"
-mkdir -p /opt/gada/{api,web,releases}
-chown -R ec2-user:ec2-user /opt/gada
-ok "directories created"
-
-cat > /etc/systemd/system/gada-api.service << 'UNIT'
-[Unit]
-Description=GADA VN NestJS API
-After=network.target
-
-[Service]
-Type=simple
-User=ec2-user
-WorkingDirectory=/opt/gada/api
-ExecStart=/usr/bin/node dist/main.js
-Restart=on-failure
-RestartSec=5
-StandardOutput=append:/var/log/gada-api.log
-StandardError=append:/var/log/gada-api.log
-EnvironmentFile=-/opt/gada/api/.env
-
-[Install]
-WantedBy=multi-user.target
-UNIT
-
-systemctl daemon-reload && ok "systemd reloaded" || warn "systemd reload failed"
-
-###############################################################################
 # Done
 ###############################################################################
 section "Bootstrap complete"
-echo "SSM agent status: $(systemctl is-active amazon-ssm-agent 2>/dev/null || echo unknown)"
-echo "Nginx status:     $(systemctl is-active nginx 2>/dev/null || echo unknown)"
-echo "Node version:     $(node --version 2>/dev/null || echo not installed)"
+echo "SSM agent:      $(systemctl is-active amazon-ssm-agent 2>/dev/null || echo unknown)"
+echo "Docker:         $(systemctl is-active docker 2>/dev/null || echo unknown)"
+echo "Docker version: $(docker --version 2>/dev/null || echo not available)"
+echo "Compose plugin: $(docker compose version 2>/dev/null || echo not available)"
+echo "AWS CLI:        $(aws --version 2>&1 | head -1 || echo not available)"
+echo "Swap:           $(swapon --show 2>/dev/null | tail -n +2 | wc -l) swap file(s)"
+echo ""
+echo "NEXT: Connect via SSM and follow docs/deploy/staging-server-bootstrap.md"
+echo "  aws ssm start-session --target <instance-id> --region ap-southeast-1"
