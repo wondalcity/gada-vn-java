@@ -23,6 +23,8 @@ RUN corepack enable && corepack prepare pnpm@9.15.0 --activate
 
 COPY --from=deps /repo/node_modules ./node_modules
 COPY --from=deps /repo/apps/web-next/node_modules ./apps/web-next/node_modules
+COPY --from=deps /repo/packages/ui/node_modules ./packages/ui/node_modules
+COPY --from=deps /repo/packages/core/node_modules ./packages/core/node_modules
 COPY . .
 
 # Build args baked into the JS bundle at build time
