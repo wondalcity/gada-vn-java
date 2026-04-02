@@ -1,28 +1,50 @@
-FROM php:8.2-fpm-alpine
+# Admin: Spring Boot 3 + Kotlin + embedded React SPA
+# Replaces incorrect PHP Dockerfile — admin is a Kotlin/Spring Boot app.
 
-RUN apk add --no-cache nginx curl
+# ── Stage 1: Build React frontend ────────────────────────────────────────────
+FROM node:20-alpine AS frontend-builder
+WORKDIR /app/frontend
 
-RUN docker-php-ext-install opcache
+COPY frontend/package*.json ./
+RUN npm ci --quiet
 
-# Install Composer
-COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
+COPY frontend/ ./
+RUN npm run build
+# Output: /app/frontend/dist/
 
+# ── Stage 2: Build Spring Boot JAR ───────────────────────────────────────────
+FROM eclipse-temurin:17-jdk-alpine AS backend-builder
 WORKDIR /app
 
-COPY composer.json composer.lock* ./
-RUN composer install --no-dev --optimize-autoloader --no-interaction
+# Cache Gradle dependencies layer
+COPY build.gradle.kts settings.gradle.kts gradlew ./
+COPY gradle ./gradle
+RUN ./gradlew dependencies --no-daemon --quiet || true
 
-COPY . .
+# Copy pre-built React dist into static resources before bootJar
+# This bypasses the Gradle buildFrontend/copyFrontend tasks (they need npm in PATH)
+COPY --from=frontend-builder /app/frontend/dist ./src/main/resources/static/
 
-# Nginx config
-RUN echo 'server { \
-    listen 80; \
-    root /app/public; \
-    index index.php; \
-    location / { try_files $uri $uri/ /index.php?$query_string; } \
-    location ~ \.php$ { fastcgi_pass 127.0.0.1:9000; fastcgi_param SCRIPT_FILENAME $realpath_root$fastcgi_script_name; include fastcgi_params; } \
-}' > /etc/nginx/http.d/default.conf
+COPY src ./src
 
-EXPOSE 80
+RUN ./gradlew bootJar --no-daemon -x test -x buildFrontend -x copyFrontend
 
-CMD php-fpm -D && nginx -g 'daemon off;'
+# ── Stage 3: Runtime ─────────────────────────────────────────────────────────
+FROM eclipse-temurin:17-jre-alpine
+WORKDIR /app
+
+RUN addgroup -S gada && adduser -S gada -G gada
+USER gada
+
+COPY --from=backend-builder /app/build/libs/*.jar app.jar
+
+HEALTHCHECK --interval=30s --timeout=5s --start-period=60s --retries=3 \
+  CMD wget -qO- http://localhost:${PORT:-8081}/health || exit 1
+
+EXPOSE ${PORT:-8081}
+
+ENTRYPOINT ["java", \
+  "-XX:+UseContainerSupport", \
+  "-XX:MaxRAMPercentage=75.0", \
+  "-Djava.security.egd=file:/dev/./urandom", \
+  "-jar", "app.jar"]

@@ -3,11 +3,16 @@
 
 locals {
   secret_names = [
-    "database-url",         # postgres://user:pass@host:5432/db
-    "firebase-credentials", # Firebase service account JSON (base64)
+    "database-url",         # jdbc:postgresql://host:5432/gada_staging
+    "database-user",        # DB username
+    "database-password",    # DB password
+    "redis-url",            # redis://:password@host:6379
+    "firebase-credentials", # Firebase service account JSON (base64-encoded)
+    "firebase-project-id",  # e.g. gada-vn
+    "firebase-web-api-key", # Firebase web API key
     "jwt-secret",           # Random 64-char hex
-    "s3-region",            # ap-southeast-1
-    "redis-url",            # redis://host:6379
+    "admin-service-key",    # Shared secret between api and admin (64+ chars)
+    "anthropic-api-key",    # sk-ant-...
   ]
 }
 

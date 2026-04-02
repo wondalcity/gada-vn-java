@@ -30,16 +30,16 @@ resource "aws_vpc_security_group_ingress_rule" "https" {
   description       = "HTTPS from ${each.value}"
 }
 
-# API direct port (NestJS default — behind nginx in prod)
-resource "aws_vpc_security_group_ingress_rule" "api" {
+# Admin panel (nginx → port 8080)
+resource "aws_vpc_security_group_ingress_rule" "admin" {
   for_each = toset(var.allowed_ingress_cidrs)
 
   security_group_id = aws_security_group.app.id
   ip_protocol       = "tcp"
-  from_port         = 3000
-  to_port           = 3000
+  from_port         = 8080
+  to_port           = 8080
   cidr_ipv4         = each.value
-  description       = "NestJS API port from ${each.value}"
+  description       = "Admin panel from ${each.value}"
 }
 
 # SSH

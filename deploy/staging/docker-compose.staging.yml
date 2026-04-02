@@ -1,0 +1,126 @@
+version: "3.9"
+
+# GADA VN — Staging Docker Compose
+# Run via: deploy/staging/scripts/deploy.sh
+# Secrets are injected by fetch-secrets.sh before this file is used.
+
+x-restart: &restart
+  restart: unless-stopped
+
+x-logging: &logging
+  logging:
+    driver: "json-file"
+    options:
+      max-size: "50m"
+      max-file: "5"
+
+services:
+
+  # ──────────────────────────────────────────────────────────────
+  # Nginx — reverse proxy
+  # Port 80:   /v1/* → api   |  /* → web
+  # Port 8080: /* → admin panel
+  # ──────────────────────────────────────────────────────────────
+  nginx:
+    image: nginx:1.27-alpine
+    <<: [*restart, *logging]
+    ports:
+      - "80:80"
+      - "8080:8080"
+    volumes:
+      - ./nginx/staging.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      api:
+        condition: service_healthy
+      web:
+        condition: service_healthy
+      admin:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost/"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+  # ──────────────────────────────────────────────────────────────
+  # API — Spring Boot + Kotlin
+  # Listens on port 7001, context-path /v1
+  # ──────────────────────────────────────────────────────────────
+  api:
+    image: gada-api:${IMAGE_TAG:-latest}
+    build:
+      context: ../../apps/api-kotlin
+      dockerfile: Dockerfile
+    <<: [*restart, *logging]
+    env_file:
+      - .env.api
+    environment:
+      - PORT=7001
+      - SPRING_PROFILES_ACTIVE=staging
+      # EC2 instance profile provides AWS credentials — no keys needed
+      - AWS_REGION=ap-southeast-1
+    volumes:
+      # Firebase service account JSON (written by fetch-secrets.sh)
+      - ./secrets/firebase-service-account.json:/app/firebase-service-account.json:ro
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:7001/v1/health"]
+      interval: 30s
+      timeout: 10s
+      start_period: 90s
+      retries: 5
+
+  # ──────────────────────────────────────────────────────────────
+  # Admin — Spring Boot + Kotlin + embedded React SPA
+  # Listens on port 8081 internally (nginx exposes via :8080)
+  # ──────────────────────────────────────────────────────────────
+  admin:
+    image: gada-admin:${IMAGE_TAG:-latest}
+    build:
+      context: ../../apps/admin
+      dockerfile: Dockerfile
+    <<: [*restart, *logging]
+    env_file:
+      - .env.admin
+    environment:
+      - PORT=8081
+      - SPRING_PROFILES_ACTIVE=staging
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8081/health"]
+      interval: 30s
+      timeout: 10s
+      start_period: 90s
+      retries: 5
+
+  # ──────────────────────────────────────────────────────────────
+  # Web — Next.js 15 (standalone mode)
+  # Listens on port 3000
+  # ──────────────────────────────────────────────────────────────
+  web:
+    image: gada-web:${IMAGE_TAG:-latest}
+    build:
+      context: ../../
+      dockerfile: apps/web-next/Dockerfile
+      args:
+        # NEXT_PUBLIC_* vars are baked in at build time
+        NEXT_PUBLIC_API_BASE_URL: ${NEXT_PUBLIC_API_BASE_URL}
+        NEXT_PUBLIC_FIREBASE_API_KEY: ${NEXT_PUBLIC_FIREBASE_API_KEY}
+        NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN: ${NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN}
+        NEXT_PUBLIC_FIREBASE_PROJECT_ID: ${NEXT_PUBLIC_FIREBASE_PROJECT_ID}
+        NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET: ${NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET}
+        NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID: ${NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID}
+        NEXT_PUBLIC_FIREBASE_APP_ID: ${NEXT_PUBLIC_FIREBASE_APP_ID}
+        NEXT_PUBLIC_GOOGLE_MAPS_API_KEY: ${NEXT_PUBLIC_GOOGLE_MAPS_API_KEY:-}
+        NEXT_PUBLIC_CDN_DOMAIN: ${NEXT_PUBLIC_CDN_DOMAIN}
+        NEXT_PUBLIC_SITE_URL: ${NEXT_PUBLIC_SITE_URL}
+    <<: [*restart, *logging]
+    env_file:
+      - .env.web
+    environment:
+      - PORT=3000
+      - NODE_ENV=production
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3000/"]
+      interval: 30s
+      timeout: 10s
+      start_period: 60s
+      retries: 5
