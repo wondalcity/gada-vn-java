@@ -13,7 +13,7 @@ RUN npm run build
 # Output: /app/frontend/dist/
 
 # ── Stage 2: Build Spring Boot JAR ───────────────────────────────────────────
-FROM eclipse-temurin:17-jdk-alpine AS backend-builder
+FROM eclipse-temurin:17-jdk AS backend-builder
 WORKDIR /app
 
 # Cache Gradle dependencies layer
@@ -30,10 +30,10 @@ COPY src ./src
 RUN ./gradlew bootJar --no-daemon -x test -x buildFrontend -x copyFrontend
 
 # ── Stage 3: Runtime ─────────────────────────────────────────────────────────
-FROM eclipse-temurin:17-jre-alpine
+FROM eclipse-temurin:17-jre
 WORKDIR /app
 
-RUN addgroup -S gada && adduser -S gada -G gada
+RUN groupadd -r gada && useradd -r -g gada gada
 USER gada
 
 COPY --from=backend-builder /app/build/libs/*.jar app.jar
