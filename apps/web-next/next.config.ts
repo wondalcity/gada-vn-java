@@ -5,6 +5,7 @@ const withNextIntl = createNextIntlPlugin('./src/i18n/request.ts')
 
 const nextConfig: NextConfig = {
   output: 'standalone', // Required for Docker deployment
+  transpilePackages: ['@gada/ui', '@gada/core', '@gada/i18n', '@gada/types'],
   experimental: {
     typedRoutes: true,
   },
