@@ -66,10 +66,11 @@ COPY --from=builder /repo/apps/web-next/public ./public
 # 1. Copy standalone root (contains node_modules/next, node_modules/react, etc.)
 COPY --from=builder --chown=nextjs:nodejs /repo/apps/web-next/.next/standalone/node_modules ./node_modules
 COPY --from=builder --chown=nextjs:nodejs /repo/apps/web-next/.next/standalone/package.json ./package.json
-# 2. Copy app-level server.js and its node_modules
+# 2. Copy app-level server.js, build artifacts, and its node_modules
 COPY --from=builder --chown=nextjs:nodejs /repo/apps/web-next/.next/standalone/apps/web-next/server.js ./server.js
+COPY --from=builder --chown=nextjs:nodejs /repo/apps/web-next/.next/standalone/apps/web-next/.next ./.next
 COPY --from=builder --chown=nextjs:nodejs /repo/apps/web-next/.next/standalone/apps/web-next/node_modules ./node_modules/
-# 3. Copy static assets
+# 3. Copy static assets (overrides .next/static from standalone with the full static dir)
 COPY --from=builder --chown=nextjs:nodejs /repo/apps/web-next/.next/static ./.next/static
 
 USER nextjs
