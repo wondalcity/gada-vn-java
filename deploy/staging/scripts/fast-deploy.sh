@@ -82,19 +82,30 @@ deploy_web() {
   STANDALONE="$REPO_DIR/apps/web-next/.next/standalone"
 
   # Patch files into the running container's writable layer.
-  # Must mirror the Dockerfile runner stage copy order exactly:
-  #   1. standalone/node_modules  (shared deps, react, etc.)
-  #   2. standalone/apps/web-next/node_modules  (app-level deps, incl. 'next')
-  #   3. standalone/apps/web-next/.next  (server artifacts)
-  #   4. .next/static  (full static dir — standalone only has server-side)
-  #   5. public
-  docker exec -u root staging-web-1 rm -rf /app/.next /app/server.js /app/node_modules || true
-  docker cp "$STANDALONE/node_modules/."                     staging-web-1:/app/node_modules
-  docker cp "$STANDALONE/apps/web-next/node_modules/."      staging-web-1:/app/node_modules
-  docker cp "$STANDALONE/apps/web-next/server.js"           staging-web-1:/app/server.js
-  docker cp "$STANDALONE/apps/web-next/.next/."             staging-web-1:/app/.next
-  docker cp "$REPO_DIR/apps/web-next/.next/static/."        staging-web-1:/app/.next/static
-  docker cp "$REPO_DIR/apps/web-next/public/."              staging-web-1:/app/public
+  #
+  # pnpm monorepo standalone uses relative symlinks that cross directory
+  # boundaries (apps/web-next/node_modules/next -> ../../../node_modules/.pnpm/...)
+  # `docker cp` rejects these as "invalid symlinks". Instead:
+  #   1. Stream the entire standalone/ tree into a temp dir via tar (preserves symlinks)
+  #   2. From inside the container, cp -a to final locations (symlinks stay valid
+  #      in temp dir because relative paths resolve within the tree)
+  #   3. Clean up temp dir
+
+  docker exec -u root staging-web-1 rm -rf /app/.next /app/server.js /app/node_modules /tmp/web-build || true
+  docker exec -u root staging-web-1 mkdir -p /tmp/web-build
+
+  tar -C "$STANDALONE" -cf - . | docker exec -u root -i staging-web-1 tar -xf - -C /tmp/web-build
+
+  docker exec -u root staging-web-1 sh -c "
+    cp -a /tmp/web-build/node_modules /app/node_modules &&
+    cp -a /tmp/web-build/apps/web-next/node_modules/. /app/node_modules/ &&
+    cp /tmp/web-build/apps/web-next/server.js /app/server.js &&
+    cp -a /tmp/web-build/apps/web-next/.next /app/.next &&
+    rm -rf /tmp/web-build
+  "
+
+  tar -C "$REPO_DIR/apps/web-next/.next/static" -cf - . | docker exec -u root -i staging-web-1 tar -xf - -C /app/.next/static
+  tar -C "$REPO_DIR/apps/web-next/public" -cf - . | docker exec -u root -i staging-web-1 tar -xf - -C /app/public
 
   log "Restarting web..."
   docker restart staging-web-1
