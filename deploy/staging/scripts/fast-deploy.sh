@@ -154,7 +154,7 @@ deploy_admin() {
     eclipse-temurin:17-jdk sh -c "
       rm -rf src/main/resources/static && mkdir -p src/main/resources/static
       cp -r frontend/dist/* src/main/resources/static/
-      ./gradlew bootJar --no-daemon -x test --build-cache
+      ./gradlew bootJar --no-daemon -x test -x buildFrontend -x copyFrontend --build-cache
     "
 
   log "Copying admin JAR..."
