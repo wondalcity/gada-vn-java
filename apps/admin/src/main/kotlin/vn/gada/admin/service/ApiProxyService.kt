@@ -40,12 +40,26 @@ class ApiProxyService(private val props: AppProperties) {
         val entity = HttpEntity(body, headers)
 
         return try {
-            restTemplate.exchange(
+            val upstream = restTemplate.exchange(
                 uriBuilder.build(false).toUri(),
                 method,
                 entity,
                 ByteArray::class.java,
             )
+            // Strip hop-by-hop headers that must not be forwarded by a proxy.
+            // If Transfer-Encoding is forwarded AND Spring Boot also sets it,
+            // nginx sees a duplicate header and returns 502.
+            val hopByHop = setOf(
+                "transfer-encoding", "connection", "keep-alive",
+                "te", "trailers", "upgrade", "proxy-authenticate", "proxy-authorization"
+            )
+            val filteredHeaders = HttpHeaders()
+            upstream.headers.forEach { (name, values) ->
+                if (name.lowercase() !in hopByHop) filteredHeaders[name] = values
+            }
+            ResponseEntity.status(upstream.statusCode)
+                .headers(filteredHeaders)
+                .body(upstream.body)
         } catch (ex: HttpClientErrorException) {
             ResponseEntity.status(ex.statusCode)
                 .contentType(MediaType.APPLICATION_JSON)
