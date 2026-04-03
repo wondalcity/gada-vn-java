@@ -370,12 +370,12 @@ class AdminRepository(private val db: DatabaseService) {
     // ── Sites ─────────────────────────────────────────────────────────────────
 
     fun findAllSites(): List<Map<String, Any?>> {
-        return db.queryForList(
+        return sanitizeList(db.queryForList(
             """SELECT cs.*, cc.name as company_name
                FROM app.construction_sites cs
                LEFT JOIN app.construction_companies cc ON cs.company_id = cc.id
                ORDER BY cs.name"""
-        )
+        ))
     }
 
     fun findSiteById(id: String): Map<String, Any?>? {
@@ -385,7 +385,7 @@ class AdminRepository(private val db: DatabaseService) {
                LEFT JOIN app.construction_companies cc ON cs.company_id = cc.id
                WHERE cs.id = ?""",
             id
-        ).firstOrNull()
+        ).firstOrNull()?.let { sanitize(it) }
     }
 
     fun createSite(body: Map<String, Any?>): Map<String, Any?>? {
