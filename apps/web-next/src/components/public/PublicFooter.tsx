@@ -6,11 +6,11 @@ interface Props {
 }
 
 const TOP_PROVINCES = [
-  { nameKo: '하노이',  nameVi: 'Hà Nội',         nameEn: 'Hanoi',             slug: 'ha-noi' },
-  { nameKo: '호치민',  nameVi: 'TP. Hồ Chí Minh', nameEn: 'Ho Chi Minh City', slug: 'ho-chi-minh-city' },
-  { nameKo: '다낭',    nameVi: 'Đà Nẵng',          nameEn: 'Da Nang',          slug: 'da-nang' },
-  { nameKo: '하이퐁',  nameVi: 'Hải Phòng',        nameEn: 'Hai Phong',        slug: 'hai-phong' },
-  { nameKo: '빈즈엉',  nameVi: 'Bình Dương',       nameEn: 'Binh Duong',       slug: 'binh-duong' },
+  { nameKo: '하노이',  nameVi: 'Hà Nội',         nameEn: 'Hanoi',             slug: 'hn' },
+  { nameKo: '호치민',  nameVi: 'Hồ Chí Minh',    nameEn: 'Ho Chi Minh City', slug: 'hcm' },
+  { nameKo: '다낭',    nameVi: 'Đà Nẵng',         nameEn: 'Da Nang',          slug: 'dn' },
+  { nameKo: '하이퐁',  nameVi: 'Hải Phòng',       nameEn: 'Hai Phong',        slug: 'hp' },
+  { nameKo: '빈즈엉',  nameVi: 'Bình Dương',      nameEn: 'Binh Duong',       slug: 'bd' },
 ]
 
 function getProvinceName(p: typeof TOP_PROVINCES[0], locale: string) {
