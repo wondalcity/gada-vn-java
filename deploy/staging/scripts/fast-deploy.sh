@@ -81,12 +81,20 @@ deploy_web() {
   log "Copying web artifacts..."
   STANDALONE="$REPO_DIR/apps/web-next/.next/standalone"
 
-  # Patch files into the running container's writable layer
+  # Patch files into the running container's writable layer.
+  # Must mirror the Dockerfile runner stage copy order exactly:
+  #   1. standalone/node_modules  (shared deps, react, etc.)
+  #   2. standalone/apps/web-next/node_modules  (app-level deps, incl. 'next')
+  #   3. standalone/apps/web-next/.next  (server artifacts)
+  #   4. .next/static  (full static dir — standalone only has server-side)
+  #   5. public
   docker exec -u root staging-web-1 rm -rf /app/.next /app/server.js /app/node_modules || true
-  docker cp "$STANDALONE/apps/web-next/server.js" staging-web-1:/app/server.js
-  docker cp "$STANDALONE/apps/web-next/.next/."    staging-web-1:/app/.next
-  docker cp "$STANDALONE/node_modules/."           staging-web-1:/app/node_modules
-  docker cp "$REPO_DIR/apps/web-next/public/."     staging-web-1:/app/public
+  docker cp "$STANDALONE/node_modules/."                     staging-web-1:/app/node_modules
+  docker cp "$STANDALONE/apps/web-next/node_modules/."      staging-web-1:/app/node_modules
+  docker cp "$STANDALONE/apps/web-next/server.js"           staging-web-1:/app/server.js
+  docker cp "$STANDALONE/apps/web-next/.next/."             staging-web-1:/app/.next
+  docker cp "$REPO_DIR/apps/web-next/.next/static/."        staging-web-1:/app/.next/static
+  docker cp "$REPO_DIR/apps/web-next/public/."              staging-web-1:/app/public
 
   log "Restarting web..."
   docker restart staging-web-1
