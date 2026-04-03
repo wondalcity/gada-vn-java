@@ -1,25 +1,54 @@
 package vn.gada.admin.config
 
-import org.springframework.boot.web.embedded.tomcat.TomcatContextCustomizer
-import org.springframework.boot.web.embedded.tomcat.TomcatServletWebServerFactory
-import org.springframework.boot.web.server.WebServerFactoryCustomizer
-import org.springframework.context.annotation.Bean
+import jakarta.servlet.FilterChain
+import jakarta.servlet.http.HttpServletRequest
+import jakarta.servlet.http.HttpServletResponse
+import jakarta.servlet.http.HttpServletResponseWrapper
 import org.springframework.context.annotation.Configuration
+import org.springframework.web.filter.OncePerRequestFilter
 
+/**
+ * Ensures static assets under /assets/ are served with correct MIME types.
+ *
+ * Spring Boot 3.2 disables PathExtensionContentNegotiationStrategy by default,
+ * causing ResourceHttpRequestHandler to fall back to application/octet-stream
+ * for hashed filenames on Alpine Linux where the OS mime.types is minimal.
+ * X-Content-Type-Options: nosniff (added by Spring Security) then causes
+ * browsers to refuse loading module scripts.
+ */
 @Configuration
-class WebMvcConfig {
+class WebMvcConfig : OncePerRequestFilter() {
 
-    @Bean
-    fun mimeTypeCustomizer(): WebServerFactoryCustomizer<TomcatServletWebServerFactory> =
-        WebServerFactoryCustomizer { factory ->
-            factory.addContextCustomizers(TomcatContextCustomizer { context ->
-                context.addMimeMapping("js",    "application/javascript")
-                context.addMimeMapping("mjs",   "application/javascript")
-                context.addMimeMapping("css",   "text/css")
-                context.addMimeMapping("woff",  "font/woff")
-                context.addMimeMapping("woff2", "font/woff2")
-                context.addMimeMapping("svg",   "image/svg+xml")
-                context.addMimeMapping("ico",   "image/x-icon")
-            })
+    companion object {
+        private val MIME_MAP = mapOf(
+            ".js"    to "application/javascript; charset=utf-8",
+            ".mjs"   to "application/javascript; charset=utf-8",
+            ".css"   to "text/css; charset=utf-8",
+            ".woff"  to "font/woff",
+            ".woff2" to "font/woff2",
+            ".svg"   to "image/svg+xml",
+            ".ico"   to "image/x-icon",
+        )
+    }
+
+    override fun doFilterInternal(
+        request: HttpServletRequest,
+        response: HttpServletResponse,
+        chain: FilterChain,
+    ) {
+        val uri = request.requestURI
+        val mime = MIME_MAP.entries.firstOrNull { uri.endsWith(it.key) }?.value
+        if (mime != null) {
+            chain.doFilter(request, MimeOverrideWrapper(response, mime))
+        } else {
+            chain.doFilter(request, response)
         }
+    }
+
+    private class MimeOverrideWrapper(
+        response: HttpServletResponse,
+        private val mimeType: String,
+    ) : HttpServletResponseWrapper(response) {
+        override fun setContentType(type: String) = super.setContentType(mimeType)
+    }
 }
