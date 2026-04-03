@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
-import { fetchProvinces, fetchProvinceBySlug, fetchPublicJobs, fetchTrades } from '@/lib/api/public'
+import { fetchProvinceBySlug, fetchPublicJobs, fetchTrades } from '@/lib/api/public'
 import { ProvinceJobsView } from '@/components/locations/ProvinceJobsView'
 
 export const dynamic = 'force-dynamic'
@@ -8,18 +8,6 @@ export const dynamic = 'force-dynamic'
 interface Props {
   params: Promise<{ locale: string; province: string }>
   searchParams: Promise<{ trade?: string; page?: string }>
-}
-
-export async function generateStaticParams() {
-  const locales = ['ko', 'vi', 'en']
-  const params: { locale: string; province: string }[] = []
-  const provinces = await fetchProvinces('ko')
-  for (const locale of locales) {
-    for (const p of provinces) {
-      params.push({ locale, province: p.slug })
-    }
-  }
-  return params
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
