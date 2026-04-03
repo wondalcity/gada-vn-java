@@ -32,18 +32,52 @@ class AdminUsersController(private val jdbc: JdbcTemplate) {
             ?: return ResponseEntity.status(404)
                 .body(mapOf("statusCode" to 404, "message" to "Admin user not found"))
 
+        val role = row["role"]?.toString() ?: "VIEWER"
+        val permissions = permissionsForRole(role)
+
         return ResponseEntity.ok(
             mapOf(
                 "statusCode" to 200,
                 "data" to mapOf(
-                    "id"        to row["id"],
-                    "email"     to row["email"],
-                    "name"      to row["name"],
-                    "role"      to row["role"],
-                    "status"    to row["status"],
-                    "createdAt" to row["created_at"]?.toString(),
+                    "id"          to row["id"],
+                    "email"       to row["email"],
+                    "name"        to row["name"],
+                    "role"        to role,
+                    "status"      to row["status"],
+                    "createdAt"   to row["created_at"]?.toString(),
+                    "permissions" to permissions,
                 ),
             )
+        )
+    }
+
+    private fun permissionsForRole(role: String): Map<String, Boolean> = when (role) {
+        "SUPER_ADMIN" -> mapOf(
+            "dashboard"     to true,
+            "managers"      to true,
+            "workers"       to true,
+            "jobs"          to true,
+            "sites"         to true,
+            "notifications" to true,
+            "admin_users"   to true,
+        )
+        "ADMIN" -> mapOf(
+            "dashboard"     to true,
+            "managers"      to true,
+            "workers"       to true,
+            "jobs"          to true,
+            "sites"         to true,
+            "notifications" to true,
+            "admin_users"   to false,
+        )
+        else -> mapOf( // VIEWER
+            "dashboard"     to true,
+            "managers"      to false,
+            "workers"       to false,
+            "jobs"          to false,
+            "sites"         to false,
+            "notifications" to false,
+            "admin_users"   to false,
         )
     }
 }
