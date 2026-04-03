@@ -39,7 +39,7 @@ class AuthRepository(private val db: DatabaseService) {
     }
 
     fun create(firebaseUid: String, phone: String?, email: String?, role: String): Map<String, Any?> {
-        val rows = db.queryForList(
+        val rows = db.queryForListRaw(
             """INSERT INTO auth.users (firebase_uid, phone, email, role)
                VALUES (?, ?, ?, ?)
                RETURNING *""",
