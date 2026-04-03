@@ -64,6 +64,332 @@ class AdminController(
         return ok(adminService.rejectManager(id, reason))
     }
 
+    /** POST /admin/managers/:id/revoke */
+    @PostMapping("/managers/{id}/revoke")
+    fun revokeManager(
+        request: HttpServletRequest,
+        @PathVariable id: String
+    ): ResponseEntity<Map<String, Any?>> {
+        checkAdminKey(request)
+        return ok(adminService.revokeManager(id))
+    }
+
+    /** POST /admin/managers/promote-worker */
+    @PostMapping("/managers/promote-worker")
+    fun promoteWorkerToManager(
+        request: HttpServletRequest,
+        @RequestBody body: Map<String, Any?>
+    ): ResponseEntity<Map<String, Any?>> {
+        checkAdminKey(request)
+        val workerId = body["workerId"] as? String ?: throw vn.gada.api.common.exception.BadRequestException("workerId is required")
+        val companyName = body["companyName"] as? String ?: ""
+        val phone = body["phone"] as? String ?: ""
+        return ok(adminService.promoteWorkerToManager(workerId, companyName, phone))
+    }
+
+    /** GET /admin/managers/:id/sites */
+    @GetMapping("/managers/{id}/sites")
+    fun getManagerSites(
+        request: HttpServletRequest,
+        @PathVariable id: String
+    ): ResponseEntity<Map<String, Any?>> {
+        checkAdminKey(request)
+        return ok(adminService.getManagerSites(id))
+    }
+
+    /** POST /admin/managers/:id/sites/:siteId */
+    @PostMapping("/managers/{id}/sites/{siteId}")
+    fun assignSiteToManager(
+        request: HttpServletRequest,
+        @PathVariable id: String,
+        @PathVariable siteId: String
+    ): ResponseEntity<Map<String, Any?>> {
+        checkAdminKey(request)
+        return ok(adminService.assignSiteToManager(id, siteId))
+    }
+
+    /** DELETE /admin/managers/:id/sites/:siteId */
+    @DeleteMapping("/managers/{id}/sites/{siteId}")
+    fun unassignSiteFromManager(
+        request: HttpServletRequest,
+        @PathVariable id: String,
+        @PathVariable siteId: String
+    ): ResponseEntity<Map<String, Any?>> {
+        checkAdminKey(request)
+        return ok(adminService.unassignSiteFromManager(id, siteId))
+    }
+
+    // ── Workers ───────────────────────────────────────────────────────────────
+
+    /** GET /admin/workers */
+    @GetMapping("/workers")
+    fun listWorkers(
+        request: HttpServletRequest,
+        @RequestParam(defaultValue = "") search: String,
+        @RequestParam(defaultValue = "20") limit: Int
+    ): ResponseEntity<Map<String, Any?>> {
+        checkAdminKey(request)
+        return ok(adminService.searchWorkers(search, limit))
+    }
+
+    /** GET /admin/workers/:id */
+    @GetMapping("/workers/{id}")
+    fun getWorker(
+        request: HttpServletRequest,
+        @PathVariable id: String
+    ): ResponseEntity<Map<String, Any?>> {
+        checkAdminKey(request)
+        return ok(adminService.getWorker(id))
+    }
+
+    /** POST /admin/workers */
+    @PostMapping("/workers")
+    fun createWorker(
+        request: HttpServletRequest,
+        @RequestBody body: Map<String, Any?>
+    ): ResponseEntity<Map<String, Any?>> {
+        checkAdminKey(request)
+        val phone = body["phone"] as? String ?: ""
+        val fullName = body["fullName"] as? String ?: body["full_name"] as? String ?: ""
+        return ok(adminService.createWorker(phone, fullName))
+    }
+
+    /** PUT /admin/workers/:id */
+    @PutMapping("/workers/{id}")
+    fun updateWorker(
+        request: HttpServletRequest,
+        @PathVariable id: String,
+        @RequestBody body: Map<String, Any?>
+    ): ResponseEntity<Map<String, Any?>> {
+        checkAdminKey(request)
+        return ok(adminService.updateWorker(id, body))
+    }
+
+    /** DELETE /admin/workers/:id */
+    @DeleteMapping("/workers/{id}")
+    fun deleteWorker(
+        request: HttpServletRequest,
+        @PathVariable id: String
+    ): ResponseEntity<Map<String, Any?>> {
+        checkAdminKey(request)
+        return ok(adminService.deleteWorker(id))
+    }
+
+    /** GET /admin/workers/:id/trade-skills */
+    @GetMapping("/workers/{id}/trade-skills")
+    fun getWorkerTradeSkills(
+        request: HttpServletRequest,
+        @PathVariable id: String
+    ): ResponseEntity<Map<String, Any?>> {
+        checkAdminKey(request)
+        return ok(adminService.getWorkerTradeSkills(id))
+    }
+
+    /** PUT /admin/workers/:id/trade-skills */
+    @PutMapping("/workers/{id}/trade-skills")
+    fun updateWorkerTradeSkills(
+        request: HttpServletRequest,
+        @PathVariable id: String,
+        @RequestBody body: Map<String, Any?>
+    ): ResponseEntity<Map<String, Any?>> {
+        checkAdminKey(request)
+        return ok(adminService.updateWorkerTradeSkills(id, body))
+    }
+
+    // ── Jobs ──────────────────────────────────────────────────────────────────
+
+    /** GET /admin/jobs */
+    @GetMapping("/jobs")
+    fun listJobs(
+        request: HttpServletRequest,
+        @RequestParam(required = false) status: String?,
+        @RequestParam(defaultValue = "1") page: Int,
+        @RequestParam(defaultValue = "20") limit: Int
+    ): ResponseEntity<Map<String, Any?>> {
+        checkAdminKey(request)
+        return ok(adminService.listJobs(status, page, limit))
+    }
+
+    /** GET /admin/jobs/:id/roster */
+    @GetMapping("/jobs/{id}/roster")
+    fun getJobRoster(
+        request: HttpServletRequest,
+        @PathVariable id: String
+    ): ResponseEntity<Map<String, Any?>> {
+        checkAdminKey(request)
+        return ok(adminService.getJobRoster(id))
+    }
+
+    /** POST /admin/jobs */
+    @PostMapping("/jobs")
+    fun createJob(
+        request: HttpServletRequest,
+        @RequestBody body: Map<String, Any?>
+    ): ResponseEntity<Map<String, Any?>> {
+        checkAdminKey(request)
+        return ok(adminService.createJob(body))
+    }
+
+    /** PUT /admin/jobs/:id */
+    @PutMapping("/jobs/{id}")
+    fun updateJob(
+        request: HttpServletRequest,
+        @PathVariable id: String,
+        @RequestBody body: Map<String, Any?>
+    ): ResponseEntity<Map<String, Any?>> {
+        checkAdminKey(request)
+        return ok(adminService.updateJob(id, body))
+    }
+
+    /** DELETE /admin/jobs/:id */
+    @DeleteMapping("/jobs/{id}")
+    fun deleteJob(
+        request: HttpServletRequest,
+        @PathVariable id: String
+    ): ResponseEntity<Map<String, Any?>> {
+        checkAdminKey(request)
+        return ok(adminService.deleteJob(id))
+    }
+
+    /** PUT /admin/applications/:id/accept */
+    @PutMapping("/applications/{id}/accept")
+    fun acceptApplication(
+        request: HttpServletRequest,
+        @PathVariable id: String
+    ): ResponseEntity<Map<String, Any?>> {
+        checkAdminKey(request)
+        return ok(adminService.acceptApplication(id))
+    }
+
+    /** PUT /admin/applications/:id/reject */
+    @PutMapping("/applications/{id}/reject")
+    fun rejectApplication(
+        request: HttpServletRequest,
+        @PathVariable id: String
+    ): ResponseEntity<Map<String, Any?>> {
+        checkAdminKey(request)
+        return ok(adminService.rejectApplication(id))
+    }
+
+    /** PUT /admin/applications/:id/reset */
+    @PutMapping("/applications/{id}/reset")
+    fun resetApplication(
+        request: HttpServletRequest,
+        @PathVariable id: String
+    ): ResponseEntity<Map<String, Any?>> {
+        checkAdminKey(request)
+        return ok(adminService.resetApplication(id))
+    }
+
+    // ── Sites ─────────────────────────────────────────────────────────────────
+
+    /** GET /admin/sites */
+    @GetMapping("/sites")
+    fun listSites(request: HttpServletRequest): ResponseEntity<Map<String, Any?>> {
+        checkAdminKey(request)
+        return ok(adminService.listSites())
+    }
+
+    /** GET /admin/sites/:id */
+    @GetMapping("/sites/{id}")
+    fun getSite(
+        request: HttpServletRequest,
+        @PathVariable id: String
+    ): ResponseEntity<Map<String, Any?>> {
+        checkAdminKey(request)
+        return ok(adminService.getSite(id))
+    }
+
+    /** POST /admin/sites */
+    @PostMapping("/sites")
+    fun createSite(
+        request: HttpServletRequest,
+        @RequestBody body: Map<String, Any?>
+    ): ResponseEntity<Map<String, Any?>> {
+        checkAdminKey(request)
+        return ok(adminService.createSite(body))
+    }
+
+    /** PUT /admin/sites/:id */
+    @PutMapping("/sites/{id}")
+    fun updateSite(
+        request: HttpServletRequest,
+        @PathVariable id: String,
+        @RequestBody body: Map<String, Any?>
+    ): ResponseEntity<Map<String, Any?>> {
+        checkAdminKey(request)
+        return ok(adminService.updateSite(id, body))
+    }
+
+    /** DELETE /admin/sites/:id */
+    @DeleteMapping("/sites/{id}")
+    fun deleteSite(
+        request: HttpServletRequest,
+        @PathVariable id: String
+    ): ResponseEntity<Map<String, Any?>> {
+        checkAdminKey(request)
+        return ok(adminService.deleteSite(id))
+    }
+
+    // ── Companies ─────────────────────────────────────────────────────────────
+
+    /** GET /admin/companies */
+    @GetMapping("/companies")
+    fun listCompanies(request: HttpServletRequest): ResponseEntity<Map<String, Any?>> {
+        checkAdminKey(request)
+        return ok(adminService.listCompanies())
+    }
+
+    /** GET /admin/companies/:id */
+    @GetMapping("/companies/{id}")
+    fun getCompany(
+        request: HttpServletRequest,
+        @PathVariable id: String
+    ): ResponseEntity<Map<String, Any?>> {
+        checkAdminKey(request)
+        return ok(adminService.getCompany(id))
+    }
+
+    /** POST /admin/companies */
+    @PostMapping("/companies")
+    fun createCompany(
+        request: HttpServletRequest,
+        @RequestBody body: Map<String, Any?>
+    ): ResponseEntity<Map<String, Any?>> {
+        checkAdminKey(request)
+        return ok(adminService.createCompany(body))
+    }
+
+    /** PUT /admin/companies/:id */
+    @PutMapping("/companies/{id}")
+    fun updateCompany(
+        request: HttpServletRequest,
+        @PathVariable id: String,
+        @RequestBody body: Map<String, Any?>
+    ): ResponseEntity<Map<String, Any?>> {
+        checkAdminKey(request)
+        return ok(adminService.updateCompany(id, body))
+    }
+
+    /** DELETE /admin/companies/:id */
+    @DeleteMapping("/companies/{id}")
+    fun deleteCompany(
+        request: HttpServletRequest,
+        @PathVariable id: String
+    ): ResponseEntity<Map<String, Any?>> {
+        checkAdminKey(request)
+        return ok(adminService.deleteCompany(id))
+    }
+
+    // ── Trades ────────────────────────────────────────────────────────────────
+
+    /** GET /admin/trades */
+    @GetMapping("/trades")
+    fun listTrades(request: HttpServletRequest): ResponseEntity<Map<String, Any?>> {
+        checkAdminKey(request)
+        return ok(adminService.listTrades())
+    }
+
     // ── Notification management ───────────────────────────────────────────────
 
     /** GET /admin/notification-users */

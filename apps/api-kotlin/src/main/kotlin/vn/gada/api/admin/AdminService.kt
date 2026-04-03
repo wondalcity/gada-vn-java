@@ -3,6 +3,7 @@ package vn.gada.api.admin
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
+import vn.gada.api.common.exception.BadRequestException
 import vn.gada.api.common.exception.NotFoundException
 import vn.gada.api.notifications.NotificationService
 
@@ -14,6 +15,8 @@ class AdminService(
 ) {
     private val log = LoggerFactory.getLogger(AdminService::class.java)
     private val isDev: Boolean get() = activeProfile != "production" && activeProfile != "prod"
+
+    // ── Managers ─────────────────────────────────────────────────────────────
 
     fun listManagers(status: String, page: Int, limit: Int): Map<String, Any?> {
         val data = repo.findManagersPaginated(status, page, limit)
@@ -34,6 +37,169 @@ class AdminService(
         repo.findManagerById(id) ?: throw NotFoundException("Manager $id not found")
         return repo.rejectManager(id, reason)
     }
+
+    fun revokeManager(id: String): Map<String, Any?>? {
+        repo.findManagerById(id) ?: throw NotFoundException("Manager $id not found")
+        return repo.revokeManager(id)
+    }
+
+    fun promoteWorkerToManager(workerId: String, companyName: String, phone: String): Map<String, Any?>? {
+        return repo.promoteWorkerToManager(workerId, companyName, phone)
+            ?: throw NotFoundException("Worker $workerId not found")
+    }
+
+    fun getManagerSites(managerId: String): List<Map<String, Any?>> {
+        return repo.findManagerSites(managerId)
+    }
+
+    fun assignSiteToManager(managerId: String, siteId: String): Map<String, Any?>? {
+        return repo.assignSiteToManager(managerId, siteId)
+    }
+
+    fun unassignSiteFromManager(managerId: String, siteId: String): Map<String, Any?> {
+        val deleted = repo.unassignSiteFromManager(managerId, siteId)
+        return mapOf("deleted" to deleted)
+    }
+
+    // ── Workers ───────────────────────────────────────────────────────────────
+
+    fun searchWorkers(search: String, limit: Int): List<Map<String, Any?>> {
+        return repo.searchWorkers(search, limit)
+    }
+
+    fun getWorker(id: String): Map<String, Any?> {
+        return repo.findWorkerById(id) ?: throw NotFoundException("Worker $id not found")
+    }
+
+    fun createWorker(phone: String, fullName: String): Map<String, Any?>? {
+        if (phone.isBlank()) throw BadRequestException("phone is required")
+        if (fullName.isBlank()) throw BadRequestException("fullName is required")
+        return repo.createWorker(phone, fullName)
+    }
+
+    fun updateWorker(id: String, body: Map<String, Any?>): Map<String, Any?>? {
+        repo.findWorkerById(id) ?: throw NotFoundException("Worker $id not found")
+        val name = body["fullName"] as? String ?: body["full_name"] as? String
+        val phone = body["phone"] as? String
+        val status = body["status"] as? String
+        return repo.updateWorker(id, name, phone, status)
+    }
+
+    fun deleteWorker(id: String): Map<String, Any?> {
+        repo.findWorkerById(id) ?: throw NotFoundException("Worker $id not found")
+        val deleted = repo.deleteWorker(id)
+        return mapOf("deleted" to deleted)
+    }
+
+    fun getWorkerTradeSkills(workerId: String): List<Map<String, Any?>> {
+        repo.findWorkerById(workerId) ?: throw NotFoundException("Worker $workerId not found")
+        return repo.findWorkerTradeSkills(workerId)
+    }
+
+    fun updateWorkerTradeSkills(workerId: String, body: Map<String, Any?>): List<Map<String, Any?>> {
+        repo.findWorkerById(workerId) ?: throw NotFoundException("Worker $workerId not found")
+        @Suppress("UNCHECKED_CAST")
+        val skills = body["skills"] as? List<Map<String, Any?>> ?: emptyList()
+        return repo.updateWorkerTradeSkills(workerId, skills)
+    }
+
+    // ── Jobs ──────────────────────────────────────────────────────────────────
+
+    fun listJobs(status: String?, page: Int, limit: Int): Map<String, Any?> {
+        val data = repo.findJobsPaginated(status, page, limit)
+        val total = repo.countJobs(status)
+        return mapOf("data" to data, "total" to total, "page" to page, "limit" to limit)
+    }
+
+    fun getJobRoster(jobId: String): List<Map<String, Any?>> {
+        return repo.findJobRoster(jobId)
+    }
+
+    fun createJob(body: Map<String, Any?>): Map<String, Any?>? {
+        return repo.createJob(body)
+    }
+
+    fun updateJob(id: String, body: Map<String, Any?>): Map<String, Any?>? {
+        return repo.updateJob(id, body)
+    }
+
+    fun deleteJob(id: String): Map<String, Any?> {
+        val deleted = repo.deleteJob(id)
+        return mapOf("deleted" to deleted)
+    }
+
+    fun acceptApplication(applicationId: String): Map<String, Any?>? {
+        return repo.updateApplicationStatus(applicationId, "ACCEPTED")
+            ?: throw NotFoundException("Application $applicationId not found")
+    }
+
+    fun rejectApplication(applicationId: String): Map<String, Any?>? {
+        return repo.updateApplicationStatus(applicationId, "REJECTED")
+            ?: throw NotFoundException("Application $applicationId not found")
+    }
+
+    fun resetApplication(applicationId: String): Map<String, Any?>? {
+        return repo.updateApplicationStatus(applicationId, "PENDING")
+            ?: throw NotFoundException("Application $applicationId not found")
+    }
+
+    // ── Sites ─────────────────────────────────────────────────────────────────
+
+    fun listSites(): List<Map<String, Any?>> {
+        return repo.findAllSites()
+    }
+
+    fun getSite(id: String): Map<String, Any?> {
+        return repo.findSiteById(id) ?: throw NotFoundException("Site $id not found")
+    }
+
+    fun createSite(body: Map<String, Any?>): Map<String, Any?>? {
+        return repo.createSite(body)
+    }
+
+    fun updateSite(id: String, body: Map<String, Any?>): Map<String, Any?>? {
+        repo.findSiteById(id) ?: throw NotFoundException("Site $id not found")
+        return repo.updateSite(id, body)
+    }
+
+    fun deleteSite(id: String): Map<String, Any?> {
+        repo.findSiteById(id) ?: throw NotFoundException("Site $id not found")
+        val deleted = repo.deleteSite(id)
+        return mapOf("deleted" to deleted)
+    }
+
+    // ── Companies ─────────────────────────────────────────────────────────────
+
+    fun listCompanies(): List<Map<String, Any?>> {
+        return repo.findAllCompanies()
+    }
+
+    fun getCompany(id: String): Map<String, Any?> {
+        return repo.findCompanyById(id) ?: throw NotFoundException("Company $id not found")
+    }
+
+    fun createCompany(body: Map<String, Any?>): Map<String, Any?>? {
+        return repo.createCompany(body)
+    }
+
+    fun updateCompany(id: String, body: Map<String, Any?>): Map<String, Any?>? {
+        repo.findCompanyById(id) ?: throw NotFoundException("Company $id not found")
+        return repo.updateCompany(id, body)
+    }
+
+    fun deleteCompany(id: String): Map<String, Any?> {
+        repo.findCompanyById(id) ?: throw NotFoundException("Company $id not found")
+        val deleted = repo.deleteCompany(id)
+        return mapOf("deleted" to deleted)
+    }
+
+    // ── Trades ────────────────────────────────────────────────────────────────
+
+    fun listTrades(): List<Map<String, Any?>> {
+        return repo.findAllTrades()
+    }
+
+    // ── Notifications ─────────────────────────────────────────────────────────
 
     fun searchUsers(search: String, role: String, limit: Int = 30): List<Map<String, Any?>> {
         return repo.searchUsers(search, role, limit)
@@ -109,7 +275,7 @@ class AdminService(
         @Suppress("UNCHECKED_CAST")
         val targetUserIds = data["targetUserIds"] as? List<String>
         val targetRole = data["targetRole"] as? String
-        val scheduledAt = data["scheduledAt"] as? String ?: throw vn.gada.api.common.exception.BadRequestException("scheduledAt is required")
+        val scheduledAt = data["scheduledAt"] as? String ?: throw BadRequestException("scheduledAt is required")
         return repo.createPushSchedule(title, body, targetUserIds, targetRole, scheduledAt)
     }
 
