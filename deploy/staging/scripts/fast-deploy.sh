@@ -78,37 +78,32 @@ deploy_web() {
       pnpm --filter='@gada/web' build
     "
 
-  log "Copying web artifacts..."
-  STANDALONE="$REPO_DIR/apps/web-next/.next/standalone"
+  log "Building web runner image..."
+  # pnpm monorepo standalone uses relative symlinks across directory boundaries
+  # (apps/web-next/node_modules/next -> ../../../node_modules/.pnpm/...).
+  # `docker cp` rejects these; docker build COPY resolves them correctly.
+  # Build a minimal runner image from the pre-built standalone artifacts.
+  docker build -t gada-web:latest -f - "$REPO_DIR" << 'DOCKERFILE'
+FROM node:20-alpine
+WORKDIR /app
+ENV NODE_ENV=production PORT=3000 HOSTNAME=0.0.0.0
+RUN addgroup --system --gid 1001 nodejs && adduser --system --uid 1001 nextjs && \
+    mkdir -p /node_modules && ln -s /app/node_modules/.pnpm /node_modules/.pnpm
+COPY apps/web-next/.next/standalone/node_modules ./node_modules
+COPY apps/web-next/.next/standalone/apps/web-next/node_modules ./node_modules/
+COPY --chown=nextjs:nodejs apps/web-next/.next/standalone/apps/web-next/server.js ./server.js
+COPY --chown=nextjs:nodejs apps/web-next/.next/standalone/apps/web-next/.next ./.next
+COPY --chown=nextjs:nodejs apps/web-next/.next/static ./.next/static
+COPY --chown=nextjs:nodejs apps/web-next/public ./public
+USER nextjs
+HEALTHCHECK --interval=30s --timeout=5s --start-period=30s --retries=3 \
+  CMD wget -qO- http://localhost:3000/api/health 2>/dev/null || wget -qO- http://localhost:3000/ > /dev/null || exit 1
+EXPOSE 3000
+CMD ["node", "server.js"]
+DOCKERFILE
 
-  # Patch files into the running container's writable layer.
-  #
-  # pnpm monorepo standalone uses relative symlinks that cross directory
-  # boundaries (apps/web-next/node_modules/next -> ../../../node_modules/.pnpm/...)
-  # `docker cp` rejects these as "invalid symlinks". Instead:
-  #   1. Stream the entire standalone/ tree into a temp dir via tar (preserves symlinks)
-  #   2. From inside the container, cp -a to final locations (symlinks stay valid
-  #      in temp dir because relative paths resolve within the tree)
-  #   3. Clean up temp dir
-
-  docker exec -u root staging-web-1 rm -rf /app/.next /app/server.js /app/node_modules /tmp/web-build || true
-  docker exec -u root staging-web-1 mkdir -p /tmp/web-build
-
-  tar -C "$STANDALONE" -cf - . | docker exec -u root -i staging-web-1 tar -xf - -C /tmp/web-build
-
-  docker exec -u root staging-web-1 sh -c "
-    cp -a /tmp/web-build/node_modules /app/node_modules &&
-    cp -a /tmp/web-build/apps/web-next/node_modules/. /app/node_modules/ &&
-    cp /tmp/web-build/apps/web-next/server.js /app/server.js &&
-    cp -a /tmp/web-build/apps/web-next/.next /app/.next &&
-    rm -rf /tmp/web-build
-  "
-
-  tar -C "$REPO_DIR/apps/web-next/.next/static" -cf - . | docker exec -u root -i staging-web-1 tar -xf - -C /app/.next/static
-  tar -C "$REPO_DIR/apps/web-next/public" -cf - . | docker exec -u root -i staging-web-1 tar -xf - -C /app/public
-
-  log "Restarting web..."
-  docker restart staging-web-1
+  log "Recreating web container..."
+  docker compose -f "$COMPOSE_FILE" up -d --no-deps web
   wait_healthy web 24
   log "web OK ✓"
 }
