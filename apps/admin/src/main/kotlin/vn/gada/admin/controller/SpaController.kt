@@ -1,8 +1,8 @@
 package vn.gada.admin.controller
 
-import jakarta.servlet.http.HttpServletResponse
 import org.springframework.core.io.ClassPathResource
 import org.springframework.http.MediaType
+import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RestController
 
@@ -22,8 +22,8 @@ class SpaController {
                  "/notifications", "/admin-users", "/accept-invite",
                  "/settings"],
     )
-    fun spa(response: HttpServletResponse): ByteArray {
-        response.contentType = MediaType.TEXT_HTML_VALUE
-        return indexHtml
-    }
+    fun spa(): ResponseEntity<ByteArray> =
+        ResponseEntity.ok()
+            .contentType(MediaType.TEXT_HTML)
+            .body(indexHtml)
 }

@@ -8,11 +8,13 @@ import org.springframework.security.authentication.AuthenticationManager
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
+import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer
 import org.springframework.security.core.AuthenticationException
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.security.web.SecurityFilterChain
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationFailureHandler
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher
 
 @Configuration
 @EnableWebSecurity
@@ -25,6 +27,18 @@ class SecurityConfig {
     fun authenticationManager(config: AuthenticationConfiguration): AuthenticationManager =
         config.authenticationManager
 
+    // Static assets bypass Spring Security entirely — MvcRequestMatcher in
+    // Spring Security 6 cannot match classpath static resources correctly.
+    @Bean
+    fun webSecurityCustomizer(): WebSecurityCustomizer =
+        WebSecurityCustomizer { web ->
+            web.ignoring()
+                .requestMatchers(AntPathRequestMatcher.antMatcher("/assets/**"))
+                .requestMatchers(AntPathRequestMatcher.antMatcher("/favicon.ico"))
+                .requestMatchers(AntPathRequestMatcher.antMatcher("/*.js"))
+                .requestMatchers(AntPathRequestMatcher.antMatcher("/*.css"))
+        }
+
     @Bean
     fun filterChain(http: HttpSecurity): SecurityFilterChain {
         http
@@ -33,8 +47,8 @@ class SecurityConfig {
                 auth
                     // Health check — unauthenticated (needed for Docker HEALTHCHECK + nginx)
                     .requestMatchers("/health").permitAll()
-                    // Static assets and login/logout always allowed
-                    .requestMatchers("/login", "/assets/**", "/favicon.ico", "/*.js", "/*.css").permitAll()
+                    // Login/logout and invite always allowed
+                    .requestMatchers("/login").permitAll()
                     // Accept-invite page and its API call are public (user not yet logged in)
                     .requestMatchers("/accept-invite").permitAll()
                     .requestMatchers("/api/admin/admin-users/accept-invite").permitAll()

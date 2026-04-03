@@ -4,7 +4,7 @@ import jakarta.servlet.FilterChain
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import jakarta.servlet.http.HttpServletResponseWrapper
-import org.springframework.context.annotation.Configuration
+import org.springframework.stereotype.Component
 import org.springframework.web.filter.OncePerRequestFilter
 
 /**
@@ -16,7 +16,7 @@ import org.springframework.web.filter.OncePerRequestFilter
  * X-Content-Type-Options: nosniff (added by Spring Security) then causes
  * browsers to refuse loading module scripts.
  */
-@Configuration
+@Component
 class WebMvcConfig : OncePerRequestFilter() {
 
     companion object {
@@ -50,5 +50,9 @@ class WebMvcConfig : OncePerRequestFilter() {
         private val mimeType: String,
     ) : HttpServletResponseWrapper(response) {
         override fun setContentType(type: String) = super.setContentType(mimeType)
+        override fun setHeader(name: String, value: String) {
+            if (name.equals("Content-Type", ignoreCase = true)) super.setContentType(mimeType)
+            else super.setHeader(name, value)
+        }
     }
 }
