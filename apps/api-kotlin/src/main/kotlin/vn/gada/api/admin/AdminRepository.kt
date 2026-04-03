@@ -6,6 +6,18 @@ import vn.gada.api.common.database.DatabaseService
 @Repository
 class AdminRepository(private val db: DatabaseService) {
 
+    /** Convert PgArray fields (e.g. TEXT[]) to List so Jackson can serialize them. */
+    private fun sanitize(row: Map<String, Any?>): Map<String, Any?> =
+        row.mapValues { (_, v) ->
+            when (v) {
+                is java.sql.Array -> (v.array as? Array<*>)?.toList() ?: emptyList<Any>()
+                else -> v
+            }
+        }
+
+    private fun sanitizeList(rows: List<Map<String, Any?>>): List<Map<String, Any?>> =
+        rows.map { sanitize(it) }
+
     // ── Managers ─────────────────────────────────────────────────────────────
 
     fun findManagersPaginated(status: String, page: Int, limit: Int): List<Map<String, Any?>> {
@@ -252,16 +264,16 @@ class AdminRepository(private val db: DatabaseService) {
     fun findJobsPaginated(status: String?, page: Int, limit: Int): List<Map<String, Any?>> {
         val offset = (page - 1) * limit
         return if (status.isNullOrBlank()) {
-            db.queryForList(
+            sanitizeList(db.queryForList(
                 """SELECT j.*, t.name_ko as trade_name_ko, t.name_vi as trade_name_vi
                    FROM app.jobs j
                    LEFT JOIN ref.construction_trades t ON j.trade_id = t.id
                    ORDER BY j.created_at DESC
                    LIMIT ? OFFSET ?""",
                 limit, offset
-            )
+            ))
         } else {
-            db.queryForList(
+            sanitizeList(db.queryForList(
                 """SELECT j.*, t.name_ko as trade_name_ko, t.name_vi as trade_name_vi
                    FROM app.jobs j
                    LEFT JOIN ref.construction_trades t ON j.trade_id = t.id
@@ -269,7 +281,7 @@ class AdminRepository(private val db: DatabaseService) {
                    ORDER BY j.created_at DESC
                    LIMIT ? OFFSET ?""",
                 status, limit, offset
-            )
+            ))
         }
     }
 
@@ -283,7 +295,7 @@ class AdminRepository(private val db: DatabaseService) {
     }
 
     fun findJobRoster(jobId: String): List<Map<String, Any?>> {
-        return db.queryForList(
+        return sanitizeList(db.queryForList(
             """SELECT ja.*, wp.full_name as worker_name, u.phone as worker_phone
                FROM app.job_applications ja
                JOIN app.worker_profiles wp ON ja.worker_id = wp.id
@@ -291,7 +303,7 @@ class AdminRepository(private val db: DatabaseService) {
                WHERE ja.job_id = ?
                ORDER BY ja.created_at DESC""",
             jobId
-        )
+        ))
     }
 
     fun createJob(body: Map<String, Any?>): Map<String, Any?>? {
