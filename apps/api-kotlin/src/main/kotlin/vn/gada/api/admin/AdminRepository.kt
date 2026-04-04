@@ -162,7 +162,9 @@ class AdminRepository(
 
     fun findManagerSites(managerId: String): List<Map<String, Any?>> {
         return db.queryForList(
-            """SELECT cs.*, msa.created_at as assigned_at
+            """SELECT cs.id, cs.manager_id, cs.company_id, cs.name, cs.address, cs.province,
+                      cs.district, cs.lat, cs.lng, cs.site_type, cs.status, cs.created_at, cs.updated_at,
+                      msa.created_at as assigned_at
                FROM app.construction_sites cs
                JOIN app.manager_site_assignments msa ON msa.site_id = cs.id
                WHERE msa.manager_id = ?
@@ -493,7 +495,8 @@ class AdminRepository(
 
     fun findAllSites(): List<Map<String, Any?>> {
         return db.queryForList(
-            """SELECT cs.*,
+            """SELECT cs.id, cs.manager_id, cs.company_id, cs.name, cs.address, cs.province,
+                      cs.district, cs.lat, cs.lng, cs.site_type, cs.status, cs.created_at, cs.updated_at,
                       cc.name    AS company_name,
                       mp.representative_name AS manager_name,
                       mp.contact_phone       AS manager_phone,
@@ -511,7 +514,8 @@ class AdminRepository(
 
     fun findSiteById(id: String): Map<String, Any?>? {
         val site = db.queryForList(
-            """SELECT cs.*,
+            """SELECT cs.id, cs.manager_id, cs.company_id, cs.name, cs.address, cs.province,
+                      cs.district, cs.lat, cs.lng, cs.site_type, cs.status, cs.created_at, cs.updated_at,
                       cc.name          AS company_name,
                       cc.contact_name  AS company_contact_name,
                       cc.contact_phone AS company_contact_phone,
