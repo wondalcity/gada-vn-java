@@ -1,4 +1,10 @@
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'https://api.gada.vn/api/v1'
+// Server-side: prefer INTERNAL_API_URL (direct container-to-container) to avoid
+// routing through the public load balancer, which can cause loopback issues on EC2.
+// Client-side: must use NEXT_PUBLIC_API_BASE_URL (baked at build time).
+const API_BASE =
+  typeof window === 'undefined'
+    ? (process.env.INTERNAL_API_URL ?? process.env.NEXT_PUBLIC_API_BASE_URL ?? 'https://api.gada.vn/api/v1')
+    : (process.env.NEXT_PUBLIC_API_BASE_URL ?? 'https://api.gada.vn/api/v1')
 
 export class ApiError extends Error {
   constructor(
