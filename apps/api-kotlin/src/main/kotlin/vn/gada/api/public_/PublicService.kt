@@ -141,8 +141,7 @@ class PublicService(
     }
 
     fun getJobBySlug(slug: String): Map<String, Any?>? {
-        val rows = db.queryForList(
-            """SELECT
+        val jobSql = """SELECT
                 j.id, j.slug, j.title, j.description, j.trade_id,
                 j.work_date, j.start_time, j.end_time,
                 j.daily_wage, j.slots_total, j.slots_filled,
@@ -165,9 +164,8 @@ class PublicService(
               JOIN app.construction_sites s ON j.site_id = s.id
               LEFT JOIN ref.construction_trades t ON j.trade_id = t.id
               LEFT JOIN ref.vn_provinces p ON UPPER(s.province) = p.code
-              WHERE j.slug = ?""",
-            slug
-        )
+              WHERE j.slug = ? OR j.id::text = ?"""
+        val rows = db.queryForList(jobSql, slug, slug)
         if (rows.isEmpty()) return null
 
         val row = rows[0]
@@ -192,12 +190,12 @@ class PublicService(
               LEFT JOIN ref.construction_trades t ON j.trade_id = t.id
               LEFT JOIN ref.vn_provinces p ON UPPER(s.province) = p.code
               WHERE j.trade_id = ?
-                AND j.slug != ?
+                AND j.id != ?::uuid
                 AND j.status = 'OPEN'
                 AND j.work_date >= CURRENT_DATE
               ORDER BY j.work_date ASC
               LIMIT 4""",
-            row["trade_id"], slug
+            row["trade_id"], row["id"]
         )
 
         @Suppress("UNCHECKED_CAST")
