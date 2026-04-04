@@ -7,13 +7,11 @@ class WorkerService(private val repo: WorkerRepository) {
 
     fun getProfile(userId: String): Map<String, Any?> {
         return repo.findByUserId(userId)
-            ?: mapOf("user_id" to userId, "full_name" to null, "experience_months" to 0, "trade_ids" to emptyList<Any>())
+            ?: mapOf("userId" to userId, "fullName" to null, "experienceMonths" to 0)
     }
 
     fun updateProfile(userId: String, data: Map<String, Any?>): Map<String, Any?>? {
-        val fullName = data["fullName"]
-        val experienceMonths = data["experienceMonths"]
-        return repo.updateByUserId(userId, fullName, experienceMonths)
+        return repo.updateByUserId(userId, data)
     }
 
     fun getHires(userId: String): List<Map<String, Any?>> {

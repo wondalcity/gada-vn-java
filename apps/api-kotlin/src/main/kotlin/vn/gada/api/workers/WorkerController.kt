@@ -47,7 +47,7 @@ class WorkerController(private val workerService: WorkerService) {
 
     private fun requireWorker(user: AuthUser?): AuthUser {
         if (user == null) throw UnauthorizedException("Unauthorized")
-        if (user.role != "WORKER" && user.role != "ADMIN") throw ForbiddenException("WORKER role required")
+        if (user.role != "WORKER" && user.role != "MANAGER" && user.role != "ADMIN") throw ForbiddenException("WORKER role required")
         return user
     }
 

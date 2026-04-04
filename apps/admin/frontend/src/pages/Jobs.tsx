@@ -129,19 +129,19 @@ export default function Jobs() {
             <tbody className="divide-y divide-[#EFF1F5]">
               {jobs.map((j) => (
                 <tr key={j.id} className="hover:bg-[#F2F4F5]">
-                  <td className="px-6 py-4 text-sm font-medium text-gray-900">
+                  <td className="px-6 py-4 text-sm font-medium text-gray-900 whitespace-nowrap">
                     <Link to={`/jobs/${j.id}`} className="hover:text-[#0669F7] hover:underline">{j.title}</Link>
                   </td>
-                  <td className="px-6 py-4 text-sm text-gray-600">{j.site_name ?? '-'}</td>
-                  <td className="px-6 py-4 text-sm text-gray-600">{j.work_date ?? '-'}</td>
-                  <td className="px-6 py-4 text-sm text-[#0669F7] font-medium">₫{Number(j.daily_wage).toLocaleString('ko-KR')}</td>
-                  <td className="px-6 py-4 text-sm text-gray-500">{j.slots_filled ?? 0}/{j.slots_total}{t('jobs.slots_suffix')}</td>
-                  <td className="px-6 py-4">
+                  <td className="px-6 py-4 text-sm text-gray-600 whitespace-nowrap">{j.site_name ?? '-'}</td>
+                  <td className="px-6 py-4 text-sm text-gray-600 whitespace-nowrap">{j.work_date ?? '-'}</td>
+                  <td className="px-6 py-4 text-sm text-[#0669F7] font-medium whitespace-nowrap">₫{Number(j.daily_wage).toLocaleString('ko-KR')}</td>
+                  <td className="px-6 py-4 text-sm text-gray-500 whitespace-nowrap">{j.slots_filled ?? 0}/{j.slots_total}{t('jobs.slots_suffix')}</td>
+                  <td className="px-6 py-4 whitespace-nowrap">
                     <span className={`px-2 py-1 text-xs rounded-full ${STATUS_BADGE[j.status] ?? 'bg-[#EFF1F5] text-[#98A2B2]'}`}>
                       {getStatusLabel(j.status)}
                     </span>
                   </td>
-                  <td className="px-6 py-4 text-right">
+                  <td className="px-6 py-4 text-right whitespace-nowrap">
                     <div className="flex gap-3 justify-end">
                       <Link to={`/jobs/${j.id}`} className="text-[#0669F7] hover:underline text-sm">{t('common.detail')}</Link>
                       <Link to={`/jobs/${j.id}/edit`} className="text-gray-400 hover:text-gray-700 text-sm">{t('common.edit')}</Link>

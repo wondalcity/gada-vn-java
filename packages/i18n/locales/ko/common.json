@@ -207,6 +207,7 @@
     "id_unverified": "신분증 미인증",
     "signature_done": "서명 완료",
     "signature_register": "서명 등록하기",
+    "field_phone": "전화번호",
     "field_name": "이름",
     "field_dob": "생년월일",
     "field_gender": "성별",

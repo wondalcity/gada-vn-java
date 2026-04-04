@@ -9,6 +9,7 @@ import { apiClient, ApiError } from '@/lib/api/client'
 // ─── Types ───────────────────────────────────────────────────────────────────
 
 interface WorkerProfile {
+  phone: string
   fullName: string
   dateOfBirth: string
   gender: 'MALE' | 'FEMALE' | 'OTHER' | ''
@@ -23,6 +24,7 @@ interface WorkerProfile {
 }
 
 const EMPTY_PROFILE: WorkerProfile = {
+  phone: '',
   fullName: '',
   dateOfBirth: '',
   gender: '',
@@ -86,6 +88,7 @@ export default function WorkerProfileForm({ locale }: { locale: string }) {
     apiClient<WorkerProfile>('/workers/me', { token: idToken })
       .then(({ data }) => {
         setProfile({
+          phone: (data as any).phone ?? '',
           fullName: data.fullName ?? '',
           dateOfBirth: data.dateOfBirth ?? '',
           gender: data.gender ?? '',
@@ -225,6 +228,21 @@ export default function WorkerProfileForm({ locale }: { locale: string }) {
             <SkeletonForm />
           ) : (
             <form onSubmit={handleSubmit} className="space-y-4">
+              {/* Phone — read-only */}
+              {profile.phone && (
+                <div>
+                  <label className="block text-sm font-medium text-[#25282A] mb-1">
+                    {t('worker_profile_form.field_phone')}
+                  </label>
+                  <input
+                    type="text"
+                    readOnly
+                    value={profile.phone}
+                    className="w-full px-3 py-2 rounded-2xl border border-[#EFF1F5] bg-[#F2F4F5] text-sm text-[#98A2B2] cursor-default"
+                  />
+                </div>
+              )}
+
               {/* Full name */}
               <div>
                 <label htmlFor="fullName" className="block text-sm font-medium text-[#25282A] mb-1">

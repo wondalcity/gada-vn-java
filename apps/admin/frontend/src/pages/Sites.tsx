@@ -610,7 +610,7 @@ export default function Sites() {
           </div>
         ) : (
           <div className="overflow-x-auto">
-          <table className="w-full min-w-[700px]">
+          <table className="w-full min-w-[900px]">
             <thead className="bg-[#F2F4F5]">
               <tr>
                 {[t('sites.col_name'), t('sites.col_company'), t('sites.col_address'), t('sites.col_status'), t('sites.col_manager'), t('sites.col_job_count'), t('sites.col_registered'), ''].map((h) => (
@@ -621,31 +621,31 @@ export default function Sites() {
             <tbody className="divide-y divide-[#EFF1F5]">
               {sites.map((s) => (
                 <tr key={s.id} className="hover:bg-[#F2F4F5]">
-                  <td className="px-6 py-4 text-sm font-medium text-gray-900 cursor-pointer" onClick={() => navigate(`/sites/${s.id}`)}>
+                  <td className="px-6 py-4 text-sm font-medium text-gray-900 cursor-pointer whitespace-nowrap" onClick={() => navigate(`/sites/${s.id}`)}>
                     {s.name}
                   </td>
-                  <td className="px-6 py-4 text-sm text-gray-600">
+                  <td className="px-6 py-4 text-sm text-gray-600 whitespace-nowrap">
                     {s.company_name ? (
                       <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-blue-50 text-blue-700 text-xs font-medium">🏢 {s.company_name}</span>
                     ) : (
                       <span className="text-[#98A2B2]">-</span>
                     )}
                   </td>
-                  <td className="px-6 py-4 text-sm text-gray-600">
+                  <td className="px-6 py-4 text-sm text-gray-600 whitespace-nowrap">
                     {[s.province, s.district].filter(Boolean).join(' · ') || s.address || '-'}
                   </td>
-                  <td className="px-6 py-4">
+                  <td className="px-6 py-4 whitespace-nowrap">
                     <span className={`px-2 py-1 text-xs rounded-full ${SITE_STATUS_BADGE[s.status ?? ''] ?? 'bg-[#EFF1F5] text-[#98A2B2]'}`}>
                       {getSiteStatusLabel(s.status)}
                     </span>
                   </td>
-                  <td className="px-6 py-4 text-sm text-gray-600">{s.manager_name ?? '-'}</td>
-                  <td className="px-6 py-4 text-sm text-gray-600">
+                  <td className="px-6 py-4 text-sm text-gray-600 whitespace-nowrap">{s.manager_name ?? '-'}</td>
+                  <td className="px-6 py-4 text-sm text-gray-600 whitespace-nowrap">
                     <span className="text-blue-600 font-medium">{s.open_job_count}</span>
                     <span className="text-gray-400">/{s.job_count}</span>
                   </td>
-                  <td className="px-6 py-4 text-sm text-gray-500">{formatDate(s.created_at)}</td>
-                  <td className="px-6 py-4 text-right">
+                  <td className="px-6 py-4 text-sm text-gray-500 whitespace-nowrap">{formatDate(s.created_at)}</td>
+                  <td className="px-6 py-4 text-right whitespace-nowrap">
                     <div className="flex gap-3 justify-end items-center">
                       <button onClick={() => navigate(`/sites/${s.id}`)} className="text-[#0669F7] hover:underline text-sm">{t('common.detail')}</button>
                       {!isDemo && (

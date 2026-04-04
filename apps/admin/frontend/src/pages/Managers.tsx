@@ -155,26 +155,26 @@ export default function Managers() {
             <tbody className="divide-y divide-[#EFF1F5]">
               {managers.map((m) => (
                 <tr key={m.id} className="hover:bg-[#F2F4F5]">
-                  <td className="px-6 py-4">
+                  <td className="px-6 py-4 whitespace-nowrap">
                     <div className="text-sm font-semibold text-gray-900">
                       {m.worker_full_name ?? m.representative_name}
                     </div>
                     <div className="text-xs text-[#98A2B2] mt-0.5">{m.representative_name}</div>
                   </td>
-                  <td className="px-6 py-4 text-sm text-gray-600">{formatPhone(m.phone)}</td>
-                  <td className="px-6 py-4">
+                  <td className="px-6 py-4 text-sm text-gray-600 whitespace-nowrap">{formatPhone(m.phone)}</td>
+                  <td className="px-6 py-4 whitespace-nowrap">
                     <div className="text-sm text-gray-700">{m.site_name ?? '-'}</div>
                     <div className="text-xs text-[#98A2B2] mt-0.5">{m.company_name ?? ''}</div>
                   </td>
-                  <td className="px-6 py-4">
+                  <td className="px-6 py-4 whitespace-nowrap">
                     <span className={`px-2 py-1 text-xs rounded-full ${STATUS_BADGE[m.approval_status]}`}>
                       {STATUS_LABEL[m.approval_status] ?? m.approval_status}
                     </span>
                   </td>
-                  <td className="px-6 py-4 text-sm text-gray-500">
+                  <td className="px-6 py-4 text-sm text-gray-500 whitespace-nowrap">
                     {new Date(m.created_at).toLocaleDateString()}
                   </td>
-                  <td className="px-6 py-4 text-right">
+                  <td className="px-6 py-4 text-right whitespace-nowrap">
                     <div className="flex items-center gap-3 justify-end">
                       {m.approval_status === 'APPROVED' && (
                         <button

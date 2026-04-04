@@ -400,25 +400,25 @@ export default function Companies() {
             <tbody className="divide-y divide-[#EFF1F5]">
               {companies.map(c => (
                 <tr key={c.id} className="hover:bg-[#F2F4F5]">
-                  <td className="px-6 py-4 text-sm font-semibold text-gray-900 cursor-pointer hover:text-[#0669F7]" onClick={() => navigate(`/companies/${c.id}`)}>
+                  <td className="px-6 py-4 text-sm font-semibold text-gray-900 cursor-pointer hover:text-[#0669F7] whitespace-nowrap" onClick={() => navigate(`/companies/${c.id}`)}>
                     {c.name}
                   </td>
-                  <td className="px-6 py-4 text-sm text-gray-600">{c.business_reg_no ?? '-'}</td>
-                  <td className="px-6 py-4 text-sm text-gray-600">{c.contact_name ?? '-'}</td>
-                  <td className="px-6 py-4 text-sm text-gray-600">{formatPhone(c.contact_phone)}</td>
-                  <td className="px-6 py-4 text-sm">
+                  <td className="px-6 py-4 text-sm text-gray-600 whitespace-nowrap">{c.business_reg_no ?? '-'}</td>
+                  <td className="px-6 py-4 text-sm text-gray-600 whitespace-nowrap">{c.contact_name ?? '-'}</td>
+                  <td className="px-6 py-4 text-sm text-gray-600 whitespace-nowrap">{formatPhone(c.contact_phone)}</td>
+                  <td className="px-6 py-4 text-sm whitespace-nowrap">
                     <span className="text-blue-600 font-medium">{c.site_count}</span>
                     <span className="text-gray-400">{t('companies.sites_suffix')}</span>
                   </td>
-                  <td className="px-6 py-4 text-sm">
+                  <td className="px-6 py-4 text-sm whitespace-nowrap">
                     {c.signature_url ? (
                       <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-green-100 text-green-700 text-xs font-medium">{t('common.registered')}</span>
                     ) : (
                       <span className="inline-flex items-center px-2 py-1 rounded-full bg-[#EFF1F5] text-[#98A2B2] text-xs">{t('common.not_registered')}</span>
                     )}
                   </td>
-                  <td className="px-6 py-4 text-sm text-gray-500">{formatDate(c.created_at)}</td>
-                  <td className="px-6 py-4 text-right">
+                  <td className="px-6 py-4 text-sm text-gray-500 whitespace-nowrap">{formatDate(c.created_at)}</td>
+                  <td className="px-6 py-4 text-right whitespace-nowrap">
                     <div className="flex gap-3 justify-end items-center">
                       <button onClick={() => navigate(`/companies/${c.id}`)} className="text-[#0669F7] hover:underline text-sm">{t('common.detail')}</button>
                       {!isDemo && (

@@ -101,14 +101,14 @@ export default function Dashboard() {
             <tbody className="divide-y divide-[#EFF1F5]">
               {pending.map((m) => (
                 <tr key={m.id} className="hover:bg-[#F2F4F5]">
-                  <td className="px-6 py-4 text-sm font-medium text-gray-900">
+                  <td className="px-6 py-4 text-sm font-medium text-gray-900 whitespace-nowrap">
                     {m.company_name || m.representative_name}
                   </td>
-                  <td className="px-6 py-4 text-sm text-gray-600">{m.phone ?? '-'}</td>
-                  <td className="px-6 py-4 text-sm text-gray-400">
+                  <td className="px-6 py-4 text-sm text-gray-600 whitespace-nowrap">{m.phone ?? '-'}</td>
+                  <td className="px-6 py-4 text-sm text-gray-400 whitespace-nowrap">
                     {new Date(m.created_at).toLocaleDateString('ko-KR')}
                   </td>
-                  <td className="px-6 py-4 text-right">
+                  <td className="px-6 py-4 text-right whitespace-nowrap">
                     <Link to={`/managers/${m.id}`} className="text-[#0669F7] hover:underline text-sm">{t('dashboard.detail_arrow')}</Link>
                   </td>
                 </tr>

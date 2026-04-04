@@ -446,17 +446,17 @@ export default function AdminUsers() {
                 const roleInfo = roleMap[u.role]
                 return (
                   <tr key={u.id} className={`hover:bg-[#F8F9FB] ${u.status === 'DISABLED' ? 'opacity-50' : ''}`}>
-                    <td className="px-5 py-4">
+                    <td className="px-5 py-4 whitespace-nowrap">
                       <p className="text-sm font-medium text-gray-900">{u.email}</p>
                       {u.name && <p className="text-xs text-gray-400 mt-0.5">{u.name}</p>}
                       {u.id === me?.id && <span className="text-[10px] font-bold text-[#0669F7]">{t('admin_users.me')}</span>}
                     </td>
-                    <td className="px-5 py-4">
+                    <td className="px-5 py-4 whitespace-nowrap">
                       <span className={`px-2.5 py-1 rounded-full text-xs font-semibold ${roleInfo?.color ?? 'bg-gray-100 text-gray-600'}`}>
                         {roleInfo?.label ?? u.role}
                       </span>
                     </td>
-                    <td className="px-5 py-4">
+                    <td className="px-5 py-4 whitespace-nowrap">
                       <div className="flex flex-wrap gap-1 max-w-[220px]">
                         {Object.entries(u.permissions)
                           .filter(([, v]) => v)
@@ -467,15 +467,15 @@ export default function AdminUsers() {
                           ))}
                       </div>
                     </td>
-                    <td className="px-5 py-4">
+                    <td className="px-5 py-4 whitespace-nowrap">
                       <span className={`px-2.5 py-1 rounded-full text-xs font-semibold ${STATUS_COLORS[u.status] ?? 'bg-gray-100 text-gray-500'}`}>
                         {STATUS_LABELS[u.status] ?? u.status}
                       </span>
                     </td>
-                    <td className="px-5 py-4 text-xs text-gray-400">
+                    <td className="px-5 py-4 text-xs text-gray-400 whitespace-nowrap">
                       {u.last_login_at ? new Date(u.last_login_at).toLocaleDateString('ko-KR') : '-'}
                     </td>
-                    <td className="px-5 py-4">
+                    <td className="px-5 py-4 whitespace-nowrap">
                       {isSuperAdmin && u.id !== me?.id && u.status !== 'DISABLED' && (
                         <div className="flex gap-2 justify-end">
                           <button onClick={() => setEditUser(u)} className="text-xs text-[#0669F7] hover:underline">{t('admin_users.action_edit_permissions')}</button>

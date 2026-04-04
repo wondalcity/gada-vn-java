@@ -1,17 +1,57 @@
 package vn.gada.api.workers
 
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Repository
 import vn.gada.api.common.database.DatabaseService
 
 @Repository
-class WorkerRepository(private val db: DatabaseService) {
+class WorkerRepository(
+    private val db: DatabaseService,
+    @Value("\${gada.aws.cdn-domain:}") private val cdnDomain: String
+) {
+
+    private fun toUrl(key: String?): String? {
+        if (key.isNullOrBlank()) return null
+        if (key.startsWith("http://") || key.startsWith("https://")) return key
+        if (cdnDomain.isBlank()) return null
+        val base = if (cdnDomain.startsWith("http")) cdnDomain else "https://$cdnDomain"
+        return "$base/$key"
+    }
 
     fun findByUserId(userId: String): Map<String, Any?>? {
         val rows = db.queryForList(
-            "SELECT * FROM app.worker_profiles WHERE user_id = ?",
+            """SELECT wp.id, wp.user_id AS "userId",
+                      wp.full_name AS "fullName",
+                      wp.date_of_birth AS "dateOfBirth",
+                      wp.gender,
+                      wp.bio,
+                      wp.experience_months AS "experienceMonths",
+                      wp.primary_trade_id AS "primaryTradeId",
+                      wp.current_province AS "province",
+                      wp.current_district AS "district",
+                      wp.lat, wp.lng,
+                      wp.id_number AS "idNumber",
+                      wp.id_verified AS "idVerified",
+                      wp.id_verified_at AS "idVerifiedAt",
+                      wp.bank_name AS "bankName",
+                      wp.bank_account_number AS "bankAccountNumber",
+                      wp.profile_picture_s3_key AS "profilePictureS3Key",
+                      wp.signature_s3_key AS "signatureS3Key",
+                      wp.profile_complete AS "profileComplete",
+                      wp.terms_accepted AS "termsAccepted",
+                      wp.privacy_accepted AS "privacyAccepted",
+                      wp.created_at AS "createdAt",
+                      u.phone, u.email
+               FROM app.worker_profiles wp
+               JOIN auth.users u ON wp.user_id = u.id
+               WHERE wp.user_id = ?""",
             userId
         )
-        return rows.firstOrNull()
+        val row = rows.firstOrNull() ?: return null
+        return row + mapOf(
+            "profilePictureUrl" to toUrl(row["profilePictureS3Key"] as? String),
+            "signatureUrl" to toUrl(row["signatureS3Key"] as? String),
+        )
     }
 
     fun findHiresByUserId(userId: String): List<Map<String, Any?>> {
@@ -70,17 +110,29 @@ class WorkerRepository(private val db: DatabaseService) {
         }
     }
 
-    fun updateByUserId(userId: String, fullName: Any?, experienceMonths: Any?): Map<String, Any?>? {
-        val rows = db.queryForListRaw(
-            """INSERT INTO app.worker_profiles (user_id, full_name, date_of_birth, experience_months)
-               VALUES (?, ?, '1990-01-01', COALESCE(?, 0))
-               ON CONFLICT (user_id) DO UPDATE
-                 SET full_name = COALESCE(?, app.worker_profiles.full_name),
-                     experience_months = COALESCE(?, app.worker_profiles.experience_months),
-                     updated_at = NOW()
-               RETURNING *""",
-            userId, fullName, experienceMonths, fullName, experienceMonths
+    fun updateByUserId(userId: String, data: Map<String, Any?>): Map<String, Any?>? {
+        val setClauses = mutableListOf<String>()
+        val params = mutableListOf<Any?>()
+
+        data["fullName"]?.let            { setClauses.add("full_name = ?");          params.add(it) }
+        data["dateOfBirth"]?.let         { setClauses.add("date_of_birth = ?");      params.add(it) }
+        data["gender"]?.let              { setClauses.add("gender = ?");             params.add(it) }
+        data["bio"]?.let                 { setClauses.add("bio = ?");                params.add(it) }
+        data["experienceMonths"]?.let    { setClauses.add("experience_months = ?");  params.add(it) }
+        data["primaryTradeId"]?.let      { setClauses.add("primary_trade_id = ?");   params.add(it) }
+        data["province"]?.let            { setClauses.add("current_province = ?");   params.add(it) }
+        data["bankName"]?.let            { setClauses.add("bank_name = ?");          params.add(it) }
+        data["bankAccountNumber"]?.let   { setClauses.add("bank_account_number = ?");params.add(it) }
+
+        if (setClauses.isEmpty()) return findByUserId(userId)
+
+        setClauses.add("updated_at = NOW()")
+        params.add(userId)
+
+        db.updateRaw(
+            "UPDATE app.worker_profiles SET ${setClauses.joinToString(", ")} WHERE user_id = ?",
+            *params.toTypedArray()
         )
-        return rows.firstOrNull()
+        return findByUserId(userId)
     }
 }
