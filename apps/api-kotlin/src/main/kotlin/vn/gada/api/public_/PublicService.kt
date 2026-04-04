@@ -165,10 +165,11 @@ class PublicService(
               LEFT JOIN ref.construction_trades t ON j.trade_id = t.id
               LEFT JOIN ref.vn_provinces p ON UPPER(s.province) = p.code
               WHERE j.slug = ?"""
-        // Try slug first, then fall back to ID (for jobs with null slugs)
-        var rows = db.queryForListRaw(jobSql, slug)
+        // Try slug first (pass as raw string — no UUID coercion, slug is TEXT column)
+        // then fall back to ID lookup (uses coerce() to send as UUID type)
+        var rows = db.queryForListStr(jobSql, slug)
         if (rows.isEmpty()) {
-            rows = db.queryForList(jobSql.replace("j.slug = ?", "j.id = ?"), slug)
+            rows = db.queryForList(jobSql.replace("WHERE j.slug = ?", "WHERE j.id = ?"), slug)
         }
         if (rows.isEmpty()) return null
 

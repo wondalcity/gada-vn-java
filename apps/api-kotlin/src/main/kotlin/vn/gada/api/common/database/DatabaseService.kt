@@ -70,6 +70,17 @@ class DatabaseService(dataSource: DataSource) {
         return jdbc.queryForList(sql, *args).map { row -> row.mapValues { (_, v) -> coerceValue(v) } }
     }
 
+    /**
+     * Like queryForList but passes params as-is without UUID coercion.
+     * Use when a param must stay as TEXT/String (e.g. slug lookup on a TEXT column).
+     */
+    fun queryForListStr(sql: String, vararg params: Any?): List<Map<String, Any?>> {
+        return if (params.isEmpty())
+            jdbc.queryForList(sql).map { row -> row.mapValues { (_, v) -> coerceValue(v) } }
+        else
+            jdbc.queryForList(sql, *params).map { row -> row.mapValues { (_, v) -> coerceValue(v) } }
+    }
+
     @Transactional
     fun <T> transaction(block: DatabaseService.() -> T): T = block(this)
 }
