@@ -26,11 +26,12 @@ class DatabaseService(dataSource: DataSource) {
     /**
      * Convert a JDBC result value to a JSON-friendly type:
      * - java.sql.Array (TEXT[], UUID[]) → List
-     * - PgObject (jsonb/json) → String of the JSON value
+     * - PgObject (jsonb/json) → String of the JSON value (via reflection to avoid compile-time dep)
      */
-    private fun coerceValue(v: Any?): Any? = when (v) {
-        is java.sql.Array -> (v.array as? Array<*>)?.toList() ?: emptyList<Any>()
-        is org.postgresql.util.PgObject -> v.value  // jsonb → raw JSON string
+    private fun coerceValue(v: Any?): Any? = when {
+        v is java.sql.Array -> (v.array as? Array<*>)?.toList() ?: emptyList<Any>()
+        v != null && v.javaClass.name == "org.postgresql.util.PgObject" ->
+            v.javaClass.getMethod("getValue").invoke(v) as? String
         else -> v
     }
 
