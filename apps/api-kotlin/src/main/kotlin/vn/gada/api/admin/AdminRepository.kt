@@ -492,22 +492,53 @@ class AdminRepository(
     // ── Sites ─────────────────────────────────────────────────────────────────
 
     fun findAllSites(): List<Map<String, Any?>> {
-        return sanitizeList(db.queryForList(
-            """SELECT cs.*, cc.name as company_name
+        return db.queryForList(
+            """SELECT cs.*,
+                      cc.name    AS company_name,
+                      mp.representative_name AS manager_name,
+                      mp.contact_phone       AS manager_phone,
+                      mp.id                  AS manager_profile_id,
+                      COUNT(j.id)                                           AS job_count,
+                      COUNT(j.id) FILTER (WHERE j.status = 'OPEN')         AS open_job_count
                FROM app.construction_sites cs
                LEFT JOIN app.construction_companies cc ON cs.company_id = cc.id
+               LEFT JOIN app.manager_profiles mp ON cs.manager_id = mp.id
+               LEFT JOIN app.jobs j ON j.site_id = cs.id
+               GROUP BY cs.id, cc.name, mp.representative_name, mp.contact_phone, mp.id
                ORDER BY cs.name"""
-        ))
+        )
     }
 
     fun findSiteById(id: String): Map<String, Any?>? {
-        return db.queryForList(
-            """SELECT cs.*, cc.name as company_name
+        val site = db.queryForList(
+            """SELECT cs.*,
+                      cc.name          AS company_name,
+                      cc.contact_name  AS company_contact_name,
+                      cc.contact_phone AS company_contact_phone,
+                      cc.contact_email AS company_contact_email,
+                      mp.representative_name AS manager_name,
+                      mp.contact_phone       AS manager_phone,
+                      mp.id                  AS manager_profile_id
                FROM app.construction_sites cs
                LEFT JOIN app.construction_companies cc ON cs.company_id = cc.id
+               LEFT JOIN app.manager_profiles mp ON cs.manager_id = mp.id
                WHERE cs.id = ?""",
             id
-        ).firstOrNull()?.let { sanitize(it) }
+        ).firstOrNull() ?: return null
+
+        val jobs = db.queryForList(
+            """SELECT j.id, j.title, j.status, j.work_date, j.daily_wage, j.slots_total, j.slots_filled,
+                      COUNT(ja.id) FILTER (WHERE ja.status IN ('PENDING','ACCEPTED')) AS application_count,
+                      COUNT(ja.id) FILTER (WHERE ja.status = 'ACCEPTED')              AS hired_count
+               FROM app.jobs j
+               LEFT JOIN app.job_applications ja ON ja.job_id = j.id
+               WHERE j.site_id = ?
+               GROUP BY j.id
+               ORDER BY j.work_date DESC""",
+            id
+        )
+
+        return site + mapOf("jobs" to jobs)
     }
 
     fun createSite(body: Map<String, Any?>): Map<String, Any?>? {
@@ -559,15 +590,27 @@ class AdminRepository(
 
     fun findAllCompanies(): List<Map<String, Any?>> {
         return db.queryForList(
-            "SELECT * FROM app.construction_companies ORDER BY name"
+            """SELECT cc.*, COUNT(cs.id) AS site_count
+               FROM app.construction_companies cc
+               LEFT JOIN app.construction_sites cs ON cs.company_id = cc.id
+               GROUP BY cc.id
+               ORDER BY cc.name"""
         )
     }
 
     fun findCompanyById(id: String): Map<String, Any?>? {
-        return db.queryForList(
-            "SELECT * FROM app.construction_companies WHERE id = ?",
+        val row = db.queryForList(
+            """SELECT cc.*, COUNT(cs.id) AS site_count
+               FROM app.construction_companies cc
+               LEFT JOIN app.construction_sites cs ON cs.company_id = cc.id
+               WHERE cc.id = ?
+               GROUP BY cc.id""",
             id
-        ).firstOrNull()
+        ).firstOrNull() ?: return null
+        return row + mapOf(
+            "signature_url" to toUrl(row["signature_s3_key"] as? String),
+            "business_reg_cert_url" to toUrl(row["business_reg_cert_s3_key"] as? String),
+        )
     }
 
     fun createCompany(body: Map<String, Any?>): Map<String, Any?>? {

@@ -554,7 +554,7 @@ export default function Sites() {
         siteId={id}
         managers={managers}
         companies={companies}
-        onBack={() => navigate('/sites')}
+        onBack={() => navigate(-1)}
         onDeleted={() => navigate('/sites')}
       />
     )

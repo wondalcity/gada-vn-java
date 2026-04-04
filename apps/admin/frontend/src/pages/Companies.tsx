@@ -335,7 +335,7 @@ export default function Companies() {
     return (
       <CompanyDetailPanel
         companyId={id}
-        onBack={() => navigate('/companies')}
+        onBack={() => navigate(-1)}
         onDeleted={() => navigate('/companies')}
       />
     )
