@@ -82,11 +82,15 @@ export function RegisterForm({ locale }: RegisterFormProps) {
     setIsLoading(true)
     try {
       const { signInWithGoogle } = await import('../../lib/firebase/auth')
-      const { idToken } = await signInWithGoogle()
+      const { idToken, displayName, email } = await signInWithGoogle()
 
       await apiFetch('/auth/verify-token', {
         method: 'POST',
-        body: JSON.stringify({ idToken }),
+        body: JSON.stringify({
+          idToken,
+          name: displayName || undefined,
+          email: email || undefined,
+        }),
       })
 
       const { setSessionCookie } = await import('../../lib/auth/session')
@@ -105,11 +109,15 @@ export function RegisterForm({ locale }: RegisterFormProps) {
     setIsLoading(true)
     try {
       const { signInWithFacebook } = await import('../../lib/firebase/auth')
-      const { idToken } = await signInWithFacebook()
+      const { idToken, displayName, email } = await signInWithFacebook()
 
       await apiFetch('/auth/social/facebook', {
         method: 'POST',
-        body: JSON.stringify({ idToken }),
+        body: JSON.stringify({
+          idToken,
+          name: displayName || undefined,
+          email: email || undefined,
+        }),
       })
 
       setSessionCookie(idToken)

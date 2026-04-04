@@ -418,11 +418,12 @@ function SiteDetailPanel({
             <p className="text-sm">{t('sites.detail.no_jobs')}</p>
           </div>
         ) : (
-          <table className="w-full">
+          <div className="overflow-x-auto">
+          <table className="w-full min-w-[700px]">
             <thead className="bg-[#F2F4F5]">
               <tr>
                 {[t('sites.detail.col_title'), t('sites.detail.col_status'), t('sites.detail.col_work_date'), t('sites.detail.col_wage'), t('sites.detail.col_applicants'), t('sites.detail.col_hired')].map((h) => (
-                  <th key={h} className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase">{h}</th>
+                  <th key={h} className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase whitespace-nowrap">{h}</th>
                 ))}
               </tr>
             </thead>
@@ -445,6 +446,7 @@ function SiteDetailPanel({
               ))}
             </tbody>
           </table>
+          </div>
         )}
       </div>
     </div>
@@ -607,11 +609,12 @@ export default function Sites() {
             <button onClick={() => setShowCreate(true)} className="inline-flex items-center gap-2 px-4 py-2 bg-[#0669F7] text-white text-sm font-medium rounded-2xl">{t('sites.first_register')}</button>
           </div>
         ) : (
-          <table className="w-full">
+          <div className="overflow-x-auto">
+          <table className="w-full min-w-[700px]">
             <thead className="bg-[#F2F4F5]">
               <tr>
                 {[t('sites.col_name'), t('sites.col_company'), t('sites.col_address'), t('sites.col_status'), t('sites.col_manager'), t('sites.col_job_count'), t('sites.col_registered'), ''].map((h) => (
-                  <th key={h} className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase">{h}</th>
+                  <th key={h} className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase whitespace-nowrap">{h}</th>
                 ))}
               </tr>
             </thead>
@@ -657,6 +660,7 @@ export default function Sites() {
               ))}
             </tbody>
           </table>
+          </div>
         )}
       </div>
 

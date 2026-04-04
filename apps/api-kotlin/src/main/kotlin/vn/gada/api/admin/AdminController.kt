@@ -132,15 +132,16 @@ class AdminController(
 
     // ── Workers ───────────────────────────────────────────────────────────────
 
-    /** GET /admin/workers — returns { data, total } */
+    /** GET /admin/workers — returns { data, total, page, limit } */
     @GetMapping("/workers")
     fun listWorkers(
         request: HttpServletRequest,
         @RequestParam(defaultValue = "") search: String,
+        @RequestParam(defaultValue = "1") page: Int,
         @RequestParam(defaultValue = "20") limit: Int
     ): ResponseEntity<Map<String, Any?>> {
         checkAdminKey(request)
-        return ok(adminService.searchWorkers(search, limit))
+        return ok(adminService.searchWorkers(search, page, limit))
     }
 
     /** GET /admin/workers/:id */

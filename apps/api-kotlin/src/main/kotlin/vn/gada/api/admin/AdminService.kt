@@ -68,10 +68,10 @@ class AdminService(
 
     // ── Workers ───────────────────────────────────────────────────────────────
 
-    fun searchWorkers(search: String, limit: Int): Map<String, Any?> {
-        val data = repo.searchWorkers(search, limit)
+    fun searchWorkers(search: String, page: Int, limit: Int): Map<String, Any?> {
+        val data = repo.searchWorkers(search, page, limit)
         val total = repo.countWorkers(search)
-        return mapOf("data" to data, "total" to total)
+        return mapOf("data" to data, "total" to total, "page" to page, "limit" to limit)
     }
 
     fun getWorker(id: String): Map<String, Any?> {

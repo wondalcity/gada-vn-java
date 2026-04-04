@@ -76,10 +76,13 @@ function CreateWorkerModal({ onSave, onCancel }: { onSave: (phone: string, fullN
   )
 }
 
+const PAGE_SIZE = 20
+
 export default function Workers() {
   const { t } = useAdminTranslation()
   const [searchParams, setSearchParams] = useSearchParams()
   const search = searchParams.get('search') ?? ''
+  const page = parseInt(searchParams.get('page') ?? '1', 10)
   const [query, setQuery] = useState(search)
   const [workers, setWorkers] = useState<Worker[]>([])
   const [total, setTotal] = useState(0)
@@ -88,9 +91,9 @@ export default function Workers() {
   const [showCreate, setShowCreate] = useState(false)
   const [toast, setToast] = useState<string | null>(null)
 
-  const load = useCallback((q: string) => {
+  const load = useCallback((q: string, p: number) => {
     setLoading(true)
-    api.get<{ data: Worker[]; total: number }>(`/admin/workers?search=${encodeURIComponent(q)}&limit=20`)
+    api.get<{ data: Worker[]; total: number }>(`/admin/workers?search=${encodeURIComponent(q)}&page=${p}&limit=${PAGE_SIZE}`)
       .then((res) => {
         const data = res.data ?? []
         setWorkers(data)
@@ -105,11 +108,15 @@ export default function Workers() {
       .finally(() => setLoading(false))
   }, [])
 
-  useEffect(() => { load(search) }, [search, load])
+  useEffect(() => { load(search, page) }, [search, page, load])
 
   function handleSearch(e: React.FormEvent) {
     e.preventDefault()
-    setSearchParams({ search: query })
+    setSearchParams({ search: query, page: '1' })
+  }
+
+  function goToPage(p: number) {
+    setSearchParams({ search, page: String(p) })
   }
 
   function showMsg(msg: string) {
@@ -121,7 +128,7 @@ export default function Workers() {
     await api.post('/admin/workers', { phone, fullName })
     setShowCreate(false)
     showMsg(t('workers.registered'))
-    load(search)
+    load(search, page)
   }
 
   async function handleDelete(worker: Worker) {
@@ -187,47 +194,93 @@ export default function Workers() {
             <p className="text-sm">{t('workers.empty')}</p>
           </div>
         ) : (
-          <table className="w-full">
-            <thead className="bg-[#F2F4F5]">
-              <tr>
-                {[t('workers.col_name'), t('workers.col_phone'), t('workers.col_region'), t('workers.col_id_verified'), t('workers.col_role'), t('workers.col_joined'), ''].map((h) => (
-                  <th key={h} className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase">{h}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-[#EFF1F5]">
-              {workers.map((w) => (
-                <tr key={w.id} className="hover:bg-[#F2F4F5]">
-                  <td className="px-6 py-4 text-sm font-medium text-gray-900">{w.full_name}</td>
-                  <td className="px-6 py-4 text-sm text-gray-600">{formatPhone(w.phone)}</td>
-                  <td className="px-6 py-4 text-sm text-gray-500">{w.current_province ?? '-'}</td>
-                  <td className="px-6 py-4">
-                    <span className={`px-2 py-1 text-xs rounded-full ${w.id_verified ? 'bg-green-100 text-green-700' : 'bg-[#EFF1F5] text-[#98A2B2]'}`}>
-                      {w.id_verified ? t('workers.id_verified') : t('workers.id_unverified')}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4">
-                    {w.is_manager ? (
-                      <span className="px-2 py-1 text-xs rounded-full bg-[#FDBC08]/20 text-yellow-700 font-medium">{t('workers.role_manager')}</span>
-                    ) : (
-                      <span className="px-2 py-1 text-xs rounded-full bg-[#EFF1F5] text-[#98A2B2]">{t('workers.role_worker')}</span>
-                    )}
-                  </td>
-                  <td className="px-6 py-4 text-sm text-gray-400">{new Date(w.created_at).toLocaleDateString('ko-KR')}</td>
-                  <td className="px-6 py-4 text-right">
-                    <div className="flex gap-3 justify-end items-center">
-                      <Link to={`/workers/${w.id}`} className="text-[#0669F7] hover:underline text-sm">{t('common.detail_arrow')}</Link>
-                      {!isDemo && (
-                        <button onClick={() => handleDelete(w)} className="text-[#D81A48] text-sm hover:underline">{t('common.deactivate')}</button>
-                      )}
-                    </div>
-                  </td>
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[700px]">
+              <thead className="bg-[#F2F4F5]">
+                <tr>
+                  {[t('workers.col_name'), t('workers.col_phone'), t('workers.col_region'), t('workers.col_id_verified'), t('workers.col_role'), t('workers.col_joined'), ''].map((h) => (
+                    <th key={h} className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase whitespace-nowrap">{h}</th>
+                  ))}
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody className="divide-y divide-[#EFF1F5]">
+                {workers.map((w) => (
+                  <tr key={w.id} className="hover:bg-[#F2F4F5]">
+                    <td className="px-6 py-4 text-sm font-medium text-gray-900 whitespace-nowrap">{w.full_name}</td>
+                    <td className="px-6 py-4 text-sm text-gray-600 whitespace-nowrap">{formatPhone(w.phone)}</td>
+                    <td className="px-6 py-4 text-sm text-gray-500 whitespace-nowrap">{w.current_province ?? '-'}</td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span className={`px-2 py-1 text-xs rounded-full ${w.id_verified ? 'bg-green-100 text-green-700' : 'bg-[#EFF1F5] text-[#98A2B2]'}`}>
+                        {w.id_verified ? t('workers.id_verified') : t('workers.id_unverified')}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      {w.is_manager ? (
+                        <span className="px-2 py-1 text-xs rounded-full bg-[#FDBC08]/20 text-yellow-700 font-medium">{t('workers.role_manager')}</span>
+                      ) : (
+                        <span className="px-2 py-1 text-xs rounded-full bg-[#EFF1F5] text-[#98A2B2]">{t('workers.role_worker')}</span>
+                      )}
+                    </td>
+                    <td className="px-6 py-4 text-sm text-gray-400 whitespace-nowrap">{new Date(w.created_at).toLocaleDateString('ko-KR')}</td>
+                    <td className="px-6 py-4 text-right whitespace-nowrap">
+                      <div className="flex gap-3 justify-end items-center">
+                        <Link to={`/workers/${w.id}`} className="text-[#0669F7] hover:underline text-sm">{t('common.detail_arrow')}</Link>
+                        {!isDemo && (
+                          <button onClick={() => handleDelete(w)} className="text-[#D81A48] text-sm hover:underline">{t('common.deactivate')}</button>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         )}
       </div>
+
+      {/* Pagination */}
+      {!isDemo && total > PAGE_SIZE && (
+        <div className="mt-4 flex items-center justify-center gap-1">
+          <button
+            onClick={() => goToPage(page - 1)}
+            disabled={page <= 1}
+            className="px-3 py-1.5 rounded-xl text-sm border border-[#EFF1F5] text-gray-600 hover:bg-[#F2F4F5] disabled:opacity-40"
+          >
+            ‹
+          </button>
+          {Array.from({ length: Math.ceil(total / PAGE_SIZE) }, (_, i) => i + 1)
+            .filter(p => p === 1 || p === Math.ceil(total / PAGE_SIZE) || Math.abs(p - page) <= 2)
+            .reduce<(number | '...')[]>((acc, p, idx, arr) => {
+              if (idx > 0 && (p as number) - (arr[idx - 1] as number) > 1) acc.push('...')
+              acc.push(p)
+              return acc
+            }, [])
+            .map((p, i) =>
+              p === '...' ? (
+                <span key={`e${i}`} className="px-2 text-gray-400 text-sm">…</span>
+              ) : (
+                <button
+                  key={p}
+                  onClick={() => goToPage(p as number)}
+                  className={`px-3 py-1.5 rounded-xl text-sm border transition-colors ${
+                    p === page
+                      ? 'bg-[#0669F7] text-white border-[#0669F7] font-semibold'
+                      : 'border-[#EFF1F5] text-gray-600 hover:bg-[#F2F4F5]'
+                  }`}
+                >
+                  {p}
+                </button>
+              )
+            )}
+          <button
+            onClick={() => goToPage(page + 1)}
+            disabled={page >= Math.ceil(total / PAGE_SIZE)}
+            className="px-3 py-1.5 rounded-xl text-sm border border-[#EFF1F5] text-gray-600 hover:bg-[#F2F4F5] disabled:opacity-40"
+          >
+            ›
+          </button>
+        </div>
+      )}
 
       <div className="mt-4 text-xs text-gray-400 text-right">{t('workers.total').replace('{n}', String(total))}</div>
     </div>

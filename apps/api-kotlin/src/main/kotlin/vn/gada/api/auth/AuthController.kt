@@ -49,7 +49,8 @@ class AuthController(private val authService: AuthService) {
     fun verifyToken(@RequestBody body: Map<String, Any?>): ResponseEntity<Map<String, Any?>> {
         val idToken = body["idToken"] as? String ?: throw vn.gada.api.common.exception.BadRequestException("idToken is required")
         val name = body["name"] as? String
-        val result = authService.verifyAndGetOrCreateUser(idToken, name)
+        val email = body["email"] as? String
+        val result = authService.verifyAndGetOrCreateUser(idToken, name, email)
         return ok(result)
     }
 
@@ -83,7 +84,9 @@ class AuthController(private val authService: AuthService) {
     @PostMapping("/social/facebook")
     fun socialFacebook(@RequestBody body: Map<String, Any?>): ResponseEntity<Map<String, Any?>> {
         val idToken = body["idToken"] as? String ?: throw vn.gada.api.common.exception.BadRequestException("idToken is required")
-        val result = authService.socialFacebook(idToken)
+        val name = body["name"] as? String
+        val email = body["email"] as? String
+        val result = authService.socialFacebook(idToken, name, email)
         return ok(result)
     }
 
@@ -91,7 +94,9 @@ class AuthController(private val authService: AuthService) {
     @PostMapping("/social/google")
     fun socialGoogle(@RequestBody body: Map<String, Any?>): ResponseEntity<Map<String, Any?>> {
         val idToken = body["idToken"] as? String ?: throw vn.gada.api.common.exception.BadRequestException("idToken is required")
-        val result = authService.verifyAndGetOrCreateUser(idToken)
+        val name = body["name"] as? String
+        val email = body["email"] as? String
+        val result = authService.verifyAndGetOrCreateUser(idToken, name, email)
         return ok(result)
     }
 

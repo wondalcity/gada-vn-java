@@ -18,7 +18,7 @@ class AuthService(
     private val log = LoggerFactory.getLogger(AuthService::class.java)
     private val isDev: Boolean get() = activeProfile != "production" && activeProfile != "prod"
 
-    fun verifyAndGetOrCreateUser(idToken: String, name: String? = null): Map<String, Any?> {
+    fun verifyAndGetOrCreateUser(idToken: String, name: String? = null, emailOverride: String? = null): Map<String, Any?> {
         val decoded = firebase.verifyIdToken(idToken)
             ?: throw UnauthorizedException("Invalid token")
         val existing = repo.findByFirebaseUid(decoded.uid)
@@ -35,7 +35,8 @@ class AuthService(
             return mapOf("user" to existing, "isNew" to false)
         }
         val phoneNumber = decoded.claims["phone_number"] as? String
-        val email = decoded.claims["email"] as? String
+        val tokenEmail = decoded.claims["email"] as? String
+        val email = emailOverride ?: tokenEmail
         val user = repo.create(decoded.uid, phoneNumber, email, "WORKER")
         repo.ensureWorkerProfile(user["id"] as String, name ?: phoneNumber)
         return mapOf("user" to user, "isNew" to true)
@@ -149,17 +150,23 @@ class AuthService(
 
     // ── Facebook social login ─────────────────────────────────────────────────
 
-    fun socialFacebook(idToken: String): Map<String, Any?> {
+    fun socialFacebook(idToken: String, name: String? = null, emailOverride: String? = null): Map<String, Any?> {
         val decoded = firebase.verifyIdToken(idToken)
             ?: throw UnauthorizedException("Invalid token")
         var dbUser = repo.findByFirebaseUid(decoded.uid)
         var isNewUser = false
         if (dbUser == null) {
             val phoneNumber = decoded.claims["phone_number"] as? String
-            val email = decoded.claims["email"] as? String
+            val tokenEmail = decoded.claims["email"] as? String
+            val email = emailOverride ?: tokenEmail
             dbUser = repo.create(decoded.uid, phoneNumber, email, "WORKER")
-            repo.ensureWorkerProfile(dbUser["id"] as String, phoneNumber)
+            repo.ensureWorkerProfile(dbUser["id"] as String, name ?: phoneNumber)
             isNewUser = true
+        } else {
+            // Ensure worker_profile has a name (handles incomplete SSO registrations)
+            if (name != null) {
+                repo.ensureWorkerProfile(dbUser["id"] as String, name)
+            }
         }
         return mapOf("isNewUser" to isNewUser)
     }

@@ -117,11 +117,12 @@ export default function Jobs() {
             <Link to="/jobs/new" className="inline-flex items-center gap-2 px-4 py-2 bg-[#0669F7] text-white text-sm font-medium rounded-2xl">{t('jobs.first_register')}</Link>
           </div>
         ) : (
-          <table className="w-full">
+          <div className="overflow-x-auto">
+          <table className="w-full min-w-[700px]">
             <thead className="bg-[#F2F4F5]">
               <tr>
                 {[t('jobs.col_title'), t('jobs.col_site'), t('jobs.col_work_date'), t('jobs.col_wage'), t('jobs.col_slots'), t('jobs.col_status'), ''].map((h) => (
-                  <th key={h} className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase">{h}</th>
+                  <th key={h} className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase whitespace-nowrap">{h}</th>
                 ))}
               </tr>
             </thead>
@@ -151,6 +152,7 @@ export default function Jobs() {
               ))}
             </tbody>
           </table>
+          </div>
         )}
       </div>
 

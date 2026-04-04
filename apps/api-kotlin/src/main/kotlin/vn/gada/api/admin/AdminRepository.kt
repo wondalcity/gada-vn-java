@@ -192,8 +192,9 @@ class AdminRepository(
 
     // ── Workers ───────────────────────────────────────────────────────────────
 
-    fun searchWorkers(search: String, limit: Int): List<Map<String, Any?>> {
+    fun searchWorkers(search: String, page: Int, limit: Int): List<Map<String, Any?>> {
         val like = "%$search%"
+        val offset = (page - 1) * limit
         val baseSelect = """SELECT wp.*, u.phone, u.email, u.status as user_status,
                       (mp.id IS NOT NULL AND mp.approval_status = 'APPROVED') as is_manager
                FROM app.worker_profiles wp
@@ -201,11 +202,11 @@ class AdminRepository(
                LEFT JOIN app.manager_profiles mp ON mp.user_id = u.id
                WHERE u.status != 'DELETED'"""
         return if (search.isBlank()) {
-            db.queryForList("$baseSelect ORDER BY wp.created_at DESC LIMIT ?", limit)
+            db.queryForList("$baseSelect ORDER BY wp.created_at DESC LIMIT ? OFFSET ?", limit, offset)
         } else {
             db.queryForList(
-                "$baseSelect AND (wp.full_name ILIKE ? OR u.phone ILIKE ? OR u.email ILIKE ?) ORDER BY wp.created_at DESC LIMIT ?",
-                like, like, like, limit
+                "$baseSelect AND (wp.full_name ILIKE ? OR u.phone ILIKE ? OR u.email ILIKE ?) ORDER BY wp.created_at DESC LIMIT ? OFFSET ?",
+                like, like, like, limit, offset
             )
         }
     }
@@ -219,7 +220,7 @@ class AdminRepository(
                       wp.profile_complete, wp.terms_accepted, wp.privacy_accepted,
                       wp.profile_picture_s3_key, wp.created_at,
                       wp.id_front_s3_key, wp.id_back_s3_key,
-                      wp.signature_s3_key,
+                      wp.signature_s3_key, wp.bank_book_s3_key,
                       u.phone, u.email, u.status as user_status,
                       t.name_ko as trade_name_ko,
                       mp.id as manager_profile_id,
@@ -239,6 +240,7 @@ class AdminRepository(
             "id_front_url" to toUrl(row["id_front_s3_key"] as? String),
             "id_back_url" to toUrl(row["id_back_s3_key"] as? String),
             "signature_url" to toUrl(row["signature_s3_key"] as? String),
+            "bank_book_url" to toUrl(row["bank_book_s3_key"] as? String),
         )
     }
 

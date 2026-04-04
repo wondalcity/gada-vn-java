@@ -432,11 +432,12 @@ export default function AdminUsers() {
         {loading ? (
           <div className="p-8 text-center text-gray-400 text-sm">{t('common.loading')}</div>
         ) : (
-          <table className="w-full">
+          <div className="overflow-x-auto">
+          <table className="w-full min-w-[700px]">
             <thead className="bg-[#F2F4F5]">
               <tr>
                 {[t('admin_users.col_email'), t('admin_users.col_role'), t('admin_users.col_permissions'), t('admin_users.col_status'), t('admin_users.col_last_login'), ''].map((h) => (
-                  <th key={h} className="text-left px-5 py-3 text-xs font-medium text-gray-500 uppercase">{h}</th>
+                  <th key={h} className="text-left px-5 py-3 text-xs font-medium text-gray-500 uppercase whitespace-nowrap">{h}</th>
                 ))}
               </tr>
             </thead>
@@ -488,6 +489,7 @@ export default function AdminUsers() {
               })}
             </tbody>
           </table>
+          </div>
         )}
       </div>
     </div>

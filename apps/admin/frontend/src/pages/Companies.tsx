@@ -388,11 +388,12 @@ export default function Companies() {
             <button onClick={() => setShowCreate(true)} className="inline-flex items-center gap-2 px-4 py-2 bg-[#0669F7] text-white text-sm font-medium rounded-2xl">{t('companies.first_register')}</button>
           </div>
         ) : (
-          <table className="w-full">
+          <div className="overflow-x-auto">
+          <table className="w-full min-w-[700px]">
             <thead className="bg-[#F2F4F5]">
               <tr>
                 {[t('companies.col_name'), t('companies.col_reg_no'), t('companies.col_contact'), t('companies.col_phone'), t('companies.col_sites'), t('companies.col_signature'), t('companies.col_registered'), ''].map((h) => (
-                  <th key={h} className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase">{h}</th>
+                  <th key={h} className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase whitespace-nowrap">{h}</th>
                 ))}
               </tr>
             </thead>
@@ -432,6 +433,7 @@ export default function Companies() {
               ))}
             </tbody>
           </table>
+          </div>
         )}
       </div>
 

@@ -183,6 +183,21 @@ export default function WorkerDetail() {
     }
   }
 
+  async function saveMisc() {
+    setSaving(true)
+    try {
+      await api.put(`/admin/workers/${id}`, {
+        phone: form.phone,
+      })
+      setWorker((prev) => prev ? { ...prev, phone: form.phone ?? prev.phone } : prev)
+      showToast('success', t('worker_detail.save_success'))
+    } catch {
+      showToast('error', t('worker_detail.save_failed'))
+    } finally {
+      setSaving(false)
+    }
+  }
+
   async function saveSkills() {
     setSavingSkills(true)
     try {
@@ -485,7 +500,9 @@ export default function WorkerDetail() {
         {/* Other */}
         {tab === 'misc' && (
           <>
-            <ReadOnlyField label={t('worker_detail.field_phone')} value={formatPhone(worker.phone)} />
+            <Field label={t('worker_detail.field_phone')}>
+              <input className={INPUT} value={form.phone ?? ''} onChange={(e) => patch({ phone: e.target.value })} placeholder="+84901234567" />
+            </Field>
             <ReadOnlyField label={t('worker_detail.field_email')} value={worker.email ?? '-'} />
             <div className="flex gap-4">
               <div className="flex-1">
@@ -506,6 +523,7 @@ export default function WorkerDetail() {
               </label>
             </div>
             <ReadOnlyField label={t('worker_detail.field_joined')} value={new Date(worker.created_at).toLocaleString('ko-KR')} />
+            <SaveButton saving={saving} onClick={saveMisc} label={t('common.save')} savingLabel={t('common.saving')} />
           </>
         )}
       </div>

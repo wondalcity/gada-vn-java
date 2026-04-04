@@ -136,7 +136,8 @@ export default function Managers() {
             <p className="text-sm">{t('managers.empty')}</p>
           </div>
         ) : (
-          <table className="w-full">
+          <div className="overflow-x-auto">
+          <table className="w-full min-w-[700px]">
             <thead className="bg-[#F2F4F5]">
               <tr>
                 {[
@@ -147,7 +148,7 @@ export default function Managers() {
                   t('managers.col_joined'),
                   '',
                 ].map((h, i) => (
-                  <th key={i} className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase">{h}</th>
+                  <th key={i} className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase whitespace-nowrap">{h}</th>
                 ))}
               </tr>
             </thead>
@@ -190,6 +191,7 @@ export default function Managers() {
               ))}
             </tbody>
           </table>
+          </div>
         )}
       </div>
 

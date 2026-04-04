@@ -88,12 +88,13 @@ export default function Dashboard() {
             <p className="text-sm">{t('dashboard.no_pending')}</p>
           </div>
         ) : (
-          <table className="w-full">
+          <div className="overflow-x-auto">
+          <table className="w-full min-w-[600px]">
             <thead className="bg-[#F2F4F5]">
               <tr>
-                <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase">{t('dashboard.col_name')}</th>
-                <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase">{t('dashboard.col_phone')}</th>
-                <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase">{t('dashboard.col_joined')}</th>
+                <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase whitespace-nowrap">{t('dashboard.col_name')}</th>
+                <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase whitespace-nowrap">{t('dashboard.col_phone')}</th>
+                <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase whitespace-nowrap">{t('dashboard.col_joined')}</th>
                 <th className="px-6 py-3"></th>
               </tr>
             </thead>
@@ -114,6 +115,7 @@ export default function Dashboard() {
               ))}
             </tbody>
           </table>
+          </div>
         )}
       </div>
     </div>
