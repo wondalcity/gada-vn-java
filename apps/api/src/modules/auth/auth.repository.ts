@@ -153,4 +153,14 @@ export class AuthRepository {
     }
     return this.getMeProfile(userId);
   }
+
+  /** Ensure a minimal worker_profiles row exists for new WORKER users. */
+  async ensureWorkerProfile(userId: string, phone: string | null): Promise<void> {
+    await this.db.query(
+      `INSERT INTO app.worker_profiles (user_id, full_name)
+       VALUES ($1, $2)
+       ON CONFLICT (user_id) DO NOTHING`,
+      [userId, phone ?? ''],
+    );
+  }
 }

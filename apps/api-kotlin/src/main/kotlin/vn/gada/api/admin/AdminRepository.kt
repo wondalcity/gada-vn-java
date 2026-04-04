@@ -53,13 +53,20 @@ class AdminRepository(
     }
 
     fun findManagerById(id: String): Map<String, Any?>? {
-        return db.queryForList(
-            """SELECT mp.*, u.phone, u.created_at as user_created_at
+        val row = db.queryForList(
+            """SELECT mp.*, u.phone, u.email, u.created_at as user_created_at,
+                      wp.full_name as worker_full_name
                FROM app.manager_profiles mp
                JOIN auth.users u ON mp.user_id = u.id
+               LEFT JOIN app.worker_profiles wp ON wp.user_id = u.id
                WHERE mp.id = ?""",
             id
-        ).firstOrNull()
+        ).firstOrNull() ?: return null
+        return row + mapOf(
+            "business_reg_url" to toUrl(row["business_reg_s3_key"] as? String),
+            "signature_url" to toUrl(row["signature_s3_key"] as? String),
+            "profile_picture_url" to toUrl(row["profile_picture_s3_key"] as? String),
+        )
     }
 
     fun approveManager(id: String): Map<String, Any?>? {
@@ -217,7 +224,6 @@ class AdminRepository(
                       wp.profile_picture_s3_key, wp.created_at,
                       wp.id_front_s3_key, wp.id_back_s3_key,
                       wp.signature_s3_key,
-                      wp.bank_book_s3_key,
                       u.phone, u.email, u.status as user_status,
                       t.name_ko as trade_name_ko,
                       mp.id as manager_profile_id,
@@ -237,7 +243,6 @@ class AdminRepository(
             "id_front_url" to toUrl(row["id_front_s3_key"] as? String),
             "id_back_url" to toUrl(row["id_back_s3_key"] as? String),
             "signature_url" to toUrl(row["signature_s3_key"] as? String),
-            "bank_book_url" to toUrl(row["bank_book_s3_key"] as? String),
         )
     }
 
@@ -423,21 +428,34 @@ class AdminRepository(
     }
 
     fun createJob(body: Map<String, Any?>): Map<String, Any?>? {
-        val titleKo = body["titleKo"] as? String ?: body["title_ko"] as? String ?: ""
-        val titleVi = body["titleVi"] as? String ?: body["title_vi"] as? String ?: ""
-        val provinceSlug = body["provinceSlug"] as? String ?: body["province_slug"] as? String
-        val tradeId = body["tradeId"] as? String ?: body["trade_id"] as? String
-        val status = body["status"] as? String ?: "OPEN"
+        val siteId = body["siteId"] as? String ?: body["site_id"] as? String ?: ""
+        val title = body["title"] as? String ?: ""
+        val description = body["description"] as? String
+        val tradeId = body["tradeId"] ?: body["trade_id"]
+        val workDate = body["workDate"] as? String ?: body["work_date"] as? String
+        val startTime = body["startTime"] as? String ?: body["start_time"] as? String
+        val endTime = body["endTime"] as? String ?: body["end_time"] as? String
         val dailyWage = body["dailyWage"] ?: body["daily_wage"]
-        val startDate = body["startDate"] as? String ?: body["start_date"] as? String
-        val endDate = body["endDate"] as? String ?: body["end_date"] as? String
-        val createdBy = body["createdBy"] as? String ?: body["created_by"] as? String
+        val slotsTotal = (body["slotsTotal"] ?: body["slots_total"] as? Number)?.let { (it as Number).toInt() } ?: 1
+        val status = body["status"] as? String ?: "OPEN"
+        val slug = title.lowercase()
+            .replace(Regex("[^a-z0-9\\s-]"), "")
+            .trim()
+            .replace(Regex("\\s+"), "-")
+            .take(80) + "-" + System.currentTimeMillis().toString(36)
+
+        // Look up manager from site
+        val managerId = db.queryForList(
+            "SELECT manager_id FROM app.construction_sites WHERE id = ?", siteId
+        ).firstOrNull()?.get("manager_id") as? String
 
         return db.queryForListRaw(
-            """INSERT INTO app.jobs (title_ko, title_vi, province_slug, trade_id, status, daily_wage, start_date, end_date, created_by, created_at, updated_at)
-               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())
+            """INSERT INTO app.jobs (site_id, manager_id, title, description, trade_id, work_date,
+                      start_time, end_time, daily_wage, slots_total, status, slug, published_at, created_at, updated_at)
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW(), NOW())
                RETURNING *""",
-            titleKo, titleVi, provinceSlug, tradeId, status, dailyWage, startDate, endDate, createdBy
+            siteId, managerId, title, description, tradeId, workDate,
+            startTime, endTime, dailyWage, slotsTotal, status, slug
         ).firstOrNull()
     }
 
@@ -445,23 +463,18 @@ class AdminRepository(
         val setClauses = mutableListOf<String>()
         val params = mutableListOf<Any?>()
 
-        body["titleKo"]?.let { setClauses.add("title_ko = ?"); params.add(it) }
-        body["title_ko"]?.let { if (!body.containsKey("titleKo")) { setClauses.add("title_ko = ?"); params.add(it) } }
-        body["titleVi"]?.let { setClauses.add("title_vi = ?"); params.add(it) }
-        body["title_vi"]?.let { if (!body.containsKey("titleVi")) { setClauses.add("title_vi = ?"); params.add(it) } }
-        body["provinceSlug"]?.let { setClauses.add("province_slug = ?"); params.add(it) }
-        body["province_slug"]?.let { if (!body.containsKey("provinceSlug")) { setClauses.add("province_slug = ?"); params.add(it) } }
-        body["tradeId"]?.let { setClauses.add("trade_id = ?"); params.add(it) }
-        body["trade_id"]?.let { if (!body.containsKey("tradeId")) { setClauses.add("trade_id = ?"); params.add(it) } }
+        (body["siteId"] ?: body["site_id"])?.let { setClauses.add("site_id = ?"); params.add(it) }
+        body["title"]?.let { setClauses.add("title = ?"); params.add(it) }
+        body["description"]?.let { setClauses.add("description = ?"); params.add(it) }
+        (body["tradeId"] ?: body["trade_id"])?.let { setClauses.add("trade_id = ?"); params.add(it) }
+        (body["workDate"] ?: body["work_date"])?.let { setClauses.add("work_date = ?"); params.add(it) }
+        (body["startTime"] ?: body["start_time"])?.let { setClauses.add("start_time = ?"); params.add(it) }
+        (body["endTime"] ?: body["end_time"])?.let { setClauses.add("end_time = ?"); params.add(it) }
+        (body["dailyWage"] ?: body["daily_wage"])?.let { setClauses.add("daily_wage = ?"); params.add(it) }
+        (body["slotsTotal"] ?: body["slots_total"])?.let { setClauses.add("slots_total = ?"); params.add((it as Number).toInt()) }
         body["status"]?.let { setClauses.add("status = ?"); params.add(it) }
-        body["dailyWage"]?.let { setClauses.add("daily_wage = ?"); params.add(it) }
-        body["daily_wage"]?.let { if (!body.containsKey("dailyWage")) { setClauses.add("daily_wage = ?"); params.add(it) } }
-        body["startDate"]?.let { setClauses.add("start_date = ?"); params.add(it) }
-        body["start_date"]?.let { if (!body.containsKey("startDate")) { setClauses.add("start_date = ?"); params.add(it) } }
-        body["endDate"]?.let { setClauses.add("end_date = ?"); params.add(it) }
-        body["end_date"]?.let { if (!body.containsKey("endDate")) { setClauses.add("end_date = ?"); params.add(it) } }
 
-        if (setClauses.isEmpty()) return db.queryForList("SELECT * FROM app.jobs WHERE id = ?", id).firstOrNull()
+        if (setClauses.isEmpty()) return findJobById(id)
 
         setClauses.add("updated_at = NOW()")
         params.add(id)
@@ -507,16 +520,18 @@ class AdminRepository(
     fun createSite(body: Map<String, Any?>): Map<String, Any?>? {
         val name = body["name"] as? String ?: ""
         val address = body["address"] as? String
-        val provinceSlug = body["provinceSlug"] as? String ?: body["province_slug"] as? String
-        val companyId = body["companyId"] as? String ?: body["company_id"] as? String
-        val managerId = body["managerId"] as? String ?: body["manager_id"] as? String
+        val province = body["province"] as? String
+        val district = body["district"] as? String
+        val siteType = body["siteType"] as? String ?: body["site_type"] as? String
+        val companyId = (body["companyId"] as? String ?: body["company_id"] as? String)?.ifBlank { null }
+        val managerId = (body["managerId"] as? String ?: body["manager_id"] as? String)?.ifBlank { null }
         val status = body["status"] as? String ?: "ACTIVE"
 
         return db.queryForListRaw(
-            """INSERT INTO app.construction_sites (name, address, province_slug, company_id, manager_id, status, created_at, updated_at)
-               VALUES (?, ?, ?, ?, ?, ?, NOW(), NOW())
+            """INSERT INTO app.construction_sites (name, address, province, district, site_type, company_id, manager_id, status, created_at, updated_at)
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())
                RETURNING *""",
-            name, address, provinceSlug, companyId, managerId, status
+            name, address, province, district, siteType, companyId, managerId, status
         ).firstOrNull()
     }
 
@@ -526,12 +541,11 @@ class AdminRepository(
 
         body["name"]?.let { setClauses.add("name = ?"); params.add(it) }
         body["address"]?.let { setClauses.add("address = ?"); params.add(it) }
-        body["provinceSlug"]?.let { setClauses.add("province_slug = ?"); params.add(it) }
-        body["province_slug"]?.let { if (!body.containsKey("provinceSlug")) { setClauses.add("province_slug = ?"); params.add(it) } }
-        body["companyId"]?.let { setClauses.add("company_id = ?"); params.add(it) }
-        body["company_id"]?.let { if (!body.containsKey("companyId")) { setClauses.add("company_id = ?"); params.add(it) } }
-        body["managerId"]?.let { setClauses.add("manager_id = ?"); params.add(it) }
-        body["manager_id"]?.let { if (!body.containsKey("managerId")) { setClauses.add("manager_id = ?"); params.add(it) } }
+        body["province"]?.let { setClauses.add("province = ?"); params.add(it) }
+        body["district"]?.let { setClauses.add("district = ?"); params.add(it) }
+        (body["siteType"] ?: body["site_type"])?.let { setClauses.add("site_type = ?"); params.add(it) }
+        (body["companyId"] ?: body["company_id"])?.let { setClauses.add("company_id = ?"); params.add((it as String).ifBlank { null }) }
+        (body["managerId"] ?: body["manager_id"])?.let { setClauses.add("manager_id = ?"); params.add((it as String).ifBlank { null }) }
         body["status"]?.let { setClauses.add("status = ?"); params.add(it) }
 
         if (setClauses.isEmpty()) return findSiteById(id)
@@ -565,14 +579,16 @@ class AdminRepository(
 
     fun createCompany(body: Map<String, Any?>): Map<String, Any?>? {
         val name = body["name"] as? String ?: ""
-        val phone = body["phone"] as? String
-        val address = body["address"] as? String
+        val businessRegNo = (body["businessRegNo"] as? String ?: body["business_reg_no"] as? String)?.ifBlank { null }
+        val contactName = (body["contactName"] as? String ?: body["contact_name"] as? String)?.ifBlank { null }
+        val contactPhone = (body["contactPhone"] as? String ?: body["contact_phone"] as? String)?.ifBlank { null }
+        val contactEmail = (body["contactEmail"] as? String ?: body["contact_email"] as? String)?.ifBlank { null }
 
         return db.queryForListRaw(
-            """INSERT INTO app.construction_companies (name, phone, address, created_at, updated_at)
-               VALUES (?, ?, ?, NOW(), NOW())
+            """INSERT INTO app.construction_companies (name, business_reg_no, contact_name, contact_phone, contact_email, created_at, updated_at)
+               VALUES (?, ?, ?, ?, ?, NOW(), NOW())
                RETURNING *""",
-            name, phone, address
+            name, businessRegNo, contactName, contactPhone, contactEmail
         ).firstOrNull()
     }
 
@@ -581,8 +597,10 @@ class AdminRepository(
         val params = mutableListOf<Any?>()
 
         body["name"]?.let { setClauses.add("name = ?"); params.add(it) }
-        body["phone"]?.let { setClauses.add("phone = ?"); params.add(it) }
-        body["address"]?.let { setClauses.add("address = ?"); params.add(it) }
+        (body["businessRegNo"] ?: body["business_reg_no"])?.let { setClauses.add("business_reg_no = ?"); params.add(it) }
+        (body["contactName"] ?: body["contact_name"])?.let { setClauses.add("contact_name = ?"); params.add(it) }
+        (body["contactPhone"] ?: body["contact_phone"])?.let { setClauses.add("contact_phone = ?"); params.add(it) }
+        (body["contactEmail"] ?: body["contact_email"])?.let { setClauses.add("contact_email = ?"); params.add(it) }
 
         if (setClauses.isEmpty()) return findCompanyById(id)
 

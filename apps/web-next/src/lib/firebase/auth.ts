@@ -15,6 +15,7 @@ import {
   signInWithCustomToken,
   signInWithPopup,
   FacebookAuthProvider,
+  GoogleAuthProvider,
   signOut as firebaseSignOut,
   onIdTokenChanged,
   RecaptchaVerifier,
@@ -53,6 +54,26 @@ export async function signInWithFacebook(): Promise<{ idToken: string; displayNa
   const auth = getFirebaseAuth()
   const provider = new FacebookAuthProvider()
   // email and public_profile are default permissions — adding them explicitly causes an error
+
+  const result = await signInWithPopup(auth, provider)
+  const idToken = await result.user.getIdToken()
+
+  return {
+    idToken,
+    displayName: result.user.displayName,
+    email:       result.user.email,
+  }
+}
+
+/**
+ * Google OAuth via Firebase popup.
+ * Returns the Firebase ID Token (a valid JWT usable with /auth/verify-token).
+ */
+export async function signInWithGoogle(): Promise<{ idToken: string; displayName: string | null; email: string | null }> {
+  const auth = getFirebaseAuth()
+  const provider = new GoogleAuthProvider()
+  provider.addScope('email')
+  provider.addScope('profile')
 
   const result = await signInWithPopup(auth, provider)
   const idToken = await result.user.getIdToken()

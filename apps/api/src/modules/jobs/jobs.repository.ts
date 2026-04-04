@@ -86,18 +86,28 @@ export class JobsRepository {
   }
 
   async create(managerId: string, dto: CreateJobDto) {
+    const slug =
+      (dto.title || '')
+        .toLowerCase()
+        .replace(/[^a-z0-9\s-]/g, '')
+        .trim()
+        .replace(/\s+/g, '-')
+        .substring(0, 80) +
+      '-' +
+      Date.now().toString(36);
+
     const { rows } = await this.db.query(
       `INSERT INTO app.jobs (
         site_id, manager_id, title, description, trade_id,
         work_date, start_time, end_time, daily_wage,
-        benefits, requirements, slots_total, status, published_at
-       ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,'OPEN',NOW())
+        benefits, requirements, slots_total, status, slug, published_at
+       ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,'OPEN',$13,NOW())
        RETURNING *`,
       [
         dto.siteId, managerId, dto.title, dto.description, dto.tradeId,
         dto.workDate, dto.startTime, dto.endTime, dto.dailyWage,
         JSON.stringify(dto.benefits || {}), JSON.stringify(dto.requirements || {}),
-        dto.slotsTotal,
+        dto.slotsTotal, slug,
       ],
     );
     return rows[0];

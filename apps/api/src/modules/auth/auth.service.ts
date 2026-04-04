@@ -72,6 +72,7 @@ export class AuthService {
         email: decoded.email || null,
         role: 'WORKER',
       });
+      await this.repo.ensureWorkerProfile(user.id, decoded.phone_number || null);
       const profile = await this.repo.getMeProfile(user.id);
       return { user: profile, isNew: true };
     } catch (err: unknown) {
@@ -168,6 +169,7 @@ export class AuthService {
         dbUser = { ...dbUser, firebase_uid: uid };
       } else {
         dbUser = await this.repo.create({ firebaseUid: uid, phone: normalized, email: null, role: 'WORKER' });
+        await this.repo.ensureWorkerProfile(dbUser.id, normalized);
         isNewUser = true;
       }
     }
@@ -243,6 +245,7 @@ export class AuthService {
         email: decoded.email || null,
         role: 'WORKER',
       });
+      await this.repo.ensureWorkerProfile(dbUser.id, decoded.phone_number || null);
       isNewUser = true;
     }
 
