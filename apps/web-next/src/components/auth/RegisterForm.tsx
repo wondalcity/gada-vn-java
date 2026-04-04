@@ -38,9 +38,10 @@ export function RegisterForm({ locale }: RegisterFormProps) {
   const [otp,           setOtp]           = React.useState('')
   const [otpError,      setOtpError]      = React.useState(false)
   const [countdown,     setCountdown]     = React.useState(0)
-  const [isLoading,     setIsLoading]     = React.useState(false)
-  const [error,         setError]         = React.useState<string | null>(null)
-  const [otpFieldError, setOtpFieldError] = React.useState<string | null>(null)
+  const [isLoading,          setIsLoading]          = React.useState(false)
+  const [error,              setError]              = React.useState<string | null>(null)
+  const [otpFieldError,      setOtpFieldError]      = React.useState<string | null>(null)
+  const [alreadyRegistered,  setAlreadyRegistered]  = React.useState(false)
 
   React.useEffect(() => {
     if (countdown <= 0) return
@@ -125,11 +126,17 @@ export function RegisterForm({ locale }: RegisterFormProps) {
       const { confirmFirebaseOtp } = await import('../../lib/firebase/auth')
       const idToken = await confirmFirebaseOtp(cleaned)
 
-      // Upsert user in DB
-      await apiFetch('/auth/verify-token', {
+      // Upsert user in DB — response: { statusCode, data: { user, isNew } }
+      const result = await apiFetch<{ statusCode: number; data: { user: unknown; isNew: boolean } }>('/auth/verify-token', {
         method: 'POST',
         body: JSON.stringify({ idToken }),
       })
+
+      if (!result.data.isNew) {
+        // Already registered — show popup, do NOT set session
+        setAlreadyRegistered(true)
+        return
+      }
 
       setSessionCookie(idToken)
       window.location.href = `/${locale}/worker`
@@ -147,6 +154,24 @@ export function RegisterForm({ locale }: RegisterFormProps) {
     <div className="min-h-screen bg-[#F8F8FA] flex flex-col">
       {/* Invisible reCAPTCHA container */}
       <div id="recaptcha-container-register" />
+
+      {/* Already registered modal */}
+      {alreadyRegistered && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-6">
+          <div className="w-full max-w-[320px] rounded-2xl bg-white px-6 py-8 flex flex-col items-center gap-6 shadow-xl">
+            <p className="text-center text-[15px] text-[#25282A] leading-relaxed">
+              {t('register.already_registered')}
+            </p>
+            <button
+              type="button"
+              onClick={() => { window.location.href = `/${locale}/login` }}
+              className="w-full min-h-[48px] bg-[#0669F7] text-white rounded-2xl text-[15px] font-bold"
+            >
+              {t('register.already_registered_confirm')}
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Header */}
       <div className="bg-white px-6 pt-12 pb-6 text-center border-b border-[#EEEEEE]">
