@@ -17,17 +17,10 @@ class AdminRepository(
         return "$base/$key"
     }
 
-    /** Convert PgArray fields (e.g. TEXT[]) to List so Jackson can serialize them. */
-    private fun sanitize(row: Map<String, Any?>): Map<String, Any?> =
-        row.mapValues { (_, v) ->
-            when (v) {
-                is java.sql.Array -> (v.array as? Array<*>)?.toList() ?: emptyList<Any>()
-                else -> v
-            }
-        }
-
-    private fun sanitizeList(rows: List<Map<String, Any?>>): List<Map<String, Any?>> =
-        rows.map { sanitize(it) }
+    // sanitize() is now handled by DatabaseService.coerceValue() for all queries.
+    // Keep a no-op passthrough for call sites that still reference it.
+    private fun sanitize(row: Map<String, Any?>): Map<String, Any?> = row
+    private fun sanitizeList(rows: List<Map<String, Any?>>): List<Map<String, Any?>> = rows
 
     // ── Managers ─────────────────────────────────────────────────────────────
 

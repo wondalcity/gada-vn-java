@@ -11,49 +11,62 @@ class DatabaseService(dataSource: DataSource) {
     val jdbc = JdbcTemplate(dataSource)
     val namedJdbc = NamedParameterJdbcTemplate(dataSource)
 
-    fun queryForList(sql: String, vararg params: Any?): List<Map<String, Any?>> {
-        val filtered = params.filterNotNull().toTypedArray()
-        return if (filtered.isEmpty()) {
-            jdbc.queryForList(sql).map { it as Map<String, Any?> }
-        } else {
-            jdbc.queryForList(sql, *filtered).map { it as Map<String, Any?> }
+    /**
+     * Convert a parameter before passing to JDBC:
+     * - String values matching UUID format → java.util.UUID (avoids uuid = varchar type error)
+     * - All others passed through unchanged
+     */
+    private fun coerce(p: Any?): Any? {
+        if (p is String && p.length == 36 && p.count { it == '-' } == 4) {
+            return try { java.util.UUID.fromString(p) } catch (_: Exception) { p }
         }
+        return p
+    }
+
+    /**
+     * Convert a JDBC result value to a JSON-friendly type:
+     * - java.sql.Array (TEXT[], UUID[]) → List
+     * - PgObject (jsonb/json) → String of the JSON value
+     */
+    private fun coerceValue(v: Any?): Any? = when (v) {
+        is java.sql.Array -> (v.array as? Array<*>)?.toList() ?: emptyList<Any>()
+        is org.postgresql.util.PgObject -> v.value  // jsonb → raw JSON string
+        else -> v
+    }
+
+    fun queryForList(sql: String, vararg params: Any?): List<Map<String, Any?>> {
+        val args = params.filterNotNull().map { coerce(it) }.toTypedArray()
+        val raw = if (args.isEmpty()) jdbc.queryForList(sql) else jdbc.queryForList(sql, *args)
+        return raw.map { row -> row.mapValues { (_, v) -> coerceValue(v) } }
     }
 
     fun queryForMap(sql: String, vararg params: Any?): Map<String, Any?>? {
         return try {
-            val filtered = params.filterNotNull().toTypedArray()
-            val result = if (filtered.isEmpty()) {
-                jdbc.queryForList(sql)
-            } else {
-                jdbc.queryForList(sql, *filtered)
-            }
-            result.firstOrNull()?.let { it as Map<String, Any?> }
+            val args = params.filterNotNull().map { coerce(it) }.toTypedArray()
+            val result = if (args.isEmpty()) jdbc.queryForList(sql) else jdbc.queryForList(sql, *args)
+            result.firstOrNull()?.mapValues { (_, v) -> coerceValue(v) }
         } catch (e: Exception) {
             null
         }
     }
 
     fun update(sql: String, vararg params: Any?): Int {
-        val filtered = params.filterNotNull().toTypedArray()
-        return if (filtered.isEmpty()) {
-            jdbc.update(sql)
-        } else {
-            jdbc.update(sql, *filtered)
-        }
+        val args = params.filterNotNull().map { coerce(it) }.toTypedArray()
+        return if (args.isEmpty()) jdbc.update(sql) else jdbc.update(sql, *args)
     }
 
     fun updateRaw(sql: String, vararg params: Any?): Int {
-        // Allows null params — use PreparedStatement
-        return jdbc.update(sql, *params)
+        // Allows null params — coerce non-nulls for UUID safety
+        val args = params.map { coerce(it) }.toTypedArray()
+        return jdbc.update(sql, *args)
     }
 
     /**
      * Like queryForList but preserves null params (for COALESCE(?, col) patterns).
-     * Uses PreparedStatementCreator to pass nulls correctly.
      */
     fun queryForListRaw(sql: String, vararg params: Any?): List<Map<String, Any?>> {
-        return jdbc.queryForList(sql, *params).map { it as Map<String, Any?> }
+        val args = params.map { coerce(it) }.toTypedArray()
+        return jdbc.queryForList(sql, *args).map { row -> row.mapValues { (_, v) -> coerceValue(v) } }
     }
 
     @Transactional
