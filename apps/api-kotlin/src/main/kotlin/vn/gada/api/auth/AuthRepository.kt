@@ -102,6 +102,15 @@ class AuthRepository(private val db: DatabaseService) {
         )
     }
 
+    fun ensureWorkerProfile(userId: String, phone: String?) {
+        db.updateRaw(
+            """INSERT INTO app.worker_profiles (user_id, full_name)
+               VALUES (?, ?)
+               ON CONFLICT (user_id) DO NOTHING""",
+            userId, phone ?: ""
+        )
+    }
+
     fun updateProfile(userId: String, name: String?, email: String?): Map<String, Any?>? {
         if (email != null) {
             db.updateRaw(

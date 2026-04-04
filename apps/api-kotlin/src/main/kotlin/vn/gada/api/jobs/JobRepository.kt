@@ -102,18 +102,24 @@ class JobRepository(
     fun create(managerId: String, data: Map<String, Any?>): Map<String, Any?>? {
         val benefitsJson = objectMapper.writeValueAsString(data["benefits"] ?: emptyMap<String, Any>())
         val requirementsJson = objectMapper.writeValueAsString(data["requirements"] ?: emptyMap<String, Any>())
+        val slug = (data["title"] as? String ?: "job")
+            .lowercase()
+            .replace(Regex("[^a-z0-9\\s-]"), "")
+            .trim()
+            .replace(Regex("\\s+"), "-")
+            .take(80) + "-" + System.currentTimeMillis().toString(36)
 
         val rows = db.queryForListRaw(
             """INSERT INTO app.jobs (
                 site_id, manager_id, title, description, trade_id,
                 work_date, start_time, end_time, daily_wage,
-                benefits, requirements, slots_total, status, published_at
-               ) VALUES (?,?,?,?,?,?,?,?,?,?::jsonb,?::jsonb,?,'OPEN',NOW())
+                benefits, requirements, slots_total, status, slug, published_at
+               ) VALUES (?,?,?,?,?,?,?,?,?,?::jsonb,?::jsonb,?,'OPEN',?,NOW())
                RETURNING *""",
             data["siteId"], managerId, data["title"], data["description"], data["tradeId"],
             data["workDate"], data["startTime"], data["endTime"], data["dailyWage"],
             benefitsJson, requirementsJson,
-            data["slotsTotal"]
+            data["slotsTotal"], slug
         )
         return rows.firstOrNull()
     }

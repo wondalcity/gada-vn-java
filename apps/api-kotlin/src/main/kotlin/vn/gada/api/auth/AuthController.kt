@@ -86,6 +86,14 @@ class AuthController(private val authService: AuthService) {
         return ok(result)
     }
 
+    /** POST /auth/social/google — Google social login (same flow as /verify-token) */
+    @PostMapping("/social/google")
+    fun socialGoogle(@RequestBody body: Map<String, Any?>): ResponseEntity<Map<String, Any?>> {
+        val idToken = body["idToken"] as? String ?: throw vn.gada.api.common.exception.BadRequestException("idToken is required")
+        val result = authService.verifyAndGetOrCreateUser(idToken)
+        return ok(result)
+    }
+
     /** POST /auth/logout — Revoke Firebase tokens */
     @PostMapping("/logout")
     fun logout(@AuthenticationPrincipal user: AuthUser?): ResponseEntity<Map<String, Any?>> {

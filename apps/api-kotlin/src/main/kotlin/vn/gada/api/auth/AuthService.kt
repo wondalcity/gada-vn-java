@@ -28,6 +28,7 @@ class AuthService(
         val phoneNumber = decoded.claims["phone_number"] as? String
         val email = decoded.claims["email"] as? String
         val user = repo.create(decoded.uid, phoneNumber, email, "WORKER")
+        repo.ensureWorkerProfile(user["id"] as String, phoneNumber)
         return mapOf("user" to user, "isNew" to true)
     }
 
@@ -86,6 +87,7 @@ class AuthService(
                 dbUser = dbUser.toMutableMap().apply { put("firebase_uid", uid) }
             } else {
                 dbUser = repo.create(uid, normalized, null, "WORKER")
+                repo.ensureWorkerProfile(dbUser["id"] as String, normalized)
                 isNewUser = true
             }
         }
@@ -125,6 +127,7 @@ class AuthService(
         var dbUser = repo.findByFirebaseUid(uid)
         if (dbUser == null) {
             dbUser = repo.create(uid, null, email, "WORKER")
+            repo.ensureWorkerProfile(dbUser["id"] as String, null)
         }
 
         return if (isDev) {
@@ -146,6 +149,7 @@ class AuthService(
             val phoneNumber = decoded.claims["phone_number"] as? String
             val email = decoded.claims["email"] as? String
             dbUser = repo.create(decoded.uid, phoneNumber, email, "WORKER")
+            repo.ensureWorkerProfile(dbUser["id"] as String, phoneNumber)
             isNewUser = true
         }
         return mapOf("isNewUser" to isNewUser)
