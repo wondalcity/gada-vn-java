@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { api } from '../lib/api'
 import { DEMO_MANAGERS } from '../lib/demo-data'
+import { useAdminTranslation } from '../context/LanguageContext'
 
 function formatPhone(phone: string | null | undefined): string {
   if (!phone) return '-'
@@ -30,12 +31,6 @@ interface Manager {
   created_at: string
 }
 
-const STATUS_TABS: { key: Status; label: string }[] = [
-  { key: 'PENDING', label: '대기 중' },
-  { key: 'APPROVED', label: '승인됨' },
-  { key: 'REJECTED', label: '거부됨' },
-]
-
 const STATUS_BADGE: Record<Status, string> = {
   PENDING: 'bg-yellow-100 text-yellow-700',
   APPROVED: 'bg-green-100 text-green-700',
@@ -43,6 +38,7 @@ const STATUS_BADGE: Record<Status, string> = {
 }
 
 export default function Managers() {
+  const { t } = useAdminTranslation()
   const [searchParams, setSearchParams] = useSearchParams()
   const status = (searchParams.get('status') as Status) ?? 'PENDING'
   const page = parseInt(searchParams.get('page') ?? '1')
@@ -51,6 +47,18 @@ export default function Managers() {
   const [loading, setLoading] = useState(true)
   const [isDemo, setIsDemo] = useState(false)
   const [flash] = useState(searchParams.get('flash') ?? '')
+
+  const STATUS_TABS: { key: Status; labelKey: string }[] = [
+    { key: 'PENDING',  labelKey: 'managers.tab_pending' },
+    { key: 'APPROVED', labelKey: 'managers.tab_approved' },
+    { key: 'REJECTED', labelKey: 'managers.tab_rejected' },
+  ]
+
+  const STATUS_LABEL: Record<Status, string> = {
+    PENDING:  t('managers.status_pending'),
+    APPROVED: t('managers.status_approved'),
+    REJECTED: t('managers.status_rejected'),
+  }
 
   function loadManagers() {
     setLoading(true)
@@ -82,57 +90,64 @@ export default function Managers() {
   }, [status, page])
 
   async function handleRevoke(id: string) {
-    if (!confirm('이 관리자의 권한을 해제하시겠습니까?')) return
+    if (!confirm(t('managers.confirm_revoke'))) return
     await api.post(`/admin/managers/${id}/revoke`)
     loadManagers()
   }
 
   return (
     <div className="p-8">
-      <h1 className="text-2xl font-bold text-gray-900 mb-6">관리자 승인</h1>
+      <h1 className="text-2xl font-bold text-gray-900 mb-6">{t('managers.title')}</h1>
 
       {isDemo && (
         <div className="mb-4 flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-amber-50 border border-amber-200 text-sm text-amber-700">
-          <span className="font-semibold">데모 데이터</span>
-          <span className="text-amber-600">— API 연결 후 실제 데이터가 표시됩니다</span>
+          <span className="font-semibold">{t('common.demo_data')}</span>
+          <span className="text-amber-600">{t('common.demo_suffix')}</span>
         </div>
       )}
 
       {flash === 'approved' && (
-        <div className="bg-green-50 border border-green-200 text-green-700 rounded-2xl p-4 mb-6 text-sm">✅ 관리자가 승인되었습니다.</div>
+        <div className="bg-green-50 border border-green-200 text-green-700 rounded-2xl p-4 mb-6 text-sm">{t('managers.flash_approved')}</div>
       )}
       {flash === 'rejected' && (
-        <div className="bg-[#FDE8EE] border border-[#F4B0C0] text-[#D81A48] rounded-2xl p-4 mb-6 text-sm">❌ 관리자 신청이 거부되었습니다.</div>
+        <div className="bg-[#FDE8EE] border border-[#F4B0C0] text-[#D81A48] rounded-2xl p-4 mb-6 text-sm">{t('managers.flash_rejected')}</div>
       )}
 
       <div className="flex gap-2 mb-6">
-        {STATUS_TABS.map((t) => (
+        {STATUS_TABS.map((tab) => (
           <button
-            key={t.key}
-            onClick={() => setSearchParams({ status: t.key, page: '1' })}
+            key={tab.key}
+            onClick={() => setSearchParams({ status: tab.key, page: '1' })}
             className={`px-4 py-2 rounded-2xl text-sm font-medium transition-colors ${
-              status === t.key ? 'bg-[#0669F7] text-white' : 'bg-white text-gray-600 hover:bg-[#F2F4F5] border border-[#EFF1F5]'
+              status === tab.key ? 'bg-[#0669F7] text-white' : 'bg-white text-gray-600 hover:bg-[#F2F4F5] border border-[#EFF1F5]'
             }`}
           >
-            {t.label}
+            {t(tab.labelKey)}
           </button>
         ))}
       </div>
 
       <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
         {loading ? (
-          <div className="p-8 text-center text-gray-400 text-sm">로딩 중...</div>
+          <div className="p-8 text-center text-gray-400 text-sm">{t('common.loading')}</div>
         ) : managers.length === 0 ? (
           <div className="py-16 text-center text-gray-400">
             <p className="text-4xl mb-3">📭</p>
-            <p className="text-sm">해당하는 관리자가 없습니다</p>
+            <p className="text-sm">{t('managers.empty')}</p>
           </div>
         ) : (
           <table className="w-full">
             <thead className="bg-[#F2F4F5]">
               <tr>
-                {['근로자 이름', '전화번호', '현장명', '상태', '가입일', ''].map((h) => (
-                  <th key={h} className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase">{h}</th>
+                {[
+                  t('managers.col_name'),
+                  t('managers.col_phone'),
+                  t('managers.col_site'),
+                  t('managers.col_status'),
+                  t('managers.col_joined'),
+                  '',
+                ].map((h, i) => (
+                  <th key={i} className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase">{h}</th>
                 ))}
               </tr>
             </thead>
@@ -152,11 +167,11 @@ export default function Managers() {
                   </td>
                   <td className="px-6 py-4">
                     <span className={`px-2 py-1 text-xs rounded-full ${STATUS_BADGE[m.approval_status]}`}>
-                      {STATUS_TABS.find((t) => t.key === m.approval_status)?.label ?? m.approval_status}
+                      {STATUS_LABEL[m.approval_status] ?? m.approval_status}
                     </span>
                   </td>
                   <td className="px-6 py-4 text-sm text-gray-500">
-                    {new Date(m.created_at).toLocaleDateString('ko-KR')}
+                    {new Date(m.created_at).toLocaleDateString()}
                   </td>
                   <td className="px-6 py-4 text-right">
                     <div className="flex items-center gap-3 justify-end">
@@ -165,10 +180,10 @@ export default function Managers() {
                           onClick={(e) => { e.preventDefault(); handleRevoke(m.id) }}
                           className="text-xs text-[#D81A48] border border-[#F4B0C0] rounded px-2 py-1 hover:bg-[#FDE8EE]"
                         >
-                          권한 해제
+                          {t('managers.revoke')}
                         </button>
                       )}
-                      <Link to={`/managers/${m.id}`} className="text-[#0669F7] hover:underline text-sm">상세 →</Link>
+                      <Link to={`/managers/${m.id}`} className="text-[#0669F7] hover:underline text-sm">{t('managers.detail_arrow')}</Link>
                     </div>
                   </td>
                 </tr>
@@ -178,7 +193,7 @@ export default function Managers() {
         )}
       </div>
 
-      <div className="mt-4 text-xs text-gray-400 text-right">총 {total}명</div>
+      <div className="mt-4 text-xs text-gray-400 text-right">{t('managers.total').replace('{n}', String(total))}</div>
     </div>
   )
 }
