@@ -74,6 +74,17 @@ class AdminController(
         return ok(adminService.revokeManager(id))
     }
 
+    /** PUT /admin/managers/:id */
+    @PutMapping("/managers/{id}")
+    fun updateManager(
+        request: HttpServletRequest,
+        @PathVariable id: String,
+        @RequestBody body: Map<String, Any?>
+    ): ResponseEntity<Map<String, Any?>> {
+        checkAdminKey(request)
+        return ok(adminService.updateManager(id, body))
+    }
+
     /** POST /admin/managers/promote-worker */
     @PostMapping("/managers/promote-worker")
     fun promoteWorkerToManager(
@@ -121,7 +132,7 @@ class AdminController(
 
     // ── Workers ───────────────────────────────────────────────────────────────
 
-    /** GET /admin/workers */
+    /** GET /admin/workers — returns { data, total } */
     @GetMapping("/workers")
     fun listWorkers(
         request: HttpServletRequest,
@@ -210,14 +221,14 @@ class AdminController(
         return ok(adminService.listJobs(status, page, limit))
     }
 
-    /** GET /admin/jobs/:id/roster */
+    /** GET /admin/jobs/:id/roster — returns { job, roster } */
     @GetMapping("/jobs/{id}/roster")
     fun getJobRoster(
         request: HttpServletRequest,
         @PathVariable id: String
     ): ResponseEntity<Map<String, Any?>> {
         checkAdminKey(request)
-        return ok(adminService.getJobRoster(id))
+        return ok(adminService.getJobWithRoster(id))
     }
 
     /** POST /admin/jobs */

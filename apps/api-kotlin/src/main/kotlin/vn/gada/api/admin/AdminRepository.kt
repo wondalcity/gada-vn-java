@@ -4,7 +4,18 @@ import org.springframework.stereotype.Repository
 import vn.gada.api.common.database.DatabaseService
 
 @Repository
-class AdminRepository(private val db: DatabaseService) {
+class AdminRepository(
+    private val db: DatabaseService,
+    @org.springframework.beans.factory.annotation.Value("\${gada.aws.cdn-domain:}") private val cdnDomain: String
+) {
+
+    private fun toUrl(key: String?): String? {
+        if (key.isNullOrBlank()) return null
+        if (key.startsWith("http://") || key.startsWith("https://")) return key
+        if (cdnDomain.isBlank()) return null
+        val base = if (cdnDomain.startsWith("http")) cdnDomain else "https://$cdnDomain"
+        return "$base/$key"
+    }
 
     /** Convert PgArray fields (e.g. TEXT[]) to List so Jackson can serialize them. */
     private fun sanitize(row: Map<String, Any?>): Map<String, Any?> =
@@ -95,6 +106,32 @@ class AdminRepository(private val db: DatabaseService) {
         return profile
     }
 
+    fun updateManager(id: String, body: Map<String, Any?>): Map<String, Any?>? {
+        val setClauses = mutableListOf<String>()
+        val params = mutableListOf<Any?>()
+
+        (body["businessType"] ?: body["business_type"])?.let { setClauses.add("business_type = ?"); params.add(it) }
+        (body["companyName"] ?: body["company_name"])?.let { setClauses.add("company_name = ?"); params.add(it) }
+        (body["representativeName"] ?: body["representative_name"])?.let { setClauses.add("representative_name = ?"); params.add(it) }
+        (body["representativeDob"] ?: body["representative_dob"])?.let { setClauses.add("representative_dob = ?"); params.add(it) }
+        (body["representativeGender"] ?: body["representative_gender"])?.let { setClauses.add("representative_gender = ?"); params.add(it) }
+        (body["contactPhone"] ?: body["contact_phone"])?.let { setClauses.add("contact_phone = ?"); params.add(it) }
+        (body["businessRegNumber"] ?: body["business_reg_number"])?.let { setClauses.add("business_reg_number = ?"); params.add(it) }
+        (body["contactAddress"] ?: body["contact_address"])?.let { setClauses.add("contact_address = ?"); params.add(it) }
+        body["province"]?.let { setClauses.add("province = ?"); params.add(it) }
+        (body["firstSiteName"] ?: body["first_site_name"])?.let { setClauses.add("first_site_name = ?"); params.add(it) }
+        (body["firstSiteAddress"] ?: body["first_site_address"])?.let { setClauses.add("first_site_address = ?"); params.add(it) }
+
+        if (setClauses.isEmpty()) return findManagerById(id)
+
+        setClauses.add("updated_at = NOW()")
+        params.add(id)
+        return db.queryForList(
+            "UPDATE app.manager_profiles SET ${setClauses.joinToString(", ")} WHERE id = ? RETURNING *",
+            *params.toTypedArray()
+        ).firstOrNull()
+    }
+
     fun promoteWorkerToManager(workerId: String, companyName: String, phone: String): Map<String, Any?>? {
         // Find the worker's user_id
         val worker = db.queryForList(
@@ -155,36 +192,68 @@ class AdminRepository(private val db: DatabaseService) {
 
     fun searchWorkers(search: String, limit: Int): List<Map<String, Any?>> {
         val like = "%$search%"
+        val baseSelect = """SELECT wp.*, u.phone, u.email, u.status as user_status,
+                      (mp.id IS NOT NULL AND mp.approval_status = 'APPROVED') as is_manager
+               FROM app.worker_profiles wp
+               JOIN auth.users u ON wp.user_id = u.id
+               LEFT JOIN app.manager_profiles mp ON mp.user_id = u.id"""
         return if (search.isBlank()) {
-            db.queryForList(
-                """SELECT wp.*, u.phone, u.email, u.status as user_status, u.created_at as user_created_at
-                   FROM app.worker_profiles wp
-                   JOIN auth.users u ON wp.user_id = u.id
-                   ORDER BY wp.created_at DESC
-                   LIMIT ?""",
-                limit
-            )
+            db.queryForList("$baseSelect ORDER BY wp.created_at DESC LIMIT ?", limit)
         } else {
             db.queryForList(
-                """SELECT wp.*, u.phone, u.email, u.status as user_status, u.created_at as user_created_at
-                   FROM app.worker_profiles wp
-                   JOIN auth.users u ON wp.user_id = u.id
-                   WHERE wp.full_name ILIKE ? OR u.phone ILIKE ? OR u.email ILIKE ?
-                   ORDER BY wp.created_at DESC
-                   LIMIT ?""",
+                "$baseSelect WHERE wp.full_name ILIKE ? OR u.phone ILIKE ? OR u.email ILIKE ? ORDER BY wp.created_at DESC LIMIT ?",
                 like, like, like, limit
             )
         }
     }
 
     fun findWorkerById(id: String): Map<String, Any?>? {
-        return db.queryForList(
-            """SELECT wp.*, u.phone, u.email, u.status as user_status, u.created_at as user_created_at
+        val row = db.queryForList(
+            """SELECT wp.id, wp.user_id, wp.full_name, wp.date_of_birth, wp.gender, wp.bio,
+                      wp.experience_months, wp.primary_trade_id, wp.current_province,
+                      wp.current_district, wp.lat, wp.lng, wp.id_number, wp.id_verified,
+                      wp.id_verified_at, wp.bank_name, wp.bank_account_number,
+                      wp.profile_complete, wp.terms_accepted, wp.privacy_accepted,
+                      wp.profile_picture_s3_key, wp.created_at,
+                      wp.id_front_s3_key, wp.id_back_s3_key,
+                      wp.signature_s3_key,
+                      wp.bank_book_s3_key,
+                      u.phone, u.email, u.status as user_status,
+                      t.name_ko as trade_name_ko,
+                      mp.id as manager_profile_id,
+                      mp.approval_status as manager_approval_status,
+                      mp.company_name as manager_company_name,
+                      mp.representative_name as manager_representative_name,
+                      mp.approved_at as manager_approved_at,
+                      (mp.id IS NOT NULL AND mp.approval_status = 'APPROVED') as is_manager
                FROM app.worker_profiles wp
                JOIN auth.users u ON wp.user_id = u.id
+               LEFT JOIN ref.construction_trades t ON wp.primary_trade_id = t.id
+               LEFT JOIN app.manager_profiles mp ON mp.user_id = u.id
                WHERE wp.id = ?""",
             id
-        ).firstOrNull()
+        ).firstOrNull() ?: return null
+        return row + mapOf(
+            "id_front_url" to toUrl(row["id_front_s3_key"] as? String),
+            "id_back_url" to toUrl(row["id_back_s3_key"] as? String),
+            "signature_url" to toUrl(row["signature_s3_key"] as? String),
+            "bank_book_url" to toUrl(row["bank_book_s3_key"] as? String),
+        )
+    }
+
+    fun countWorkers(search: String): Int {
+        val like = "%$search%"
+        val rows = if (search.isBlank()) {
+            db.queryForList("SELECT COUNT(*) as count FROM app.worker_profiles")
+        } else {
+            db.queryForList(
+                """SELECT COUNT(*) as count FROM app.worker_profiles wp
+                   JOIN auth.users u ON wp.user_id = u.id
+                   WHERE wp.full_name ILIKE ? OR u.phone ILIKE ? OR u.email ILIKE ?""",
+                like, like, like
+            )
+        }
+        return (rows.firstOrNull()?.get("count") as? Number)?.toInt() ?: 0
     }
 
     fun createWorker(phone: String, fullName: String): Map<String, Any?>? {
@@ -208,19 +277,37 @@ class AdminRepository(private val db: DatabaseService) {
         ).firstOrNull()
     }
 
-    fun updateWorker(id: String, name: String?, phone: String?, status: String?): Map<String, Any?>? {
+    fun updateWorker(id: String, body: Map<String, Any?>): Map<String, Any?>? {
         val worker = findWorkerById(id) ?: return null
         val userId = worker["user_id"] as String
 
-        if (name != null) {
-            db.updateRaw("UPDATE app.worker_profiles SET full_name = ?, updated_at = NOW() WHERE id = ?", name, id)
+        val profileClauses = mutableListOf<String>()
+        val profileParams = mutableListOf<Any?>()
+
+        (body["fullName"] ?: body["full_name"])?.let { profileClauses.add("full_name = ?"); profileParams.add(it) }
+        (body["dateOfBirth"] ?: body["date_of_birth"])?.let { profileClauses.add("date_of_birth = ?"); profileParams.add(it) }
+        body["gender"]?.let { profileClauses.add("gender = ?"); profileParams.add(it) }
+        body["bio"]?.let { profileClauses.add("bio = ?"); profileParams.add(it) }
+        (body["primaryTradeId"] ?: body["primary_trade_id"])?.let { profileClauses.add("primary_trade_id = ?"); profileParams.add(it) }
+        (body["experienceMonths"] ?: body["experience_months"])?.let { profileClauses.add("experience_months = ?"); profileParams.add(it) }
+        (body["profileComplete"] ?: body["profile_complete"])?.let { profileClauses.add("profile_complete = ?"); profileParams.add(it) }
+        (body["idVerified"] ?: body["id_verified"])?.let { profileClauses.add("id_verified = ?"); profileParams.add(it) }
+        (body["idNumber"] ?: body["id_number"])?.let { profileClauses.add("id_number = ?"); profileParams.add(it) }
+        (body["bankName"] ?: body["bank_name"])?.let { profileClauses.add("bank_name = ?"); profileParams.add(it) }
+        (body["bankAccountNumber"] ?: body["bank_account_number"])?.let { profileClauses.add("bank_account_number = ?"); profileParams.add(it) }
+
+        if (profileClauses.isNotEmpty()) {
+            profileClauses.add("updated_at = NOW()")
+            profileParams.add(id)
+            db.updateRaw(
+                "UPDATE app.worker_profiles SET ${profileClauses.joinToString(", ")} WHERE id = ?",
+                *profileParams.toTypedArray()
+            )
         }
-        if (phone != null) {
-            db.updateRaw("UPDATE auth.users SET phone = ?, updated_at = NOW() WHERE id = ?", phone, userId)
-        }
-        if (status != null) {
-            db.updateRaw("UPDATE auth.users SET status = ?, updated_at = NOW() WHERE id = ?", status, userId)
-        }
+
+        body["phone"]?.let { db.updateRaw("UPDATE auth.users SET phone = ?, updated_at = NOW() WHERE id = ?", it, userId) }
+        body["status"]?.let { db.updateRaw("UPDATE auth.users SET status = ?, updated_at = NOW() WHERE id = ?", it, userId) }
+
         return findWorkerById(id)
     }
 
@@ -248,12 +335,12 @@ class AdminRepository(private val db: DatabaseService) {
         db.update("DELETE FROM app.worker_trade_skills WHERE worker_id = ?", workerId)
         for (skill in skills) {
             val tradeId = skill["tradeId"]?.toString() ?: continue
-            val level = skill["level"]?.toString() ?: "BEGINNER"
+            val years = (skill["years"] as? Number)?.toInt() ?: 0
             db.updateRaw(
-                """INSERT INTO app.worker_trade_skills (worker_id, trade_id, level, created_at, updated_at)
-                   VALUES (?, ?, ?, NOW(), NOW())
-                   ON CONFLICT (worker_id, trade_id) DO UPDATE SET level = EXCLUDED.level, updated_at = NOW()""",
-                workerId, tradeId, level
+                """INSERT INTO app.worker_trade_skills (worker_id, trade_id, years)
+                   VALUES (?, ?, ?)
+                   ON CONFLICT (worker_id, trade_id) DO UPDATE SET years = EXCLUDED.years""",
+                workerId, tradeId, years
             )
         }
         return findWorkerTradeSkills(workerId)
@@ -263,23 +350,21 @@ class AdminRepository(private val db: DatabaseService) {
 
     fun findJobsPaginated(status: String?, page: Int, limit: Int): List<Map<String, Any?>> {
         val offset = (page - 1) * limit
+        val baseQuery = """SELECT j.*, t.name_ko as trade_name_ko, t.name_vi as trade_name_vi,
+                      cs.name as site_name, cs.address, cs.province,
+                      cc.name as company_name
+               FROM app.jobs j
+               LEFT JOIN ref.construction_trades t ON j.trade_id = t.id
+               LEFT JOIN app.construction_sites cs ON j.site_id = cs.id
+               LEFT JOIN app.construction_companies cc ON cs.company_id = cc.id"""
         return if (status.isNullOrBlank()) {
             sanitizeList(db.queryForList(
-                """SELECT j.*, t.name_ko as trade_name_ko, t.name_vi as trade_name_vi
-                   FROM app.jobs j
-                   LEFT JOIN ref.construction_trades t ON j.trade_id = t.id
-                   ORDER BY j.created_at DESC
-                   LIMIT ? OFFSET ?""",
+                "$baseQuery ORDER BY j.created_at DESC LIMIT ? OFFSET ?",
                 limit, offset
             ))
         } else {
             sanitizeList(db.queryForList(
-                """SELECT j.*, t.name_ko as trade_name_ko, t.name_vi as trade_name_vi
-                   FROM app.jobs j
-                   LEFT JOIN ref.construction_trades t ON j.trade_id = t.id
-                   WHERE j.status = ?
-                   ORDER BY j.created_at DESC
-                   LIMIT ? OFFSET ?""",
+                "$baseQuery WHERE j.status = ? ORDER BY j.created_at DESC LIMIT ? OFFSET ?",
                 status, limit, offset
             ))
         }
@@ -294,14 +379,45 @@ class AdminRepository(private val db: DatabaseService) {
         return (rows.firstOrNull()?.get("count") as? Number)?.toInt() ?: 0
     }
 
+    fun findJobById(id: String): Map<String, Any?>? {
+        return sanitizeList(db.queryForList(
+            """SELECT j.*,
+                      cs.name as site_name, cs.address, cs.province as province,
+                      cc.name as company_name,
+                      t.name_ko as trade_name_ko
+               FROM app.jobs j
+               LEFT JOIN app.construction_sites cs ON j.site_id = cs.id
+               LEFT JOIN app.construction_companies cc ON cs.company_id = cc.id
+               LEFT JOIN ref.construction_trades t ON j.trade_id = t.id
+               WHERE j.id = ?""",
+            id
+        )).firstOrNull()
+    }
+
     fun findJobRoster(jobId: String): List<Map<String, Any?>> {
         return sanitizeList(db.queryForList(
-            """SELECT ja.*, wp.full_name as worker_name, u.phone as worker_phone
+            """SELECT ja.id AS application_id,
+                      ja.status AS application_status,
+                      wp.full_name AS worker_name,
+                      u.phone AS worker_phone,
+                      wp.id_verified,
+                      c.id AS contract_id,
+                      c.status AS contract_status,
+                      c.worker_signed_at,
+                      c.manager_signed_at,
+                      ar.id AS attendance_id,
+                      ar.status AS attendance_status,
+                      ar.check_in_time,
+                      ar.check_out_time,
+                      ar.hours_worked,
+                      ar.notes AS attendance_notes
                FROM app.job_applications ja
                JOIN app.worker_profiles wp ON ja.worker_id = wp.id
                JOIN auth.users u ON wp.user_id = u.id
+               LEFT JOIN app.contracts c ON c.application_id = ja.id
+               LEFT JOIN app.attendance_records ar ON ar.worker_id = ja.worker_id AND ar.job_id = ja.job_id
                WHERE ja.job_id = ?
-               ORDER BY ja.created_at DESC""",
+               ORDER BY ja.applied_at DESC""",
             jobId
         ))
     }

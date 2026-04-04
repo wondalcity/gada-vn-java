@@ -43,6 +43,11 @@ class AdminService(
         return repo.revokeManager(id)
     }
 
+    fun updateManager(id: String, body: Map<String, Any?>): Map<String, Any?> {
+        repo.findManagerById(id) ?: throw NotFoundException("Manager $id not found")
+        return repo.updateManager(id, body) ?: throw NotFoundException("Manager $id not found")
+    }
+
     fun promoteWorkerToManager(workerId: String, companyName: String, phone: String): Map<String, Any?>? {
         return repo.promoteWorkerToManager(workerId, companyName, phone)
             ?: throw NotFoundException("Worker $workerId not found")
@@ -63,8 +68,10 @@ class AdminService(
 
     // ── Workers ───────────────────────────────────────────────────────────────
 
-    fun searchWorkers(search: String, limit: Int): List<Map<String, Any?>> {
-        return repo.searchWorkers(search, limit)
+    fun searchWorkers(search: String, limit: Int): Map<String, Any?> {
+        val data = repo.searchWorkers(search, limit)
+        val total = repo.countWorkers(search)
+        return mapOf("data" to data, "total" to total)
     }
 
     fun getWorker(id: String): Map<String, Any?> {
@@ -79,10 +86,7 @@ class AdminService(
 
     fun updateWorker(id: String, body: Map<String, Any?>): Map<String, Any?>? {
         repo.findWorkerById(id) ?: throw NotFoundException("Worker $id not found")
-        val name = body["fullName"] as? String ?: body["full_name"] as? String
-        val phone = body["phone"] as? String
-        val status = body["status"] as? String
-        return repo.updateWorker(id, name, phone, status)
+        return repo.updateWorker(id, body)
     }
 
     fun deleteWorker(id: String): Map<String, Any?> {
@@ -111,8 +115,10 @@ class AdminService(
         return mapOf("data" to data, "total" to total, "page" to page, "limit" to limit)
     }
 
-    fun getJobRoster(jobId: String): List<Map<String, Any?>> {
-        return repo.findJobRoster(jobId)
+    fun getJobWithRoster(jobId: String): Map<String, Any?> {
+        val job = repo.findJobById(jobId) ?: throw NotFoundException("Job $jobId not found")
+        val roster = repo.findJobRoster(jobId)
+        return mapOf("job" to job, "roster" to roster)
     }
 
     fun createJob(body: Map<String, Any?>): Map<String, Any?>? {
