@@ -164,8 +164,12 @@ class PublicService(
               JOIN app.construction_sites s ON j.site_id = s.id
               LEFT JOIN ref.construction_trades t ON j.trade_id = t.id
               LEFT JOIN ref.vn_provinces p ON UPPER(s.province) = p.code
-              WHERE j.slug = ? OR j.id::text = ?"""
-        val rows = db.queryForList(jobSql, slug, slug)
+              WHERE j.slug = ?"""
+        // Try slug first, then fall back to ID (for jobs with null slugs)
+        var rows = db.queryForListRaw(jobSql, slug)
+        if (rows.isEmpty()) {
+            rows = db.queryForList(jobSql.replace("j.slug = ?", "j.id = ?"), slug)
+        }
         if (rows.isEmpty()) return null
 
         val row = rows[0]
@@ -190,7 +194,7 @@ class PublicService(
               LEFT JOIN ref.construction_trades t ON j.trade_id = t.id
               LEFT JOIN ref.vn_provinces p ON UPPER(s.province) = p.code
               WHERE j.trade_id = ?
-                AND j.id != ?::uuid
+                AND j.id != ?
                 AND j.status = 'OPEN'
                 AND j.work_date >= CURRENT_DATE
               ORDER BY j.work_date ASC
