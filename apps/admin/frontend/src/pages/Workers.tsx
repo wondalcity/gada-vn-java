@@ -93,21 +93,9 @@ export default function Workers() {
     api.get<{ data: Worker[]; total: number }>(`/admin/workers?search=${encodeURIComponent(q)}&limit=20`)
       .then((res) => {
         const data = res.data ?? []
-        if (data.length === 0) {
-          const filtered = q
-            ? DEMO_WORKERS.filter((w) =>
-                w.full_name.toLowerCase().includes(q.toLowerCase()) ||
-                (w.phone ?? '').includes(q)
-              )
-            : DEMO_WORKERS
-          setWorkers(filtered as unknown as Worker[])
-          setTotal(filtered.length)
-          setIsDemo(true)
-        } else {
-          setWorkers(data)
-          setTotal(res.total ?? data.length)
-          setIsDemo(false)
-        }
+        setWorkers(data)
+        setTotal(res.total ?? data.length)
+        setIsDemo(false)
       })
       .catch(() => {
         setWorkers(DEMO_WORKERS as unknown as Worker[])

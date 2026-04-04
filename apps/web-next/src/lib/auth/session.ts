@@ -6,7 +6,7 @@
  * - NOT httpOnly — required for Capacitor WebView to access it
  * - SameSite=Strict — prevents CSRF
  * - Secure on HTTPS — required in production
- * - max-age=604800 — 7 days (cookie outlives the 1h Firebase token; useAuth
+ * - max-age=2592000 — 30 days (cookie outlives the 1h Firebase token; useAuth
  *   refreshes the cookie on every token refresh via subscribeToTokenRefresh)
  *
  * Why not httpOnly?
@@ -27,7 +27,7 @@ export const SESSION_COOKIE = 'gada_session'
  */
 export function setSessionCookie(idToken: string): void {
   const secure = typeof window !== 'undefined' && location.protocol === 'https:' ? '; Secure' : ''
-  document.cookie = `${SESSION_COOKIE}=${idToken}; path=/; max-age=604800; SameSite=Strict${secure}`
+  document.cookie = `${SESSION_COOKIE}=${idToken}; path=/; max-age=2592000; SameSite=Strict${secure}`
 }
 
 /**
