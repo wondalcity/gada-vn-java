@@ -94,6 +94,28 @@ export function RegisterForm({ locale }: RegisterFormProps) {
     }
   }
 
+  async function handleFacebook() {
+    setError(null)
+    setIsLoading(true)
+    try {
+      const { signInWithFacebook } = await import('../../lib/firebase/auth')
+      const { idToken } = await signInWithFacebook()
+
+      await apiFetch('/auth/social/facebook', {
+        method: 'POST',
+        body: JSON.stringify({ idToken }),
+      })
+
+      setSessionCookie(idToken)
+      window.location.href = `/${locale}/worker`
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err)
+      setError(msg || t('login.facebook_failed'))
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
   async function handleVerifyOtp(otpValue?: string) {
     const cleaned = (otpValue ?? otp).replace(/\s/g, '')
     if (cleaned.length < 6) { setOtpError(true); return }
@@ -216,6 +238,18 @@ export function RegisterForm({ locale }: RegisterFormProps) {
             <path fill="#EA4335" d="M44.5 20H24v8.5h11.8c-0.8 2.9-2.7 5.4-5.2 7l6.5 5.3C41 36.8 44.5 30.9 44.5 24c0-1.3-.2-2.7-.5-4z"/>
           </svg>
           {t('login.google_login')}
+        </button>
+
+        <button
+          type="button"
+          onClick={handleFacebook}
+          disabled={isLoading}
+          className="w-full h-14 flex items-center justify-center gap-2 border border-[#EFF1F5] rounded-2xl bg-white text-[16px] font-bold text-[#25282A] hover:bg-[#F2F4F5] transition-colors disabled:opacity-40"
+        >
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="#1877F2">
+            <path d="M20 10C20 4.477 15.523 0 10 0S0 4.477 0 10c0 4.991 3.657 9.128 8.438 9.878v-6.987H5.898V10h2.54V7.797c0-2.506 1.492-3.89 3.777-3.89 1.094 0 2.238.195 2.238.195v2.46h-1.26c-1.243 0-1.63.771-1.63 1.562V10h2.773l-.443 2.89h-2.33v6.988C16.343 19.128 20 14.991 20 10z"/>
+          </svg>
+          {t('login.facebook_login')}
         </button>
 
         <p className="text-center text-[14px] text-[#98A2B2]">
