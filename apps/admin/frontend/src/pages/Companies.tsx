@@ -143,7 +143,8 @@ function CompanyDetailPanel({
         else setError(t('companies.load_error'))
       })
       .finally(() => setLoading(false))
-  }, [companyId, t])
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [companyId])
 
   useEffect(() => { load() }, [load])
 

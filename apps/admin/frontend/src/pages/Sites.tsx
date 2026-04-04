@@ -243,7 +243,8 @@ function SiteDetailPanel({
         }
       })
       .finally(() => setLoading(false))
-  }, [siteId, t])
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [siteId])
 
   useEffect(() => { load() }, [load])
 

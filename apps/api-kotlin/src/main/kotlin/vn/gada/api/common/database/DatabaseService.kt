@@ -30,6 +30,7 @@ class DatabaseService(dataSource: DataSource) {
      */
     private fun coerceValue(v: Any?): Any? = when {
         v is java.sql.Array -> (v.array as? Array<*>)?.toList() ?: emptyList<Any>()
+        v is java.util.UUID -> v.toString()
         v != null && (v.javaClass.name == "org.postgresql.util.PGobject" ||
                       v.javaClass.name == "org.postgresql.util.PgObject") ->
             v.javaClass.getMethod("getValue").invoke(v) as? String
