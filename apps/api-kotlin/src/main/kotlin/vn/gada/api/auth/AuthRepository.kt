@@ -98,13 +98,7 @@ class AuthRepository(private val db: DatabaseService) {
             "isManager" to (r["role"] == "MANAGER"),
             "isAdmin" to (r["role"] == "ADMIN"),
             "managerStatus" to r["manager_status"],
-            "roles" to listOf(
-                mapOf(
-                    "role" to r["role"],
-                    "status" to "active",
-                    "grantedAt" to r["created_at"]
-                )
-            )
+            "roles" to listOf(r["role"]?.toString() ?: "WORKER")
         )
     }
 

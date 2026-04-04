@@ -21,6 +21,28 @@ const COUNTRY_CODES = [
   { code: 'US', dial: '+1',  flag: '🇺🇸', name: 'US' },
 ] as const
 
+/** Per-country digit count rules for the local part (after dial code, no leading zero). */
+const PHONE_RULES: Record<string, { min: number; max: number; errorKey: string }> = {
+  '+84': { min: 9, max: 9,  errorKey: 'otp.phone_invalid_vn' },
+  '+82': { min: 9, max: 10, errorKey: 'otp.phone_invalid_kr' },
+  '+1':  { min: 10, max: 10, errorKey: 'otp.phone_invalid_us' },
+}
+
+/**
+ * Validates an E.164 phone number against per-country digit count rules.
+ * Returns a translation key (from the `auth` namespace) if invalid, or null if valid.
+ */
+export function validatePhone(e164: string): string | null {
+  for (const [dial, rule] of Object.entries(PHONE_RULES)) {
+    if (e164.startsWith(dial)) {
+      const local = e164.slice(dial.length).replace(/\s/g, '')
+      if (local.length < rule.min || local.length > rule.max) return rule.errorKey
+      return null
+    }
+  }
+  return null
+}
+
 interface PhoneInputProps {
   value: string       // E.164 format: "+84901234567"
   onChange: (e164: string) => void

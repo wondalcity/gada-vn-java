@@ -11,7 +11,7 @@
 
 import * as React from 'react'
 import { useTranslations } from 'next-intl'
-import { PhoneInput } from './PhoneInput'
+import { PhoneInput, validatePhone } from './PhoneInput'
 import { OtpInput } from './OtpInput'
 import { setSessionCookie } from '../../lib/auth/session'
 
@@ -51,6 +51,8 @@ export function RegisterForm({ locale }: RegisterFormProps) {
   async function handleSendOtp(e?: React.FormEvent) {
     e?.preventDefault()
     if (!phone || phone === '+84') { setError(t('otp.phone_required')); return }
+    const phoneErr = validatePhone(phone)
+    if (phoneErr) { setError(t(phoneErr as Parameters<typeof t>[0])); return }
     setError(null); setOtpFieldError(null)
     setIsLoading(true)
     try {
