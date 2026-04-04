@@ -272,11 +272,11 @@ export default function ManagerDetail() {
       <div className="bg-white rounded-2xl shadow-sm p-6 mb-5">
         <div className="flex items-center gap-4 mb-4">
           <div className="w-14 h-14 rounded-full bg-[#E6F0FE] flex items-center justify-center text-2xl font-bold text-[#0669F7]">
-            {(manager.worker_full_name || manager.company_name || manager.representative_name)[0]?.toUpperCase()}
+            {(manager.worker_full_name || manager.company_name || manager.representative_name || '?')[0]?.toUpperCase()}
           </div>
           <div className="flex-1">
             <h2 className="text-xl font-bold text-gray-900">
-              {manager.worker_full_name ?? manager.representative_name}
+              {manager.worker_full_name ?? manager.representative_name ?? formatPhone(manager.phone)}
             </h2>
             {manager.worker_full_name && (
               <p className="text-xs text-[#98A2B2]">{manager.company_name ?? manager.representative_name}</p>

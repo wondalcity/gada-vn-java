@@ -48,7 +48,8 @@ class AuthController(private val authService: AuthService) {
     @PostMapping("/verify-token")
     fun verifyToken(@RequestBody body: Map<String, Any?>): ResponseEntity<Map<String, Any?>> {
         val idToken = body["idToken"] as? String ?: throw vn.gada.api.common.exception.BadRequestException("idToken is required")
-        val result = authService.verifyAndGetOrCreateUser(idToken)
+        val name = body["name"] as? String
+        val result = authService.verifyAndGetOrCreateUser(idToken, name)
         return ok(result)
     }
 

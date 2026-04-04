@@ -18,17 +18,20 @@ class AuthService(
     private val log = LoggerFactory.getLogger(AuthService::class.java)
     private val isDev: Boolean get() = activeProfile != "production" && activeProfile != "prod"
 
-    fun verifyAndGetOrCreateUser(idToken: String): Map<String, Any?> {
+    fun verifyAndGetOrCreateUser(idToken: String, name: String? = null): Map<String, Any?> {
         val decoded = firebase.verifyIdToken(idToken)
             ?: throw UnauthorizedException("Invalid token")
         val existing = repo.findByFirebaseUid(decoded.uid)
         if (existing != null) {
+            // Ensure worker_profile exists (handles incomplete registrations)
+            val userId = existing["id"] as String
+            repo.ensureWorkerProfile(userId, name ?: (existing["phone"] as? String))
             return mapOf("user" to existing, "isNew" to false)
         }
         val phoneNumber = decoded.claims["phone_number"] as? String
         val email = decoded.claims["email"] as? String
         val user = repo.create(decoded.uid, phoneNumber, email, "WORKER")
-        repo.ensureWorkerProfile(user["id"] as String, phoneNumber)
+        repo.ensureWorkerProfile(user["id"] as String, name ?: phoneNumber)
         return mapOf("user" to user, "isNew" to true)
     }
 

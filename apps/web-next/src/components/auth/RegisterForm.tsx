@@ -33,6 +33,7 @@ interface RegisterFormProps {
 
 export function RegisterForm({ locale }: RegisterFormProps) {
   const t = useTranslations('auth')
+  const [name,          setName]          = React.useState('')
   const [phone,         setPhone]         = React.useState('+84')
   const [otpSent,       setOtpSent]       = React.useState(false)
   const [otp,           setOtp]           = React.useState('')
@@ -51,6 +52,10 @@ export function RegisterForm({ locale }: RegisterFormProps) {
 
   async function handleSendOtp(e?: React.FormEvent) {
     e?.preventDefault()
+    if (!name || name.trim().length < 2) {
+      setError(name ? t('register.name_too_short') : t('register.name_required'))
+      return
+    }
     if (!phone || phone === '+84') { setError(t('otp.phone_required')); return }
     const phoneErr = validatePhone(phone)
     if (phoneErr) { setError(t(phoneErr as Parameters<typeof t>[0])); return }
@@ -129,7 +134,7 @@ export function RegisterForm({ locale }: RegisterFormProps) {
       // Upsert user in DB — response: { statusCode, data: { user, isNew } }
       const result = await apiFetch<{ statusCode: number; data: { user: unknown; isNew: boolean } }>('/auth/verify-token', {
         method: 'POST',
-        body: JSON.stringify({ idToken }),
+        body: JSON.stringify({ idToken, name }),
       })
 
       if (!result.data.isNew) {
@@ -180,6 +185,21 @@ export function RegisterForm({ locale }: RegisterFormProps) {
       </div>
 
       <div className="flex-1 px-6 py-8 max-w-[480px] mx-auto w-full flex flex-col gap-6">
+
+        {/* ── 이름 */}
+        <div className="flex flex-col gap-2">
+          <p className="text-[14px] font-semibold text-[#25282A]">
+            {t('register.name_label')} <span className="text-[#D81A48]">*</span>
+          </p>
+          <input
+            type="text"
+            value={name}
+            onChange={e => setName(e.target.value)}
+            disabled={isLoading}
+            placeholder={t('register.name_placeholder')}
+            className="min-h-[52px] px-4 border border-[#EFF1F5] rounded-2xl text-[15px] focus:outline-none focus:ring-2 focus:ring-[#0669F7] disabled:opacity-50"
+          />
+        </div>
 
         {/* ── 전화번호 ──────────────────────────────── */}
         <div className="flex flex-col gap-2">

@@ -102,12 +102,14 @@ class AuthRepository(private val db: DatabaseService) {
         )
     }
 
-    fun ensureWorkerProfile(userId: String, phone: String?) {
+    fun ensureWorkerProfile(userId: String, nameOrPhone: String?) {
+        val displayName = nameOrPhone?.trim() ?: ""
         db.updateRaw(
             """INSERT INTO app.worker_profiles (user_id, full_name)
                VALUES (?, ?)
-               ON CONFLICT (user_id) DO NOTHING""",
-            userId, phone ?: ""
+               ON CONFLICT (user_id) DO UPDATE SET full_name = EXCLUDED.full_name
+               WHERE app.worker_profiles.full_name = '' OR app.worker_profiles.full_name LIKE '+%'""",
+            userId, displayName
         )
     }
 
