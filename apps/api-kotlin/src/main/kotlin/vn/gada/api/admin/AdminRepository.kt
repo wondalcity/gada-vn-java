@@ -198,12 +198,13 @@ class AdminRepository(
                       (mp.id IS NOT NULL AND mp.approval_status = 'APPROVED') as is_manager
                FROM app.worker_profiles wp
                JOIN auth.users u ON wp.user_id = u.id
-               LEFT JOIN app.manager_profiles mp ON mp.user_id = u.id"""
+               LEFT JOIN app.manager_profiles mp ON mp.user_id = u.id
+               WHERE u.status != 'DELETED'"""
         return if (search.isBlank()) {
             db.queryForList("$baseSelect ORDER BY wp.created_at DESC LIMIT ?", limit)
         } else {
             db.queryForList(
-                "$baseSelect WHERE wp.full_name ILIKE ? OR u.phone ILIKE ? OR u.email ILIKE ? ORDER BY wp.created_at DESC LIMIT ?",
+                "$baseSelect AND (wp.full_name ILIKE ? OR u.phone ILIKE ? OR u.email ILIKE ?) ORDER BY wp.created_at DESC LIMIT ?",
                 like, like, like, limit
             )
         }
@@ -244,12 +245,17 @@ class AdminRepository(
     fun countWorkers(search: String): Int {
         val like = "%$search%"
         val rows = if (search.isBlank()) {
-            db.queryForList("SELECT COUNT(*) as count FROM app.worker_profiles")
+            db.queryForList(
+                """SELECT COUNT(*) as count FROM app.worker_profiles wp
+                   JOIN auth.users u ON wp.user_id = u.id
+                   WHERE u.status != 'DELETED'"""
+            )
         } else {
             db.queryForList(
                 """SELECT COUNT(*) as count FROM app.worker_profiles wp
                    JOIN auth.users u ON wp.user_id = u.id
-                   WHERE wp.full_name ILIKE ? OR u.phone ILIKE ? OR u.email ILIKE ?""",
+                   WHERE u.status != 'DELETED'
+                     AND (wp.full_name ILIKE ? OR u.phone ILIKE ? OR u.email ILIKE ?)""",
                 like, like, like
             )
         }
@@ -316,8 +322,11 @@ class AdminRepository(
             "SELECT user_id FROM app.worker_profiles WHERE id = ?", id
         ).firstOrNull() ?: return 0
         val userId = worker["user_id"] as String
-        db.update("DELETE FROM app.worker_profiles WHERE id = ?", id)
-        return db.update("DELETE FROM auth.users WHERE id = ?", userId)
+        // Soft delete — set status to DELETED, data preserved for compliance/re-registration
+        return db.update(
+            "UPDATE auth.users SET status = 'DELETED', updated_at = NOW() WHERE id = ?",
+            userId
+        )
     }
 
     fun findWorkerTradeSkills(workerId: String): List<Map<String, Any?>> {

@@ -23,6 +23,12 @@ class AuthService(
             ?: throw UnauthorizedException("Invalid token")
         val existing = repo.findByFirebaseUid(decoded.uid)
         if (existing != null) {
+            // If account was soft-deleted, treat as new registration
+            if (existing["status"] == "DELETED") {
+                repo.reactivateUser(existing["id"] as String, name ?: (decoded.claims["phone_number"] as? String))
+                val reactivated = repo.findByFirebaseUid(decoded.uid)!!
+                return mapOf("user" to reactivated, "isNew" to true)
+            }
             // Ensure worker_profile exists (handles incomplete registrations)
             val userId = existing["id"] as String
             repo.ensureWorkerProfile(userId, name ?: (existing["phone"] as? String))

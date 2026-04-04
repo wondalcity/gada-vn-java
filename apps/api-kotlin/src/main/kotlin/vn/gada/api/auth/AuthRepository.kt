@@ -113,6 +113,28 @@ class AuthRepository(private val db: DatabaseService) {
         )
     }
 
+    /**
+     * Reactivate a soft-deleted user as a fresh registration.
+     * Resets status to ACTIVE and clears the worker_profile so it's rebuilt cleanly.
+     */
+    fun reactivateUser(userId: String, nameOrPhone: String?) {
+        db.update("UPDATE auth.users SET status = 'ACTIVE', updated_at = NOW() WHERE id = ?", userId)
+        // Reset worker_profile to blank slate so new registration fills it in
+        val displayName = nameOrPhone?.trim() ?: ""
+        db.updateRaw(
+            """INSERT INTO app.worker_profiles (user_id, full_name)
+               VALUES (?, ?)
+               ON CONFLICT (user_id) DO UPDATE SET
+                 full_name = EXCLUDED.full_name,
+                 date_of_birth = NULL, gender = NULL, bio = NULL,
+                 experience_months = 0, primary_trade_id = NULL,
+                 id_number = NULL, id_verified = false, id_verified_at = NULL,
+                 profile_complete = false, terms_accepted = false, privacy_accepted = false,
+                 updated_at = NOW()""",
+            userId, displayName
+        )
+    }
+
     fun updateProfile(userId: String, name: String?, email: String?): Map<String, Any?>? {
         if (email != null) {
             db.updateRaw(
