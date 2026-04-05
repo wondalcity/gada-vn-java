@@ -141,10 +141,15 @@ class AuthRepository(private val db: DatabaseService) {
         val firebaseUid = "test-uid-${role.lowercase()}"
         val phone = if (role == "WORKER") "+84000000001" else "+84000000002"
         val name = if (role == "WORKER") "테스트 근로자" else "테스트 관리자"
+        // Ensure any pre-existing row with this phone (different firebase_uid) is cleaned up first
+        db.updateRaw(
+            "UPDATE auth.users SET phone = NULL WHERE phone = ? AND firebase_uid != ?",
+            phone, firebaseUid
+        )
         val rows = db.queryForListRaw(
             """INSERT INTO auth.users (firebase_uid, phone, role, status)
                VALUES (?, ?, ?, 'ACTIVE')
-               ON CONFLICT (firebase_uid) DO UPDATE SET status = 'ACTIVE'
+               ON CONFLICT (firebase_uid) DO UPDATE SET status = 'ACTIVE', phone = EXCLUDED.phone, role = EXCLUDED.role
                RETURNING *""",
             firebaseUid, phone, role
         )

@@ -33,10 +33,6 @@ async function apiFetch<T>(path: string, options: RequestInit & { token?: string
   return body
 }
 
-const IS_STAGING = typeof window !== 'undefined'
-  ? !window.location.hostname.includes('gada.vn') || window.location.hostname.includes('staging')
-  : process.env.NODE_ENV !== 'production'
-
 type LoginStep = 'input' | 'otp' | 'fb_phone' | 'fb_otp'
 
 interface LoginFormInnerProps {
@@ -64,6 +60,11 @@ function LoginFormInner({ locale, redirectTo }: LoginFormInnerProps) {
 
   const [isLoading, setIsLoading] = React.useState(false)
   const [error,     setError]     = React.useState<string | null>(null)
+  const [showTestLogin, setShowTestLogin] = React.useState(false)
+
+  React.useEffect(() => {
+    setShowTestLogin(!window.location.hostname.includes('gada.vn'))
+  }, [])
 
   // ── Countdown timers ──────────────────────────────────────────────────────
   React.useEffect(() => {
@@ -462,7 +463,7 @@ function LoginFormInner({ locale, redirectTo }: LoginFormInnerProps) {
         )}
 
         {/* 테스트 계정 로그인 (스테이징 전용) */}
-        {step === 'input' && IS_STAGING && (
+        {step === 'input' && showTestLogin && (
           <div className="border border-dashed border-[#FDBC08] rounded-2xl p-4 bg-[#FFFBEB]">
             <p className="text-center text-[12px] font-semibold text-[#92600A] mb-3">
               테스트 계정 (OTP 없이 바로 로그인)
