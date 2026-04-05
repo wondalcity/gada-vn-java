@@ -86,9 +86,10 @@ class AuthRepository(private val db: DatabaseService) {
             userId
         )
         val r = rows.firstOrNull() ?: return null
+        val firebaseUid = r["firebase_uid"]?.toString() ?: ""
         return mapOf(
             "id" to r["id"],
-            "firebaseUid" to r["firebase_uid"],
+            "firebaseUid" to firebaseUid,
             "name" to (r["worker_name"] ?: r["phone"] ?: r["email"] ?: "User"),
             "phone" to r["phone"],
             "email" to r["email"],
@@ -97,6 +98,7 @@ class AuthRepository(private val db: DatabaseService) {
             "isWorker" to (r["role"] == "WORKER"),
             "isManager" to (r["role"] == "MANAGER"),
             "isAdmin" to (r["role"] == "ADMIN"),
+            "isTestAccount" to firebaseUid.startsWith("test-uid-"),
             "managerStatus" to r["manager_status"],
             "roles" to listOf(r["role"]?.toString() ?: "WORKER")
         )
@@ -133,6 +135,39 @@ class AuthRepository(private val db: DatabaseService) {
                  updated_at = NOW()""",
             userId, displayName
         )
+    }
+
+    fun upsertTestAccount(role: String): Map<String, Any?> {
+        val firebaseUid = "test-uid-${role.lowercase()}"
+        val phone = if (role == "WORKER") "+84000000001" else "+84000000002"
+        val name = if (role == "WORKER") "테스트 근로자" else "테스트 관리자"
+        val rows = db.queryForListRaw(
+            """INSERT INTO auth.users (firebase_uid, phone, role, status)
+               VALUES (?, ?, ?, 'ACTIVE')
+               ON CONFLICT (firebase_uid) DO UPDATE SET status = 'ACTIVE'
+               RETURNING *""",
+            firebaseUid, phone, role
+        )
+        val user = rows.first()
+        val userId = user["id"] as String
+        // Ensure worker_profile
+        db.updateRaw(
+            """INSERT INTO app.worker_profiles (user_id, full_name)
+               VALUES (?, ?)
+               ON CONFLICT (user_id) DO NOTHING""",
+            userId, name
+        )
+        // Ensure manager_profile for MANAGER role
+        if (role == "MANAGER") {
+            db.updateRaw(
+                """INSERT INTO app.manager_profiles
+                     (user_id, business_type, company_name, representative_name, approval_status)
+                   VALUES (?, 'CORPORATE', '테스트 건설', ?, 'APPROVED')
+                   ON CONFLICT (user_id) DO UPDATE SET approval_status = 'APPROVED'""",
+                userId, name
+            )
+        }
+        return user
     }
 
     fun updateProfile(userId: String, name: String?, email: String?): Map<String, Any?>? {

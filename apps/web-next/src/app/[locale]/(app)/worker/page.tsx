@@ -117,7 +117,7 @@ export default async function WorkerHomePage({ params }: Props) {
   ])
 
   const rawApplications: RawApplication[] = appsRes?.data ?? []
-  const isDemo = !token
+  const isDemo = !token || (user?.isTestAccount ?? false)
   const applications: RawApplication[] = isDemo ? DEMO_APPLICATIONS : rawApplications
 
   const counts = {

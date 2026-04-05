@@ -11,6 +11,7 @@ export interface AuthUser {
   status: string
   isManager: boolean
   isAdmin: boolean
+  isTestAccount: boolean
   managerStatus: 'active' | 'pending' | null
 }
 
@@ -23,6 +24,7 @@ interface MeResponse {
   roles: string[]
   status: string
   isManager?: boolean
+  isTestAccount?: boolean
   managerStatus?: string | null
 }
 
@@ -41,6 +43,7 @@ export async function getAuthUser(): Promise<AuthUser | null> {
       ...data,
       isManager: data.isManager ?? data.roles.includes('MANAGER'),
       isAdmin: data.roles.includes('ADMIN'),
+      isTestAccount: data.isTestAccount ?? false,
       managerStatus: (data.managerStatus ?? null) as 'active' | 'pending' | null,
     }
   } catch {

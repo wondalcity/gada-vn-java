@@ -171,6 +171,18 @@ class AuthService(
         return mapOf("isNewUser" to isNewUser)
     }
 
+    // ── Test account login (staging only) ────────────────────────────────────
+
+    fun testLogin(role: String): Map<String, Any?> {
+        if (!isDev) throw BadRequestException("Not available in production")
+        val normalizedRole = role.uppercase()
+        if (normalizedRole != "WORKER" && normalizedRole != "MANAGER") {
+            throw BadRequestException("role must be WORKER or MANAGER")
+        }
+        val user = repo.upsertTestAccount(normalizedRole)
+        return mapOf("devToken" to "dev_${user["id"]}", "role" to normalizedRole)
+    }
+
     // ── Logout ────────────────────────────────────────────────────────────────
 
     fun logout(firebaseUid: String) {

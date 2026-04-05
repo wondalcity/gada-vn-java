@@ -33,6 +33,10 @@ async function apiFetch<T>(path: string, options: RequestInit & { token?: string
   return body
 }
 
+const IS_STAGING = typeof window !== 'undefined'
+  ? !window.location.hostname.includes('gada.vn') || window.location.hostname.includes('staging')
+  : process.env.NODE_ENV !== 'production'
+
 type LoginStep = 'input' | 'otp' | 'fb_phone' | 'fb_otp'
 
 interface LoginFormInnerProps {
@@ -73,6 +77,25 @@ function LoginFormInner({ locale, redirectTo }: LoginFormInnerProps) {
     const timer = setInterval(() => setFbCountdown(c => c - 1), 1000)
     return () => clearInterval(timer)
   }, [fbCountdown])
+
+  // ── Test account login ────────────────────────────────────────────────────
+
+  async function handleTestLogin(role: 'WORKER' | 'MANAGER') {
+    setError(null)
+    setIsLoading(true)
+    try {
+      const res = await apiFetch<{ statusCode: number; data: { devToken: string } }>(
+        '/auth/test-login',
+        { method: 'POST', body: JSON.stringify({ role }) }
+      )
+      setSessionCookie(res.data.devToken)
+      window.location.href = role === 'MANAGER' ? `/${locale}/manager` : `/${locale}/worker`
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : '테스트 로그인 실패')
+    } finally {
+      setIsLoading(false)
+    }
+  }
 
   // ── Phone OTP handlers ────────────────────────────────────────────────────
 
@@ -436,6 +459,33 @@ function LoginFormInner({ locale, redirectTo }: LoginFormInnerProps) {
               {t('login.register_link')}
             </a>
           </p>
+        )}
+
+        {/* 테스트 계정 로그인 (스테이징 전용) */}
+        {step === 'input' && IS_STAGING && (
+          <div className="border border-dashed border-[#FDBC08] rounded-2xl p-4 bg-[#FFFBEB]">
+            <p className="text-center text-[12px] font-semibold text-[#92600A] mb-3">
+              테스트 계정 (OTP 없이 바로 로그인)
+            </p>
+            <div className="flex gap-2">
+              <button
+                type="button"
+                disabled={isLoading}
+                onClick={() => handleTestLogin('WORKER')}
+                className="flex-1 h-11 rounded-xl text-[14px] font-bold border border-[#FDBC08] bg-white text-[#92600A] hover:bg-[#FFFBEB] disabled:opacity-40 transition-colors"
+              >
+                근로자 계정
+              </button>
+              <button
+                type="button"
+                disabled={isLoading}
+                onClick={() => handleTestLogin('MANAGER')}
+                className="flex-1 h-11 rounded-xl text-[14px] font-bold border border-[#FDBC08] bg-[#FDBC08] text-white hover:bg-[#E5A807] disabled:opacity-40 transition-colors"
+              >
+                관리자 계정
+              </button>
+            </div>
+          </div>
         )}
 
       </div>

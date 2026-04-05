@@ -29,6 +29,7 @@ export default function ManagerHomePage({ params }: Props) {
   const idToken = getSessionCookie()
   const [stats, setStats] = React.useState<Stats | null>(null)
   const [managerInfo, setManagerInfo] = React.useState<ManagerInfo | null>(null)
+  const [isTestAccount, setIsTestAccount] = React.useState(false)
 
   React.useEffect(() => {
     params.then(p => setLocale(p.locale))
@@ -49,12 +50,18 @@ export default function ManagerHomePage({ params }: Props) {
         .then(r => r.json())
         .then(body => setManagerInfo(body.data))
         .catch(() => {}),
+      fetch(`${API_BASE}/auth/me`, {
+        headers: { Authorization: `Bearer ${idToken}` },
+      })
+        .then(r => r.json())
+        .then(body => setIsTestAccount(body.data?.isTestAccount === true))
+        .catch(() => {}),
     ])
   }, [idToken])
 
   const DEMO_STATS: Stats = { activeSites: 3, openJobs: 4, pendingApplications: 7 }
   const ZERO_STATS: Stats = { activeSites: 0, openJobs: 0, pendingApplications: 0 }
-  const isDemo = !idToken
+  const isDemo = !idToken || isTestAccount
   const displayStats = isDemo ? DEMO_STATS : (stats ?? ZERO_STATS)
 
   const displayName = managerInfo?.representative_name ?? managerInfo?.company_name ?? '관리자'

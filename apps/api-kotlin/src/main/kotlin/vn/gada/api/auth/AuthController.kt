@@ -100,6 +100,14 @@ class AuthController(private val authService: AuthService) {
         return ok(result)
     }
 
+    /** POST /auth/test-login — Staging-only: login as test account without Firebase OTP */
+    @PostMapping("/test-login")
+    fun testLogin(@RequestBody body: Map<String, Any?>): ResponseEntity<Map<String, Any?>> {
+        val role = body["role"] as? String ?: throw vn.gada.api.common.exception.BadRequestException("role is required")
+        val result = authService.testLogin(role)
+        return ok(result)
+    }
+
     /** POST /auth/logout — Revoke Firebase tokens */
     @PostMapping("/logout")
     fun logout(@AuthenticationPrincipal user: AuthUser?): ResponseEntity<Map<String, Any?>> {
