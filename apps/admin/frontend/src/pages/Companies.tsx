@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState, useCallback, useRef } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { api } from '../lib/api'
 import { DEMO_COMPANIES } from '../lib/demo-data'
@@ -132,6 +132,9 @@ function CompanyDetailPanel({
   const [showEdit, setShowEdit] = useState(false)
   const [deleting, setDeleting] = useState(false)
   const [toast, setToast] = useState<string | null>(null)
+  const [sealUploading, setSealUploading] = useState(false)
+  const [sealDeleting, setSealDeleting] = useState(false)
+  const sealInputRef = useRef<HTMLInputElement>(null)
 
   const load = useCallback(() => {
     setLoading(true)
@@ -170,6 +173,47 @@ function CompanyDetailPanel({
       showMsg(err instanceof Error ? err.message : t('common.delete_failed'))
     } finally {
       setDeleting(false)
+    }
+  }
+
+  async function handleSealUpload(file: File) {
+    setSealUploading(true)
+    try {
+      // 1. Get presigned URL
+      const { url, key } = await api.post<{ url: string; key: string }>(
+        `/admin/companies/${companyId}/presign-seal`,
+        { fileName: file.name, contentType: file.type || 'image/png' }
+      )
+      // 2. Upload directly to S3
+      const uploadRes = await fetch(url, {
+        method: 'PUT',
+        body: file,
+        headers: { 'Content-Type': file.type || 'image/png' },
+      })
+      if (!uploadRes.ok) throw new Error(t('companies.seal.upload_failed'))
+      // 3. Save S3 key to company record
+      await api.put(`/admin/companies/${companyId}`, { signatureS3Key: key })
+      showMsg(t('companies.seal.uploaded'))
+      load()
+    } catch (err: unknown) {
+      showMsg(err instanceof Error ? err.message : t('companies.seal.upload_failed'))
+    } finally {
+      setSealUploading(false)
+      if (sealInputRef.current) sealInputRef.current.value = ''
+    }
+  }
+
+  async function handleSealDelete() {
+    if (!confirm(t('companies.seal.confirm_delete'))) return
+    setSealDeleting(true)
+    try {
+      await api.delete(`/admin/companies/${companyId}/seal`)
+      showMsg(t('companies.seal.deleted'))
+      load()
+    } catch (err: unknown) {
+      showMsg(err instanceof Error ? err.message : t('common.delete_failed'))
+    } finally {
+      setSealDeleting(false)
     }
   }
 
@@ -231,17 +275,65 @@ function CompanyDetailPanel({
           </div>
 
           <div className="space-y-4">
-            {/* Company signature */}
+            {/* Company seal / signature */}
             <div>
-              <p className="text-xs text-gray-500 mb-2">{t('companies.detail.signature')}</p>
+              <div className="flex items-center justify-between mb-2">
+                <p className="text-xs text-gray-500">{t('companies.detail.signature')}</p>
+                <div className="flex items-center gap-2">
+                  {/* Upload / Change button */}
+                  <label
+                    className={`cursor-pointer px-2.5 py-1 text-xs rounded-xl border border-[#0669F7] text-[#0669F7] hover:bg-[#E6F0FE] transition-colors ${sealUploading ? 'opacity-50 pointer-events-none' : ''}`}
+                  >
+                    {sealUploading ? t('common.processing') : company.signature_url ? t('companies.seal.change') : t('companies.seal.upload')}
+                    <input
+                      ref={sealInputRef}
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={e => {
+                        const file = e.target.files?.[0]
+                        if (file) handleSealUpload(file)
+                      }}
+                    />
+                  </label>
+                  {/* Delete button — only if seal exists */}
+                  {company.signature_url && (
+                    <button
+                      onClick={handleSealDelete}
+                      disabled={sealDeleting}
+                      className="px-2.5 py-1 text-xs rounded-xl border border-[#F4B0C0] text-[#D81A48] hover:bg-[#FDE8EE] disabled:opacity-50 transition-colors"
+                    >
+                      {sealDeleting ? t('common.processing') : t('common.delete')}
+                    </button>
+                  )}
+                </div>
+              </div>
+
               {company.signature_url ? (
-                <div className="border border-[#EFF1F5] rounded-xl p-3 bg-[#FAFCFF] inline-block">
-                  <img src={company.signature_url} alt={t('companies.detail.signature_alt')} className="max-h-24 max-w-[200px] object-contain" />
+                <div className="border border-[#EFF1F5] rounded-xl p-4 bg-[#FAFCFF] flex items-center justify-center min-h-[96px]">
+                  <img
+                    src={company.signature_url}
+                    alt={t('companies.detail.signature_alt')}
+                    className="max-h-24 max-w-[220px] object-contain"
+                  />
                 </div>
               ) : (
-                <div className="border-2 border-dashed border-[#E5E7EB] rounded-xl h-20 flex items-center justify-center">
-                  <p className="text-xs text-[#98A2B2]">{t('companies.detail.no_signature')}</p>
-                </div>
+                <label className={`cursor-pointer block border-2 border-dashed border-[#E5E7EB] rounded-xl min-h-[96px] flex flex-col items-center justify-center gap-1.5 hover:border-[#0669F7] hover:bg-[#F0F6FF] transition-colors ${sealUploading ? 'opacity-50 pointer-events-none' : ''}`}>
+                  <svg className="w-6 h-6 text-[#98A2B2]" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
+                  </svg>
+                  <p className="text-xs text-[#98A2B2]">{sealUploading ? t('common.processing') : t('companies.seal.drop_hint')}</p>
+                  <input
+                    ref={sealInputRef}
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={e => {
+                      const file = e.target.files?.[0]
+                      if (file) handleSealUpload(file)
+                    }}
+                  />
+                </label>
               )}
             </div>
 

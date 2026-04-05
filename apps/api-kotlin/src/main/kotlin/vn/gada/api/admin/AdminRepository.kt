@@ -652,6 +652,12 @@ class AdminRepository(
         (body["contactName"] ?: body["contact_name"])?.let { setClauses.add("contact_name = ?"); params.add(it) }
         (body["contactPhone"] ?: body["contact_phone"])?.let { setClauses.add("contact_phone = ?"); params.add(it) }
         (body["contactEmail"] ?: body["contact_email"])?.let { setClauses.add("contact_email = ?"); params.add(it) }
+        // Signature S3 key: set to new key, or NULL if clearSeal=true
+        if (body.containsKey("clearSeal") && body["clearSeal"] == true) {
+            setClauses.add("signature_s3_key = NULL")
+        } else {
+            (body["signatureS3Key"] as? String)?.let { setClauses.add("signature_s3_key = ?"); params.add(it) }
+        }
 
         if (setClauses.isEmpty()) return findCompanyById(id)
 

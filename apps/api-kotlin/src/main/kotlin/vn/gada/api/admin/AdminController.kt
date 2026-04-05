@@ -4,12 +4,15 @@ import jakarta.servlet.http.HttpServletRequest
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
+import vn.gada.api.common.exception.BadRequestException
 import vn.gada.api.common.exception.UnauthorizedException
+import vn.gada.api.files.FileService
 
 @RestController
 @RequestMapping("/admin")
 class AdminController(
     private val adminService: AdminService,
+    private val fileService: FileService,
     @Value("\${gada.admin.service-key}") private val serviceKey: String
 ) {
 
@@ -391,6 +394,30 @@ class AdminController(
     ): ResponseEntity<Map<String, Any?>> {
         checkAdminKey(request)
         return ok(adminService.deleteCompany(id))
+    }
+
+    /** POST /admin/companies/:id/presign-seal — Get presigned URL for company seal upload */
+    @PostMapping("/companies/{id}/presign-seal")
+    fun presignCompanySeal(
+        request: HttpServletRequest,
+        @PathVariable id: String,
+        @RequestBody body: Map<String, Any?>
+    ): ResponseEntity<Map<String, Any?>> {
+        checkAdminKey(request)
+        val fileName = body["fileName"] as? String ?: throw BadRequestException("fileName is required")
+        val contentType = body["contentType"] as? String ?: throw BadRequestException("contentType is required")
+        val result = fileService.generatePresignedUrl(id, fileName, contentType, "company-seals")
+        return ok(result)
+    }
+
+    /** DELETE /admin/companies/:id/seal — Remove company seal */
+    @DeleteMapping("/companies/{id}/seal")
+    fun deleteCompanySeal(
+        request: HttpServletRequest,
+        @PathVariable id: String
+    ): ResponseEntity<Map<String, Any?>> {
+        checkAdminKey(request)
+        return ok(adminService.updateCompany(id, mapOf("signatureS3Key" to null, "clearSeal" to true)))
     }
 
     // ── Trades ────────────────────────────────────────────────────────────────
