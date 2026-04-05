@@ -82,9 +82,7 @@ export function PhoneInput({
     // Allow only digits and spaces
     const cleaned = e.target.value.replace(/[^\d\s]/g, '')
     const digits = cleaned.replace(/\s/g, '')
-    // Strip leading zero (e.g. 0901234567 → 901234567, dial code already has country prefix)
-    const normalized = digits.startsWith('0') ? digits.slice(1) : digits
-    onChange(dialCode + normalized)
+    onChange(dialCode + digits)
   }
 
   return (
