@@ -3,6 +3,8 @@ package vn.gada.api.admin
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
+import vn.gada.api.auth.AuthRepository
+import vn.gada.api.auth.AuthService
 import vn.gada.api.common.exception.BadRequestException
 import vn.gada.api.common.exception.NotFoundException
 import vn.gada.api.notifications.NotificationService
@@ -10,6 +12,8 @@ import vn.gada.api.notifications.NotificationService
 @Service
 class AdminService(
     private val repo: AdminRepository,
+    private val authRepo: AuthRepository,
+    private val authService: AuthService,
     private val notifications: NotificationService,
     @Value("\${spring.profiles.active:default}") private val activeProfile: String
 ) {
@@ -288,5 +292,21 @@ class AdminService(
     fun cancelPushSchedule(id: String): Map<String, Any?> {
         return repo.cancelPushSchedule(id)
             ?: throw NotFoundException("Schedule $id not found or already processed")
+    }
+
+    // ── Test Accounts ─────────────────────────────────────────────────────────
+
+    fun listTestAccounts(): List<Map<String, Any?>> {
+        return authRepo.listTestAccounts()
+    }
+
+    fun createTestAccount(phone: String, role: String, name: String): Map<String, Any?> {
+        val normalized = authService.normalizePhone(phone)
+        return authRepo.createTestAccount(normalized, role, name)
+    }
+
+    fun deleteTestAccount(id: String): Map<String, Any?> {
+        val deleted = authRepo.deleteTestAccount(id)
+        return mapOf("deleted" to deleted)
     }
 }

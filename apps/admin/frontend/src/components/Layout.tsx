@@ -18,6 +18,7 @@ const ALL_NAV: { to: string; labelKey: string; permission: NavPermission; exact?
   { to: '/companies',        labelKey: 'nav.companies',         permission: 'sites' },
   { to: '/notifications',    labelKey: 'nav.notifications',     permission: 'notifications' },
   { to: '/admin-users',      labelKey: 'nav.admin_users',       permission: 'admin_users' },
+  { to: '/test-accounts',    labelKey: 'nav.test_accounts',     permission: 'admin_users' },
 ]
 
 const SETTINGS_NAV = { to: '/settings', labelKey: 'nav.settings' }

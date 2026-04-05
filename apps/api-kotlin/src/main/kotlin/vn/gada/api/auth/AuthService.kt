@@ -57,8 +57,21 @@ class AuthService(
 
     // ── OTP flow ─────────────────────────────────────────────────────────────
 
+    fun isTestPhone(phone: String): Boolean {
+        val normalized = normalizePhone(phone)
+        return repo.isTestAccount(normalized)
+    }
+
     fun sendOtp(phone: String): Map<String, Any?> {
         val normalized = normalizePhone(phone)
+
+        // Test accounts always use fixed OTP "000000" — no real SMS sent
+        if (repo.isTestAccount(normalized)) {
+            otpStore.save(normalized, "000000")
+            log.info("[OTP-TEST] {}: 000000", normalized)
+            return mapOf("message" to "인증번호가 발송되었습니다.", "isTest" to true)
+        }
+
         val otp = otpStore.generateOtp()
         otpStore.save(normalized, otp)
 
@@ -81,6 +94,13 @@ class AuthService(
         val valid = otpStore.verify(normalized, otp)
         if (!valid) {
             throw UnauthorizedException("인증번호가 올바르지 않습니다.")
+        }
+
+        // Test accounts: skip Firebase, use existing DB user directly
+        if (repo.isTestAccount(normalized)) {
+            val dbUser = repo.findByPhone(normalized)
+                ?: throw UnauthorizedException("테스트 계정을 찾을 수 없습니다.")
+            return mapOf("devToken" to "dev_${dbUser["id"]}", "isNewUser" to false)
         }
 
         // Find or create Firebase user by phone

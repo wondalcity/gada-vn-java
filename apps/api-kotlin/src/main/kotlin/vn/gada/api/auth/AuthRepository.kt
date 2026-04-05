@@ -137,32 +137,92 @@ class AuthRepository(private val db: DatabaseService) {
         )
     }
 
-    fun upsertTestAccount(role: String): Map<String, Any?> {
-        val firebaseUid = "test-uid-${role.lowercase()}"
-        val phone = if (role == "WORKER") "+84000000001" else "+84000000002"
-        val name = if (role == "WORKER") "테스트 근로자" else "테스트 관리자"
-        // Ensure any pre-existing row with this phone (different firebase_uid) is cleaned up first
+    fun isTestAccount(phone: String): Boolean {
+        val rows = db.queryForList(
+            "SELECT is_test_account FROM auth.users WHERE phone = ?",
+            phone
+        )
+        return rows.firstOrNull()?.get("is_test_account") == true
+    }
+
+    fun createTestAccount(phone: String, role: String, name: String): Map<String, Any?> {
+        val normalizedRole = role.uppercase()
+        val firebaseUid = "test-uid-phone-${phone.replace("+", "").replace(" ", "")}"
+        // Clear phone conflict
         db.updateRaw(
             "UPDATE auth.users SET phone = NULL WHERE phone = ? AND firebase_uid != ?",
             phone, firebaseUid
         )
         val rows = db.queryForListRaw(
-            """INSERT INTO auth.users (firebase_uid, phone, role, status)
-               VALUES (?, ?, ?, 'ACTIVE')
-               ON CONFLICT (firebase_uid) DO UPDATE SET status = 'ACTIVE', phone = EXCLUDED.phone, role = EXCLUDED.role
+            """INSERT INTO auth.users (firebase_uid, phone, role, status, is_test_account)
+               VALUES (?, ?, ?, 'ACTIVE', TRUE)
+               ON CONFLICT (firebase_uid) DO UPDATE
+                 SET phone = EXCLUDED.phone, role = EXCLUDED.role,
+                     status = 'ACTIVE', is_test_account = TRUE
+               RETURNING *""",
+            firebaseUid, phone, normalizedRole
+        )
+        val user = rows.first()
+        val userId = user["id"] as String
+        db.updateRaw(
+            """INSERT INTO app.worker_profiles (user_id, full_name)
+               VALUES (?, ?)
+               ON CONFLICT (user_id) DO UPDATE SET full_name = EXCLUDED.full_name""",
+            userId, name
+        )
+        if (normalizedRole == "MANAGER") {
+            db.updateRaw(
+                """INSERT INTO app.manager_profiles
+                     (user_id, business_type, representative_name, approval_status)
+                   VALUES (?, 'INDIVIDUAL', ?, 'APPROVED')
+                   ON CONFLICT (user_id) DO UPDATE SET approval_status = 'APPROVED'""",
+                userId, name
+            )
+        }
+        return user
+    }
+
+    fun listTestAccounts(): List<Map<String, Any?>> {
+        return db.queryForList(
+            """SELECT u.id, u.phone, u.role, u.status, u.created_at,
+                      wp.full_name
+               FROM auth.users u
+               LEFT JOIN app.worker_profiles wp ON wp.user_id = u.id
+               WHERE u.is_test_account = TRUE
+               ORDER BY u.created_at DESC"""
+        )
+    }
+
+    fun deleteTestAccount(id: String): Int {
+        return db.update(
+            "DELETE FROM auth.users WHERE id = ? AND is_test_account = TRUE",
+            id
+        )
+    }
+
+    fun upsertTestAccount(role: String): Map<String, Any?> {
+        val firebaseUid = "test-uid-${role.lowercase()}"
+        val phone = if (role == "WORKER") "+84000000001" else "+84000000002"
+        val name = if (role == "WORKER") "테스트 근로자" else "테스트 관리자"
+        db.updateRaw(
+            "UPDATE auth.users SET phone = NULL WHERE phone = ? AND firebase_uid != ?",
+            phone, firebaseUid
+        )
+        val rows = db.queryForListRaw(
+            """INSERT INTO auth.users (firebase_uid, phone, role, status, is_test_account)
+               VALUES (?, ?, ?, 'ACTIVE', TRUE)
+               ON CONFLICT (firebase_uid) DO UPDATE SET status = 'ACTIVE', phone = EXCLUDED.phone, role = EXCLUDED.role, is_test_account = TRUE
                RETURNING *""",
             firebaseUid, phone, role
         )
         val user = rows.first()
         val userId = user["id"] as String
-        // Ensure worker_profile
         db.updateRaw(
             """INSERT INTO app.worker_profiles (user_id, full_name)
                VALUES (?, ?)
                ON CONFLICT (user_id) DO NOTHING""",
             userId, name
         )
-        // Ensure manager_profile for MANAGER role
         if (role == "MANAGER") {
             db.updateRaw(
                 """INSERT INTO app.manager_profiles

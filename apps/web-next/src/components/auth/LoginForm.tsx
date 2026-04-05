@@ -60,11 +60,7 @@ function LoginFormInner({ locale, redirectTo }: LoginFormInnerProps) {
 
   const [isLoading, setIsLoading] = React.useState(false)
   const [error,     setError]     = React.useState<string | null>(null)
-  const [showTestLogin, setShowTestLogin] = React.useState(false)
-
-  React.useEffect(() => {
-    setShowTestLogin(!window.location.hostname.includes('gada.vn'))
-  }, [])
+  const [isTestFlow, setIsTestFlow] = React.useState(false)
 
   // ── Countdown timers ──────────────────────────────────────────────────────
   React.useEffect(() => {
@@ -79,25 +75,6 @@ function LoginFormInner({ locale, redirectTo }: LoginFormInnerProps) {
     return () => clearInterval(timer)
   }, [fbCountdown])
 
-  // ── Test account login ────────────────────────────────────────────────────
-
-  async function handleTestLogin(role: 'WORKER' | 'MANAGER') {
-    setError(null)
-    setIsLoading(true)
-    try {
-      const res = await apiFetch<{ statusCode: number; data: { devToken: string } }>(
-        '/auth/test-login',
-        { method: 'POST', body: JSON.stringify({ role }) }
-      )
-      setSessionCookie(res.data.devToken)
-      window.location.href = role === 'MANAGER' ? `/${locale}/manager` : `/${locale}/worker`
-    } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : '테스트 로그인 실패')
-    } finally {
-      setIsLoading(false)
-    }
-  }
-
   // ── Phone OTP handlers ────────────────────────────────────────────────────
 
   async function handleSendOtp(e?: React.FormEvent) {
@@ -108,13 +85,27 @@ function LoginFormInner({ locale, redirectTo }: LoginFormInnerProps) {
     setError(null)
     setIsLoading(true)
     try {
+      // Check if this is a test account phone — if so, use API-based OTP
+      const checkRes = await apiFetch<{ statusCode: number; data: { isTest: boolean } }>(
+        `/auth/is-test-phone?phone=${encodeURIComponent(phone)}`
+      )
+      if (checkRes.data.isTest) {
+        // Test phone: send OTP via API (always "000000")
+        await apiFetch('/auth/otp/send', { method: 'POST', body: JSON.stringify({ phone }) })
+        setIsTestFlow(true)
+        setStep('otp')
+        setCountdown(60)
+        return
+      }
+      // Normal phone: use Firebase OTP
+      setIsTestFlow(false)
       const { sendFirebaseOtp } = await import('../../lib/firebase/auth')
       await sendFirebaseOtp(phone, 'recaptcha-container')
       setStep('otp')
       setCountdown(60)
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : String(err)
-      console.error('[sendFirebaseOtp error]', err)
+      console.error('[sendOtp error]', err)
       setError(msg || t('otp.send_failed'))
     } finally {
       setIsLoading(false)
@@ -127,20 +118,28 @@ function LoginFormInner({ locale, redirectTo }: LoginFormInnerProps) {
     setError(null); setOtpError(false)
     setIsLoading(true)
     try {
+      if (isTestFlow) {
+        // Test phone: verify OTP via API, get devToken
+        const res = await apiFetch<{ statusCode: number; data: { devToken?: string; customToken?: string; isNewUser: boolean } }>(
+          '/auth/otp/verify',
+          { method: 'POST', body: JSON.stringify({ phone, otp: otp.replace(/\s/g, '') }) }
+        )
+        const token = res.data.devToken ?? res.data.customToken ?? ''
+        setSessionCookie(token)
+        window.location.href = redirectTo ?? `/${locale}/worker`
+        return
+      }
+      // Normal phone: confirm Firebase OTP
       const { confirmFirebaseOtp } = await import('../../lib/firebase/auth')
       const idToken = await confirmFirebaseOtp(otp.replace(/\s/g, ''))
 
-      const { data } = await apiFetch<{ statusCode: number; data: { isNew: boolean } }>(
+      await apiFetch<{ statusCode: number; data: { isNew: boolean } }>(
         '/auth/verify-token',
         { method: 'POST', body: JSON.stringify({ idToken }) },
       )
 
       setSessionCookie(idToken)
-      if (data.isNew) {
-        window.location.href = `/${locale}/worker`
-      } else {
-        window.location.href = redirectTo ?? `/${locale}/worker`
-      }
+      window.location.href = redirectTo ?? `/${locale}/worker`
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : String(err)
       console.error('[verifyOtp error]', err)
@@ -460,33 +459,6 @@ function LoginFormInner({ locale, redirectTo }: LoginFormInnerProps) {
               {t('login.register_link')}
             </a>
           </p>
-        )}
-
-        {/* 테스트 계정 로그인 (스테이징 전용) */}
-        {step === 'input' && showTestLogin && (
-          <div className="border border-dashed border-[#FDBC08] rounded-2xl p-4 bg-[#FFFBEB]">
-            <p className="text-center text-[12px] font-semibold text-[#92600A] mb-3">
-              테스트 계정 (OTP 없이 바로 로그인)
-            </p>
-            <div className="flex gap-2">
-              <button
-                type="button"
-                disabled={isLoading}
-                onClick={() => handleTestLogin('WORKER')}
-                className="flex-1 h-11 rounded-xl text-[14px] font-bold border border-[#FDBC08] bg-white text-[#92600A] hover:bg-[#FFFBEB] disabled:opacity-40 transition-colors"
-              >
-                근로자 계정
-              </button>
-              <button
-                type="button"
-                disabled={isLoading}
-                onClick={() => handleTestLogin('MANAGER')}
-                className="flex-1 h-11 rounded-xl text-[14px] font-bold border border-[#FDBC08] bg-[#FDBC08] text-white hover:bg-[#E5A807] disabled:opacity-40 transition-colors"
-              >
-                관리자 계정
-              </button>
-            </div>
-          </div>
         )}
 
       </div>

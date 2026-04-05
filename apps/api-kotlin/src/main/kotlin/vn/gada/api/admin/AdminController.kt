@@ -492,6 +492,38 @@ class AdminController(
         return ok(adminService.cancelPushSchedule(id))
     }
 
+    // ── Test Accounts ─────────────────────────────────────────────────────────
+
+    /** GET /admin/test-accounts */
+    @GetMapping("/test-accounts")
+    fun listTestAccounts(request: HttpServletRequest): ResponseEntity<Map<String, Any?>> {
+        checkAdminKey(request)
+        return ok(adminService.listTestAccounts())
+    }
+
+    /** POST /admin/test-accounts */
+    @PostMapping("/test-accounts")
+    fun createTestAccount(
+        request: HttpServletRequest,
+        @RequestBody body: Map<String, Any?>
+    ): ResponseEntity<Map<String, Any?>> {
+        checkAdminKey(request)
+        val phone = body["phone"] as? String ?: throw BadRequestException("phone is required")
+        val role = body["role"] as? String ?: "WORKER"
+        val name = body["name"] as? String ?: ""
+        return ok(adminService.createTestAccount(phone, role, name))
+    }
+
+    /** DELETE /admin/test-accounts/:id */
+    @DeleteMapping("/test-accounts/{id}")
+    fun deleteTestAccount(
+        request: HttpServletRequest,
+        @PathVariable id: String
+    ): ResponseEntity<Map<String, Any?>> {
+        checkAdminKey(request)
+        return ok(adminService.deleteTestAccount(id))
+    }
+
     private fun ok(data: Any?): ResponseEntity<Map<String, Any?>> =
         ResponseEntity.ok(mapOf("statusCode" to 200, "data" to data))
 }
