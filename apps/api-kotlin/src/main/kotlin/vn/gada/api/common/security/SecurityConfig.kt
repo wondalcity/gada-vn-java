@@ -33,6 +33,7 @@ class SecurityConfig(
                     .requestMatchers(HttpMethod.POST, "/auth/verify-token").permitAll()
                     .requestMatchers(HttpMethod.POST, "/auth/login").permitAll()
                     .requestMatchers(HttpMethod.POST, "/auth/social/facebook").permitAll()
+                    .requestMatchers(HttpMethod.GET, "/auth/is-test-phone").permitAll()
                     .requestMatchers(HttpMethod.GET, "/public/**").permitAll()
                     .requestMatchers(HttpMethod.GET, "/jobs").permitAll()
                     .requestMatchers(HttpMethod.GET, "/jobs/date/**").permitAll()

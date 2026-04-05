@@ -28,8 +28,9 @@ async function apiFetch<T>(path: string, options: RequestInit & { token?: string
       ...(init.headers ?? {}),
     },
   })
-  const body = await res.json()
-  if (!res.ok) throw Object.assign(new Error(body.message ?? 'API error'), { status: res.status })
+  const text = await res.text()
+  const body = text ? JSON.parse(text) : {}
+  if (!res.ok) throw Object.assign(new Error(body.message ?? `API error ${res.status}`), { status: res.status })
   return body
 }
 
