@@ -53,8 +53,9 @@ export default function ManagerHomePage({ params }: Props) {
   }, [idToken])
 
   const DEMO_STATS: Stats = { activeSites: 3, openJobs: 4, pendingApplications: 7 }
-  const displayStats = stats ?? DEMO_STATS
-  const isDemo = stats === null
+  const ZERO_STATS: Stats = { activeSites: 0, openJobs: 0, pendingApplications: 0 }
+  const isDemo = !idToken
+  const displayStats = isDemo ? DEMO_STATS : (stats ?? ZERO_STATS)
 
   const displayName = managerInfo?.representative_name ?? managerInfo?.company_name ?? '관리자'
   const initial = displayName.charAt(0).toUpperCase()
