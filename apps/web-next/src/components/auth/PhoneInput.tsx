@@ -62,7 +62,7 @@ export function PhoneInput({
 }: PhoneInputProps) {
   const inputId = React.useId()
 
-  // Parse E.164 into dial code + local number
+  // Parse E.164 into dial code + local number (without leading zero)
   const parseE164 = (e164: string) => {
     for (const c of COUNTRY_CODES) {
       if (e164.startsWith(c.dial)) {
@@ -74,15 +74,34 @@ export function PhoneInput({
 
   const { dialCode, local } = parseE164(value || '+84')
 
+  // Internal display state: user may type with leading 0 (e.g. "01912341234")
+  // but onChange emits E.164 without leading 0 ("+821912341234")
+  const [rawLocal, setRawLocal] = React.useState(local)
+
+  // Sync display if external value changes (e.g. cleared by parent)
+  React.useEffect(() => {
+    // Only reset display if the external value clearly doesn't match what we have
+    const normalized = rawLocal.replace(/^0+/, '')
+    if (dialCode + normalized !== value && dialCode + rawLocal !== value) {
+      setRawLocal(local)
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [value])
+
   const handleDialChange = (newDial: string) => {
-    onChange(newDial + local)
+    // Keep display as-is, re-emit with new dial code (stripping leading 0)
+    const normalized = rawLocal.replace(/^0+/, '')
+    onChange(newDial + normalized)
   }
 
   const handleLocalChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     // Allow only digits and spaces
     const cleaned = e.target.value.replace(/[^\d\s]/g, '')
     const digits = cleaned.replace(/\s/g, '')
-    onChange(dialCode + digits)
+    setRawLocal(digits) // Display keeps leading 0
+    // Emit E.164: strip leading zero(s) so "+82" + "01912341234" → "+821912341234"
+    const normalized = digits.replace(/^0+/, '')
+    onChange(dialCode + normalized)
   }
 
   return (
@@ -127,7 +146,7 @@ export function PhoneInput({
           id={inputId}
           type="tel"
           inputMode="numeric"
-          value={local}
+          value={rawLocal}
           onChange={handleLocalChange}
           disabled={disabled}
           placeholder={placeholder}

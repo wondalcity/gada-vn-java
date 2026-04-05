@@ -219,10 +219,12 @@ class AuthService(
     fun normalizePhone(phone: String): String {
         val digits = phone.replace(Regex("[^\\d]"), "")
         return when {
-            digits.startsWith("840") -> "+84${digits.drop(3)}"
-            digits.startsWith("84") -> "+$digits"
-            digits.startsWith("0") -> "+84${digits.drop(1)}"
-            else -> "+$digits"
+            digits.startsWith("840") -> "+84${digits.drop(3)}"  // +84 0XX → strip leading 0
+            digits.startsWith("84")  -> "+$digits"
+            digits.startsWith("820") -> "+82${digits.drop(3)}"  // +82 0XX → strip leading 0
+            digits.startsWith("82")  -> "+$digits"
+            digits.startsWith("0")   -> "+84${digits.drop(1)}"  // local VN format
+            else                     -> "+$digits"
         }
     }
 
