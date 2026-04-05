@@ -12,7 +12,6 @@ interface TestAccount {
 }
 
 const IN = 'w-full border border-[#EFF1F5] rounded-2xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#0669F7]'
-const LABEL = 'block text-xs font-medium text-gray-500 mb-1'
 
 function AddModal({ onSave, onCancel }: { onSave: () => void; onCancel: () => void }) {
   const { t } = useAdminTranslation()
@@ -38,34 +37,35 @@ function AddModal({ onSave, onCancel }: { onSave: () => void; onCancel: () => vo
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
-      <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm p-6 space-y-4">
-        <h3 className="text-base font-bold text-gray-900">{t('test_accounts.add_modal.title')}</h3>
+      <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm p-6">
+        <h3 className="text-base font-bold text-gray-900 mb-4">{t('test_accounts.add_modal.title')}</h3>
+        {error && (
+          <div className="bg-[#FDE8EE] border border-[#F4B0C0] text-[#D81A48] rounded-xl p-3 mb-3 text-sm">{error}</div>
+        )}
         <form onSubmit={handleSubmit} className="space-y-3">
           <div>
-            <label className={LABEL}>{t('test_accounts.add_modal.phone')} *</label>
-            <input className={IN} value={phone} onChange={e => setPhone(e.target.value)}
-              placeholder="+84901234567" />
+            <label className="block text-xs font-medium text-gray-500 mb-1">{t('test_accounts.add_modal.phone')} *</label>
+            <input className={IN} value={phone} onChange={e => setPhone(e.target.value)} placeholder="+84901234567" />
           </div>
           <div>
-            <label className={LABEL}>{t('test_accounts.add_modal.name')}</label>
+            <label className="block text-xs font-medium text-gray-500 mb-1">{t('test_accounts.add_modal.name')}</label>
             <input className={IN} value={name} onChange={e => setName(e.target.value)}
               placeholder={t('test_accounts.add_modal.name_placeholder')} />
           </div>
           <div>
-            <label className={LABEL}>{t('test_accounts.add_modal.role')}</label>
+            <label className="block text-xs font-medium text-gray-500 mb-1">{t('test_accounts.add_modal.role')}</label>
             <select className={IN} value={role} onChange={e => setRole(e.target.value)}>
               <option value="WORKER">{t('test_accounts.role_worker')}</option>
               <option value="MANAGER">{t('test_accounts.role_manager')}</option>
             </select>
           </div>
-          {error && <p className="text-sm text-red-500">{error}</p>}
-          <div className="flex gap-2 pt-2">
+          <div className="flex gap-2 pt-1">
             <button type="button" onClick={onCancel}
-              className="flex-1 h-10 border border-[#EFF1F5] rounded-xl text-sm">
+              className="flex-1 py-2.5 rounded-xl text-sm font-medium border border-[#EFF1F5] text-gray-600 hover:bg-[#F2F4F5]">
               {t('common.cancel')}
             </button>
             <button type="submit" disabled={saving}
-              className="flex-1 h-10 bg-[#0669F7] text-white rounded-xl text-sm font-medium disabled:opacity-40">
+              className="flex-1 py-2.5 rounded-xl text-sm font-bold bg-[#0669F7] text-white hover:bg-[#0550C4] disabled:opacity-50">
               {saving ? t('common.saving') : t('test_accounts.add_modal.submit')}
             </button>
           </div>
@@ -80,108 +80,128 @@ export default function TestAccounts() {
   const [accounts, setAccounts] = useState<TestAccount[]>([])
   const [loading, setLoading] = useState(true)
   const [showAdd, setShowAdd] = useState(false)
-  const [flash, setFlash] = useState('')
+  const [toast, setToast] = useState<string | null>(null)
 
-  async function load() {
+  function showMsg(msg: string) {
+    setToast(msg)
+    setTimeout(() => setToast(null), 3000)
+  }
+
+  function load() {
     setLoading(true)
-    try {
-      const data = await api.get<TestAccount[]>('/admin/test-accounts')
-      setAccounts(data)
-    } finally {
-      setLoading(false)
-    }
+    api.get<TestAccount[]>('/admin/test-accounts')
+      .then(setAccounts)
+      .catch(() => setAccounts([]))
+      .finally(() => setLoading(false))
   }
 
   useEffect(() => { load() }, [])
 
-  async function handleDelete(id: string) {
+  async function handleDelete(acc: TestAccount) {
     if (!confirm(t('test_accounts.confirm_delete'))) return
     try {
-      await api.delete(`/admin/test-accounts/${id}`)
-      setFlash(t('test_accounts.deleted'))
-      setTimeout(() => setFlash(''), 3000)
+      await api.delete(`/admin/test-accounts/${acc.id}`)
+      showMsg(t('test_accounts.deleted'))
       load()
     } catch (err: unknown) {
-      alert(err instanceof Error ? err.message : t('common.delete_failed'))
+      showMsg(err instanceof Error ? err.message : t('common.delete_failed'))
     }
   }
 
-  async function handleSave() {
-    setShowAdd(false)
-    setFlash(t('test_accounts.created'))
-    setTimeout(() => setFlash(''), 3000)
-    await load()
-  }
-
   return (
-    <div className="space-y-6">
-      {showAdd && <AddModal onSave={handleSave} onCancel={() => setShowAdd(false)} />}
+    <div className="p-8">
+      {showAdd && (
+        <AddModal
+          onSave={() => { setShowAdd(false); showMsg(t('test_accounts.created')); load() }}
+          onCancel={() => setShowAdd(false)}
+        />
+      )}
 
-      <div className="flex items-center justify-between">
+      {toast && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 px-5 py-3 rounded-full text-sm font-semibold shadow-lg bg-[#25282A] text-white whitespace-nowrap">
+          {toast}
+        </div>
+      )}
+
+      <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-xl font-bold text-gray-900">{t('test_accounts.title')}</h1>
+          <h1 className="text-2xl font-bold text-gray-900">{t('test_accounts.title')}</h1>
           <p className="text-sm text-gray-500 mt-1">{t('test_accounts.subtitle')}</p>
         </div>
-        <button onClick={() => setShowAdd(true)}
-          className="h-10 px-4 bg-[#0669F7] text-white rounded-xl text-sm font-medium">
+        <button
+          onClick={() => setShowAdd(true)}
+          className="flex items-center gap-2 px-4 py-2 bg-[#0669F7] hover:bg-[#0550C4] text-white text-sm font-medium rounded-2xl transition-colors"
+        >
           {t('test_accounts.add')}
         </button>
       </div>
 
-      {flash && (
-        <div className="bg-green-50 border border-green-200 text-green-700 text-sm px-4 py-2 rounded-xl">
-          {flash}
-        </div>
-      )}
+      <div className="mb-4 flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-amber-50 border border-amber-200 text-sm text-amber-700">
+        <span>{t('test_accounts.otp_hint')}</span>
+      </div>
 
-      <div className="bg-white rounded-2xl border border-[#EFF1F5] overflow-hidden">
-        <div className="bg-amber-50 border-b border-amber-200 px-4 py-3">
-          <p className="text-sm text-amber-800">{t('test_accounts.otp_hint')}</p>
-        </div>
+      <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
         {loading ? (
           <div className="p-8 text-center text-gray-400 text-sm">{t('common.loading')}</div>
         ) : accounts.length === 0 ? (
-          <div className="p-8 text-center text-gray-400 text-sm">{t('test_accounts.empty')}</div>
+          <div className="py-16 text-center text-gray-400">
+            <p className="text-4xl mb-3">🧪</p>
+            <p className="text-sm">{t('test_accounts.empty')}</p>
+          </div>
         ) : (
-          <table className="w-full text-sm">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500">{t('test_accounts.col_phone')}</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500">{t('test_accounts.col_name')}</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500">{t('test_accounts.col_role')}</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500">{t('test_accounts.col_status')}</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500">{t('test_accounts.col_created')}</th>
-                <th className="px-4 py-3" />
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-[#EFF1F5]">
-              {accounts.map(acc => (
-                <tr key={acc.id} className="hover:bg-gray-50">
-                  <td className="px-4 py-3 font-mono">{acc.phone}</td>
-                  <td className="px-4 py-3 text-gray-700">{acc.full_name ?? '-'}</td>
-                  <td className="px-4 py-3">
-                    <span className={`inline-flex px-2 py-0.5 rounded-full text-xs font-medium ${
-                      acc.role === 'MANAGER'
-                        ? 'bg-blue-100 text-blue-700'
-                        : 'bg-green-100 text-green-700'
-                    }`}>
-                      {acc.role === 'MANAGER' ? t('test_accounts.role_manager') : t('test_accounts.role_worker')}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3 text-gray-500">{acc.status}</td>
-                  <td className="px-4 py-3 text-gray-400 text-xs">
-                    {new Date(acc.created_at).toLocaleDateString()}
-                  </td>
-                  <td className="px-4 py-3 text-right">
-                    <button onClick={() => handleDelete(acc.id)}
-                      className="text-xs text-red-500 hover:text-red-700 px-2 py-1 rounded hover:bg-red-50">
-                      {t('common.delete')}
-                    </button>
-                  </td>
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[600px]">
+              <thead className="bg-[#F2F4F5]">
+                <tr>
+                  {[
+                    t('test_accounts.col_phone'),
+                    t('test_accounts.col_name'),
+                    t('test_accounts.col_role'),
+                    t('test_accounts.col_status'),
+                    t('test_accounts.col_created'),
+                    '',
+                  ].map((h, i) => (
+                    <th key={i} className="px-4 py-3 text-left text-xs font-semibold text-gray-500 whitespace-nowrap">
+                      {h}
+                    </th>
+                  ))}
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody className="divide-y divide-[#EFF1F5]">
+                {accounts.map(acc => (
+                  <tr key={acc.id} className="hover:bg-[#F8F9FA]">
+                    <td className="px-4 py-3 text-sm font-mono text-gray-900 whitespace-nowrap">{acc.phone}</td>
+                    <td className="px-4 py-3 text-sm text-gray-700 whitespace-nowrap">{acc.full_name ?? '-'}</td>
+                    <td className="px-4 py-3 whitespace-nowrap">
+                      <span className={`inline-flex px-2 py-0.5 rounded-full text-xs font-semibold ${
+                        acc.role === 'MANAGER'
+                          ? 'bg-blue-100 text-blue-700'
+                          : 'bg-green-100 text-green-700'
+                      }`}>
+                        {acc.role === 'MANAGER' ? t('test_accounts.role_manager') : t('test_accounts.role_worker')}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 text-sm text-gray-500 whitespace-nowrap">
+                      <span className="inline-flex px-2 py-0.5 rounded-full text-xs font-semibold bg-green-100 text-green-700">
+                        {acc.status}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 text-sm text-gray-400 whitespace-nowrap">
+                      {new Date(acc.created_at).toLocaleDateString()}
+                    </td>
+                    <td className="px-4 py-3 text-right whitespace-nowrap">
+                      <button
+                        onClick={() => handleDelete(acc)}
+                        className="text-xs text-red-500 hover:text-red-700 px-2 py-1 rounded hover:bg-red-50 transition-colors"
+                      >
+                        {t('common.delete')}
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         )}
       </div>
     </div>
