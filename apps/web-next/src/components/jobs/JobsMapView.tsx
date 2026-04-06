@@ -11,10 +11,6 @@ const GOOGLE_MAPS_LIBRARIES: Libraries = []
 
 const VN_CENTER = { lat: 14.0583, lng: 108.2772 }
 const VN_ZOOM = 6
-// fitBounds delta: ~300m per side → resolves to ~zoom 15
-const FLY_DELTA = 0.003
-// Card offset: shifts visible area upward so the marker stays above the popup
-const POPUP_OFFSET_LAT = 0.0055
 
 const MAP_STYLES: google.maps.MapTypeStyle[] = [
   { featureType: 'poi', elementType: 'labels', stylers: [{ visibility: 'off' }] },
@@ -508,25 +504,32 @@ export default function JobsMapView({
     })
   }, [onBoundsChange])
 
-  // Smooth fly-to using fitBounds — Google Maps animates both zoom + pan simultaneously.
-  // Offset center upward so the selected marker sits above the popup card.
+  // Smooth fly-to: fitBounds with asymmetric padding so the marker stays visible
+  // above the popup card. The marker is always inside the bounds; bottom padding
+  // provides space for the card without cutting the marker out of view.
   const flyToJob = useCallback((job: PublicJob, fromMobile = false) => {
     if (job.siteLat == null || job.siteLng == null || !mapRef.current) return
 
     animatingRef.current = true
-    setTimeout(() => { animatingRef.current = false }, 800)
+    setTimeout(() => { animatingRef.current = false }, 900)
 
-    // Offset the map center so the marker appears in the upper 2/3 of the map,
-    // leaving room for the popup card at the bottom.
-    const offsetLat = fromMobile ? 0.003 : POPUP_OFFSET_LAT
-    const centerLat = job.siteLat - offsetLat
+    const lat = job.siteLat
+    const lng = job.siteLng
+    const D = 0.005 // ~500m — keeps the marker visible with comfortable context
 
+    // Symmetric bounds around the marker; bottom padding handles card overlap
     const bounds = new window.google.maps.LatLngBounds(
-      { lat: centerLat - FLY_DELTA, lng: job.siteLng - FLY_DELTA },
-      { lat: centerLat + FLY_DELTA, lng: job.siteLng + FLY_DELTA },
+      { lat: lat - D, lng: lng - D },
+      { lat: lat + D, lng: lng + D },
     )
-    // padding=0: let the bounds fully control the viewport for maximum zoom
-    mapRef.current.fitBounds(bounds, 0)
+
+    // Bottom padding pushes the marker upward so it clears the popup card.
+    // Desktop card height ~340px, mobile card ~200px.
+    const padding = fromMobile
+      ? { top: 60, right: 60, bottom: 220, left: 60 }
+      : { top: 80, right: 80, bottom: 360, left: 80 }
+
+    mapRef.current.fitBounds(bounds, padding)
     setIsZoomedIn(true)
   }, [])
 
