@@ -12,7 +12,7 @@ class WorkerRepository(
 
     private fun toUrl(key: String?): String? {
         if (key.isNullOrBlank()) return null
-        if (key.startsWith("http://") || key.startsWith("https://")) return key
+        if (key.startsWith("http://") || key.startsWith("https://") || key.startsWith("data:")) return key
         if (cdnDomain.isBlank()) return null
         val base = if (cdnDomain.startsWith("http")) cdnDomain else "https://$cdnDomain"
         return "$base/$key"
@@ -20,37 +20,45 @@ class WorkerRepository(
 
     fun findByUserId(userId: String): Map<String, Any?>? {
         val rows = db.queryForList(
-            """SELECT wp.id, wp.user_id AS "userId",
-                      wp.full_name AS "fullName",
-                      wp.date_of_birth AS "dateOfBirth",
+            """SELECT wp.id, wp.user_id,
+                      wp.full_name,
+                      wp.date_of_birth,
                       wp.gender,
                       wp.bio,
-                      wp.experience_months AS "experienceMonths",
-                      wp.primary_trade_id AS "primaryTradeId",
-                      wp.current_province AS "province",
-                      wp.current_district AS "district",
+                      wp.experience_months,
+                      wp.primary_trade_id,
+                      t.name_ko          AS trade_name_ko,
+                      wp.current_province,
+                      wp.current_district,
                       wp.lat, wp.lng,
-                      wp.id_number AS "idNumber",
-                      wp.id_verified AS "idVerified",
-                      wp.id_verified_at AS "idVerifiedAt",
-                      wp.bank_name AS "bankName",
-                      wp.bank_account_number AS "bankAccountNumber",
-                      wp.profile_picture_s3_key AS "profilePictureS3Key",
-                      wp.signature_s3_key AS "signatureS3Key",
-                      wp.profile_complete AS "profileComplete",
-                      wp.terms_accepted AS "termsAccepted",
-                      wp.privacy_accepted AS "privacyAccepted",
-                      wp.created_at AS "createdAt",
+                      wp.id_number,
+                      wp.id_verified,
+                      wp.id_verified_at,
+                      wp.bank_name,
+                      wp.bank_account_number,
+                      wp.profile_picture_s3_key,
+                      wp.signature_s3_key,
+                      wp.id_front_s3_key,
+                      wp.id_back_s3_key,
+                      wp.bank_book_s3_key,
+                      wp.profile_complete,
+                      wp.terms_accepted,
+                      wp.privacy_accepted,
+                      wp.created_at,
                       u.phone, u.email
                FROM app.worker_profiles wp
                JOIN auth.users u ON wp.user_id = u.id
+               LEFT JOIN ref.construction_trades t ON wp.primary_trade_id = t.id
                WHERE wp.user_id = ?""",
             userId
         )
         val row = rows.firstOrNull() ?: return null
         return row + mapOf(
-            "profilePictureUrl" to toUrl(row["profilePictureS3Key"] as? String),
-            "signatureUrl" to toUrl(row["signatureS3Key"] as? String),
+            "profile_image_url" to toUrl(row["profile_picture_s3_key"] as? String),
+            "signature_url"     to toUrl(row["signature_s3_key"] as? String),
+            "id_front_url"      to toUrl(row["id_front_s3_key"] as? String),
+            "id_back_url"       to toUrl(row["id_back_s3_key"] as? String),
+            "bank_book_url"     to toUrl(row["bank_book_s3_key"] as? String),
         )
     }
 
@@ -114,15 +122,27 @@ class WorkerRepository(
         val setClauses = mutableListOf<String>()
         val params = mutableListOf<Any?>()
 
-        data["fullName"]?.let            { setClauses.add("full_name = ?");          params.add(it) }
-        data["dateOfBirth"]?.let         { setClauses.add("date_of_birth = ?");      params.add(it) }
-        data["gender"]?.let              { setClauses.add("gender = ?");             params.add(it) }
-        data["bio"]?.let                 { setClauses.add("bio = ?");                params.add(it) }
-        data["experienceMonths"]?.let    { setClauses.add("experience_months = ?");  params.add(it) }
-        data["primaryTradeId"]?.let      { setClauses.add("primary_trade_id = ?");   params.add(it) }
-        data["province"]?.let            { setClauses.add("current_province = ?");   params.add(it) }
-        data["bankName"]?.let            { setClauses.add("bank_name = ?");          params.add(it) }
-        data["bankAccountNumber"]?.let   { setClauses.add("bank_account_number = ?");params.add(it) }
+        data["fullName"]?.let             { setClauses.add("full_name = ?");               params.add(it) }
+        data["dateOfBirth"]?.let          { setClauses.add("date_of_birth = ?");         params.add(it) }
+        data["gender"]?.let               { setClauses.add("gender = ?");                params.add(it) }
+        data["bio"]?.let                  { setClauses.add("bio = ?");                   params.add(it) }
+        data["experienceMonths"]?.let     { setClauses.add("experience_months = ?");     params.add(it) }
+        data["primaryTradeId"]?.let       { setClauses.add("primary_trade_id = ?");      params.add(it) }
+        data["province"]?.let             { setClauses.add("current_province = ?");      params.add(it) }
+        data["district"]?.let             { setClauses.add("current_district = ?");      params.add(it) }
+        data["lat"]?.let                  { setClauses.add("lat = ?");                   params.add(it) }
+        data["lng"]?.let                  { setClauses.add("lng = ?");                   params.add(it) }
+        data["bankName"]?.let             { setClauses.add("bank_name = ?");             params.add(it) }
+        data["bankAccountNumber"]?.let    { setClauses.add("bank_account_number = ?");   params.add(it) }
+        data["idNumber"]?.let             { setClauses.add("id_number = ?");             params.add(it) }
+        data["termsAccepted"]?.let        { setClauses.add("terms_accepted = ?");        params.add(it) }
+        data["privacyAccepted"]?.let      { setClauses.add("privacy_accepted = ?");      params.add(it) }
+        // S3 key fields: use containsKey to allow explicit null (delete)
+        if (data.containsKey("profilePictureS3Key")) { setClauses.add("profile_picture_s3_key = ?"); params.add(data["profilePictureS3Key"]) }
+        if (data.containsKey("signatureS3Key"))      { setClauses.add("signature_s3_key = ?");       params.add(data["signatureS3Key"]) }
+        if (data.containsKey("idFrontS3Key"))        { setClauses.add("id_front_s3_key = ?");        params.add(data["idFrontS3Key"]) }
+        if (data.containsKey("idBackS3Key"))         { setClauses.add("id_back_s3_key = ?");         params.add(data["idBackS3Key"]) }
+        if (data.containsKey("bankBookS3Key"))       { setClauses.add("bank_book_s3_key = ?");       params.add(data["bankBookS3Key"]) }
 
         if (setClauses.isEmpty()) return findByUserId(userId)
 

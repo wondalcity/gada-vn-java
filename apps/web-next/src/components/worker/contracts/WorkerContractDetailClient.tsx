@@ -27,10 +27,12 @@ function formatDate(d: string): string {
 function SignaturePad({
   contractId,
   token,
+  savedSigUrl,
   onSuccess,
 }: {
   contractId: string
   token: string
+  savedSigUrl?: string | null
   onSuccess: () => void
 }) {
   const { canvasRef, hasDrawn, startDrawing, draw, stopDrawing, clear, getDataUrl, checkIsEmpty } =
@@ -38,6 +40,7 @@ function SignaturePad({
   const t = useTranslations('common')
   const [isSigning, setIsSigning] = React.useState(false)
   const [error, setError] = React.useState<string | null>(null)
+  const [useSaved, setUseSaved] = React.useState(false)
 
   React.useEffect(() => {
     const canvas = canvasRef.current
@@ -61,15 +64,20 @@ function SignaturePad({
   }, [startDrawing, draw, stopDrawing, canvasRef])
 
   async function handleSign() {
-    if (checkIsEmpty()) { setError(t('worker_contracts.sign_error_empty')); return }
     setIsSigning(true)
     setError(null)
     try {
-      const dataUrl = getDataUrl()
+      let signatureData: string
+      if (useSaved && savedSigUrl) {
+        signatureData = savedSigUrl
+      } else {
+        if (checkIsEmpty()) { setError(t('worker_contracts.sign_error_empty')); setIsSigning(false); return }
+        signatureData = getDataUrl()
+      }
       await apiClient(`/contracts/${contractId}/sign`, {
         method: 'POST',
         token,
-        body: JSON.stringify({ signatureData: dataUrl }),
+        body: JSON.stringify({ signatureData }),
       })
       onSuccess()
     } catch (err) {
@@ -81,42 +89,76 @@ function SignaturePad({
 
   return (
     <div className="space-y-3">
-      <p className="text-sm font-semibold text-[#25282A]">{t('worker_contracts.sign_input_label')}</p>
-      <div className="relative border-2 border-dashed border-[#C8D8FF] rounded-xl overflow-hidden bg-[#FAFCFF]">
-        <canvas
-          ref={canvasRef}
-          style={{
-            width: '100%',
-            height: '160px',
-            touchAction: 'none',
-            display: 'block',
-            cursor: 'crosshair',
-          }}
-        />
-        {!hasDrawn && (
-          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-            <p className="text-sm text-[#B2C4E0]">{t('worker_contracts.sign_placeholder')}</p>
+      {/* Tab: Draw vs Use saved */}
+      {savedSigUrl && (
+        <div className="flex rounded-xl border border-[#EFF1F5] overflow-hidden">
+          <button
+            type="button"
+            onClick={() => setUseSaved(false)}
+            className={`flex-1 py-2 text-xs font-medium transition-colors ${!useSaved ? 'bg-[#0669F7] text-white' : 'bg-white text-[#98A2B2] hover:text-[#25282A]'}`}
+          >
+            직접 서명
+          </button>
+          <button
+            type="button"
+            onClick={() => setUseSaved(true)}
+            className={`flex-1 py-2 text-xs font-medium transition-colors ${useSaved ? 'bg-[#0669F7] text-white' : 'bg-white text-[#98A2B2] hover:text-[#25282A]'}`}
+          >
+            저장된 서명 사용
+          </button>
+        </div>
+      )}
+
+      {useSaved && savedSigUrl ? (
+        <div>
+          <p className="text-sm font-semibold text-[#25282A] mb-2">프로필에 저장된 서명</p>
+          <div className="border-2 border-[#C8D8FF] rounded-xl bg-[#FAFCFF] p-4 flex items-center justify-center min-h-[120px]">
+            <img src={savedSigUrl} alt="저장된 서명" className="max-h-24 object-contain" />
           </div>
-        )}
-      </div>
-      <p className="text-xs text-[#98A2B2]">{t('worker_contracts.sign_hint')}</p>
+        </div>
+      ) : (
+        <>
+          <p className="text-sm font-semibold text-[#25282A]">{t('worker_contracts.sign_input_label')}</p>
+          <div className="relative border-2 border-dashed border-[#C8D8FF] rounded-xl overflow-hidden bg-[#FAFCFF]">
+            <canvas
+              ref={canvasRef}
+              style={{
+                width: '100%',
+                height: '160px',
+                touchAction: 'none',
+                display: 'block',
+                cursor: 'crosshair',
+              }}
+            />
+            {!hasDrawn && (
+              <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                <p className="text-sm text-[#B2C4E0]">{t('worker_contracts.sign_placeholder')}</p>
+              </div>
+            )}
+          </div>
+          <p className="text-xs text-[#98A2B2]">{t('worker_contracts.sign_hint')}</p>
+        </>
+      )}
+
       {error && (
         <div className="p-3 bg-red-50 border border-red-200 rounded-xl text-sm text-[#ED1C24]">
           {error}
         </div>
       )}
       <div className="flex gap-3">
-        <button
-          type="button"
-          onClick={() => { clear(); setError(null) }}
-          className="flex-1 py-3 rounded-full border border-[#DDDDDD] text-[#25282A] font-medium text-sm hover:border-[#0669F7] hover:text-[#0669F7] transition-colors"
-        >
-          {t('worker_contracts.sign_clear')}
-        </button>
+        {!useSaved && (
+          <button
+            type="button"
+            onClick={() => { clear(); setError(null) }}
+            className="flex-1 py-3 rounded-full border border-[#DDDDDD] text-[#25282A] font-medium text-sm hover:border-[#0669F7] hover:text-[#0669F7] transition-colors"
+          >
+            {t('worker_contracts.sign_clear')}
+          </button>
+        )}
         <button
           type="button"
           onClick={handleSign}
-          disabled={isSigning || !hasDrawn}
+          disabled={isSigning || (!useSaved && !hasDrawn)}
           className="flex-1 py-3 rounded-full bg-[#0669F7] text-white font-semibold text-sm disabled:opacity-40 hover:bg-blue-700 transition-colors"
         >
           {isSigning ? t('worker_contracts.sign_signing') : t('worker_contracts.sign_complete')}
@@ -334,6 +376,14 @@ export default function WorkerContractDetailClient({ contractId }: Props) {
   )
   const [successMessage, setSuccessMessage] = React.useState<string | null>(null)
   const [showSignModal, setShowSignModal] = React.useState(false)
+  const [profileSigUrl, setProfileSigUrl] = React.useState<string | null>(null)
+
+  React.useEffect(() => {
+    if (!idToken) return
+    apiClient<{ signature_url?: string | null }>('/workers/me', { token: idToken })
+      .then(({ data }) => { if (data.signature_url) setProfileSigUrl(data.signature_url) })
+      .catch(() => {})
+  }, [idToken])
 
   const load = React.useCallback(() => {
     if (isDemo) return
@@ -409,7 +459,7 @@ export default function WorkerContractDetailClient({ contractId }: Props) {
               </button>
             </div>
             <div className="px-5 pb-8 sm:pb-5">
-              <SignaturePad contractId={contractId} token={idToken} onSuccess={handleSignSuccess} />
+              <SignaturePad contractId={contractId} token={idToken} savedSigUrl={profileSigUrl} onSuccess={handleSignSuccess} />
             </div>
           </div>
         </div>

@@ -3,6 +3,7 @@ package vn.gada.api.files
 import org.springframework.http.ResponseEntity
 import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.web.bind.annotation.*
+import org.springframework.web.multipart.MultipartFile
 import vn.gada.api.common.exception.BadRequestException
 import vn.gada.api.common.exception.UnauthorizedException
 import vn.gada.api.common.security.AuthUser
@@ -22,6 +23,17 @@ class FileController(private val fileService: FileService) {
         val contentType = body["contentType"] as? String ?: throw BadRequestException("contentType is required")
         val folder = body["folder"] as? String
         return ok(fileService.generatePresignedUrl(user.id, fileName, contentType, folder))
+    }
+
+    /** POST /files/upload-local — Local fallback when S3 is unavailable */
+    @PostMapping("/upload-local", consumes = ["multipart/form-data"])
+    fun uploadLocal(
+        @AuthenticationPrincipal user: AuthUser?,
+        @RequestParam("file") file: MultipartFile
+    ): ResponseEntity<Map<String, Any?>> {
+        if (user == null) throw UnauthorizedException("Unauthorized")
+        val contentType = file.contentType ?: "application/octet-stream"
+        return ok(fileService.storeLocal(file.bytes, contentType))
     }
 
     /** POST /files/confirm — Confirm upload completed */

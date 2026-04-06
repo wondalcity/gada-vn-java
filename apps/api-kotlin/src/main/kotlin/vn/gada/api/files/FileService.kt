@@ -23,20 +23,24 @@ class FileService(
     @Value("\${gada.aws.secret-access-key:}") private val secretAccessKey: String
 ) {
 
-    private val presigner: S3Presigner by lazy {
-        if (accessKeyId.isNotBlank() && secretAccessKey.isNotBlank()) {
-            S3Presigner.builder()
-                .region(Region.of(region))
-                .credentialsProvider(
-                    StaticCredentialsProvider.create(
-                        AwsBasicCredentials.create(accessKeyId, secretAccessKey)
+    private val presigner: S3Presigner? by lazy {
+        try {
+            if (accessKeyId.isNotBlank() && secretAccessKey.isNotBlank()) {
+                S3Presigner.builder()
+                    .region(Region.of(region))
+                    .credentialsProvider(
+                        StaticCredentialsProvider.create(
+                            AwsBasicCredentials.create(accessKeyId, secretAccessKey)
+                        )
                     )
-                )
-                .build()
-        } else {
-            S3Presigner.builder()
-                .region(Region.of(region))
-                .build()
+                    .build()
+            } else {
+                S3Presigner.builder()
+                    .region(Region.of(region))
+                    .build()
+            }
+        } catch (e: Exception) {
+            null
         }
     }
 
@@ -49,24 +53,31 @@ class FileService(
         val ext = fileName.substringAfterLast('.', "")
         val key = "${folder ?: "uploads"}/$userId/${UUID.randomUUID()}${if (ext.isNotEmpty()) ".$ext" else ""}"
 
-        val putObjectRequest = PutObjectRequest.builder()
-            .bucket(bucket)
-            .key(key)
-            .contentType(contentType)
-            .build()
+        val p = presigner
+        if (p != null) {
+            try {
+                val putObjectRequest = PutObjectRequest.builder()
+                    .bucket(bucket)
+                    .key(key)
+                    .contentType(contentType)
+                    .build()
+                val presignRequest = PutObjectPresignRequest.builder()
+                    .signatureDuration(Duration.ofSeconds(300))
+                    .putObjectRequest(putObjectRequest)
+                    .build()
+                val presignedRequest: PresignedPutObjectRequest = p.presignPutObject(presignRequest)
+                return mapOf("url" to presignedRequest.url().toString(), "key" to key, "expiresIn" to 300)
+            } catch (e: Exception) {
+                // Fall through to local upload
+            }
+        }
 
-        val presignRequest = PutObjectPresignRequest.builder()
-            .signatureDuration(Duration.ofSeconds(300))
-            .putObjectRequest(putObjectRequest)
-            .build()
+        return mapOf("isLocal" to true, "key" to key)
+    }
 
-        val presignedRequest: PresignedPutObjectRequest = presigner.presignPutObject(presignRequest)
-
-        return mapOf(
-            "url" to presignedRequest.url().toString(),
-            "key" to key,
-            "expiresIn" to 300
-        )
+    fun storeLocal(fileBytes: ByteArray, contentType: String): Map<String, Any?> {
+        val dataUrl = "data:$contentType;base64," + java.util.Base64.getEncoder().encodeToString(fileBytes)
+        return mapOf("key" to dataUrl)
     }
 
     fun confirmUpload(

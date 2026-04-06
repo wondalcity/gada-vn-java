@@ -4,7 +4,18 @@ import org.springframework.stereotype.Repository
 import vn.gada.api.common.database.DatabaseService
 
 @Repository
-class ContractRepository(private val db: DatabaseService) {
+class ContractRepository(
+    private val db: DatabaseService,
+    @org.springframework.beans.factory.annotation.Value("\${gada.aws.cdn-domain:}") private val cdnDomain: String
+) {
+
+    private fun toUrl(key: String?): String? {
+        if (key.isNullOrBlank()) return null
+        if (key.startsWith("http://") || key.startsWith("https://") || key.startsWith("data:")) return key
+        if (cdnDomain.isBlank()) return null
+        val base = if (cdnDomain.startsWith("http")) cdnDomain else "https://$cdnDomain"
+        return "$base/$key"
+    }
 
     fun findAcceptedApplication(applicationId: String, managerUserId: String): Map<String, Any?>? {
         return db.queryForList(
@@ -22,12 +33,43 @@ class ContractRepository(private val db: DatabaseService) {
     }
 
     fun findById(id: String): Map<String, Any?>? {
-        // Return null for non-UUID IDs rather than letting PostgreSQL throw a type error
         try { java.util.UUID.fromString(id) } catch (_: Exception) { return null }
-        return db.queryForList(
-            "SELECT * FROM app.contracts WHERE id = ?",
+        val row = db.queryForList(
+            """SELECT c.id, c.status,
+                      c.contract_html          AS "contractHtml",
+                      c.worker_signature_s3_key AS "workerSigRaw",
+                      c.manager_signature_s3_key AS "managerSigRaw",
+                      c.worker_signed_at        AS "workerSignedAt",
+                      c.manager_signed_at       AS "managerSignedAt",
+                      c.created_at              AS "createdAt",
+                      j.title                   AS "jobTitle",
+                      j.work_date               AS "workDate",
+                      j.start_time              AS "startTime",
+                      j.end_time                AS "endTime",
+                      j.slots_total             AS "slotsTotal",
+                      j.daily_wage              AS "dailyWage",
+                      s.name                    AS "siteName",
+                      s.address                 AS "siteAddress",
+                      wp.full_name              AS "workerName",
+                      uw.phone                  AS "workerPhone",
+                      mp.representative_name    AS "managerName",
+                      um.phone                  AS "managerPhone",
+                      mp.company_name           AS "companyName"
+               FROM app.contracts c
+               JOIN app.jobs j ON c.job_id = j.id
+               JOIN app.construction_sites s ON j.site_id = s.id
+               JOIN app.worker_profiles wp ON c.worker_id = wp.id
+               JOIN app.manager_profiles mp ON c.manager_id = mp.id
+               JOIN auth.users uw ON wp.user_id = uw.id
+               JOIN auth.users um ON mp.user_id = um.id
+               WHERE c.id = ?""",
             id
-        ).firstOrNull()
+        ).firstOrNull() ?: return null
+        return row + mapOf(
+            "workerSigUrl"  to toUrl(row["workerSigRaw"] as? String),
+            "managerSigUrl" to toUrl(row["managerSigRaw"] as? String),
+            "downloadUrl"   to null,
+        )
     }
 
     fun findByWorkerUserId(workerUserId: String): List<Map<String, Any?>> {
