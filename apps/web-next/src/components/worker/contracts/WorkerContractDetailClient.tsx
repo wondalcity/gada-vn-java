@@ -74,11 +74,14 @@ function SignaturePad({
         if (checkIsEmpty()) { setError(t('worker_contracts.sign_error_empty')); setIsSigning(false); return }
         signatureData = getDataUrl()
       }
-      await apiClient(`/contracts/${contractId}/sign`, {
-        method: 'POST',
-        token,
-        body: JSON.stringify({ signatureData }),
-      })
+      // Demo contracts: skip the real API call
+      if (!contractId.startsWith('demo-')) {
+        await apiClient(`/contracts/${contractId}/sign`, {
+          method: 'POST',
+          token,
+          body: JSON.stringify({ signatureData }),
+        })
+      }
       onSuccess()
     } catch (err) {
       setError(err instanceof Error ? err.message : t('worker_contracts.sign_error_generic'))
