@@ -509,6 +509,7 @@ function ExperienceTab({ profile, onSaved }: { profile: WorkerProfile; onSaved: 
   const [loading, setLoading] = React.useState(true)
   const [search, setSearch] = React.useState('')
   const [saving, setSaving] = React.useState(false)
+  const [saveError, setSaveError] = React.useState('')
   const [selectedMap, setSelectedMap] = React.useState<Map<number, number>>(new Map())
 
   const token = getSessionCookie()
@@ -538,7 +539,7 @@ function ExperienceTab({ profile, onSaved }: { profile: WorkerProfile; onSaved: 
     setSelectedMap(prev => {
       const next = new Map(prev)
       if (next.has(tradeId)) next.delete(tradeId)
-      else next.set(tradeId, 0)
+      else next.set(tradeId, 1)
       return next
     })
   }
@@ -553,6 +554,7 @@ function ExperienceTab({ profile, onSaved }: { profile: WorkerProfile; onSaved: 
 
   async function save() {
     setSaving(true)
+    setSaveError('')
     try {
       const skills = Array.from(selectedMap.entries())
         .sort((a, b) => b[1] - a[1])
@@ -568,10 +570,12 @@ function ExperienceTab({ profile, onSaved }: { profile: WorkerProfile; onSaved: 
         onSaved({
           primary_trade_id: primaryTrade?.id ?? null,
           trade_name_ko: primaryTrade?.nameKo ?? null,
-          experience_months: primaryTrade ? (selectedMap.get(primaryTrade.id) ?? 0) * 12 : 0,
+          experience_months: primaryTrade ? (selectedMap.get(primaryTrade.id) ?? 1) * 12 : 0,
         })
+      } else {
+        setSaveError(t('profile_tabs.experience.save_fail'))
       }
-    } catch { /* ignore */ }
+    } catch { setSaveError(t('profile_tabs.experience.save_fail')) }
     finally { setSaving(false) }
   }
 
@@ -591,9 +595,9 @@ function ExperienceTab({ profile, onSaved }: { profile: WorkerProfile; onSaved: 
                 </div>
                 <div className="flex items-center gap-1 shrink-0">
                   <input
-                    type="number" min={0} max={50}
-                    value={selectedMap.get(tr.id) ?? 0}
-                    onChange={e => setYears(tr.id, Number(e.target.value))}
+                    type="number" min={1} max={50}
+                    value={selectedMap.get(tr.id) ?? 1}
+                    onChange={e => setYears(tr.id, Math.max(1, Number(e.target.value)))}
                     className="w-14 px-2 py-1 rounded border border-[#0669F7] text-sm text-center bg-white focus:outline-none"
                   />
                   <span className="text-xs text-[#98A2B2]">{t('profile_tabs.experience.years_unit')}</span>
@@ -635,6 +639,7 @@ function ExperienceTab({ profile, onSaved }: { profile: WorkerProfile; onSaved: 
       </div>
 
       <p className="text-xs text-[#98A2B2]">{t('profile_tabs.experience.hint')}</p>
+      {saveError && <p className="text-sm text-[#D81A48]">{saveError}</p>}
       <SaveButton saving={saving} onClick={save} label={t('profile_tabs.shared_save')} />
     </div>
   )

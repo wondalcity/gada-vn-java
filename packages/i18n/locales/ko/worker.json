@@ -137,7 +137,8 @@
       "search_placeholder": "직종 검색 (예: 도장, 용접...)",
       "no_results": "검색 결과가 없습니다",
       "hint": "직종을 탭하여 선택/해제하고, 각 직종별 경력 연수를 입력하세요.",
-      "loading": "로딩 중..."
+      "loading": "로딩 중...",
+      "save_fail": "저장에 실패했습니다"
     },
     "address": {
       "search_label": "주소 검색",

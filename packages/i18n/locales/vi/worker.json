@@ -137,7 +137,8 @@
       "search_placeholder": "Tìm kiếm nghề (vd: sơn, hàn...)",
       "no_results": "Không tìm thấy kết quả",
       "hint": "Nhấn để chọn/bỏ chọn nghề và nhập số năm kinh nghiệm cho từng nghề.",
-      "loading": "Đang tải..."
+      "loading": "Đang tải...",
+      "save_fail": "Lưu thất bại"
     },
     "address": {
       "search_label": "Tìm kiếm địa chỉ",
