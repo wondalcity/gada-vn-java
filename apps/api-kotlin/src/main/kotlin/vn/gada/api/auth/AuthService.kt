@@ -130,6 +130,42 @@ class AuthService(
         }
     }
 
+    // ── Phone change (authenticated) ────────────────────────────────────────
+
+    fun sendPhoneChangeOtp(userId: String, newPhone: String): Map<String, Any?> {
+        val normalized = normalizePhone(newPhone)
+        // Check phone isn't already used by a different user
+        val existing = repo.findByPhone(normalized)
+        if (existing != null && existing["id"] != userId) {
+            throw BadRequestException("이미 사용 중인 전화번호입니다.")
+        }
+        val otp = otpStore.generateOtp()
+        otpStore.save(normalized, otp)
+        log.info("[OTP-PHONE-CHANGE] {}: {}", normalized, otp)
+        return if (isDev) {
+            mapOf("message" to "인증번호가 발송되었습니다.", "devOtp" to otp)
+        } else {
+            mapOf("message" to "인증번호가 발송되었습니다.")
+        }
+    }
+
+    fun updatePhone(userId: String, newPhone: String, otp: String): Map<String, Any?> {
+        val normalized = normalizePhone(newPhone)
+        if (otpStore.isExpiredOrMissing(normalized)) {
+            throw UnauthorizedException("인증번호가 만료되었습니다.")
+        }
+        if (!otpStore.verify(normalized, otp)) {
+            throw UnauthorizedException("인증번호가 올바르지 않습니다.")
+        }
+        // Check phone isn't already used by a different user
+        val existing = repo.findByPhone(normalized)
+        if (existing != null && existing["id"] != userId) {
+            throw BadRequestException("이미 사용 중인 전화번호입니다.")
+        }
+        repo.updatePhone(userId, normalized)
+        return repo.getMeProfile(userId) ?: mapOf("success" to true)
+    }
+
     // ── Email + password login ────────────────────────────────────────────────
 
     fun loginEmail(email: String, password: String): Map<String, Any?> {

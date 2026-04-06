@@ -235,6 +235,13 @@ class AuthRepository(private val db: DatabaseService) {
         return user
     }
 
+    fun updatePhone(userId: String, phone: String) {
+        db.updateRaw(
+            "UPDATE auth.users SET phone = ?, updated_at = NOW() WHERE id = ?",
+            phone, userId
+        )
+    }
+
     fun updateProfile(userId: String, name: String?, email: String?): Map<String, Any?>? {
         if (email != null) {
             db.updateRaw(

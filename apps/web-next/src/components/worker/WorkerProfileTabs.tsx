@@ -233,6 +233,59 @@ function BasicTab({ profile, onSaved }: { profile: WorkerProfile; onSaved: (p: P
   const [imageError, setImageError] = React.useState('')
   const imageInputRef = React.useRef<HTMLInputElement>(null)
 
+  // Phone change state
+  const [phone, setPhone] = React.useState(profile.phone ?? '')
+  const [showPhoneModal, setShowPhoneModal] = React.useState(false)
+  const [newPhone, setNewPhone] = React.useState('')
+  const [phoneOtp, setPhoneOtp] = React.useState('')
+  const [otpSent, setOtpSent] = React.useState(false)
+  const [phoneSending, setPhoneSending] = React.useState(false)
+  const [phoneVerifying, setPhoneVerifying] = React.useState(false)
+  const [phoneError, setPhoneError] = React.useState('')
+
+  async function handleSendPhoneOtp() {
+    if (!newPhone.trim()) { setPhoneError(t('profile_tabs.basic.phone_required')); return }
+    setPhoneSending(true); setPhoneError('')
+    try {
+      const res = await fetch(`${API_BASE}/auth/phone/send-otp`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone: newPhone.trim() }),
+      })
+      const body = await res.json()
+      if (!res.ok) { setPhoneError(body?.message ?? t('profile_tabs.basic.phone_send_error')); return }
+      setOtpSent(true)
+      // In dev/staging: devOtp is returned for convenience
+      if (body.data?.devOtp) setPhoneOtp(body.data.devOtp)
+    } catch { setPhoneError(t('profile_tabs.basic.phone_send_error')) }
+    finally { setPhoneSending(false) }
+  }
+
+  async function handleVerifyPhoneOtp() {
+    if (!phoneOtp.trim()) { setPhoneError(t('profile_tabs.basic.otp_required')); return }
+    setPhoneVerifying(true); setPhoneError('')
+    try {
+      const res = await fetch(`${API_BASE}/auth/phone/update`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone: newPhone.trim(), otp: phoneOtp.trim() }),
+      })
+      const body = await res.json()
+      if (!res.ok) { setPhoneError(body?.message ?? t('profile_tabs.basic.phone_verify_error')); return }
+      const updatedPhone = body.data?.phone ?? newPhone.trim()
+      setPhone(updatedPhone)
+      onSaved({ phone: updatedPhone })
+      setShowPhoneModal(false)
+      setNewPhone(''); setPhoneOtp(''); setOtpSent(false)
+    } catch { setPhoneError(t('profile_tabs.basic.phone_verify_error')) }
+    finally { setPhoneVerifying(false) }
+  }
+
+  function openPhoneModal() {
+    setNewPhone(''); setPhoneOtp(''); setOtpSent(false); setPhoneError('')
+    setShowPhoneModal(true)
+  }
+
   const token = getSessionCookie()
 
   const maxDate = React.useMemo(() => {
@@ -351,13 +404,86 @@ function BasicTab({ profile, onSaved }: { profile: WorkerProfile; onSaved: (p: P
           placeholder={t('profile_tabs.basic.bio_placeholder')} className={`${inputCls} resize-none`} />
         <p className="text-xs text-[#98A2B2] text-right mt-1">{bio.length}/500</p>
       </Field>
-      {/* 전화번호 (읽기전용) */}
-      {profile.phone && (
-        <Field label={t('profile_tabs.basic.phone_label')}>
-          <div className={`${inputCls} bg-[#F8F8FA] text-[#98A2B2] cursor-not-allowed`}>
-            {profile.phone}
+      {/* 전화번호 */}
+      <Field label={t('profile_tabs.basic.phone_label')}>
+        <div className="flex items-center gap-2">
+          <div className={`flex-1 ${inputCls} bg-[#F8F8FA] text-[#25282A]`}>
+            {phone || t('profile_tabs.basic.phone_placeholder')}
           </div>
-        </Field>
+          <button
+            type="button"
+            onClick={openPhoneModal}
+            className="shrink-0 px-3 py-2.5 rounded-lg border border-[#0669F7] text-[#0669F7] text-xs font-medium hover:bg-blue-50 transition-colors"
+          >
+            {t('profile_tabs.basic.phone_change')}
+          </button>
+        </div>
+      </Field>
+
+      {/* Phone change modal */}
+      {showPhoneModal && (
+        <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/40" onClick={() => setShowPhoneModal(false)}>
+          <div className="w-full max-w-md bg-white rounded-t-2xl p-6 space-y-4" onClick={e => e.stopPropagation()}>
+            <h3 className="text-base font-semibold text-[#25282A]">{t('profile_tabs.basic.phone_change')}</h3>
+            <div className="space-y-3">
+              <div>
+                <label className="block text-xs font-medium text-[#98A2B2] mb-1">{t('profile_tabs.basic.phone_new_label')}</label>
+                <div className="flex gap-2">
+                  <input
+                    type="tel"
+                    value={newPhone}
+                    onChange={e => { setNewPhone(e.target.value); setOtpSent(false); setPhoneError('') }}
+                    placeholder={t('profile_tabs.basic.phone_new_placeholder')}
+                    className={`flex-1 ${inputCls}`}
+                    disabled={phoneSending}
+                  />
+                  <button
+                    type="button"
+                    onClick={handleSendPhoneOtp}
+                    disabled={phoneSending || !newPhone.trim()}
+                    className="shrink-0 px-3 py-2.5 rounded-lg bg-[#0669F7] text-white text-xs font-medium disabled:opacity-40"
+                  >
+                    {phoneSending ? '...' : t('profile_tabs.basic.phone_send_otp')}
+                  </button>
+                </div>
+              </div>
+              {otpSent && (
+                <div>
+                  <label className="block text-xs font-medium text-[#98A2B2] mb-1">{t('profile_tabs.basic.phone_otp_label')}</label>
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    maxLength={6}
+                    value={phoneOtp}
+                    onChange={e => { setPhoneOtp(e.target.value); setPhoneError('') }}
+                    placeholder={t('profile_tabs.basic.phone_otp_placeholder')}
+                    className={inputCls}
+                  />
+                </div>
+              )}
+              {phoneError && <p className="text-xs text-[#D81A48]">{phoneError}</p>}
+            </div>
+            <div className="flex gap-2 pt-1">
+              <button
+                type="button"
+                onClick={() => setShowPhoneModal(false)}
+                className="flex-1 py-3 rounded-full border border-[#EFF1F5] text-[#98A2B2] text-sm font-medium"
+              >
+                {t('profile_tabs.basic.phone_cancel')}
+              </button>
+              {otpSent && (
+                <button
+                  type="button"
+                  onClick={handleVerifyPhoneOtp}
+                  disabled={phoneVerifying || !phoneOtp.trim()}
+                  className="flex-1 py-3 rounded-full bg-[#0669F7] text-white text-sm font-medium disabled:opacity-40"
+                >
+                  {phoneVerifying ? t('profile_tabs.basic.phone_verifying') : t('profile_tabs.basic.phone_verify')}
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
       )}
 
       {/* 이메일 */}

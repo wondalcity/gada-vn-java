@@ -18,6 +18,43 @@ class AuthController(private val authService: AuthService) {
         return ok(profile)
     }
 
+    /** PATCH /auth/me — Update email */
+    @PatchMapping("/me")
+    fun updateMe(
+        @AuthenticationPrincipal user: AuthUser?,
+        @RequestBody body: Map<String, Any?>
+    ): ResponseEntity<Map<String, Any?>> {
+        if (user == null) throw UnauthorizedException("Unauthorized")
+        val email = body["email"] as? String
+        val result = authService.updateProfile(user.id, null, email)
+        return ok(result)
+    }
+
+    /** POST /auth/phone/send-otp — Send OTP to new phone for phone change (authenticated) */
+    @PostMapping("/phone/send-otp")
+    fun sendPhoneChangeOtp(
+        @AuthenticationPrincipal user: AuthUser?,
+        @RequestBody body: Map<String, Any?>
+    ): ResponseEntity<Map<String, Any?>> {
+        if (user == null) throw UnauthorizedException("Unauthorized")
+        val phone = body["phone"] as? String ?: throw vn.gada.api.common.exception.BadRequestException("phone is required")
+        val result = authService.sendPhoneChangeOtp(user.id, phone)
+        return ok(result)
+    }
+
+    /** POST /auth/phone/update — Verify OTP and update phone number (authenticated) */
+    @PostMapping("/phone/update")
+    fun updatePhone(
+        @AuthenticationPrincipal user: AuthUser?,
+        @RequestBody body: Map<String, Any?>
+    ): ResponseEntity<Map<String, Any?>> {
+        if (user == null) throw UnauthorizedException("Unauthorized")
+        val phone = body["phone"] as? String ?: throw vn.gada.api.common.exception.BadRequestException("phone is required")
+        val otp = body["otp"] as? String ?: throw vn.gada.api.common.exception.BadRequestException("otp is required")
+        val result = authService.updatePhone(user.id, phone, otp)
+        return ok(result)
+    }
+
     /** POST /auth/register — Complete profile after OTP login */
     @PostMapping("/register")
     fun register(
