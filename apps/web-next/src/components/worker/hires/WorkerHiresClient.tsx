@@ -28,7 +28,7 @@ const DEMO_HIRES: HireWithContractId[] = [
     appliedAt: '2026-03-20T08:00:00Z',
     reviewedAt: '2026-03-22T10:00:00Z',
     managerName: 'Kim Soo-jin',
-    contractId: 'ctr-1',
+    contractId: 'demo-ctr-1',
   },
   {
     id: 'demo-hire-2',
