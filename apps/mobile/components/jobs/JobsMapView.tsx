@@ -3,7 +3,7 @@ import {
   View, Text, TouchableOpacity, StyleSheet, Animated,
   Dimensions, Platform,
 } from 'react-native';
-import MapView, { Marker, Circle, Region, MapPressEvent } from 'react-native-maps';
+import MapView, { Marker, Region, MapPressEvent } from 'react-native-maps';
 import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
 import type { JobWithSite } from '@gada-vn/core';
@@ -103,7 +103,7 @@ function JobCard({
             )}
           </View>
 
-          <Text style={styles.cardDate}>{formatDate(job.workDate?.toString() ?? '')}</Text>
+          <Text style={styles.cardDate}>{formatDate(job.workDate ?? '')}</Text>
         </View>
       </View>
 

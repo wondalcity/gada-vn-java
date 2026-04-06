@@ -824,7 +824,7 @@ export default function JobsMapView({
           <div
             key={cardKey}
             className="absolute left-3 right-3 z-[520] pointer-events-auto"
-            style={{ bottom: '88px' }}
+            style={{ bottom: 'calc(72px + max(16px, env(safe-area-inset-bottom, 16px)))' }}
           >
             <MobileJobCard
               job={selectedJob}
