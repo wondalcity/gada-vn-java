@@ -25,8 +25,18 @@ class ApplicationRepository(private val db: DatabaseService) {
     fun findByWorkerUserId(userId: String, page: Int, limit: Int): List<Map<String, Any?>> {
         val offset = (page - 1) * limit
         return db.queryForList(
-            """SELECT a.*, j.title as job_title, j.work_date, j.daily_wage,
-                      s.name as site_name, s.address
+            """SELECT a.id,
+                      a.job_id         AS "jobId",
+                      a.status,
+                      a.notes,
+                      a.applied_at     AS "appliedAt",
+                      a.reviewed_at    AS "reviewedAt",
+                      j.title          AS "jobTitle",
+                      j.work_date      AS "workDate",
+                      j.daily_wage     AS "dailyWage",
+                      j.site_id        AS "siteId",
+                      s.name           AS "siteName",
+                      s.address
                FROM app.job_applications a
                JOIN app.worker_profiles wp ON a.worker_id = wp.id
                JOIN app.jobs j ON a.job_id = j.id

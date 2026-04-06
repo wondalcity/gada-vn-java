@@ -23,6 +23,15 @@ class ContractController(private val contractService: ContractService) {
         return ok(contractService.generate(u.id, applicationId))
     }
 
+    /** GET /contracts/mine — Worker lists their own contracts */
+    @GetMapping("/mine")
+    fun getMyContracts(
+        @AuthenticationPrincipal user: AuthUser?
+    ): ResponseEntity<Map<String, Any?>> {
+        val u = requireWorker(user)
+        return ok(contractService.findByWorker(u.id))
+    }
+
     /** GET /contracts/:id — Worker or Manager retrieves a contract */
     @GetMapping("/{id}")
     fun getContract(

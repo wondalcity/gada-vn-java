@@ -22,10 +22,33 @@ class ContractRepository(private val db: DatabaseService) {
     }
 
     fun findById(id: String): Map<String, Any?>? {
+        // Return null for non-UUID IDs rather than letting PostgreSQL throw a type error
+        try { java.util.UUID.fromString(id) } catch (_: Exception) { return null }
         return db.queryForList(
             "SELECT * FROM app.contracts WHERE id = ?",
             id
         ).firstOrNull()
+    }
+
+    fun findByWorkerUserId(workerUserId: String): List<Map<String, Any?>> {
+        return db.queryForList(
+            """SELECT c.id, c.status,
+                      j.title          AS "jobTitle",
+                      j.work_date      AS "workDate",
+                      j.daily_wage     AS "dailyWage",
+                      s.name           AS "siteName",
+                      mp.representative_name AS "managerName",
+                      c.worker_signed_at     AS "workerSignedAt",
+                      c.created_at           AS "createdAt"
+               FROM app.contracts c
+               JOIN app.jobs j ON c.job_id = j.id
+               JOIN app.construction_sites s ON j.site_id = s.id
+               JOIN app.worker_profiles wp ON c.worker_id = wp.id
+               JOIN app.manager_profiles mp ON c.manager_id = mp.id
+               WHERE wp.user_id = ?
+               ORDER BY c.created_at DESC""",
+            workerUserId
+        )
     }
 
     fun isUserPartyToContract(contractId: String, userId: String): Boolean {
