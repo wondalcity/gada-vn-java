@@ -6,8 +6,10 @@ import software.amazon.awssdk.auth.credentials.AwsBasicCredentials
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider
 import software.amazon.awssdk.regions.Region
 import software.amazon.awssdk.services.s3.S3Client
+import software.amazon.awssdk.services.s3.model.GetObjectRequest
 import software.amazon.awssdk.services.s3.model.PutObjectRequest
 import software.amazon.awssdk.services.s3.presigner.S3Presigner
+import software.amazon.awssdk.services.s3.presigner.model.GetObjectPresignRequest
 import software.amazon.awssdk.services.s3.presigner.model.PresignedPutObjectRequest
 import software.amazon.awssdk.services.s3.presigner.model.PutObjectPresignRequest
 import vn.gada.api.common.database.DatabaseService
@@ -17,8 +19,9 @@ import java.util.UUID
 @Service
 class FileService(
     private val db: DatabaseService,
-    @Value("\${gada.aws.region:ap-southeast-1}") private val region: String,
-    @Value("\${gada.aws.bucket:gada-uploads}") private val bucket: String,
+    @Value("\${gada.aws.region:ap-southeast-1}") val region: String,
+    @Value("\${gada.aws.bucket:gada-vn-staging-uploads}") val bucket: String,
+    @Value("\${gada.aws.cdn-domain:}") val cdnDomain: String,
     @Value("\${gada.aws.access-key-id:}") private val accessKeyId: String,
     @Value("\${gada.aws.secret-access-key:}") private val secretAccessKey: String
 ) {
@@ -78,6 +81,34 @@ class FileService(
     fun storeLocal(fileBytes: ByteArray, contentType: String): Map<String, Any?> {
         val dataUrl = "data:$contentType;base64," + java.util.Base64.getEncoder().encodeToString(fileBytes)
         return mapOf("key" to dataUrl)
+    }
+
+    /**
+     * Convert an S3 key to a publicly accessible URL.
+     * - data: / http(s): URIs are returned as-is
+     * - If CDN domain is configured, prepends CDN domain
+     * - Otherwise generates a presigned GET URL valid for 1 hour
+     * - Returns null if presigning fails (S3 not available)
+     */
+    fun toPublicUrl(key: String?): String? {
+        if (key.isNullOrBlank()) return null
+        if (key.startsWith("http://") || key.startsWith("https://") || key.startsWith("data:")) return key
+        if (cdnDomain.isNotBlank()) {
+            val base = if (cdnDomain.startsWith("http")) cdnDomain else "https://$cdnDomain"
+            return "$base/$key"
+        }
+        // No CDN — generate presigned GET URL
+        val p = presigner ?: return null
+        return try {
+            val getRequest = GetObjectRequest.builder().bucket(bucket).key(key).build()
+            val presignReq = GetObjectPresignRequest.builder()
+                .signatureDuration(Duration.ofHours(1))
+                .getObjectRequest(getRequest)
+                .build()
+            p.presignGetObject(presignReq).url().toString()
+        } catch (e: Exception) {
+            null
+        }
     }
 
     fun confirmUpload(

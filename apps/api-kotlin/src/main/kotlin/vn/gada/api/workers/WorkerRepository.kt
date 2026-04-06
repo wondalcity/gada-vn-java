@@ -1,22 +1,14 @@
 package vn.gada.api.workers
 
-import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Repository
 import vn.gada.api.common.database.DatabaseService
+import vn.gada.api.files.FileService
 
 @Repository
 class WorkerRepository(
     private val db: DatabaseService,
-    @Value("\${gada.aws.cdn-domain:}") private val cdnDomain: String
+    private val fileService: FileService
 ) {
-
-    private fun toUrl(key: String?): String? {
-        if (key.isNullOrBlank()) return null
-        if (key.startsWith("http://") || key.startsWith("https://") || key.startsWith("data:")) return key
-        if (cdnDomain.isBlank()) return null
-        val base = if (cdnDomain.startsWith("http")) cdnDomain else "https://$cdnDomain"
-        return "$base/$key"
-    }
 
     fun findByUserId(userId: String): Map<String, Any?>? {
         val rows = db.queryForList(
@@ -54,11 +46,11 @@ class WorkerRepository(
         )
         val row = rows.firstOrNull() ?: return null
         return row + mapOf(
-            "profile_image_url" to toUrl(row["profile_picture_s3_key"] as? String),
-            "signature_url"     to toUrl(row["signature_s3_key"] as? String),
-            "id_front_url"      to toUrl(row["id_front_s3_key"] as? String),
-            "id_back_url"       to toUrl(row["id_back_s3_key"] as? String),
-            "bank_book_url"     to toUrl(row["bank_book_s3_key"] as? String),
+            "profile_image_url" to fileService.toPublicUrl(row["profile_picture_s3_key"] as? String),
+            "signature_url"     to fileService.toPublicUrl(row["signature_s3_key"] as? String),
+            "id_front_url"      to fileService.toPublicUrl(row["id_front_s3_key"] as? String),
+            "id_back_url"       to fileService.toPublicUrl(row["id_back_s3_key"] as? String),
+            "bank_book_url"     to fileService.toPublicUrl(row["bank_book_s3_key"] as? String),
         )
     }
 

@@ -6,16 +6,8 @@ import vn.gada.api.common.database.DatabaseService
 @Repository
 class ContractRepository(
     private val db: DatabaseService,
-    @org.springframework.beans.factory.annotation.Value("\${gada.aws.cdn-domain:}") private val cdnDomain: String
+    private val fileService: vn.gada.api.files.FileService
 ) {
-
-    private fun toUrl(key: String?): String? {
-        if (key.isNullOrBlank()) return null
-        if (key.startsWith("http://") || key.startsWith("https://") || key.startsWith("data:")) return key
-        if (cdnDomain.isBlank()) return null
-        val base = if (cdnDomain.startsWith("http")) cdnDomain else "https://$cdnDomain"
-        return "$base/$key"
-    }
 
     fun findAcceptedApplication(applicationId: String, managerUserId: String): Map<String, Any?>? {
         return db.queryForList(
@@ -66,8 +58,8 @@ class ContractRepository(
             id
         ).firstOrNull() ?: return null
         return row + mapOf(
-            "workerSigUrl"  to toUrl(row["workerSigRaw"] as? String),
-            "managerSigUrl" to toUrl(row["managerSigRaw"] as? String),
+            "workerSigUrl"  to fileService.toPublicUrl(row["workerSigRaw"] as? String),
+            "managerSigUrl" to fileService.toPublicUrl(row["managerSigRaw"] as? String),
             "downloadUrl"   to null,
         )
     }
