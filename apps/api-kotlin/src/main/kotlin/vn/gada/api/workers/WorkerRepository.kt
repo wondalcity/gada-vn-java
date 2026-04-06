@@ -127,7 +127,8 @@ class WorkerRepository(
         ).firstOrNull()?.get("id") as? String ?: return emptyList()
         db.update("DELETE FROM app.worker_trade_skills WHERE worker_id = ?", workerId)
         for (skill in skills) {
-            val tradeId = skill["tradeId"]?.toString() ?: continue
+            val tradeId = (skill["tradeId"] as? Number)?.toInt()
+                ?: skill["tradeId"]?.toString()?.toIntOrNull() ?: continue
             val years = (skill["years"] as? Number)?.toInt() ?: 0
             db.updateRaw(
                 """INSERT INTO app.worker_trade_skills (worker_id, trade_id, years)
@@ -140,10 +141,14 @@ class WorkerRepository(
         if (skills.isNotEmpty()) {
             val top = skills.maxByOrNull { (it["years"] as? Number)?.toInt() ?: 0 }
             top?.get("tradeId")?.let { topTradeId ->
-                db.updateRaw(
-                    "UPDATE app.worker_profiles SET primary_trade_id = ?, updated_at = NOW() WHERE user_id = ?",
-                    topTradeId.toString(), userId
-                )
+                val topId = (topTradeId as? Number)?.toInt()
+                    ?: topTradeId.toString().toIntOrNull()
+                if (topId != null) {
+                    db.updateRaw(
+                        "UPDATE app.worker_profiles SET primary_trade_id = ?, updated_at = NOW() WHERE user_id = ?",
+                        topId, userId
+                    )
+                }
             }
         }
         return findTradeSkillsByUserId(userId)

@@ -424,8 +424,8 @@ function BasicTab({ profile, onSaved }: { profile: WorkerProfile; onSaved: (p: P
 
       {/* Phone change modal */}
       {showPhoneModal && (
-        <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/40" onClick={() => setShowPhoneModal(false)}>
-          <div className="w-full max-w-md bg-white rounded-t-2xl p-6 space-y-4" onClick={e => e.stopPropagation()}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" onClick={() => setShowPhoneModal(false)}>
+          <div className="w-full max-w-md bg-white rounded-2xl p-6 space-y-4 mx-4" onClick={e => e.stopPropagation()}>
             <h3 className="text-base font-semibold text-[#25282A]">{t('profile_tabs.basic.phone_change')}</h3>
             <div className="space-y-3">
               <PhoneInput
