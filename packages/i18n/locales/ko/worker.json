@@ -115,6 +115,7 @@
       "phone_new_label": "새 전화번호",
       "phone_new_placeholder": "예: 010-1234-5678",
       "phone_send_otp": "인증번호 받기",
+      "phone_sent": "인증번호 발송됨",
       "phone_otp_label": "인증번호",
       "phone_otp_placeholder": "6자리 인증번호 입력",
       "phone_cancel": "취소",

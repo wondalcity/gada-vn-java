@@ -120,6 +120,12 @@ class AuthService(
                 repo.ensureWorkerProfile(dbUser["id"] as String, normalized)
                 isNewUser = true
             }
+        } else {
+            // Found by firebase UID — sync phone if it differs (OTP proves ownership of normalized)
+            if (dbUser["phone"] != normalized) {
+                repo.updatePhone(dbUser["id"] as String, normalized)
+                dbUser = dbUser.toMutableMap().apply { put("phone", normalized) }
+            }
         }
 
         return if (isDev) {

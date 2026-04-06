@@ -6,16 +6,10 @@ import vn.gada.api.common.database.DatabaseService
 @Repository
 class AdminRepository(
     private val db: DatabaseService,
-    @org.springframework.beans.factory.annotation.Value("\${gada.aws.cdn-domain:}") private val cdnDomain: String
+    private val fileService: vn.gada.api.files.FileService
 ) {
 
-    private fun toUrl(key: String?): String? {
-        if (key.isNullOrBlank()) return null
-        if (key.startsWith("http://") || key.startsWith("https://")) return key
-        if (cdnDomain.isBlank()) return null
-        val base = if (cdnDomain.startsWith("http")) cdnDomain else "https://$cdnDomain"
-        return "$base/$key"
-    }
+    private fun toUrl(key: String?) = fileService.toPublicUrl(key)
 
     // sanitize() is now handled by DatabaseService.coerceValue() for all queries.
     // Keep a no-op passthrough for call sites that still reference it.

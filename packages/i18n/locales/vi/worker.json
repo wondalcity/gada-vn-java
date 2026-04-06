@@ -115,6 +115,7 @@
       "phone_new_label": "Số điện thoại mới",
       "phone_new_placeholder": "VD: 090-1234-5678",
       "phone_send_otp": "Gửi mã OTP",
+      "phone_sent": "Đã gửi mã OTP",
       "phone_otp_label": "Mã xác nhận",
       "phone_otp_placeholder": "Nhập mã 6 chữ số",
       "phone_cancel": "Hủy",

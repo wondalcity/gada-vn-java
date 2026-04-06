@@ -21,4 +21,14 @@ class WorkerService(private val repo: WorkerRepository) {
     fun getAttendance(userId: String, jobId: String?): List<Map<String, Any?>> {
         return repo.findAttendanceByUserId(userId, jobId)
     }
+
+    fun getTradeSkills(userId: String): List<Map<String, Any?>> {
+        return repo.findTradeSkillsByUserId(userId)
+    }
+
+    fun updateTradeSkills(userId: String, body: Map<String, Any?>): List<Map<String, Any?>> {
+        @Suppress("UNCHECKED_CAST")
+        val skills = body["skills"] as? List<Map<String, Any?>> ?: emptyList()
+        return repo.updateTradeSkillsByUserId(userId, skills)
+    }
 }

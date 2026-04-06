@@ -5,6 +5,7 @@ import { useTranslations } from 'next-intl'
 import { useRouter, usePathname } from '@/i18n/navigation'
 import { getSessionCookie, clearSessionCookie } from '@/lib/auth/session'
 import { getGoogleMapsLoader } from '@/lib/maps/loader'
+import { PhoneInput, validatePhone } from '@/components/auth/PhoneInput'
 
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'https://api.gada.vn/api/v1'
 const CDN_DOMAIN = process.env.NEXT_PUBLIC_CDN_DOMAIN ?? ''
@@ -244,13 +245,14 @@ function BasicTab({ profile, onSaved }: { profile: WorkerProfile; onSaved: (p: P
   const [phoneError, setPhoneError] = React.useState('')
 
   async function handleSendPhoneOtp() {
-    if (!newPhone.trim()) { setPhoneError(t('profile_tabs.basic.phone_required')); return }
+    const validationKey = validatePhone(newPhone)
+    if (validationKey) { setPhoneError(t('profile_tabs.basic.phone_required')); return }
     setPhoneSending(true); setPhoneError('')
     try {
       const res = await fetch(`${API_BASE}/auth/phone/send-otp`, {
         method: 'POST',
         headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phone: newPhone.trim() }),
+        body: JSON.stringify({ phone: newPhone }),
       })
       const body = await res.json()
       if (!res.ok) { setPhoneError(body?.message ?? t('profile_tabs.basic.phone_send_error')); return }
@@ -282,7 +284,7 @@ function BasicTab({ profile, onSaved }: { profile: WorkerProfile; onSaved: (p: P
   }
 
   function openPhoneModal() {
-    setNewPhone(''); setPhoneOtp(''); setOtpSent(false); setPhoneError('')
+    setNewPhone('+84'); setPhoneOtp(''); setOtpSent(false); setPhoneError('')
     setShowPhoneModal(true)
   }
 
@@ -426,27 +428,21 @@ function BasicTab({ profile, onSaved }: { profile: WorkerProfile; onSaved: (p: P
           <div className="w-full max-w-md bg-white rounded-t-2xl p-6 space-y-4" onClick={e => e.stopPropagation()}>
             <h3 className="text-base font-semibold text-[#25282A]">{t('profile_tabs.basic.phone_change')}</h3>
             <div className="space-y-3">
-              <div>
-                <label className="block text-xs font-medium text-[#98A2B2] mb-1">{t('profile_tabs.basic.phone_new_label')}</label>
-                <div className="flex gap-2">
-                  <input
-                    type="tel"
-                    value={newPhone}
-                    onChange={e => { setNewPhone(e.target.value); setOtpSent(false); setPhoneError('') }}
-                    placeholder={t('profile_tabs.basic.phone_new_placeholder')}
-                    className={`flex-1 ${inputCls}`}
-                    disabled={phoneSending}
-                  />
-                  <button
-                    type="button"
-                    onClick={handleSendPhoneOtp}
-                    disabled={phoneSending || !newPhone.trim()}
-                    className="shrink-0 px-3 py-2.5 rounded-lg bg-[#0669F7] text-white text-xs font-medium disabled:opacity-40"
-                  >
-                    {phoneSending ? '...' : t('profile_tabs.basic.phone_send_otp')}
-                  </button>
-                </div>
-              </div>
+              <PhoneInput
+                value={newPhone}
+                onChange={v => { setNewPhone(v); setOtpSent(false); setPhoneError('') }}
+                label={t('profile_tabs.basic.phone_new_label')}
+                disabled={phoneSending || otpSent}
+                error={!otpSent ? phoneError : undefined}
+              />
+              <button
+                type="button"
+                onClick={handleSendPhoneOtp}
+                disabled={phoneSending || otpSent || newPhone.length < 8}
+                className="w-full py-3 rounded-2xl bg-[#0669F7] text-white text-sm font-medium disabled:opacity-40 transition-colors"
+              >
+                {phoneSending ? '...' : otpSent ? t('profile_tabs.basic.phone_sent') : t('profile_tabs.basic.phone_send_otp')}
+              </button>
               {otpSent && (
                 <div>
                   <label className="block text-xs font-medium text-[#98A2B2] mb-1">{t('profile_tabs.basic.phone_otp_label')}</label>
@@ -458,10 +454,11 @@ function BasicTab({ profile, onSaved }: { profile: WorkerProfile; onSaved: (p: P
                     onChange={e => { setPhoneOtp(e.target.value); setPhoneError('') }}
                     placeholder={t('profile_tabs.basic.phone_otp_placeholder')}
                     className={inputCls}
+                    autoFocus
                   />
                 </div>
               )}
-              {phoneError && <p className="text-xs text-[#D81A48]">{phoneError}</p>}
+              {otpSent && phoneError && <p className="text-xs text-[#D81A48]">{phoneError}</p>}
             </div>
             <div className="flex gap-2 pt-1">
               <button

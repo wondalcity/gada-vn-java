@@ -35,6 +35,23 @@ class WorkerController(private val workerService: WorkerService) {
         return ok(workerService.getHires(u.id))
     }
 
+    /** GET /workers/me/trade-skills */
+    @GetMapping("/me/trade-skills")
+    fun getMyTradeSkills(@AuthenticationPrincipal user: AuthUser?): ResponseEntity<Map<String, Any?>> {
+        val u = requireWorker(user)
+        return ok(workerService.getTradeSkills(u.id))
+    }
+
+    /** PUT /workers/me/trade-skills */
+    @PutMapping("/me/trade-skills")
+    fun updateMyTradeSkills(
+        @AuthenticationPrincipal user: AuthUser?,
+        @RequestBody body: Map<String, Any?>
+    ): ResponseEntity<Map<String, Any?>> {
+        val u = requireWorker(user)
+        return ok(workerService.updateTradeSkills(u.id, body))
+    }
+
     /** GET /workers/attendance */
     @GetMapping("/attendance")
     fun getMyAttendance(

@@ -110,6 +110,45 @@ class WorkerRepository(
         }
     }
 
+    fun findTradeSkillsByUserId(userId: String): List<Map<String, Any?>> {
+        return db.queryForList(
+            """SELECT wts.trade_id, wts.years, t.name_ko, t.name_vi, t.code
+               FROM app.worker_trade_skills wts
+               JOIN ref.construction_trades t ON wts.trade_id = t.id
+               WHERE wts.worker_id = (SELECT id FROM app.worker_profiles WHERE user_id = ?)
+               ORDER BY wts.years DESC""",
+            userId
+        )
+    }
+
+    fun updateTradeSkillsByUserId(userId: String, skills: List<Map<String, Any?>>): List<Map<String, Any?>> {
+        val workerId = db.queryForList(
+            "SELECT id FROM app.worker_profiles WHERE user_id = ?", userId
+        ).firstOrNull()?.get("id") as? String ?: return emptyList()
+        db.update("DELETE FROM app.worker_trade_skills WHERE worker_id = ?", workerId)
+        for (skill in skills) {
+            val tradeId = skill["tradeId"]?.toString() ?: continue
+            val years = (skill["years"] as? Number)?.toInt() ?: 0
+            db.updateRaw(
+                """INSERT INTO app.worker_trade_skills (worker_id, trade_id, years)
+                   VALUES (?, ?, ?)
+                   ON CONFLICT (worker_id, trade_id) DO UPDATE SET years = EXCLUDED.years""",
+                workerId, tradeId, years
+            )
+        }
+        // Also update primary_trade_id to the skill with most years
+        if (skills.isNotEmpty()) {
+            val top = skills.maxByOrNull { (it["years"] as? Number)?.toInt() ?: 0 }
+            top?.get("tradeId")?.let { topTradeId ->
+                db.updateRaw(
+                    "UPDATE app.worker_profiles SET primary_trade_id = ?, updated_at = NOW() WHERE user_id = ?",
+                    topTradeId.toString(), userId
+                )
+            }
+        }
+        return findTradeSkillsByUserId(userId)
+    }
+
     fun updateByUserId(userId: String, data: Map<String, Any?>): Map<String, Any?>? {
         val setClauses = mutableListOf<String>()
         val params = mutableListOf<Any?>()
