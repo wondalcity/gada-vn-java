@@ -7,13 +7,14 @@ import { Link } from '@/components/navigation'
 import { formatDate as fmtDate, formatDateShort as fmtDateShort } from '@/lib/utils/date'
 
 const GOOGLE_MAPS_API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY ?? ''
-// Must be stable reference to prevent re-loading
 const GOOGLE_MAPS_LIBRARIES: Libraries = []
 
-// Vietnam center
 const VN_CENTER = { lat: 14.0583, lng: 108.2772 }
 const VN_ZOOM = 6
-const SELECTED_ZOOM = 14
+// fitBounds delta: ~300m per side → resolves to ~zoom 15
+const FLY_DELTA = 0.003
+// Card offset: shifts visible area upward so the marker stays above the popup
+const POPUP_OFFSET_LAT = 0.0055
 
 const MAP_STYLES: google.maps.MapTypeStyle[] = [
   { featureType: 'poi', elementType: 'labels', stylers: [{ visibility: 'off' }] },
@@ -48,7 +49,7 @@ interface Props {
   basePath?: string
 }
 
-// ── Wage marker pill (rendered as Google Maps OverlayView) ────────────────────
+// ── Wage marker pill ──────────────────────────────────────────────────────────
 
 function WageMarker({
   job,
@@ -63,21 +64,42 @@ function WageMarker({
 }) {
   const active = isSelected || isHovered
   return (
-    <div style={{ position: 'relative', zIndex: isSelected ? 100 : isHovered ? 50 : 1 }}>
+    <div style={{ position: 'relative', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
+      {/* Pulsing halo ring — visible only when selected */}
+      {isSelected && (
+        <span
+          aria-hidden
+          style={{
+            position: 'absolute',
+            inset: 0,
+            borderRadius: '999px',
+            background: '#25282A',
+            animation: 'markerPulse 1.4s ease-out infinite',
+            pointerEvents: 'none',
+          }}
+        />
+      )}
       <button
         type="button"
         onClick={(e) => { e.stopPropagation(); onClick() }}
         style={{
+          position: 'relative',
+          zIndex: isSelected ? 100 : isHovered ? 50 : 1,
           transform: active ? 'scale(1.15)' : 'scale(1)',
-          transition: 'transform 0.18s cubic-bezier(0.34,1.56,0.64,1), background 0.15s, color 0.15s, box-shadow 0.15s',
-          boxShadow: active ? '0 4px 16px rgba(0,0,0,0.22)' : '0 2px 8px rgba(0,0,0,0.14)',
+          transition: 'transform 0.22s cubic-bezier(0.34,1.56,0.64,1), background 0.16s, color 0.16s, box-shadow 0.16s',
+          boxShadow: isSelected
+            ? '0 6px 20px rgba(0,0,0,0.28)'
+            : isHovered
+              ? '0 4px 14px rgba(0,0,0,0.18)'
+              : '0 2px 8px rgba(0,0,0,0.14)',
+          animation: isSelected ? 'markerBounce 0.32s cubic-bezier(0.34,1.56,0.64,1) both' : undefined,
         }}
         className={`
           inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold whitespace-nowrap
           border cursor-pointer select-none
           ${active
             ? 'bg-[#25282A] text-white border-[#25282A]'
-            : 'bg-white text-[#25282A] border-white hover:scale-105'}
+            : 'bg-white text-[#25282A] border-white hover:border-[#E0E0E0]'}
         `}
       >
         {formatVnd(job.dailyWage)}
@@ -86,7 +108,7 @@ function WageMarker({
   )
 }
 
-// ── Airbnb-style compact job card for left panel ─────────────────────────────
+// ── Left panel job card ───────────────────────────────────────────────────────
 
 function AirbnbJobCard({
   job,
@@ -114,9 +136,12 @@ function AirbnbJobCard({
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
       onClick={onClick}
-      className={`w-full text-left flex gap-3 px-4 py-3.5 transition-colors ${
-        isSelected || isHovered ? 'bg-[#F7F7F7]' : 'bg-white hover:bg-[#F7F7F7]'
-      }`}
+      className="w-full text-left flex gap-3 px-4 py-3.5 transition-colors relative"
+      style={{
+        background: isSelected ? '#F7F7F7' : isHovered ? '#FAFAFA' : '#fff',
+        // Left accent bar when selected
+        boxShadow: isSelected ? 'inset 3px 0 0 #25282A' : undefined,
+      }}
     >
       {/* Cover image */}
       <div className={`w-[72px] h-[72px] rounded-xl overflow-hidden shrink-0 bg-gradient-to-br from-[#0454C5] to-[#3186FF] transition-all ${
@@ -138,7 +163,9 @@ function AirbnbJobCard({
       {/* Info */}
       <div className="flex-1 min-w-0">
         <p className="text-xs text-[#7A7B7A] truncate">{job.siteNameKo} · {job.provinceNameVi}</p>
-        <p className="text-sm font-semibold text-[#25282A] line-clamp-2 leading-snug mt-0.5">{job.titleKo}</p>
+        <p className={`text-sm line-clamp-2 leading-snug mt-0.5 ${isSelected ? 'font-bold text-[#1A1A1A]' : 'font-semibold text-[#25282A]'}`}>
+          {job.titleKo}
+        </p>
         <p className="text-xs text-[#7A7B7A] mt-0.5">{fmtDateShort(job.workDate, locale)}</p>
         <div className="flex items-center justify-between mt-1">
           <p className="text-sm font-bold text-[#25282A]">
@@ -152,11 +179,23 @@ function AirbnbJobCard({
           )}
         </div>
       </div>
+
+      {/* Map focus icon when selected */}
+      {isSelected && (
+        <div className="absolute right-3 top-1/2 -translate-y-1/2 w-6 h-6 flex items-center justify-center rounded-full bg-[#25282A]">
+          <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5}
+              d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5}
+              d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+          </svg>
+        </div>
+      )}
     </button>
   )
 }
 
-// ── Desktop popup card (floating over map, Airbnb-style) ─────────────────────
+// ── Desktop popup card (floating over map) ───────────────────────────────────
 
 function MapPopupCard({
   job,
@@ -174,37 +213,41 @@ function MapPopupCard({
 
   return (
     <div
-      className="absolute bottom-6 left-1/2 z-[1000] w-80 bg-white rounded-2xl shadow-2xl border border-[#E0E0E0] overflow-hidden pointer-events-auto"
+      className="absolute bottom-6 left-1/2 z-[1000] w-[340px] bg-white rounded-2xl shadow-2xl border border-[#E0E0E0] overflow-hidden pointer-events-auto"
       style={{
-        animation: 'slideUpPopup 0.22s cubic-bezier(0.34,1.2,0.64,1) both',
+        animation: 'slideUpPopup 0.24s cubic-bezier(0.34,1.2,0.64,1) both',
         transform: 'translateX(-50%)',
       }}
     >
       {/* Cover */}
-      <div className="relative h-36 overflow-hidden bg-gradient-to-br from-[#0454C5] to-[#3186FF]">
+      <div className="relative h-40 overflow-hidden bg-gradient-to-br from-[#0454C5] to-[#3186FF]">
         {job.coverImageUrl && (
           // eslint-disable-next-line @next/next/no-img-element
           <img src={job.coverImageUrl} alt={job.titleKo} className="w-full h-full object-cover" />
         )}
         {!job.coverImageUrl && (
           <div className="w-full h-full flex items-center justify-center opacity-20">
-            <svg className="w-12 h-12 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-14 h-14 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1}
                 d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5" />
             </svg>
           </div>
         )}
+        {/* Gradient overlay for readability */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
+
         {/* Close button */}
         <button
           type="button"
           onClick={onClose}
-          className="absolute top-2.5 right-2.5 w-7 h-7 flex items-center justify-center rounded-full bg-white shadow-md text-[#25282A]"
+          className="absolute top-2.5 right-2.5 w-7 h-7 flex items-center justify-center rounded-full bg-white/90 backdrop-blur-sm shadow text-[#25282A] hover:bg-white transition-colors"
           aria-label="닫기"
         >
           <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
           </svg>
         </button>
+
         {/* Status badge */}
         <span
           className="absolute bottom-2.5 left-2.5 inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full"
@@ -244,7 +287,7 @@ function MapPopupCard({
   )
 }
 
-// ── Mobile Airbnb-style job card (swipeable at the bottom) ───────────────────
+// ── Mobile selected job card ──────────────────────────────────────────────────
 
 function MobileJobCard({
   job,
@@ -262,12 +305,15 @@ function MobileJobCard({
 
   return (
     <div
-      className="bg-white rounded-2xl shadow-2xl border border-[#E8E8E8] overflow-hidden"
-      style={{ animation: 'slideInCard 0.28s cubic-bezier(0.34,1.15,0.64,1) both' }}
+      className="bg-white rounded-2xl overflow-hidden"
+      style={{
+        animation: 'slideInCard 0.28s cubic-bezier(0.34,1.15,0.64,1) both',
+        boxShadow: '0 8px 32px rgba(0,0,0,0.18), 0 2px 8px rgba(0,0,0,0.08)',
+      }}
     >
-      <div className="flex gap-3 p-3">
+      <div className="flex gap-3 p-3.5">
         {/* Image */}
-        <div className="w-[88px] h-[88px] rounded-xl overflow-hidden shrink-0 bg-gradient-to-br from-[#0454C5] to-[#3186FF]">
+        <div className="w-[92px] h-[92px] rounded-xl overflow-hidden shrink-0 bg-gradient-to-br from-[#0454C5] to-[#3186FF]">
           {job.coverImageUrl ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img src={job.coverImageUrl} alt={job.titleKo} className="w-full h-full object-cover" />
@@ -291,7 +337,7 @@ function MobileJobCard({
             <button
               type="button"
               onClick={onClose}
-              className="shrink-0 w-6 h-6 flex items-center justify-center rounded-full bg-[#F2F2F2] text-[#7A7B7A] mt-0.5"
+              className="shrink-0 w-6 h-6 flex items-center justify-center rounded-full bg-[#F2F2F2] text-[#7A7B7A] mt-0.5 hover:bg-[#E8E8E8] transition-colors"
             >
               <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
@@ -324,11 +370,11 @@ function MobileJobCard({
         </div>
       </div>
 
-      {/* CTA button */}
-      <div className="px-3 pb-3">
+      {/* CTA */}
+      <div className="px-3.5 pb-3.5">
         <Link
           href={`${basePath}/${job.slug}`}
-          className="block w-full text-center py-2.5 bg-[#0669F7] hover:bg-[#0454C5] text-white text-sm font-semibold rounded-xl transition-colors"
+          className="block w-full text-center py-3 bg-[#0669F7] hover:bg-[#0454C5] text-white text-sm font-semibold rounded-xl transition-colors"
         >
           자세히 보기
         </Link>
@@ -379,6 +425,24 @@ function FilterToggleButton({
   )
 }
 
+// ── Reset zoom button ─────────────────────────────────────────────────────────
+
+function ResetZoomButton({ onClick }: { onClick: () => void }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="flex items-center gap-1.5 px-3 py-2 rounded-full text-xs font-semibold bg-white border border-[#DDDDDD] shadow-md text-[#25282A] hover:bg-[#F7F7F7] transition-colors"
+    >
+      <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+          d="M4 8V4m0 0h4M4 4l5 5m11-5h-4m4 0v4m0-4l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
+      </svg>
+      전체 보기
+    </button>
+  )
+}
+
 // ── Main export ──────────────────────────────────────────────────────────────
 
 export default function JobsMapView({
@@ -386,7 +450,6 @@ export default function JobsMapView({
   locale,
   centerLat,
   centerLng,
-  radiusKm,
   onBoundsChange,
   filterPanel,
   viewToggle,
@@ -400,10 +463,13 @@ export default function JobsMapView({
   const [hoveredJobId, setHoveredJobId] = useState<string | null>(null)
   const [filterOpen, setFilterOpen] = useState(false)
   const [sheetExpanded, setSheetExpanded] = useState(false)
+  const [isZoomedIn, setIsZoomedIn] = useState(false)
   const mapRef = useRef<google.maps.Map | null>(null)
   const listRef = useRef<HTMLDivElement | null>(null)
-  // Track card key to retrigger animation when selecting different job
+  // cardKey forces re-mount → re-animation when switching jobs
   const [cardKey, setCardKey] = useState(0)
+  // Suppress bounds_changed callbacks during programmatic fly-to
+  const animatingRef = useRef(false)
 
   const { isLoaded } = useJsApiLoader({
     googleMapsApiKey: GOOGLE_MAPS_API_KEY,
@@ -431,7 +497,7 @@ export default function JobsMapView({
   }, [centerLat, jobsWithCoords])
 
   const handleBoundsChanged = useCallback(() => {
-    if (!onBoundsChange || !mapRef.current) return
+    if (animatingRef.current || !onBoundsChange || !mapRef.current) return
     const b = mapRef.current.getBounds()
     if (!b) return
     onBoundsChange({
@@ -442,43 +508,74 @@ export default function JobsMapView({
     })
   }, [onBoundsChange])
 
-  // Airbnb-style smooth fly-to: pan + zoom animation
-  const flyToJob = useCallback((job: PublicJob) => {
+  // Smooth fly-to using fitBounds — Google Maps animates both zoom + pan simultaneously.
+  // Offset center upward so the selected marker sits above the popup card.
+  const flyToJob = useCallback((job: PublicJob, fromMobile = false) => {
     if (job.siteLat == null || job.siteLng == null || !mapRef.current) return
-    const map = mapRef.current
-    const target = { lat: job.siteLat, lng: job.siteLng }
-    const currentZoom = map.getZoom() ?? VN_ZOOM
 
-    if (currentZoom < SELECTED_ZOOM - 2) {
-      // Far out: zoom in first, then pan to center smoothly
-      map.setZoom(SELECTED_ZOOM)
-      setTimeout(() => { map.panTo(target) }, 150)
-    } else {
-      // Already close: just smooth pan + gentle zoom boost
-      map.panTo(target)
-      if (currentZoom < SELECTED_ZOOM) map.setZoom(SELECTED_ZOOM)
-    }
+    animatingRef.current = true
+    setTimeout(() => { animatingRef.current = false }, 800)
+
+    // Offset the map center so the marker appears in the upper 2/3 of the map,
+    // leaving room for the popup card at the bottom.
+    const offsetLat = fromMobile ? 0.003 : POPUP_OFFSET_LAT
+    const centerLat = job.siteLat - offsetLat
+
+    const bounds = new window.google.maps.LatLngBounds(
+      { lat: centerLat - FLY_DELTA, lng: job.siteLng - FLY_DELTA },
+      { lat: centerLat + FLY_DELTA, lng: job.siteLng + FLY_DELTA },
+    )
+    // padding=0: let the bounds fully control the viewport for maximum zoom
+    mapRef.current.fitBounds(bounds, 0)
+    setIsZoomedIn(true)
   }, [])
+
+  const resetZoom = useCallback(() => {
+    if (!mapRef.current) return
+    setSelectedJobId(null)
+    setIsZoomedIn(false)
+    if (jobsWithCoords.length > 0) {
+      const bounds = new window.google.maps.LatLngBounds()
+      jobsWithCoords.forEach(j => bounds.extend({ lat: j.siteLat as number, lng: j.siteLng as number }))
+      mapRef.current.fitBounds(bounds, 48)
+    } else {
+      mapRef.current.setCenter(center)
+      mapRef.current.setZoom(zoom)
+    }
+  }, [jobsWithCoords, center, zoom])
 
   const handleCardClick = useCallback((job: PublicJob) => {
     const isAlreadySelected = job.id === selectedJobId
-    setSelectedJobId(isAlreadySelected ? null : job.id)
+    if (isAlreadySelected) {
+      setSelectedJobId(null)
+      setIsZoomedIn(false)
+      return
+    }
+    setSelectedJobId(job.id)
     setCardKey(k => k + 1)
-    if (!isAlreadySelected) flyToJob(job)
+    flyToJob(job)
   }, [selectedJobId, flyToJob])
 
   const handleMarkerSelect = useCallback((id: string | null) => {
+    if (!id) { setSelectedJobId(null); return }
+    const job = jobs.find(j => j.id === id)
+    if (!job) return
+
+    if (id === selectedJobId) {
+      setSelectedJobId(null)
+      setIsZoomedIn(false)
+      return
+    }
+
     setSelectedJobId(id)
     setCardKey(k => k + 1)
-    if (id) {
-      setSheetExpanded(false) // collapse sheet to show popup card
-      const job = jobs.find(j => j.id === id)
-      if (job) flyToJob(job)
-    }
-  }, [jobs, flyToJob])
+    setSheetExpanded(false)
+    flyToJob(job, true)
+  }, [jobs, selectedJobId, flyToJob])
 
   const handleDeselect = useCallback(() => {
     setSelectedJobId(null)
+    setIsZoomedIn(false)
   }, [])
 
   // Scroll selected card into view in left panel
@@ -498,7 +595,6 @@ export default function JobsMapView({
     </div>
   )
 
-  // Google Map content
   const mapContent = isLoaded ? (
     <GoogleMap
       mapContainerStyle={{ width: '100%', height: '100%' }}
@@ -511,6 +607,7 @@ export default function JobsMapView({
         styles: MAP_STYLES,
         disableDefaultUI: false,
         zoomControl: true,
+        zoomControlOptions: { position: 9 /* RIGHT_CENTER */ },
         mapTypeControl: false,
         streetViewControl: false,
         fullscreenControl: false,
@@ -524,34 +621,34 @@ export default function JobsMapView({
           center={{ lat: centerLat, lng: centerLng }}
           radius={selectedRadius * 1000}
           options={{
-            strokeColor: '#0669F7',
-            strokeOpacity: 0.4,
-            strokeWeight: 1.5,
-            fillColor: '#0669F7',
-            fillOpacity: 0.05,
+            strokeColor: '#0669F7', strokeOpacity: 0.4, strokeWeight: 1.5,
+            fillColor: '#0669F7', fillOpacity: 0.05,
           }}
         />
       )}
 
-      {/* Wage markers — selected on top via z-index wrapper */}
-      {jobsWithCoords.map(job => (
-        <OverlayView
-          key={job.id}
-          position={{ lat: job.siteLat as number, lng: job.siteLng as number }}
-          mapPaneName={OverlayView.OVERLAY_MOUSE_TARGET}
-        >
-          <WageMarker
-            job={job}
-            isSelected={selectedJobId === job.id}
-            isHovered={hoveredJobId === job.id}
-            onClick={() => handleMarkerSelect(selectedJobId === job.id ? null : job.id)}
-          />
-        </OverlayView>
-      ))}
+      {/* Wage markers — render selected last so it's on top */}
+      {jobsWithCoords
+        .slice()
+        .sort((a, b) => (a.id === selectedJobId ? 1 : b.id === selectedJobId ? -1 : 0))
+        .map(job => (
+          <OverlayView
+            key={job.id}
+            position={{ lat: job.siteLat as number, lng: job.siteLng as number }}
+            mapPaneName={OverlayView.OVERLAY_MOUSE_TARGET}
+            getPixelPositionOffset={(w, h) => ({ x: -w / 2, y: -h / 2 })}
+          >
+            <WageMarker
+              job={job}
+              isSelected={selectedJobId === job.id}
+              isHovered={hoveredJobId === job.id}
+              onClick={() => handleMarkerSelect(job.id)}
+            />
+          </OverlayView>
+        ))}
     </GoogleMap>
   ) : mapSpinner
 
-  // Shared card list
   const cardList = (
     <div ref={listRef}>
       {jobsWithCoords.map((job, i) => (
@@ -603,13 +700,9 @@ export default function JobsMapView({
     </div>
   )
 
-  // Mobile filter modal
   const mobileFilterModal = filterOpen && filterPanel && (
     <>
-      <div
-        className="absolute inset-0 bg-black/40 z-[600]"
-        onClick={() => setFilterOpen(false)}
-      />
+      <div className="absolute inset-0 bg-black/40 z-[600]" onClick={() => setFilterOpen(false)} />
       <div
         className="absolute bottom-0 left-0 right-0 z-[700] bg-white rounded-t-2xl max-h-[85dvh] flex flex-col"
         style={{ boxShadow: '0 -4px 24px rgba(0,0,0,0.15)', animation: 'slideUpSheet 0.25s ease-out both' }}
@@ -618,26 +711,18 @@ export default function JobsMapView({
           <div className="w-8 h-1 rounded-full bg-[#DDDDDD] mx-auto mb-3" />
           <div className="flex items-center justify-between">
             <p className="text-base font-bold text-[#25282A]">필터</p>
-            <button
-              type="button"
-              onClick={() => setFilterOpen(false)}
-              className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-[#F2F2F2] text-[#25282A]"
-            >
+            <button type="button" onClick={() => setFilterOpen(false)}
+              className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-[#F2F2F2] text-[#25282A]">
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
               </svg>
             </button>
           </div>
         </div>
-        <div className="flex-1 overflow-y-auto px-5 py-4">
-          {filterPanel}
-        </div>
+        <div className="flex-1 overflow-y-auto px-5 py-4">{filterPanel}</div>
         <div className="shrink-0 px-5 pt-3 pb-5 border-t border-[#F2F2F2]">
-          <button
-            type="button"
-            onClick={() => setFilterOpen(false)}
-            className="w-full py-3.5 rounded-full bg-[#0669F7] text-white font-semibold text-sm"
-          >
+          <button type="button" onClick={() => setFilterOpen(false)}
+            className="w-full py-3.5 rounded-full bg-[#0669F7] text-white font-semibold text-sm">
             {activeFilterCount > 0 ? `필터 적용 (${activeFilterCount})` : '닫기'}
           </button>
         </div>
@@ -648,14 +733,12 @@ export default function JobsMapView({
   return (
     <>
       {/* ═══════════════════════════════════════════════════════════════
-          DESKTOP — Airbnb-style split layout (hidden on mobile)
+          DESKTOP — Airbnb split layout
       ═══════════════════════════════════════════════════════════════ */}
       <div className="hidden md:flex h-[calc(100dvh-var(--app-bar-height))] overflow-hidden">
 
-        {/* ── Left panel: list + filter ── */}
+        {/* Left panel */}
         <div className="w-[420px] xl:w-[480px] flex flex-col h-full bg-white border-r border-[#EBEBEB]">
-
-          {/* Header */}
           <div className="shrink-0 flex items-center justify-between gap-3 px-4 py-3 border-b border-[#EBEBEB]">
             <div className="min-w-0">
               <p className="text-sm font-semibold text-[#25282A]">
@@ -667,35 +750,37 @@ export default function JobsMapView({
             </div>
             <div className="flex items-center gap-2 shrink-0">
               {filterPanel && (
-                <FilterToggleButton
-                  open={filterOpen}
-                  count={activeFilterCount}
-                  onClick={() => setFilterOpen(v => !v)}
-                  dark
-                />
+                <FilterToggleButton open={filterOpen} count={activeFilterCount}
+                  onClick={() => setFilterOpen(v => !v)} dark />
               )}
               {viewToggle}
             </div>
           </div>
 
-          {/* Collapsible filter panel */}
           {filterOpen && filterPanel && (
             <div className="shrink-0 border-b border-[#EBEBEB] px-4 py-4 bg-[#FAFAFA] overflow-y-auto max-h-[55vh]">
               {filterPanel}
             </div>
           )}
 
-          {/* Scrollable job list */}
           <div className="flex-1 overflow-y-auto">
             {cardList}
           </div>
         </div>
 
-        {/* ── Right panel: map + popup ── */}
+        {/* Right: map */}
         <div className="flex-1 relative h-full">
           {mapContent}
 
-          {/* Desktop popup card — Airbnb-style slide-up */}
+          {/* Reset zoom — appears when zoomed in to a job */}
+          {isZoomedIn && (
+            <div className="absolute top-3 left-1/2 -translate-x-1/2 z-[1000] pointer-events-auto"
+              style={{ animation: 'slideUpSheet 0.2s ease-out both' }}>
+              <ResetZoomButton onClick={resetZoom} />
+            </div>
+          )}
+
+          {/* Popup card */}
           {selectedJob && (
             <MapPopupCard
               key={cardKey}
@@ -709,35 +794,29 @@ export default function JobsMapView({
       </div>
 
       {/* ═══════════════════════════════════════════════════════════════
-          MOBILE — Full-screen map + bottom sheet (Airbnb-style)
+          MOBILE — Full-screen map + bottom sheet
       ═══════════════════════════════════════════════════════════════ */}
       <div className="md:hidden relative h-[calc(100dvh-var(--app-bar-height)-var(--tab-bar-height))]">
 
-        {/* Full-screen map */}
-        <div className="absolute inset-0">
-          {mapContent}
-        </div>
+        <div className="absolute inset-0">{mapContent}</div>
 
         {/* Top controls */}
         <div className="absolute top-3 left-0 right-0 z-[500] flex items-center justify-between px-3 pointer-events-none">
           <div className="pointer-events-auto">
             {filterPanel && (
-              <FilterToggleButton
-                open={filterOpen}
-                count={activeFilterCount}
-                onClick={() => setFilterOpen(v => !v)}
-              />
+              <FilterToggleButton open={filterOpen} count={activeFilterCount}
+                onClick={() => setFilterOpen(v => !v)} />
             )}
           </div>
-          <div className="pointer-events-auto">
+          <div className="flex items-center gap-2 pointer-events-auto">
+            {isZoomedIn && <ResetZoomButton onClick={resetZoom} />}
             {viewToggle}
           </div>
         </div>
 
-        {/* Mobile filter modal */}
         {mobileFilterModal}
 
-        {/* Airbnb-style selected job card — slides up from bottom */}
+        {/* Selected job card */}
         {selectedJob && !sheetExpanded && (
           <div
             key={cardKey}
@@ -762,7 +841,6 @@ export default function JobsMapView({
             boxShadow: '0 -4px 20px rgba(0,0,0,0.12)',
           }}
         >
-          {/* Drag handle + count */}
           <button
             type="button"
             onClick={() => { setSheetExpanded(v => !v); if (!sheetExpanded) setSelectedJobId(null) }}
@@ -776,19 +854,13 @@ export default function JobsMapView({
                   <span className="ml-2 text-xs font-normal text-[#0669F7]">· {selectedRadius}km 내</span>
                 )}
               </p>
-              <svg
-                className={`w-4 h-4 text-[#7A7B7A] transition-transform duration-300 ${sheetExpanded ? 'rotate-180' : ''}`}
-                fill="none" stroke="currentColor" viewBox="0 0 24 24"
-              >
+              <svg className={`w-4 h-4 text-[#7A7B7A] transition-transform duration-300 ${sheetExpanded ? 'rotate-180' : ''}`}
+                fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
               </svg>
             </div>
           </button>
-
-          {/* Scrollable card list */}
-          <div className="flex-1 overflow-y-auto">
-            {cardList}
-          </div>
+          <div className="flex-1 overflow-y-auto">{cardList}</div>
         </div>
       </div>
     </>
