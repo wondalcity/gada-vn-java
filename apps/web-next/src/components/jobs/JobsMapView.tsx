@@ -13,6 +13,7 @@ const GOOGLE_MAPS_LIBRARIES: Libraries = []
 // Vietnam center
 const VN_CENTER = { lat: 14.0583, lng: 108.2772 }
 const VN_ZOOM = 6
+const SELECTED_ZOOM = 14
 
 const MAP_STYLES: google.maps.MapTypeStyle[] = [
   { featureType: 'poi', elementType: 'labels', stylers: [{ visibility: 'off' }] },
@@ -23,7 +24,6 @@ function formatVnd(n: number) {
   if (n >= 1_000_000) return `₫${(n / 1_000_000).toFixed(1)}M`
   return `₫${(n / 1000).toFixed(0)}K`
 }
-
 
 const STATUS_CONFIG = {
   OPEN:      { label: '모집중',  bg: '#D1F3D3', text: '#024209', dot: '#00C800' },
@@ -63,20 +63,26 @@ function WageMarker({
 }) {
   const active = isSelected || isHovered
   return (
-    <button
-      type="button"
-      onClick={(e) => { e.stopPropagation(); onClick() }}
-      className={`
-        inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold whitespace-nowrap
-        border shadow-md transition-all cursor-pointer select-none
-        ${active
-          ? 'bg-[#25282A] text-white border-[#25282A] scale-110 shadow-lg z-50'
-          : 'bg-white text-[#25282A] border-white hover:scale-105'}
-      `}
-      style={{ transform: active ? 'scale(1.1)' : undefined }}
-    >
-      {formatVnd(job.dailyWage)}
-    </button>
+    <div style={{ position: 'relative', zIndex: isSelected ? 100 : isHovered ? 50 : 1 }}>
+      <button
+        type="button"
+        onClick={(e) => { e.stopPropagation(); onClick() }}
+        style={{
+          transform: active ? 'scale(1.15)' : 'scale(1)',
+          transition: 'transform 0.18s cubic-bezier(0.34,1.56,0.64,1), background 0.15s, color 0.15s, box-shadow 0.15s',
+          boxShadow: active ? '0 4px 16px rgba(0,0,0,0.22)' : '0 2px 8px rgba(0,0,0,0.14)',
+        }}
+        className={`
+          inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold whitespace-nowrap
+          border cursor-pointer select-none
+          ${active
+            ? 'bg-[#25282A] text-white border-[#25282A]'
+            : 'bg-white text-[#25282A] border-white hover:scale-105'}
+        `}
+      >
+        {formatVnd(job.dailyWage)}
+      </button>
+    </div>
   )
 }
 
@@ -150,7 +156,7 @@ function AirbnbJobCard({
   )
 }
 
-// ── Desktop popup card (floating over map) ───────────────────────────────────
+// ── Desktop popup card (floating over map, Airbnb-style) ─────────────────────
 
 function MapPopupCard({
   job,
@@ -167,7 +173,13 @@ function MapPopupCard({
   const remaining = job.slotsTotal - job.slotsFilled
 
   return (
-    <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-[1000] w-80 bg-white rounded-2xl shadow-2xl border border-[#E0E0E0] overflow-hidden pointer-events-auto">
+    <div
+      className="absolute bottom-6 left-1/2 z-[1000] w-80 bg-white rounded-2xl shadow-2xl border border-[#E0E0E0] overflow-hidden pointer-events-auto"
+      style={{
+        animation: 'slideUpPopup 0.22s cubic-bezier(0.34,1.2,0.64,1) both',
+        transform: 'translateX(-50%)',
+      }}
+    >
       {/* Cover */}
       <div className="relative h-36 overflow-hidden bg-gradient-to-br from-[#0454C5] to-[#3186FF]">
         {job.coverImageUrl && (
@@ -221,6 +233,99 @@ function MapPopupCard({
           )}
         </div>
 
+        <Link
+          href={`${basePath}/${job.slug}`}
+          className="block w-full text-center py-2.5 bg-[#0669F7] hover:bg-[#0454C5] text-white text-sm font-semibold rounded-xl transition-colors"
+        >
+          자세히 보기
+        </Link>
+      </div>
+    </div>
+  )
+}
+
+// ── Mobile Airbnb-style job card (swipeable at the bottom) ───────────────────
+
+function MobileJobCard({
+  job,
+  locale,
+  onClose,
+  basePath = '/worker/jobs',
+}: {
+  job: PublicJob
+  locale: string
+  onClose: () => void
+  basePath?: string
+}) {
+  const status = STATUS_CONFIG[job.status as keyof typeof STATUS_CONFIG] ?? STATUS_CONFIG.OPEN
+  const remaining = job.slotsTotal - job.slotsFilled
+
+  return (
+    <div
+      className="bg-white rounded-2xl shadow-2xl border border-[#E8E8E8] overflow-hidden"
+      style={{ animation: 'slideInCard 0.28s cubic-bezier(0.34,1.15,0.64,1) both' }}
+    >
+      <div className="flex gap-3 p-3">
+        {/* Image */}
+        <div className="w-[88px] h-[88px] rounded-xl overflow-hidden shrink-0 bg-gradient-to-br from-[#0454C5] to-[#3186FF]">
+          {job.coverImageUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={job.coverImageUrl} alt={job.titleKo} className="w-full h-full object-cover" />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center opacity-20">
+              <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1}
+                  d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5" />
+              </svg>
+            </div>
+          )}
+        </div>
+
+        {/* Details */}
+        <div className="flex-1 min-w-0">
+          <div className="flex items-start justify-between gap-1">
+            <div className="min-w-0">
+              <p className="text-[11px] text-[#7A7B7A] truncate">{job.siteNameKo} · {job.provinceNameVi}</p>
+              <p className="text-sm font-bold text-[#25282A] line-clamp-2 leading-snug mt-0.5">{job.titleKo}</p>
+            </div>
+            <button
+              type="button"
+              onClick={onClose}
+              className="shrink-0 w-6 h-6 flex items-center justify-center rounded-full bg-[#F2F2F2] text-[#7A7B7A] mt-0.5"
+            >
+              <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+
+          <div className="flex items-center gap-1.5 mt-1.5">
+            <span
+              className="inline-flex items-center gap-1 text-[10px] font-semibold px-1.5 py-0.5 rounded-full"
+              style={{ background: status.bg, color: status.text }}
+            >
+              <span className="w-1.5 h-1.5 rounded-full" style={{ background: status.dot }} />
+              {status.label}
+            </span>
+            <span className="text-[11px] text-[#7A7B7A]">{fmtDateShort(job.workDate, locale)}</span>
+          </div>
+
+          <div className="flex items-center justify-between mt-2">
+            <p className="text-base font-bold text-[#25282A]">
+              {new Intl.NumberFormat('ko-KR').format(job.dailyWage)}{' '}
+              <span className="text-xs font-normal text-[#7A7B7A]">₫/일</span>
+            </p>
+            {remaining > 0 && job.status === 'OPEN' && (
+              <span className="text-[10px] text-[#024209] bg-[#D1F3D3] px-2 py-0.5 rounded-full font-medium">
+                잔여 {remaining}명
+              </span>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* CTA button */}
+      <div className="px-3 pb-3">
         <Link
           href={`${basePath}/${job.slug}`}
           className="block w-full text-center py-2.5 bg-[#0669F7] hover:bg-[#0454C5] text-white text-sm font-semibold rounded-xl transition-colors"
@@ -297,6 +402,8 @@ export default function JobsMapView({
   const [sheetExpanded, setSheetExpanded] = useState(false)
   const mapRef = useRef<google.maps.Map | null>(null)
   const listRef = useRef<HTMLDivElement | null>(null)
+  // Track card key to retrigger animation when selecting different job
+  const [cardKey, setCardKey] = useState(0)
 
   const { isLoaded } = useJsApiLoader({
     googleMapsApiKey: GOOGLE_MAPS_API_KEY,
@@ -316,7 +423,6 @@ export default function JobsMapView({
 
   const handleMapLoad = useCallback((map: google.maps.Map) => {
     mapRef.current = map
-    // Fit bounds if no center specified
     if (centerLat == null && jobsWithCoords.length > 0) {
       const bounds = new window.google.maps.LatLngBounds()
       jobsWithCoords.forEach(j => bounds.extend({ lat: j.siteLat as number, lng: j.siteLng as number }))
@@ -336,33 +442,46 @@ export default function JobsMapView({
     })
   }, [onBoundsChange])
 
+  // Airbnb-style smooth fly-to: pan + zoom animation
   const flyToJob = useCallback((job: PublicJob) => {
     if (job.siteLat == null || job.siteLng == null || !mapRef.current) return
-    // fitBounds handles zoom + center atomically (panTo + setZoom conflict in Google Maps)
-    const DELTA = 0.004 // ~400m per side → approx zoom 15
-    const bounds = new window.google.maps.LatLngBounds(
-      { lat: job.siteLat - DELTA, lng: job.siteLng - DELTA },
-      { lat: job.siteLat + DELTA, lng: job.siteLng + DELTA },
-    )
-    mapRef.current.fitBounds(bounds, 0)
+    const map = mapRef.current
+    const target = { lat: job.siteLat, lng: job.siteLng }
+    const currentZoom = map.getZoom() ?? VN_ZOOM
+
+    if (currentZoom < SELECTED_ZOOM - 2) {
+      // Far out: zoom in first, then pan to center smoothly
+      map.setZoom(SELECTED_ZOOM)
+      setTimeout(() => { map.panTo(target) }, 150)
+    } else {
+      // Already close: just smooth pan + gentle zoom boost
+      map.panTo(target)
+      if (currentZoom < SELECTED_ZOOM) map.setZoom(SELECTED_ZOOM)
+    }
   }, [])
 
   const handleCardClick = useCallback((job: PublicJob) => {
     const isAlreadySelected = job.id === selectedJobId
     setSelectedJobId(isAlreadySelected ? null : job.id)
+    setCardKey(k => k + 1)
     if (!isAlreadySelected) flyToJob(job)
   }, [selectedJobId, flyToJob])
 
   const handleMarkerSelect = useCallback((id: string | null) => {
     setSelectedJobId(id)
+    setCardKey(k => k + 1)
     if (id) {
-      setSheetExpanded(true)
+      setSheetExpanded(false) // collapse sheet to show popup card
       const job = jobs.find(j => j.id === id)
       if (job) flyToJob(job)
     }
   }, [jobs, flyToJob])
 
-  // Scroll selected card into view
+  const handleDeselect = useCallback(() => {
+    setSelectedJobId(null)
+  }, [])
+
+  // Scroll selected card into view in left panel
   useEffect(() => {
     if (!selectedJobId || !listRef.current) return
     const el = listRef.current.querySelector(`[data-job-id="${selectedJobId}"]`)
@@ -387,7 +506,7 @@ export default function JobsMapView({
       zoom={zoom}
       onLoad={handleMapLoad}
       onBoundsChanged={handleBoundsChanged}
-      onClick={() => setSelectedJobId(null)}
+      onClick={handleDeselect}
       options={{
         styles: MAP_STYLES,
         disableDefaultUI: false,
@@ -396,6 +515,7 @@ export default function JobsMapView({
         streetViewControl: false,
         fullscreenControl: false,
         clickableIcons: false,
+        gestureHandling: 'greedy',
       }}
     >
       {/* Radius circle */}
@@ -413,7 +533,7 @@ export default function JobsMapView({
         />
       )}
 
-      {/* Wage markers */}
+      {/* Wage markers — selected on top via z-index wrapper */}
       {jobsWithCoords.map(job => (
         <OverlayView
           key={job.id}
@@ -492,7 +612,7 @@ export default function JobsMapView({
       />
       <div
         className="absolute bottom-0 left-0 right-0 z-[700] bg-white rounded-t-2xl max-h-[85dvh] flex flex-col"
-        style={{ boxShadow: '0 -4px 24px rgba(0,0,0,0.15)' }}
+        style={{ boxShadow: '0 -4px 24px rgba(0,0,0,0.15)', animation: 'slideUpSheet 0.25s ease-out both' }}
       >
         <div className="shrink-0 pt-3 pb-3 px-5 border-b border-[#F2F2F2]">
           <div className="w-8 h-1 rounded-full bg-[#DDDDDD] mx-auto mb-3" />
@@ -535,7 +655,7 @@ export default function JobsMapView({
         {/* ── Left panel: list + filter ── */}
         <div className="w-[420px] xl:w-[480px] flex flex-col h-full bg-white border-r border-[#EBEBEB]">
 
-          {/* Header: count + filter toggle + view toggle — all in same row */}
+          {/* Header */}
           <div className="shrink-0 flex items-center justify-between gap-3 px-4 py-3 border-b border-[#EBEBEB]">
             <div className="min-w-0">
               <p className="text-sm font-semibold text-[#25282A]">
@@ -545,7 +665,6 @@ export default function JobsMapView({
                 <p className="text-xs text-[#0669F7] font-medium mt-0.5">반경 {selectedRadius}km 내</p>
               )}
             </div>
-            {/* Filter + view toggle in the same row */}
             <div className="flex items-center gap-2 shrink-0">
               {filterPanel && (
                 <FilterToggleButton
@@ -572,16 +691,17 @@ export default function JobsMapView({
           </div>
         </div>
 
-        {/* ── Right panel: map ── */}
+        {/* ── Right panel: map + popup ── */}
         <div className="flex-1 relative h-full">
           {mapContent}
 
-          {/* Desktop popup card */}
+          {/* Desktop popup card — Airbnb-style slide-up */}
           {selectedJob && (
             <MapPopupCard
+              key={cardKey}
               job={selectedJob}
               locale={locale}
-              onClose={() => setSelectedJobId(null)}
+              onClose={handleDeselect}
               basePath={basePath}
             />
           )}
@@ -589,7 +709,7 @@ export default function JobsMapView({
       </div>
 
       {/* ═══════════════════════════════════════════════════════════════
-          MOBILE — Full-screen map + bottom sheet
+          MOBILE — Full-screen map + bottom sheet (Airbnb-style)
       ═══════════════════════════════════════════════════════════════ */}
       <div className="md:hidden relative h-[calc(100dvh-var(--app-bar-height)-var(--tab-bar-height))]">
 
@@ -598,7 +718,7 @@ export default function JobsMapView({
           {mapContent}
         </div>
 
-        {/* Top controls: filter (left) + view toggle (right) — same row */}
+        {/* Top controls */}
         <div className="absolute top-3 left-0 right-0 z-[500] flex items-center justify-between px-3 pointer-events-none">
           <div className="pointer-events-auto">
             {filterPanel && (
@@ -617,53 +737,19 @@ export default function JobsMapView({
         {/* Mobile filter modal */}
         {mobileFilterModal}
 
-        {/* Mini popup card when marker selected */}
+        {/* Airbnb-style selected job card — slides up from bottom */}
         {selectedJob && !sheetExpanded && (
           <div
-            className="absolute left-3 right-3 z-[510]"
-            style={{ bottom: '84px' }}
+            key={cardKey}
+            className="absolute left-3 right-3 z-[520] pointer-events-auto"
+            style={{ bottom: '88px' }}
           >
-            <div className="bg-white rounded-2xl shadow-xl border border-[#E0E0E0] p-3 flex gap-3"
-              style={{ animation: 'slideUpSheet 0.2s ease-out both' }}>
-              <div className="w-14 h-14 rounded-xl overflow-hidden shrink-0 bg-gradient-to-br from-[#0454C5] to-[#3186FF]">
-                {selectedJob.coverImageUrl ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src={selectedJob.coverImageUrl} alt={selectedJob.titleKo} className="w-full h-full object-cover" />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center opacity-20">
-                    <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1}
-                        d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5" />
-                    </svg>
-                  </div>
-                )}
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-[11px] text-[#7A7B7A] truncate">{selectedJob.siteNameKo}</p>
-                <p className="text-sm font-semibold text-[#25282A] line-clamp-1">{selectedJob.titleKo}</p>
-                <p className="text-sm font-bold text-[#25282A] mt-0.5">
-                  {new Intl.NumberFormat('ko-KR').format(selectedJob.dailyWage)}{' '}
-                  <span className="text-xs font-normal text-[#7A7B7A]">₫ / 일</span>
-                </p>
-              </div>
-              <div className="flex flex-col items-end gap-2 shrink-0">
-                <button
-                  type="button"
-                  onClick={() => setSelectedJobId(null)}
-                  className="w-6 h-6 flex items-center justify-center rounded-full bg-[#F2F2F2] text-[#7A7B7A]"
-                >
-                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </button>
-                <Link
-                  href={`${basePath}/${selectedJob.slug}`}
-                  className="text-xs font-semibold text-[#0669F7] px-3 py-1.5 bg-[#EEF4FF] rounded-full whitespace-nowrap"
-                >
-                  보기
-                </Link>
-              </div>
-            </div>
+            <MobileJobCard
+              job={selectedJob}
+              locale={locale}
+              onClose={handleDeselect}
+              basePath={basePath}
+            />
           </div>
         )}
 
@@ -672,14 +758,14 @@ export default function JobsMapView({
           className="absolute bottom-0 left-0 right-0 z-[500] bg-white rounded-t-2xl flex flex-col overflow-hidden"
           style={{
             maxHeight: sheetExpanded ? '65dvh' : '72px',
-            transition: 'max-height 0.3s cubic-bezier(0.32,0.72,0,1)',
+            transition: 'max-height 0.32s cubic-bezier(0.32,0.72,0,1)',
             boxShadow: '0 -4px 20px rgba(0,0,0,0.12)',
           }}
         >
           {/* Drag handle + count */}
           <button
             type="button"
-            onClick={() => setSheetExpanded(v => !v)}
+            onClick={() => { setSheetExpanded(v => !v); if (!sheetExpanded) setSelectedJobId(null) }}
             className="shrink-0 flex flex-col items-center pt-2.5 pb-3 px-4 w-full"
           >
             <div className="w-9 h-1 bg-[#D4D4D4] rounded-full mb-2.5" />
