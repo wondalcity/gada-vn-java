@@ -66,8 +66,7 @@ class ContractService(
     }
 
     fun sign(id: String, workerUserId: String, signatureData: String?): Map<String, Any?>? {
-        val contract = repo.findById(id)
-            ?: throw NotFoundException("Contract $id not found")
+        repo.findById(id) ?: throw NotFoundException("Contract $id not found")
 
         val isWorker = repo.isWorkerPartyToContract(id, workerUserId)
         if (!isWorker) throw ForbiddenException("Not authorized to sign this contract")
