@@ -3,8 +3,7 @@
 import { useEffect } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 
-export default function AppError({
-  error,
+export default function PublicError({
   reset,
 }: {
   error: Error & { digest?: string }
