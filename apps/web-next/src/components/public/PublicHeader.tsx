@@ -3,6 +3,7 @@ import { Link } from '@/components/navigation'
 import PublicHeaderSearch from './PublicHeaderSearch'
 import { PublicHeaderAuthMenu } from './PublicHeaderAuthMenu'
 import { LocationsDropdown } from './LocationsDropdown'
+import { LocaleSwitcher } from './LocaleSwitcher'
 import type { AuthUser } from '@/lib/auth/server'
 import type { Province } from '@/lib/api/public'
 
@@ -32,6 +33,7 @@ export async function PublicHeader({ locale, user, provinces = [] }: Props) {
 
         {/* Search + Auth */}
         <div className="flex items-center gap-1 shrink-0">
+          <LocaleSwitcher />
           <PublicHeaderSearch locale={locale} />
           {user ? (
             <>

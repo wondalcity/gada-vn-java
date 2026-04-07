@@ -7,6 +7,7 @@ import { useTranslations } from 'next-intl'
 import type { AuthUser } from '@/lib/auth/server'
 import { PublicHeaderAuthMenu } from '@/components/public/PublicHeaderAuthMenu'
 import ManagerSearchModal from '@/components/manager/ManagerSearchModal'
+import { LocaleSwitcher } from '@/components/public/LocaleSwitcher'
 
 interface Props {
   locale: string
@@ -121,6 +122,7 @@ export function ManagerAppBar({ locale, user }: Props) {
 
         {/* Right actions */}
         <div className="flex items-center gap-1">
+          <LocaleSwitcher />
           {/* Search button — visible on all sizes */}
           <button
             type="button"

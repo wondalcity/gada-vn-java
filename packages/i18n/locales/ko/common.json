@@ -45,7 +45,8 @@
   "locale": {
     "ko": "한국어",
     "vi": "Tiếng Việt",
-    "en": "English"
+    "en": "English",
+    "switch_aria": "언어 선택"
   },
   "worker_nav": {
     "home": "홈",

@@ -8,6 +8,7 @@ import type { Province } from '@/lib/api/public'
 import { PublicHeaderAuthMenu } from '@/components/public/PublicHeaderAuthMenu'
 import { LocationsDropdown } from '@/components/public/LocationsDropdown'
 import PublicHeaderSearch from '@/components/public/PublicHeaderSearch'
+import { LocaleSwitcher } from '@/components/public/LocaleSwitcher'
 
 interface Props {
   locale: string
@@ -107,6 +108,7 @@ export function WorkerAppBar({ locale, user, provinces = [] }: Props) {
 
         {/* Right actions */}
         <div className="flex items-center gap-1">
+          <LocaleSwitcher />
           <PublicHeaderSearch locale={locale} />
           <Link
             href={`/${locale}/worker/notifications`}
