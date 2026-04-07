@@ -504,28 +504,31 @@ export default function JobsMapView({
     })
   }, [onBoundsChange])
 
-  // Fly-to: pan to job location and zoom to street level.
-  // The center is offset southward so the marker sits above the popup card.
+  // Fly-to: single fitBounds call — atomically sets both center and zoom.
+  // Using setCenter+setZoom in sequence is unreliable because setZoom fires
+  // against the old center before the map finishes moving.
+  // D = 0.0014° ≈ 155m radius → fitBounds lands at zoom ~16 on typical screens.
   const flyToJob = useCallback((job: PublicJob, fromMobile = false) => {
     if (job.siteLat == null || job.siteLng == null || !mapRef.current) return
 
     animatingRef.current = true
     setTimeout(() => { animatingRef.current = false }, 900)
 
-    const TARGET_ZOOM = 16  // street-level — clearly shows the construction site
+    const lat = job.siteLat
+    const lng = job.siteLng
+    const D = 0.0014 // ~155m — forces zoom ≈16 on typical viewport sizes
 
-    // Offset the center southward so the marker clears the popup card.
-    // At zoom 16: 1px ≈ 2.39m at equator, scaled by cos(lat).
-    const metersPerPx =
-      (156543.03 * Math.cos((job.siteLat * Math.PI) / 180)) / Math.pow(2, TARGET_ZOOM)
-    const cardHalfHeightPx = fromMobile ? 100 : 170  // ~half card height
-    const latOffsetDeg = (cardHalfHeightPx * metersPerPx) / 111320
+    const bounds = new window.google.maps.LatLngBounds(
+      { lat: lat - D, lng: lng - D },
+      { lat: lat + D, lng: lng + D },
+    )
 
-    // setCenter first so the center is committed before setZoom fires.
-    // panTo + setZoom has a race condition where setZoom zooms into the
-    // old center before the pan animation reaches the target.
-    mapRef.current.setCenter({ lat: job.siteLat - latOffsetDeg, lng: job.siteLng })
-    mapRef.current.setZoom(TARGET_ZOOM)
+    // Bottom padding leaves room for the popup card without hiding the marker.
+    const padding = fromMobile
+      ? { top: 40, right: 40, bottom: 200, left: 40 }
+      : { top: 40, right: 60, bottom: 380, left: 60 }
+
+    mapRef.current.fitBounds(bounds, padding)
     setIsZoomedIn(true)
   }, [])
 
