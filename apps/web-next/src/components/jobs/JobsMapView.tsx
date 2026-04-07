@@ -13,8 +13,24 @@ const VN_CENTER = { lat: 14.0583, lng: 108.2772 }
 const VN_ZOOM = 6
 
 const MAP_STYLES: google.maps.MapTypeStyle[] = [
+  { elementType: 'geometry', stylers: [{ color: '#f5f5f5' }] },
+  { elementType: 'labels.icon', stylers: [{ visibility: 'off' }] },
+  { elementType: 'labels.text.fill', stylers: [{ color: '#616161' }] },
+  { elementType: 'labels.text.stroke', stylers: [{ color: '#f5f5f5' }] },
+  { featureType: 'administrative.land_parcel', elementType: 'labels.text.fill', stylers: [{ color: '#bdbdbd' }] },
+  { featureType: 'poi', elementType: 'geometry', stylers: [{ color: '#eeeeee' }] },
   { featureType: 'poi', elementType: 'labels', stylers: [{ visibility: 'off' }] },
-  { featureType: 'transit', stylers: [{ visibility: 'simplified' }] },
+  { featureType: 'poi.park', elementType: 'geometry', stylers: [{ color: '#e5f5e0' }] },
+  { featureType: 'poi.park', elementType: 'labels.text.fill', stylers: [{ color: '#9e9e9e' }] },
+  { featureType: 'road', elementType: 'geometry', stylers: [{ color: '#ffffff' }] },
+  { featureType: 'road.arterial', elementType: 'labels.text.fill', stylers: [{ color: '#757575' }] },
+  { featureType: 'road.highway', elementType: 'geometry', stylers: [{ color: '#dadada' }] },
+  { featureType: 'road.highway', elementType: 'labels.text.fill', stylers: [{ color: '#616161' }] },
+  { featureType: 'road.local', elementType: 'labels.text.fill', stylers: [{ color: '#9e9e9e' }] },
+  { featureType: 'transit.line', elementType: 'geometry', stylers: [{ color: '#e5e5e5' }] },
+  { featureType: 'transit.station', elementType: 'geometry', stylers: [{ color: '#eeeeee' }] },
+  { featureType: 'water', elementType: 'geometry', stylers: [{ color: '#c9e8f4' }] },
+  { featureType: 'water', elementType: 'labels.text.fill', stylers: [{ color: '#9e9e9e' }] },
 ]
 
 function formatVnd(n: number) {
@@ -736,10 +752,10 @@ export default function JobsMapView({
       {/* ═══════════════════════════════════════════════════════════════
           DESKTOP — Airbnb split layout
       ═══════════════════════════════════════════════════════════════ */}
-      <div className="hidden md:flex h-[calc(100dvh-var(--app-bar-height))] overflow-hidden">
+      <div className="hidden md:flex h-[calc(100dvh-var(--app-bar-height))] p-4 gap-4 bg-[#F2F2F2] overflow-hidden">
 
         {/* Left panel */}
-        <div className="w-[420px] xl:w-[480px] flex flex-col h-full bg-white border-r border-[#EBEBEB]">
+        <div className="w-[420px] xl:w-[480px] flex flex-col h-full bg-white rounded-2xl overflow-hidden shadow-sm border border-[#EBEBEB]">
           <div className="shrink-0 flex items-center justify-between gap-3 px-4 py-3 border-b border-[#EBEBEB]">
             <div className="min-w-0">
               <p className="text-sm font-semibold text-[#25282A]">
@@ -770,7 +786,7 @@ export default function JobsMapView({
         </div>
 
         {/* Right: map */}
-        <div className="flex-1 relative h-full">
+        <div className="flex-1 relative h-full rounded-2xl overflow-hidden shadow-sm">
           {mapContent}
 
           {/* Reset zoom — appears when zoomed in to a job */}
