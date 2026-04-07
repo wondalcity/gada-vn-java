@@ -109,29 +109,28 @@ function WageMarker({
 function AirbnbJobCard({
   job,
   locale,
+  basePath,
   isSelected,
   isHovered,
   onMouseEnter,
   onMouseLeave,
-  onClick,
 }: {
   job: PublicJob
   locale: string
+  basePath: string
   isSelected: boolean
   isHovered: boolean
   onMouseEnter: () => void
   onMouseLeave: () => void
-  onClick: () => void
 }) {
   const remaining = job.slotsTotal - job.slotsFilled
 
   return (
-    <button
-      type="button"
+    <Link
+      href={`${basePath}/${job.slug ?? job.id}`}
       data-job-id={job.id}
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
-      onClick={onClick}
       className="w-full text-left flex gap-3 px-4 py-3.5 transition-colors relative"
       style={{
         background: isSelected ? '#F7F7F7' : isHovered ? '#FAFAFA' : '#fff',
@@ -187,7 +186,7 @@ function AirbnbJobCard({
           </svg>
         </div>
       )}
-    </button>
+    </Link>
   )
 }
 
@@ -273,7 +272,7 @@ function MapPopupCard({
         </div>
 
         <Link
-          href={`${basePath}/${job.slug}`}
+          href={`${basePath}/${job.slug ?? job.id}`}
           className="block w-full text-center py-2.5 bg-[#0669F7] hover:bg-[#0454C5] text-white text-sm font-semibold rounded-xl transition-colors"
         >
           자세히 보기
@@ -369,7 +368,7 @@ function MobileJobCard({
       {/* CTA */}
       <div className="px-3.5 pb-3.5">
         <Link
-          href={`${basePath}/${job.slug}`}
+          href={`${basePath}/${job.slug ?? job.id}`}
           className="block w-full text-center py-3 bg-[#0669F7] hover:bg-[#0454C5] text-white text-sm font-semibold rounded-xl transition-colors"
         >
           자세히 보기
@@ -504,32 +503,25 @@ export default function JobsMapView({
     })
   }, [onBoundsChange])
 
-  // Smooth fly-to: fitBounds with asymmetric padding so the marker stays visible
-  // above the popup card. The marker is always inside the bounds; bottom padding
-  // provides space for the card without cutting the marker out of view.
+  // Fly-to: pan to job location and zoom to street level.
+  // The center is offset southward so the marker sits above the popup card.
   const flyToJob = useCallback((job: PublicJob, fromMobile = false) => {
     if (job.siteLat == null || job.siteLng == null || !mapRef.current) return
 
     animatingRef.current = true
     setTimeout(() => { animatingRef.current = false }, 900)
 
-    const lat = job.siteLat
-    const lng = job.siteLng
-    const D = 0.005 // ~500m — keeps the marker visible with comfortable context
+    const TARGET_ZOOM = 16  // street-level — clearly shows the construction site
 
-    // Symmetric bounds around the marker; bottom padding handles card overlap
-    const bounds = new window.google.maps.LatLngBounds(
-      { lat: lat - D, lng: lng - D },
-      { lat: lat + D, lng: lng + D },
-    )
+    // Offset the center southward so the marker clears the popup card.
+    // At zoom 16: 1px ≈ 2.39m at equator, scaled by cos(lat).
+    const metersPerPx =
+      (156543.03 * Math.cos((job.siteLat * Math.PI) / 180)) / Math.pow(2, TARGET_ZOOM)
+    const cardHalfHeightPx = fromMobile ? 100 : 170  // ~half card height
+    const latOffsetDeg = (cardHalfHeightPx * metersPerPx) / 111320
 
-    // Bottom padding pushes the marker upward so it clears the popup card.
-    // Desktop card height ~340px, mobile card ~200px.
-    const padding = fromMobile
-      ? { top: 60, right: 60, bottom: 220, left: 60 }
-      : { top: 80, right: 80, bottom: 360, left: 80 }
-
-    mapRef.current.fitBounds(bounds, padding)
+    mapRef.current.panTo({ lat: job.siteLat - latOffsetDeg, lng: job.siteLng })
+    mapRef.current.setZoom(TARGET_ZOOM)
     setIsZoomedIn(true)
   }, [])
 
@@ -546,18 +538,6 @@ export default function JobsMapView({
       mapRef.current.setZoom(zoom)
     }
   }, [jobsWithCoords, center, zoom])
-
-  const handleCardClick = useCallback((job: PublicJob) => {
-    const isAlreadySelected = job.id === selectedJobId
-    if (isAlreadySelected) {
-      setSelectedJobId(null)
-      setIsZoomedIn(false)
-      return
-    }
-    setSelectedJobId(job.id)
-    setCardKey(k => k + 1)
-    flyToJob(job)
-  }, [selectedJobId, flyToJob])
 
   const handleMarkerSelect = useCallback((id: string | null) => {
     if (!id) { setSelectedJobId(null); return }
@@ -659,11 +639,11 @@ export default function JobsMapView({
           <AirbnbJobCard
             job={job}
             locale={locale}
+            basePath={basePath}
             isHovered={hoveredJobId === job.id}
             isSelected={selectedJobId === job.id}
             onMouseEnter={() => setHoveredJobId(job.id)}
             onMouseLeave={() => setHoveredJobId(null)}
-            onClick={() => handleCardClick(job)}
           />
           {i < jobsWithCoords.length - 1 && <div className="mx-4 border-b border-[#F2F2F2]" />}
         </React.Fragment>
@@ -678,11 +658,11 @@ export default function JobsMapView({
               <AirbnbJobCard
                 job={job}
                 locale={locale}
+                basePath={basePath}
                 isHovered={hoveredJobId === job.id}
                 isSelected={selectedJobId === job.id}
                 onMouseEnter={() => setHoveredJobId(job.id)}
                 onMouseLeave={() => setHoveredJobId(null)}
-                onClick={() => handleCardClick(job)}
               />
               {i < jobsWithoutCoords.length - 1 && <div className="mx-4 border-b border-[#F2F2F2]" />}
             </React.Fragment>
