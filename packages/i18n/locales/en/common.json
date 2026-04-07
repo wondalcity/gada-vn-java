@@ -208,6 +208,7 @@
     "id_unverified": "ID Not Verified",
     "signature_done": "Signature Registered",
     "signature_register": "Register Signature",
+    "field_phone": "Phone Number",
     "field_name": "Full Name",
     "field_dob": "Date of Birth",
     "field_gender": "Gender",
