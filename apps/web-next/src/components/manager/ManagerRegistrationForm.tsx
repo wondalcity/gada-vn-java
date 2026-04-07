@@ -109,7 +109,7 @@ function RejectedState({
     <div className="mb-6">
       <div className="flex items-start gap-3 p-4 bg-red-50 border border-red-200 rounded-2xl mb-4">
         <svg
-          className="w-5 h-5 text-[#D81A48] flex-shrink-0 mt-0.5"
+          className="w-5 h-5 text-[#ED1C24] flex-shrink-0 mt-0.5"
           fill="currentColor"
           viewBox="0 0 20 20"
         >
@@ -120,7 +120,7 @@ function RejectedState({
           />
         </svg>
         <div>
-          <p className="text-sm font-medium text-[#D81A48] mb-1">신청이 반려되었습니다</p>
+          <p className="text-sm font-medium text-[#ED1C24] mb-1">신청이 반려되었습니다</p>
           {rejectionReason && (
             <p className="text-sm text-[#25282A]">{rejectionReason}</p>
           )}
@@ -197,7 +197,7 @@ function RegistrationForm({ onSuccess, idToken }: RegistrationFormProps) {
       {/* Company name (Korean) */}
       <div>
         <label htmlFor="companyNameKo" className="block text-sm font-medium text-[#25282A] mb-1">
-          회사명 (한국어) <span className="text-[#D81A48]">*</span>
+          회사명 (한국어) <span className="text-[#ED1C24]">*</span>
         </label>
         <input
           id="companyNameKo"
@@ -230,7 +230,7 @@ function RegistrationForm({ onSuccess, idToken }: RegistrationFormProps) {
       {/* Business registration number */}
       <div>
         <label htmlFor="businessRegistrationNumber" className="block text-sm font-medium text-[#25282A] mb-1">
-          사업자등록번호 <span className="text-[#D81A48]">*</span>
+          사업자등록번호 <span className="text-[#ED1C24]">*</span>
         </label>
         <input
           id="businessRegistrationNumber"
@@ -247,7 +247,7 @@ function RegistrationForm({ onSuccess, idToken }: RegistrationFormProps) {
       {/* Company address */}
       <div>
         <label htmlFor="companyAddress" className="block text-sm font-medium text-[#25282A] mb-1">
-          회사 주소 <span className="text-[#D81A48]">*</span>
+          회사 주소 <span className="text-[#ED1C24]">*</span>
         </label>
         <textarea
           id="companyAddress"
@@ -312,7 +312,7 @@ function RegistrationForm({ onSuccess, idToken }: RegistrationFormProps) {
 
       {/* Error message */}
       {errorMessage && (
-        <div className="p-3 bg-red-50 border border-red-200 rounded-2xl text-sm text-[#D81A48]">
+        <div className="p-3 bg-red-50 border border-red-200 rounded-2xl text-sm text-[#ED1C24]">
           {errorMessage}
         </div>
       )}

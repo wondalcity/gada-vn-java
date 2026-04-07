@@ -120,7 +120,7 @@ export default function JobDetailClient({ jobId, locale }: JobDetailClientProps)
 
   if (error) {
     return (
-      <div className="p-4 rounded-2xl bg-red-50 border border-red-200 text-sm text-[#D81A48] text-center">
+      <div className="p-4 rounded-2xl bg-red-50 border border-red-200 text-sm text-[#ED1C24] text-center">
         {error}
       </div>
     )
@@ -131,10 +131,10 @@ export default function JobDetailClient({ jobId, locale }: JobDetailClientProps)
   const allImages = job.imageUrls ?? []
   const fillPercent = job.slotsTotal > 0 ? Math.round((job.slotsFilled / job.slotsTotal) * 100) : 0
   const benefits = [
-    { key: 'meals' as const, label: t('manager_job_detail.benefit_meals'), emoji: '🍚' },
-    { key: 'transport' as const, label: t('manager_job_detail.benefit_transport'), emoji: '🚌' },
-    { key: 'accommodation' as const, label: t('manager_job_detail.benefit_accommodation'), emoji: '🏠' },
-    { key: 'insurance' as const, label: t('manager_job_detail.benefit_insurance'), emoji: '🛡️' },
+    { key: 'meals' as const, label: t('manager_job_detail.benefit_meals') },
+    { key: 'transport' as const, label: t('manager_job_detail.benefit_transport') },
+    { key: 'accommodation' as const, label: t('manager_job_detail.benefit_accommodation') },
+    { key: 'insurance' as const, label: t('manager_job_detail.benefit_insurance') },
   ]
 
   return (
@@ -231,7 +231,7 @@ export default function JobDetailClient({ jobId, locale }: JobDetailClientProps)
                   key={b.key}
                   className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-blue-50 border border-blue-200 text-xs text-[#0669F7]"
                 >
-                  {b.emoji} {b.label}
+                  {b.label}
                 </span>
               ) : null
             )}
@@ -292,7 +292,7 @@ export default function JobDetailClient({ jobId, locale }: JobDetailClientProps)
               <button
                 onClick={() => setShowCancelModal(true)}
                 disabled={isActioning}
-                className="px-5 py-2.5 rounded-full border border-[#D81A48] text-[#D81A48] font-medium text-sm disabled:opacity-40"
+                className="px-5 py-2.5 rounded-full border border-[#ED1C24] text-[#ED1C24] font-medium text-sm disabled:opacity-40"
               >
                 {t('manager_job_detail.cancel_job')}
               </button>
@@ -313,7 +313,7 @@ export default function JobDetailClient({ jobId, locale }: JobDetailClientProps)
 
           <button
             onClick={() => setShowDeleteModal(true)}
-            className="px-5 py-2.5 rounded-full border border-[#D81A48] text-[#D81A48] font-medium text-sm"
+            className="px-5 py-2.5 rounded-full border border-[#ED1C24] text-[#ED1C24] font-medium text-sm"
           >
             {t('manager_job_detail.delete')}
           </button>
@@ -341,7 +341,7 @@ export default function JobDetailClient({ jobId, locale }: JobDetailClientProps)
             <p className="text-xs text-[#98A2B2] mt-0.5">{t('manager_job_detail.accepted_count')}</p>
           </div>
           <div className="flex-1">
-            <p className="text-2xl font-bold text-[#D81A48]">{job.applicationCount.rejected}</p>
+            <p className="text-2xl font-bold text-[#ED1C24]">{job.applicationCount.rejected}</p>
             <p className="text-xs text-[#98A2B2] mt-0.5">{t('manager_job_detail.rejected_count')}</p>
           </div>
         </div>

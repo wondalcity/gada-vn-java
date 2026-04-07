@@ -149,7 +149,7 @@ export default function ManagerContractClient({ contractId }: Props) {
   if (error || !contract) {
     return (
       <div className="max-w-[1760px] mx-auto px-4 py-6">
-        <p className="text-[#D81A48] text-sm mb-4">{error ?? '계약서를 찾을 수 없습니다.'}</p>
+        <p className="text-[#ED1C24] text-sm mb-4">{error ?? '계약서를 찾을 수 없습니다.'}</p>
         <button type="button" onClick={load} className="px-5 py-2.5 rounded-full bg-[#0669F7] text-white font-medium text-sm">다시 시도</button>
       </div>
     )
@@ -221,7 +221,7 @@ export default function ManagerContractClient({ contractId }: Props) {
       )}
       {contract.status === 'FULLY_SIGNED' && (
         <div className="p-4 bg-green-50 border border-green-200 rounded-2xl">
-          <p className="text-sm font-medium text-green-700">✅ 계약이 완료되었습니다. 오른쪽 상단의 버튼으로 이미지를 저장하세요.</p>
+          <p className="text-sm font-medium text-green-700">계약이 완료되었습니다. 오른쪽 상단의 버튼으로 이미지를 저장하세요.</p>
         </div>
       )}
       {contract.status === 'VOID' && (
@@ -248,7 +248,7 @@ export default function ManagerContractClient({ contractId }: Props) {
                   <img src={contract.workerSigUrl} alt="근로자 서명" className="max-h-full max-w-full object-contain p-1" />
                 </div>
               ) : (
-                <div className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center"><span className="text-2xl">✅</span></div>
+                <div className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center"><svg className="w-6 h-6 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg></div>
               )}
               <p className="text-xs text-green-600">서명 완료</p>
             </div>
@@ -282,7 +282,7 @@ export default function ManagerContractClient({ contractId }: Props) {
                   <img src={(contract.companySigUrl ?? contract.managerSigUrl)!} alt="사업주 서명" className="max-h-full max-w-full object-contain p-1" />
                 </div>
               ) : (
-                <div className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center"><span className="text-2xl">✅</span></div>
+                <div className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center"><svg className="w-6 h-6 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg></div>
               )}
               <p className="text-xs text-green-600">서명 완료</p>
             </div>

@@ -233,7 +233,7 @@ export default function ApplicantListClient({ jobId, locale }: Props) {
         }).then(r => r.json())
         const updatedData = updated.data as ApplicantsResponse
         setApplicants(updatedData.applicants ?? [])
-        setContractGenToast(`계약서 ${acceptedApplicants.length}건 생성 완료 ✅`)
+        setContractGenToast(`계약서 ${acceptedApplicants.length}건 생성 완료`)
         setTimeout(() => setContractGenToast(null), 3000)
       }
     } finally {
@@ -263,7 +263,7 @@ export default function ApplicantListClient({ jobId, locale }: Props) {
   if (error) {
     return (
       <div className="max-w-[1760px] mx-auto px-4 py-6">
-        <p className="text-[#D81A48] text-sm">{error}</p>
+        <p className="text-[#ED1C24] text-sm">{error}</p>
       </div>
     )
   }

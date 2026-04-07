@@ -36,7 +36,7 @@ const STATUS_LABEL_CLASSES: Record<string, string> = {
   APPLIED:   'bg-yellow-50 text-yellow-700 border-yellow-200',
   HIRED:     'bg-green-50 text-green-700 border-green-200',
   COMPLETED: 'bg-blue-50 text-[#0669F7] border-blue-200',
-  REJECTED:  'bg-red-50 text-[#D81A48] border-red-200',
+  REJECTED:  'bg-red-50 text-[#ED1C24] border-red-200',
   WITHDRAWN: 'bg-gray-100 text-[#98A2B2] border-[#EFF1F5]',
 }
 
@@ -258,7 +258,7 @@ export default function ApplyButton({
                 type="button"
                 onClick={() => setShowWithdrawConfirm(true)}
                 disabled={phase === 'withdrawing'}
-                className={`flex-1 rounded-2xl bg-[#FDE8EE] text-[#D81A48] text-sm font-bold hover:bg-[#FCD0DC] transition-colors disabled:opacity-40 ${sticky ? 'h-14' : 'h-11'}`}
+                className={`flex-1 rounded-2xl bg-[#FDE8EE] text-[#ED1C24] text-sm font-bold hover:bg-[#FCD0DC] transition-colors disabled:opacity-40 ${sticky ? 'h-14' : 'h-11'}`}
               >
                 {phase === 'withdrawing' ? t('apply_btn.withdrawing') : t('apply_btn.withdraw')}
               </button>
@@ -276,7 +276,7 @@ export default function ApplyButton({
           )}
         </div>
 
-        {errorMsg && <p className="text-xs text-[#D81A48] mt-3 text-center">{errorMsg}</p>}
+        {errorMsg && <p className="text-xs text-[#ED1C24] mt-3 text-center">{errorMsg}</p>}
       </div>
     )
   }
@@ -335,7 +335,7 @@ export default function ApplyButton({
           )}
           {t('apply_btn.apply')}
         </button>
-        {phase === 'error' && <p className={`text-sm text-[#D81A48] ${sticky ? 'text-center mt-2' : ''}`}>{errorMsg}</p>}
+        {phase === 'error' && <p className={`text-sm text-[#ED1C24] ${sticky ? 'text-center mt-2' : ''}`}>{errorMsg}</p>}
       </div>
     )
   }
@@ -441,7 +441,7 @@ export default function ApplyButton({
             </div>
           </div>
         )}
-        {phase === 'error' && <p className="text-sm text-[#D81A48] text-center mt-2">{errorMsg}</p>}
+        {phase === 'error' && <p className="text-sm text-[#ED1C24] text-center mt-2">{errorMsg}</p>}
       </>
     )
   }

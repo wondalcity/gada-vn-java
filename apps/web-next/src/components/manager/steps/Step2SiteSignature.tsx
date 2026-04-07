@@ -266,7 +266,7 @@ export default function Step2SiteSignature({ draft, onChange, onNext, onBack }: 
             <p className="text-xs text-[#98A2B2] mt-1">손가락이나 마우스로 서명하세요</p>
 
             {sigError && (
-              <p className="text-xs text-[#D81A48] mt-1">{sigError}</p>
+              <p className="text-xs text-[#ED1C24] mt-1">{sigError}</p>
             )}
             {sigSaved && (
               <p className="text-xs text-green-700 mt-1">서명이 저장되었습니다</p>

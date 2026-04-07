@@ -45,7 +45,7 @@ export default function AttendanceStatusPicker({ value, onChange, disabled }: Pr
     {
       status: 'ABSENT',
       label: t('worker_attendance.absent'),
-      selectedClass: 'border-[#D81A48] bg-red-50 text-[#D81A48]',
+      selectedClass: 'border-[#ED1C24] bg-red-50 text-[#ED1C24]',
       icon: (
         <svg className="w-4 h-4" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" aria-hidden="true">
           <line x1="3" y1="3" x2="13" y2="13" />

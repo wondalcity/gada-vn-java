@@ -12,10 +12,10 @@ interface Props {
 
 type GenderOption = 'MALE' | 'FEMALE' | 'OTHER'
 
-const GENDER_OPTIONS: { value: GenderOption; label: string; icon: string }[] = [
-  { value: 'MALE',   label: '남성', icon: '♂' },
-  { value: 'FEMALE', label: '여성', icon: '♀' },
-  { value: 'OTHER',  label: '기타', icon: '⚧' },
+const GENDER_OPTIONS: { value: GenderOption; label: string }[] = [
+  { value: 'MALE',   label: '남성' },
+  { value: 'FEMALE', label: '여성' },
+  { value: 'OTHER',  label: '기타' },
 ]
 
 function getTodayString(): string {
@@ -36,7 +36,7 @@ export default function RepresentativeInfoStep({ draft, onChange, onNext, onBack
       {/* Representative name */}
       <div>
         <label htmlFor="representativeName" className="block text-sm font-medium text-[#25282A] mb-1.5">
-          대표자 성명 <span className="text-[#D81A48]">*</span>
+          대표자 성명 <span className="text-[#ED1C24]">*</span>
         </label>
         <input
           id="representativeName"
@@ -79,16 +79,15 @@ export default function RepresentativeInfoStep({ draft, onChange, onNext, onBack
                 type="button"
                 onClick={() => onChange({ representativeGender: opt.value })}
                 className={`
-                  flex-1 flex flex-col items-center justify-center gap-1 py-4 rounded-2xl border-2
-                  transition-all duration-150 min-h-[80px]
+                  flex-1 flex items-center justify-center py-3.5 rounded-2xl border-2
+                  transition-all duration-150 min-h-[52px]
                   ${isSelected
                     ? 'border-[#0669F7] bg-blue-50 text-[#0669F7]'
                     : 'border-[#EFF1F5] bg-white text-[#98A2B2] hover:border-[#0669F7] hover:text-[#0669F7]'
                   }
                 `}
               >
-                <span className="text-2xl leading-none">{opt.icon}</span>
-                <span className="text-sm font-medium text-[#25282A]">{opt.label}</span>
+                <span className="text-sm font-semibold">{opt.label}</span>
               </button>
             )
           })}

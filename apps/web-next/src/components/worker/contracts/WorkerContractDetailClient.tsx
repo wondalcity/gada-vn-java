@@ -305,7 +305,7 @@ function SignatureBox({
     <div className="rounded-xl border-2 border-green-200 bg-green-50 p-3 flex flex-col items-center gap-2 min-h-[100px] justify-center">
       <p className="text-xs font-medium text-green-700">{label}</p>
       <div className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center">
-        <span className="text-2xl">✅</span>
+        <svg className="w-6 h-6 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
       </div>
       <p className="text-xs text-green-600">{t('worker_contracts.sig_done')}</p>
     </div>

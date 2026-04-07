@@ -16,9 +16,9 @@ export default {
           '16': 'rgba(6,105,247,0.16)',
         },
         secondary: {
-          DEFAULT:     '#FDBC08',
+          DEFAULT:     '#FFC72C',
           on:          '#3C2C02',
-          container:   '#FCECBB',
+          container:   '#FFF3CC',
           onContainer: '#3C2C02',
         },
         tertiary: {
@@ -45,8 +45,10 @@ export default {
         scrim: 'rgba(0,0,0,0.30)',
       },
       borderRadius: {
-        sm:   '4px',
-        full: '24px',
+        sm: '4px',
+        // Note: 'full' is intentionally NOT overridden here.
+        // Use rounded-full (9999px) for circles/pills, rounded-3xl (24px) for cards/large-radius.
+        // GADA tokens: small=4px (rounded), large=24px (rounded-3xl), full=9999px (rounded-full)
       },
       fontFamily: {
         sans: ['Noto Sans KR', 'Noto Sans', 'system-ui', 'sans-serif'],

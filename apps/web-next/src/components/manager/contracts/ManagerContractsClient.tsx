@@ -163,7 +163,7 @@ export default function ManagerContractsClient() {
     return (
       <div className="max-w-[1760px] mx-auto px-4 py-6">
         <h1 className="text-xl font-bold text-[#25282A] mb-6">{t('manager_contracts.title')}</h1>
-        <p className="text-[#D81A48] text-sm mb-4">{error}</p>
+        <p className="text-[#ED1C24] text-sm mb-4">{error}</p>
         <button
           type="button"
           onClick={load}

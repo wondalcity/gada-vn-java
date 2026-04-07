@@ -1,0 +1,372 @@
+{
+  "version": "1.0.0",
+  "components": {
+
+    "Button": {
+      "platformUsage": "crossPlatform",
+      "description": "Primary interactive trigger. Always full-rounded pill shape. Min 44px height.",
+      "variants": ["Primary", "Secondary", "Outline", "Ghost", "Underline"],
+      "states": ["Enabled", "Pressed", "Disabled", "Loading"],
+      "sizes": ["sm", "md", "lg"],
+      "parts": ["label", "leadingIcon?", "trailingIcon?", "spinner?"],
+      "rules": [
+        "Primary: bg-[#0669F7] text-white, one per view",
+        "Secondary: bg-[#FFC72C] text-[#25282A]",
+        "Outline: border border-[#DDDDDD] text-[#25282A], hover border-[#0669F7]",
+        "Ghost: no border/bg, text-[#25282A]",
+        "Underline: text-[#0669F7] underline, no bg",
+        "Loading state: show spinner, disable pointer-events",
+        "Disabled: opacity-40, cursor-not-allowed",
+        "Size sm: text-sm px-4 py-2, md: text-base px-5 py-3, lg: text-xl px-6 py-4",
+        "All: rounded-full font-bold min-h-[44px] transition-colors"
+      ]
+    },
+
+    "TextField": {
+      "platformUsage": "crossPlatform",
+      "description": "Input field for user text entry. Filled variant is default.",
+      "variants": ["Filled", "Outlined", "WithLeadingIcon", "WithTrailingIcon", "TextArea"],
+      "states": ["Enabled", "Focused", "Error", "Disabled"],
+      "parts": ["label", "input", "helperText?", "errorText?", "leadingIcon?", "trailingIcon?", "charCount?"],
+      "rules": [
+        "Filled: bg-[#F2F4F5] rounded border border-transparent, focus border-[#0669F7]",
+        "Outlined: bg-white border border-[#DDDDDD] rounded, focus border-[#0669F7]",
+        "Error: border-[#ED1C24], show error message in text-[#ED1C24] below",
+        "Disabled: opacity-50 cursor-not-allowed bg-[#F2F4F5]",
+        "Always show label above input (never placeholder-only)",
+        "Min height: 48px, padding: px-4 py-3",
+        "TextArea: min-h-[120px] resize-y"
+      ]
+    },
+
+    "Card": {
+      "platformUsage": "crossPlatform",
+      "description": "Container for grouped content. Default padding 16px mobile, 24px desktop.",
+      "variants": ["Elevated", "Outlined", "Filled"],
+      "states": ["Default", "Hovered", "Pressed", "Selected"],
+      "parts": ["header?", "body", "footer?", "thumbnail?", "badge?"],
+      "rules": [
+        "Elevated: bg-white rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.06)]",
+        "Outlined: bg-white rounded-2xl border border-[#EFF1F5]",
+        "Filled: bg-[#F2F4F5] rounded-2xl",
+        "Padding: p-4 (mobile) md:p-6 (desktop)",
+        "Press state: use press-effect class (scale-[0.98])",
+        "Never nest Elevated inside Elevated",
+        "Clickable cards: block with cursor-pointer and press-effect"
+      ]
+    },
+
+    "BottomSheet": {
+      "platformUsage": "mobilePreferred",
+      "desktopFallback": "Modal",
+      "description": "Slide-up overlay for actions, forms, selections on mobile. Becomes modal on desktop.",
+      "variants": ["Standard", "Modal", "Expanded"],
+      "states": ["Closed", "Open", "Dragging"],
+      "parts": ["handle", "header?", "content", "footer?"],
+      "rules": [
+        "Mobile: fixed bottom-0 left-0 right-0, max-h-[90vh], rounded-t-3xl, bg-white",
+        "Desktop: centered modal max-w-[480px] rounded-2xl",
+        "Always includes drag handle bar at top (mobile)",
+        "Overlay backdrop: rgba(0,0,0,0.4) with animation",
+        "Standard: content height auto, Modal: fixed height, Expanded: 90vh",
+        "Dismiss on backdrop tap or swipe down"
+      ]
+    },
+
+    "Tabs": {
+      "platformUsage": "crossPlatform",
+      "description": "Content segmentation. Fixed for 4 or fewer items, scrollable for 5+.",
+      "variants": ["Fixed", "Scrollable", "Icon", "TextAndIcon"],
+      "states": ["Active", "Inactive", "Disabled"],
+      "parts": ["tabBar", "tab", "indicator", "icon?", "badge?"],
+      "rules": [
+        "Active: text-[#0669F7] border-b-2 border-[#0669F7] font-semibold",
+        "Inactive: text-[#7A7B7A]",
+        "Tab bar: border-b border-[#EFF1F5], sticky to top on mobile",
+        "Each tab: min-h-[44px] px-4",
+        "Scrollable: overflow-x-auto scrollbar-hide",
+        "Badge: small number or dot on tab when needed"
+      ]
+    },
+
+    "Popup": {
+      "platformUsage": "crossPlatform",
+      "mobilePreferred": "BottomSheet for selection/confirmation",
+      "description": "Interrupting overlay requiring user decision. Use sparingly.",
+      "variants": ["Alert", "Confirm", "Selection", "Fullscreen"],
+      "states": ["Open", "Closed"],
+      "parts": ["backdrop", "dialog", "title", "message?", "primaryAction", "secondaryAction?"],
+      "rules": [
+        "Alert: single action (OK), informational only",
+        "Confirm: two actions (primary destructive/confirm + cancel)",
+        "Centered, max-w-[360px] (mobile) max-w-[480px] (desktop)",
+        "Backdrop: rgba(0,0,0,0.4), tap outside to dismiss (except Alert)",
+        "Title: Title 02, Message: Paragraph 02",
+        "Primary action: full-width or right-aligned button",
+        "Mobile confirm → prefer BottomSheet variant"
+      ]
+    },
+
+    "Menu": {
+      "platformUsage": "desktopPreferred",
+      "mobileFallback": "BottomSheet",
+      "description": "Contextual action list anchored to a trigger.",
+      "variants": ["Dropdown", "Context", "Cascading"],
+      "states": ["Open", "Closed"],
+      "parts": ["trigger", "menuList", "menuItem", "divider?", "icon?"],
+      "rules": [
+        "bg-white rounded-2xl shadow-[0_8px_24px_rgba(0,0,0,0.12)]",
+        "Each item: min-h-[44px] px-4, text-sm text-[#25282A]",
+        "Hover: bg-[#EFF1F5]",
+        "Destructive item: text-[#ED1C24] hover:bg-[#FDE8EE]",
+        "Max items before scroll: 8",
+        "Mobile: collapse into BottomSheet action list"
+      ]
+    },
+
+    "Chips": {
+      "platformUsage": "crossPlatform",
+      "description": "Compact interactive labels for filtering, input, or suggestions.",
+      "variants": ["Assist", "Filter", "Input", "Suggestion"],
+      "states": ["Enabled", "Selected", "Disabled"],
+      "parts": ["label", "leadingIcon?", "trailingIcon?"],
+      "rules": [
+        "Height: 32px (dense), 40px (comfortable)",
+        "Padding: px-3 rounded-full",
+        "Filter unselected: border border-[#DDDDDD] bg-white text-[#25282A]",
+        "Filter selected: bg-[#0669F7] text-white border-transparent",
+        "Input: shows X to remove",
+        "Min tap target: ensure 44px via vertical margin if chip is 32px"
+      ]
+    },
+
+    "Badge": {
+      "platformUsage": "crossPlatform",
+      "description": "Small count or status indicator on icons or avatars.",
+      "variants": ["Dot", "Number"],
+      "states": ["Default"],
+      "parts": ["container", "label?"],
+      "rules": [
+        "Dot: 8px circle, absolute positioned top-right of parent",
+        "Number: min-w-[18px] h-[18px] rounded-full text-[10px] font-bold",
+        "Color: bg-[#ED1C24] text-white (default), bg-[#0669F7] for info",
+        "Max number shown: 99+",
+        "Position: absolute -top-1 -right-1"
+      ]
+    },
+
+    "Tag": {
+      "platformUsage": "crossPlatform",
+      "description": "Non-interactive label for categorization or status display.",
+      "variants": ["Primary", "Secondary", "Outline", "Status"],
+      "states": ["Default"],
+      "parts": ["label", "icon?"],
+      "rules": [
+        "Height: 24px, padding: px-2.5 py-0.5 rounded-full text-xs font-medium",
+        "Primary: bg-[#E6F0FE] text-[#0669F7]",
+        "Secondary: bg-[#FFF8E6] text-[#92620A]",
+        "Outline: border border-[#DDDDDD] text-[#7A7B7A] bg-transparent",
+        "Status.success: bg-green-50 text-green-700 border border-green-200",
+        "Status.error: bg-red-50 text-[#ED1C24] border border-red-200",
+        "Status.warning: bg-amber-50 text-amber-700 border border-amber-200",
+        "Status.neutral: bg-gray-100 text-[#7A7B7A] border border-[#DDDDDD]"
+      ]
+    },
+
+    "Switch": {
+      "platformUsage": "crossPlatform",
+      "description": "Toggle for binary on/off settings.",
+      "variants": ["Standard", "WithIcon"],
+      "states": ["On", "Off", "Disabled"],
+      "parts": ["track", "thumb", "icon?", "label?"],
+      "rules": [
+        "Track: w-12 h-6 rounded-full transition-colors",
+        "On: bg-[#0669F7], Off: bg-[#DDDDDD]",
+        "Thumb: w-5 h-5 bg-white rounded-full shadow translate-x with transition",
+        "Min tap target: wrap in element with min-h-[44px]",
+        "Always show label beside switch"
+      ]
+    },
+
+    "Selection": {
+      "platformUsage": "crossPlatform",
+      "description": "Checkbox, Radio, and Checklist for single/multiple selection.",
+      "variants": ["Checkbox", "Radio", "Checklist"],
+      "states": ["Unchecked", "Checked", "Indeterminate", "Disabled"],
+      "parts": ["control", "label", "helperText?"],
+      "rules": [
+        "Control size: 20px × 20px",
+        "Checked: bg-[#0669F7] border-[#0669F7]",
+        "Unchecked: border-2 border-[#DDDDDD] bg-white",
+        "Row: min-h-[44px] flex items-center gap-3",
+        "Radio: rounded-full, Checkbox: rounded",
+        "Checklist: full-width row with dividers"
+      ]
+    },
+
+    "Indicator": {
+      "platformUsage": "crossPlatform",
+      "description": "Progress feedback for loading or completion states.",
+      "variants": ["Linear", "Circular", "Progress"],
+      "states": ["Indeterminate", "Determinate"],
+      "parts": ["track", "fill", "label?"],
+      "rules": [
+        "Linear: h-1.5 rounded-full bg-[#EFF1F5], fill bg-[#0669F7]",
+        "Circular: svg with strokeDasharray, color stroke-[#0669F7]",
+        "Progress: shows percentage label if determinate",
+        "Indeterminate: animate-pulse or continuous sweep animation"
+      ]
+    },
+
+    "Calendar": {
+      "platformUsage": "crossPlatform",
+      "description": "Date selection control. Inline or within DatePicker.",
+      "variants": ["Inline", "Popup"],
+      "states": ["Default", "Selected", "RangeStart", "RangeEnd", "Disabled", "Today"],
+      "parts": ["header", "weekdayRow", "dayGrid", "navPrev", "navNext"],
+      "rules": [
+        "Selected day: bg-[#0669F7] text-white rounded-full",
+        "Today: border border-[#0669F7] text-[#0669F7]",
+        "Disabled: text-[#DDDDDD] cursor-not-allowed",
+        "Day cell: min 40px × 40px",
+        "Mobile: full-width inline calendar",
+        "Desktop: popup anchored to input, max-w-[320px]"
+      ]
+    },
+
+    "Tooltip": {
+      "platformUsage": "desktopPreferred",
+      "mobileFallback": "inline label or help icon with tap-reveal",
+      "description": "Contextual information on hover. Desktop only — mobile shows inline.",
+      "variants": ["Default"],
+      "states": ["Visible", "Hidden"],
+      "parts": ["trigger", "content", "arrow?"],
+      "rules": [
+        "bg-[#25282A] text-white text-xs px-2.5 py-1.5 rounded max-w-[200px]",
+        "Appear on hover with 150ms delay",
+        "z-index: 300 (above modals)",
+        "Mobile: do not render tooltip, show label inline or on tap",
+        "Never put interactive content inside tooltip"
+      ]
+    },
+
+    "GNB": {
+      "platformUsage": "responsive",
+      "description": "Global Navigation Bar. Adapts layout and content by screen size.",
+      "variants": ["WorkerGNB", "ManagerGNB", "PublicGNB", "AdminGNB"],
+      "parts": ["logo", "navLinks?", "search?", "notificationIcon?", "authMenu?", "localeSwitcher?"],
+      "rules": [
+        "Fixed top, z-50, bg-white border-b border-[#EFF1F5]",
+        "Height: var(--app-bar-height, 56px)",
+        "Desktop: logo left, nav center, actions right",
+        "Mobile: logo or back-button left, title center, action right",
+        "All clickable areas: min 44px × 44px",
+        "Shadow: 0 2px 8px rgba(0,0,0,0.06)"
+      ]
+    },
+
+    "TopAppBar": {
+      "platformUsage": "mobilePreferred",
+      "description": "Screen-level navigation bar for sub-pages on mobile. Desktop uses GNB.",
+      "variants": ["Default", "WithBack", "WithTitle", "WithActions"],
+      "parts": ["backButton?", "title?", "trailingActions?"],
+      "rules": [
+        "Fixed top, h-[56px], bg-white border-b border-[#EFF1F5]",
+        "Back button: 36px icon button, tap area min 44px",
+        "Title: Title 02 text-[#25282A] centered on mobile",
+        "Desktop: integrate into GNB instead"
+      ]
+    },
+
+    "BottomTabBar": {
+      "platformUsage": "mobilePreferred",
+      "description": "Primary navigation on mobile. Desktop uses sidebar or GNB nav.",
+      "variants": ["Default"],
+      "parts": ["tabs", "tabIcon", "tabLabel", "activeDot?"],
+      "rules": [
+        "Fixed bottom, bg-white border-t border-[#EFF1F5]",
+        "Height: var(--tab-bar-height, 56px)",
+        "Max 5 tabs",
+        "Active: text-[#0669F7], inactive: text-[#98A2B2]",
+        "Active indicator: bg-[#E6F0FE] rounded-2xl behind icon",
+        "Label: text-[10px] font-medium below icon",
+        "Tab item: flex-1 min-h-[44px]",
+        "Shadow: 0 -2px 16px rgba(0,0,0,0.06)"
+      ]
+    },
+
+    "Snackbar": {
+      "platformUsage": "crossPlatform",
+      "description": "Brief feedback message. Auto-dismisses after 4s. Error persists.",
+      "variants": ["Default", "Success", "Error", "WithAction"],
+      "states": ["Visible", "Dismissed"],
+      "parts": ["icon?", "message", "actionButton?", "closeButton?"],
+      "rules": [
+        "Position: fixed bottom-4 left-1/2 -translate-x-1/2, or bottom-[calc(var(--tab-bar-height)+8px)] on mobile",
+        "bg-[#25282A] text-white px-4 py-3 rounded-2xl shadow-md",
+        "Success: bg-[#00C800], Error: bg-[#ED1C24]",
+        "Max-width: 480px, min-width: 240px",
+        "Auto-dismiss: 4000ms (info/success), manual dismiss only for error",
+        "Animate in: slide up + fade, animate out: fade"
+      ]
+    },
+
+    "FAB": {
+      "platformUsage": "mobilePreferred",
+      "description": "Floating Action Button. Primary screen CTA on mobile.",
+      "variants": ["Regular", "Small", "Extended"],
+      "states": ["Default", "Pressed", "Disabled"],
+      "parts": ["icon", "label?"],
+      "rules": [
+        "Regular: w-14 h-14 rounded-full bg-[#0669F7] text-white shadow-lg",
+        "Extended: h-14 px-6 rounded-full with label + icon",
+        "Position: fixed bottom-[calc(var(--tab-bar-height)+16px)] right-4",
+        "Desktop: use standard Button in page header instead",
+        "Icon: w-6 h-6 (24px)"
+      ]
+    },
+
+    "Divider": {
+      "platformUsage": "crossPlatform",
+      "description": "Horizontal or vertical separator.",
+      "variants": ["Horizontal", "Vertical", "WithLabel"],
+      "parts": ["line", "label?"],
+      "rules": [
+        "Horizontal: border-t border-[#EFF1F5] or border-[#DDDDDD]",
+        "Vertical: border-l border-[#EFF1F5] h-full",
+        "WithLabel: flex items-center gap-3, line + text-xs text-[#98A2B2] + line",
+        "Never use heavy dividers — always light (#EFF1F5) or medium (#DDDDDD)"
+      ]
+    },
+
+    "SegmentedControl": {
+      "platformUsage": "crossPlatform",
+      "description": "Mutually exclusive option selection. Alternative to Tabs for 2–4 options.",
+      "variants": ["Default", "Filled"],
+      "states": ["Selected", "Unselected", "Disabled"],
+      "parts": ["container", "segment", "indicator"],
+      "rules": [
+        "Container: bg-[#EFF1F5] rounded-full p-1 flex",
+        "Segment: flex-1 px-3 py-1.5 text-sm font-medium rounded-full transition-all",
+        "Selected: bg-white text-[#25282A] shadow-sm",
+        "Unselected: text-[#7A7B7A]",
+        "Min height: 44px"
+      ]
+    },
+
+    "TableOfContents": {
+      "platformUsage": "desktopPreferred",
+      "description": "Sticky navigation for long-form content or multi-section pages.",
+      "variants": ["Vertical", "Horizontal"],
+      "states": ["Default", "Active"],
+      "parts": ["container", "tocItem", "activeIndicator"],
+      "rules": [
+        "Desktop: sticky left sidebar, text-sm text-[#7A7B7A]",
+        "Active: text-[#0669F7] font-semibold left-border 2px solid #0669F7",
+        "Mobile: use horizontal scrollable tab bar instead",
+        "Max items before scroll: 10"
+      ]
+    }
+
+  }
+}

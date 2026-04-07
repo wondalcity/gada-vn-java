@@ -48,7 +48,7 @@ export default function Step1BasicInfo({ draft, onChange, onNext }: Props) {
       {/* ── Business type ─────────────────────────────── */}
       <div>
         <p className={labelClass}>
-          사업자 유형 <span className="text-[#D81A48]">*</span>
+          사업자 유형 <span className="text-[#ED1C24]">*</span>
         </p>
         <div className="flex gap-3">
           {[
@@ -99,7 +99,7 @@ export default function Step1BasicInfo({ draft, onChange, onNext }: Props) {
       {isCorporate && (
         <div>
           <label htmlFor="companyName" className={labelClass}>
-            회사명 <span className="text-[#D81A48]">*</span>
+            회사명 <span className="text-[#ED1C24]">*</span>
           </label>
           <input
             id="companyName"
@@ -115,7 +115,7 @@ export default function Step1BasicInfo({ draft, onChange, onNext }: Props) {
       {/* ── Representative name ────────────────────────── */}
       <div>
         <label htmlFor="representativeName" className={labelClass}>
-          대표자 성명 <span className="text-[#D81A48]">*</span>
+          대표자 성명 <span className="text-[#ED1C24]">*</span>
         </label>
         <input
           id="representativeName"
@@ -130,7 +130,7 @@ export default function Step1BasicInfo({ draft, onChange, onNext }: Props) {
       {/* ── Representative DOB ─────────────────────────── */}
       <div>
         <label htmlFor="representativeDob" className={labelClass}>
-          생년월일 <span className="text-[#D81A48]">*</span>
+          생년월일 <span className="text-[#ED1C24]">*</span>
         </label>
         <input
           id="representativeDob"
@@ -144,7 +144,7 @@ export default function Step1BasicInfo({ draft, onChange, onNext }: Props) {
       {/* ── Representative gender ──────────────────────── */}
       <div>
         <label htmlFor="representativeGender" className={labelClass}>
-          성별 <span className="text-[#D81A48]">*</span>
+          성별 <span className="text-[#ED1C24]">*</span>
         </label>
         <select
           id="representativeGender"
@@ -249,7 +249,7 @@ export default function Step1BasicInfo({ draft, onChange, onNext }: Props) {
           )}
         </button>
         <input ref={fileInputRef} type="file" accept="application/pdf,image/jpeg,image/png" className="hidden" onChange={handleFileChange} />
-        {fileError && <p className="text-xs text-[#D81A48] mt-1">{fileError}</p>}
+        {fileError && <p className="text-xs text-[#ED1C24] mt-1">{fileError}</p>}
       </div>
 
       <button

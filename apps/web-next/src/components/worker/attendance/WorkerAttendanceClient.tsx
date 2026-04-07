@@ -162,7 +162,7 @@ export default function WorkerAttendanceClient() {
         <div className="grid grid-cols-3 gap-3 mb-4">
           {[
             { label: '출근', value: attendedDays, cls: 'text-green-700' },
-            { label: '결근', value: absentDays, cls: 'text-[#D81A48]' },
+            { label: '결근', value: absentDays, cls: 'text-[#ED1C24]' },
             { label: '반차', value: halfDayDays, cls: 'text-yellow-700' },
           ].map(({ label, value, cls }) => (
             <div key={label} className="bg-white rounded-2xl shadow-sm border border-[#EFF1F5] px-4 py-3 text-center">
@@ -220,7 +220,7 @@ export default function WorkerAttendanceClient() {
           </div>
         ) : error ? (
           <div className="py-12 text-center">
-            <p className="text-[#D81A48] text-sm mb-3">{error}</p>
+            <p className="text-[#ED1C24] text-sm mb-3">{error}</p>
             <button
               type="button"
               onClick={() => window.location.reload()}

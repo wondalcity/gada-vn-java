@@ -11,9 +11,9 @@ const STATUS_CONFIG: Record<string, { label: string; bg: string; text: string; d
   ACTIVE:    { label: '운영중',   bg: '#E8FBE8', text: '#1A6B1A', dot: '#00C800' },
   OPEN:      { label: '모집중',   bg: '#E8FBE8', text: '#1A6B1A', dot: '#00C800' },
   COMPLETED: { label: '완료',    bg: '#EFF1F5', text: '#98A2B2', dot: '#DBDFE9' },
-  PAUSED:    { label: '일시중지', bg: '#FFF3CD', text: '#856404', dot: '#FDBC08' },
+  PAUSED:    { label: '일시중지', bg: '#FFF3CD', text: '#856404', dot: '#FFC72C' },
   FILLED:    { label: '마감',    bg: '#E6F0FE', text: '#0669F7', dot: '#0669F7' },
-  CANCELLED: { label: '취소',    bg: '#FDE8EE', text: '#D81A48', dot: '#D81A48' },
+  CANCELLED: { label: '취소',    bg: '#FDE8EE', text: '#ED1C24', dot: '#ED1C24' },
 }
 
 export default function StatusBadge({ status }: StatusBadgeProps) {

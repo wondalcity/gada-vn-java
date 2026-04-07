@@ -12,9 +12,13 @@ interface Props {
 
 const MAJOR_SLUGS = ['hn', 'hcm', 'dn', 'hp', 'ct', 'bd', 'dn-t', 'qni']
 
-const PROVINCE_ICONS: Record<string, string> = {
-  hn: '🏛️', hcm: '🌆', dn: '🌊', hp: '⚓',
-  ct: '🛶', bd: '🏭', 'dn-t': '🌿', qni: '⛰️',
+function ProvinceIcon() {
+  return (
+    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.6}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+      <path strokeLinecap="round" strokeLinejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+    </svg>
+  )
 }
 
 export function LocationsDropdown({ locale, provinces }: Props) {
@@ -88,7 +92,7 @@ export function LocationsDropdown({ locale, provinces }: Props) {
                       : 'border-[#EFF1F5]'
                   }`}
                 >
-                  <span className="text-xl">{PROVINCE_ICONS[p.slug] ?? '🏗️'}</span>
+                  <ProvinceIcon />
                   <span className="text-xs font-semibold text-[#25282A] group-hover:text-[#0669F7] text-center leading-tight">
                     {p.nameVi}
                   </span>

@@ -62,7 +62,7 @@ function parseRequirements(raw: unknown) {
 
 const JOB_STATUS_COLORS: Record<string, { bg: string; text: string; dot: string }> = {
   OPEN:      { bg: '#E8FBE8', text: '#1A6B1A', dot: '#00C800' },
-  FILLED:    { bg: '#FDE8EE', text: '#D81A48', dot: '#D81A48' },
+  FILLED:    { bg: '#FDE8EE', text: '#ED1C24', dot: '#ED1C24' },
   CANCELLED: { bg: '#EFF1F5', text: '#98A2B2', dot: '#DBDFE9' },
   COMPLETED: { bg: '#EFF1F5', text: '#98A2B2', dot: '#DBDFE9' },
 }
@@ -114,7 +114,7 @@ function Lightbox({
         <p className="text-white/80 text-sm font-medium truncate max-w-xs">{title}</p>
         <div className="flex items-center gap-3">
           <span className="text-white/60 text-sm">{idx + 1} / {images.length}</span>
-          <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20 text-white text-xl transition-colors">✕</button>
+          <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors"><svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg></button>
         </div>
       </div>
       <div className="relative flex items-center justify-center w-full px-12 md:px-20" onClick={e => e.stopPropagation()}>
@@ -146,7 +146,7 @@ function SiteImageGallery({ images, title, viewAllPhotos }: { images: string[]; 
   const [lightboxOpen, setLightboxOpen] = React.useState(false)
 
   if (images.length === 0) return (
-    <div className="w-full h-56 md:h-72 md:rounded-2xl overflow-hidden bg-gradient-to-br from-[#0669F7] to-[#0550C4] flex items-center justify-center mb-0 md:mb-6">
+    <div className="w-full h-56 md:h-72 md:rounded-2xl overflow-hidden bg-[#0669F7] flex items-center justify-center mb-0 md:mb-6">
       <span className="text-6xl font-black text-white/20">{title.charAt(0)}</span>
     </div>
   )
@@ -318,10 +318,10 @@ function StatRow({ icon, label, value, sub }: { icon: React.ReactNode; label: st
 
 // ── Benefit row ───────────────────────────────────────────────────────────────
 
-function BenefitRow({ emoji, label, desc }: { emoji: string; label: string; desc: string }) {
+function BenefitRow({ icon, label, desc }: { icon: React.ReactNode; label: string; desc: string }) {
   return (
     <div className="flex items-start gap-4">
-      <div className="text-2xl shrink-0 mt-0.5">{emoji}</div>
+      <div className="w-9 h-9 rounded-xl bg-[#EEF5FF] flex items-center justify-center shrink-0 mt-0.5 text-[#0669F7]">{icon}</div>
       <div className="flex-1">
         <p className="text-[15px] font-semibold text-[#222222]">{label}</p>
         <p className="text-sm text-[#717171] mt-0.5">{desc}</p>
@@ -361,11 +361,11 @@ export default function JobDetailView({
   }, [rawImages, coverUrl])
 
   const activeBenefits = benefits ? [
-    benefits.meals        && { emoji: '🍱', label: t('detail.benefit_meal'),          desc: t('detail.benefit_meal_desc') },
-    benefits.transport    && { emoji: '🚌', label: t('detail.benefit_transport'),      desc: t('detail.benefit_transport_desc') },
-    benefits.accommodation && { emoji: '🏠', label: t('detail.benefit_accommodation'), desc: t('detail.benefit_accommodation_desc') },
-    benefits.insurance    && { emoji: '🛡️', label: t('detail.benefit_insurance'),     desc: t('detail.benefit_insurance_desc') },
-  ].filter(Boolean) as { emoji: string; label: string; desc: string }[] : []
+    benefits.meals        && { icon: <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.8}><path strokeLinecap="round" strokeLinejoin="round" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" /></svg>, label: t('detail.benefit_meal'),          desc: t('detail.benefit_meal_desc') },
+    benefits.transport    && { icon: <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.8}><path strokeLinecap="round" strokeLinejoin="round" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" /></svg>, label: t('detail.benefit_transport'),      desc: t('detail.benefit_transport_desc') },
+    benefits.accommodation && { icon: <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.8}><path strokeLinecap="round" strokeLinejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>, label: t('detail.benefit_accommodation'), desc: t('detail.benefit_accommodation_desc') },
+    benefits.insurance    && { icon: <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.8}><path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>, label: t('detail.benefit_insurance'),     desc: t('detail.benefit_insurance_desc') },
+  ].filter(Boolean) as { icon: React.ReactNode; label: string; desc: string }[] : []
 
   const applyProps = {
     jobId: job.id, slug: job.slug, locale, jobStatus: job.status,
@@ -416,12 +416,12 @@ export default function JobDetailView({
               <div className="flex-1">
                 <div className="flex items-center justify-between mb-2">
                   <p className="text-[15px] font-semibold text-[#222222]">{t('detail.slots_section')}</p>
-                  <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${slotsProgress >= 80 ? 'bg-[#FDE8EE] text-[#D81A48]' : 'bg-[#E6F0FE] text-[#0669F7]'}`}>
+                  <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${slotsProgress >= 80 ? 'bg-[#FDE8EE] text-[#ED1C24]' : 'bg-[#E6F0FE] text-[#0669F7]'}`}>
                     {slotsLeft > 0 ? t('detail.slots_left_n', { n: slotsLeft }) : t('card.deadline')}
                   </span>
                 </div>
                 <div className="w-full bg-[#EBEBEB] rounded-full h-1.5">
-                  <div className="h-1.5 rounded-full transition-all" style={{ width: `${slotsProgress}%`, background: slotsProgress >= 80 ? '#D81A48' : '#0669F7' }} />
+                  <div className="h-1.5 rounded-full transition-all" style={{ width: `${slotsProgress}%`, background: slotsProgress >= 80 ? '#ED1C24' : '#0669F7' }} />
                 </div>
                 <p className="text-sm text-[#717171] mt-1.5">{t('detail.slots_filled_of', { filled: slotsFilled, total: slotsTotal })}</p>
               </div>
@@ -495,7 +495,7 @@ export default function JobDetailView({
               {job.site.coverImageUrl ? (
                 <img src={job.site.coverImageUrl} alt={siteName} className="w-full h-full object-cover" />
               ) : (
-                <div className="w-full h-full bg-gradient-to-br from-[#0669F7] to-[#0550C4] flex items-center justify-center">
+                <div className="w-full h-full bg-[#0669F7] flex items-center justify-center">
                   <span className="text-2xl font-bold text-white/60">{siteName.charAt(0)}</span>
                 </div>
               )}
@@ -557,12 +557,12 @@ export default function JobDetailView({
             <div className="px-4 py-3">
               <div className="flex items-center justify-between mb-2">
                 <p className="text-[11px] font-semibold text-[#717171] uppercase tracking-wider">{t('detail.booking_headcount')}</p>
-                <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-full ${slotsProgress >= 80 ? 'bg-[#FDE8EE] text-[#D81A48]' : 'bg-[#E6F0FE] text-[#0669F7]'}`}>
+                <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-full ${slotsProgress >= 80 ? 'bg-[#FDE8EE] text-[#ED1C24]' : 'bg-[#E6F0FE] text-[#0669F7]'}`}>
                   {slotsLeft > 0 ? t('detail.slots_left_booking', { n: slotsLeft }) : t('card.deadline')}
                 </span>
               </div>
               <div className="w-full bg-[#EBEBEB] rounded-full h-1.5">
-                <div className="h-1.5 rounded-full" style={{ width: `${slotsProgress}%`, background: slotsProgress >= 80 ? '#D81A48' : '#0669F7' }} />
+                <div className="h-1.5 rounded-full" style={{ width: `${slotsProgress}%`, background: slotsProgress >= 80 ? '#ED1C24' : '#0669F7' }} />
               </div>
               <p className="text-xs text-[#717171] mt-1.5">{t('detail.slots_filled_of', { filled: slotsFilled, total: slotsTotal })}</p>
             </div>
@@ -584,8 +584,9 @@ export default function JobDetailView({
             <p className="text-xs font-semibold text-[#717171] mb-2.5">{t('detail.benefits_section')}</p>
             <div className="flex flex-wrap gap-1.5">
               {activeBenefits.map(b => (
-                <span key={b.label} className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-[#F7F7F7] text-[#222222] text-xs font-semibold border border-[#EBEBEB]">
-                  {b.emoji} {b.label}
+                <span key={b.label} className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#F7F7F7] text-[#222222] text-xs font-semibold border border-[#EBEBEB]">
+                  <span className="text-[#0669F7] w-3.5 h-3.5 [&>svg]:w-full [&>svg]:h-full">{b.icon}</span>
+                  {b.label}
                 </span>
               ))}
             </div>

@@ -17,9 +17,9 @@ function getExperienceParts(months: number): { years: number; rem: number } {
 }
 
 const STATUS_BG_TEXT: Record<ApplicationStatus, { bg: string; text: string; dot: string }> = {
-  PENDING:    { bg: '#FFF3CD', text: '#856404', dot: '#FDBC08' },
+  PENDING:    { bg: '#FFF3CD', text: '#856404', dot: '#FFC72C' },
   ACCEPTED:   { bg: '#E8FBE8', text: '#1A6B1A', dot: '#00C800' },
-  REJECTED:   { bg: '#FDE8EE', text: '#D81A48', dot: '#D81A48' },
+  REJECTED:   { bg: '#FDE8EE', text: '#ED1C24', dot: '#ED1C24' },
   WITHDRAWN:  { bg: '#EFF1F5', text: '#98A2B2', dot: '#DBDFE9' },
   CONTRACTED: { bg: '#E6F0FE', text: '#0669F7', dot: '#0669F7' },
 }
@@ -126,7 +126,7 @@ export default function ApplicantCard({ applicant, onOpenDetail, onQuickAccept, 
               type="button"
               onClick={handleReject}
               disabled={isActing}
-              className="px-3 py-1.5 rounded-xl bg-[#FDE8EE] text-[#D81A48] font-bold text-xs disabled:opacity-40"
+              className="px-3 py-1.5 rounded-xl bg-[#FDE8EE] text-[#ED1C24] font-bold text-xs disabled:opacity-40"
             >
               {t('manager_applicants.quick_reject')}
             </button>

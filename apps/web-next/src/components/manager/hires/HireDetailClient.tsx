@@ -105,7 +105,7 @@ export default function HireDetailClient({ hireId }: Props) {
 
   if (!hire) {
     return (
-      <div className="p-6 rounded-2xl bg-red-50 border border-red-200 text-sm text-[#D81A48] text-center">
+      <div className="p-6 rounded-2xl bg-red-50 border border-red-200 text-sm text-[#ED1C24] text-center">
         합격자 정보를 불러올 수 없습니다
       </div>
     )

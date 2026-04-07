@@ -56,7 +56,7 @@ const SITE_STATUS: Record<string, { label: string; bg: string; text: string }> =
 const JOB_STATUS: Record<string, { label: string; bg: string; text: string; dot: string }> = {
   OPEN:      { label: '모집중',  bg: '#D1F3D3', text: '#024209', dot: '#00C800' },
   FILLED:    { label: '마감',    bg: '#EFF1F5', text: '#595959', dot: '#B2B2B2' },
-  CANCELLED: { label: '취소',    bg: '#FFDCE0', text: '#540C0E', dot: '#D81A48' },
+  CANCELLED: { label: '취소',    bg: '#FFDCE0', text: '#540C0E', dot: '#ED1C24' },
   COMPLETED: { label: '완료',    bg: '#EFF1F5', text: '#595959', dot: '#B2B2B2' },
 }
 
@@ -67,7 +67,7 @@ function SitePreviewCard({ site, locale }: { site: ManagerSite; locale: string }
   return (
     <div className="bg-white rounded border border-[#EFF1F5] overflow-hidden">
       {/* Cover image */}
-      <div className="relative w-full h-32 bg-gradient-to-br from-[#0454C5] via-[#0669F7] to-[#3186FF]">
+      <div className="relative w-full h-32 bg-[#0669F7]">
         {site.coverImageUrl ? (
           <img src={site.coverImageUrl} alt={site.name} className="w-full h-full object-cover" />
         ) : (
@@ -146,7 +146,7 @@ function JobPreviewCard({ job, locale }: { job: ManagerJob; locale: string }) {
       className="group block bg-white rounded border border-[#EFF1F5] hover:border-[#0669F7] hover:shadow-md transition-all overflow-hidden"
     >
       {/* Cover image */}
-      <div className="relative w-full h-36 overflow-hidden bg-gradient-to-br from-[#0454C5] via-[#0669F7] to-[#3186FF]">
+      <div className="relative w-full h-36 overflow-hidden bg-[#0669F7]">
         {job.coverImageUrl ? (
           <img
             src={job.coverImageUrl}
@@ -176,7 +176,7 @@ function JobPreviewCard({ job, locale }: { job: ManagerJob; locale: string }) {
 
         {/* Pending applications badge */}
         {hasPending && (
-          <div className="absolute top-2 right-2 bg-[#D81A48] text-white text-[10px] font-bold px-2 py-0.5 rounded-full">
+          <div className="absolute top-2 right-2 bg-[#ED1C24] text-white text-[10px] font-bold px-2 py-0.5 rounded-full">
             대기 {job.applicationCount.pending}명
           </div>
         )}
@@ -367,7 +367,7 @@ export default function ManagerListingsClient({ locale }: { locale: string }) {
           ))}
         </div>
       ) : error ? (
-        <div className="p-4 rounded bg-red-50 border border-red-200 text-sm text-[#D81A48] text-center">
+        <div className="p-4 rounded bg-red-50 border border-red-200 text-sm text-[#ED1C24] text-center">
           {error}
         </div>
       ) : tab === 'jobs' ? (

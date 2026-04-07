@@ -28,10 +28,10 @@ export default function JobCard({ job, locale, showSite = false }: JobCardProps)
   const fillPercent = job.slotsTotal > 0 ? Math.round((job.slotsFilled / job.slotsTotal) * 100) : 0
 
   const benefits = [
-    { key: 'meals', label: '식사', emoji: '🍚' },
-    { key: 'transport', label: '교통', emoji: '🚌' },
-    { key: 'accommodation', label: '숙박', emoji: '🏠' },
-    { key: 'insurance', label: '보험', emoji: '🛡️' },
+    { key: 'meals', label: '식사' },
+    { key: 'transport', label: '교통' },
+    { key: 'accommodation', label: '숙박' },
+    { key: 'insurance', label: '보험' },
   ] as const
 
   const activeBenefits = benefits.filter((b) => job.benefits[b.key])
@@ -87,7 +87,7 @@ export default function JobCard({ job, locale, showSite = false }: JobCardProps)
                 className="text-xs px-2 py-0.5 bg-[#EFF1F5] rounded-full text-[#98A2B2] font-medium"
                 title={b.label}
               >
-                {b.emoji} {b.label}
+                {b.label}
               </span>
             ))}
           </div>

@@ -194,7 +194,7 @@ export default function IdDocumentsStep({ draft, onChange, onNext, idToken }: Id
         </div>
       )}
       {errorMessage && (
-        <div className="p-3 bg-red-50 border border-red-200 rounded-2xl text-sm text-[#D81A48]">
+        <div className="p-3 bg-red-50 border border-red-200 rounded-2xl text-sm text-[#ED1C24]">
           {errorMessage}
         </div>
       )}

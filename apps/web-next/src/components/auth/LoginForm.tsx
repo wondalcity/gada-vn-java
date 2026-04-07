@@ -274,11 +274,11 @@ function LoginFormInner({ locale, redirectTo }: LoginFormInnerProps) {
             <form onSubmit={handleFbSendOtp} noValidate className="flex flex-col gap-4">
               <div className="flex flex-col gap-2">
                 <p className="text-[14px] font-semibold text-[#25282A]">
-                  {t('login.fb_phone_label')} <span className="text-[#D81A48]">*</span>
+                  {t('login.fb_phone_label')} <span className="text-[#ED1C24]">*</span>
                 </p>
                 <PhoneInput value={fbPhone} onChange={setFbPhone} disabled={isLoading} />
               </div>
-              {error && <p className="text-[13px] text-[#D81A48]">{error}</p>}
+              {error && <p className="text-[13px] text-[#ED1C24]">{error}</p>}
               <button
                 type="submit"
                 disabled={isLoading || !fbPhone || fbPhone === '+84'}
@@ -311,7 +311,7 @@ function LoginFormInner({ locale, redirectTo }: LoginFormInnerProps) {
                 error={fbOtpError}
                 disabled={isLoading}
               />
-              {error && <p className="text-center text-[13px] text-[#D81A48]">{error}</p>}
+              {error && <p className="text-center text-[13px] text-[#ED1C24]">{error}</p>}
               <button
                 type="button"
                 onClick={() => handleFbVerifyOtp()}
@@ -359,7 +359,7 @@ function LoginFormInner({ locale, redirectTo }: LoginFormInnerProps) {
               error={error ?? undefined}
               disabled={isLoading}
             />
-            {error && <p className="text-[13px] text-[#D81A48]">{error}</p>}
+            {error && <p className="text-[13px] text-[#ED1C24]">{error}</p>}
             <button
               type="submit"
               disabled={isLoading || !phone || phone === '+84'}
@@ -395,7 +395,7 @@ function LoginFormInner({ locale, redirectTo }: LoginFormInnerProps) {
               error={otpError}
               disabled={isLoading}
             />
-            {error && <p className="text-center text-[13px] text-[#D81A48]">{error}</p>}
+            {error && <p className="text-center text-[13px] text-[#ED1C24]">{error}</p>}
             <button
               type="submit"
               disabled={isLoading || otp.replace(/\s/g, '').length < 6}

@@ -65,7 +65,7 @@ function Toast({ message, type }: { message: string; type: 'success' | 'error' }
   return (
     <div
       className={`fixed top-4 left-1/2 -translate-x-1/2 z-50 px-4 py-3 rounded-2xl shadow-md text-sm font-medium text-white transition-all ${
-        type === 'success' ? 'bg-green-600' : 'bg-[#D81A48]'
+        type === 'success' ? 'bg-green-600' : 'bg-[#ED1C24]'
       }`}
     >
       {message}
@@ -259,7 +259,7 @@ export default function WorkerProfileForm({ locale }: { locale: string }) {
               {/* Full name */}
               <div>
                 <label htmlFor="fullName" className="block text-sm font-medium text-[#25282A] mb-1">
-                  {t('worker_profile_form.field_name')} <span className="text-[#D81A48]">*</span>
+                  {t('worker_profile_form.field_name')} <span className="text-[#ED1C24]">*</span>
                 </label>
                 <input
                   id="fullName"
@@ -276,7 +276,7 @@ export default function WorkerProfileForm({ locale }: { locale: string }) {
               {/* Date of birth */}
               <div>
                 <label htmlFor="dateOfBirth" className="block text-sm font-medium text-[#25282A] mb-1">
-                  {t('worker_profile_form.field_dob')} <span className="text-[#D81A48]">*</span>
+                  {t('worker_profile_form.field_dob')} <span className="text-[#ED1C24]">*</span>
                 </label>
                 <input
                   id="dateOfBirth"
@@ -292,7 +292,7 @@ export default function WorkerProfileForm({ locale }: { locale: string }) {
               {/* Gender */}
               <div>
                 <label htmlFor="gender" className="block text-sm font-medium text-[#25282A] mb-1">
-                  {t('worker_profile_form.field_gender')} <span className="text-[#D81A48]">*</span>
+                  {t('worker_profile_form.field_gender')} <span className="text-[#ED1C24]">*</span>
                 </label>
                 <select
                   id="gender"

@@ -113,7 +113,7 @@ export default function SiteDetailClient({ siteId, locale }: SiteDetailClientPro
 
   if (error) {
     return (
-      <div className="p-4 rounded-2xl bg-red-50 border border-red-200 text-sm text-[#D81A48] text-center">
+      <div className="p-4 rounded-2xl bg-red-50 border border-red-200 text-sm text-[#ED1C24] text-center">
         {error}
       </div>
     )
@@ -192,7 +192,7 @@ export default function SiteDetailClient({ siteId, locale }: SiteDetailClientPro
 
           <button
             onClick={() => setShowDeleteModal(true)}
-            className="px-5 py-2.5 rounded-full border border-[#D81A48] text-[#D81A48] font-medium text-sm"
+            className="px-5 py-2.5 rounded-full border border-[#ED1C24] text-[#ED1C24] font-medium text-sm"
           >
             {t('manager_site_detail.delete')}
           </button>

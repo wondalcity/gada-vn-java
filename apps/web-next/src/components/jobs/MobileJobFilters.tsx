@@ -30,9 +30,9 @@ interface Props {
 }
 
 const STATUS_OPTIONS = [
-  { value: '',             label: '모집중',   emoji: '🟢' },
-  { value: 'ALMOST_FULL',  label: '마감임박',  emoji: '🟡' },
-  { value: 'FILLED',       label: '마감',     emoji: '⚫' },
+  { value: '',             label: '모집중',   dotColor: 'bg-[#00C800]' },
+  { value: 'ALMOST_FULL',  label: '마감임박',  dotColor: 'bg-[#FFC72C]' },
+  { value: 'FILLED',       label: '마감',     dotColor: 'bg-[#7A7B7A]' },
 ] as const
 
 const RADIUS_OPTIONS = [10, 30, 50, 100]
@@ -220,7 +220,7 @@ export function MobileJobFilters({
             )}
             {geoActive && (
               <FilterChip
-                label={`📍 ${activeLabel || '내 위치'}`}
+                label={activeLabel || '내 위치'}
                 onRemove={clearGeo}
               />
             )}
@@ -320,7 +320,7 @@ export function MobileJobFilters({
                           : 'border-[#DDDDDD] text-[#25282A]'
                       }`}
                     >
-                      <span className="text-base">{opt.emoji}</span>
+                      <span className={} />
                       <span className="text-xs">{opt.label}</span>
                     </button>
                   ))}
@@ -333,7 +333,7 @@ export function MobileJobFilters({
 
                 {geoActive ? (
                   <div className="flex items-center gap-2 px-3 py-3 bg-[#EEF4FF] border border-[#0669F7] rounded-xl">
-                    <span className="text-lg">📍</span>
+                    <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.8}><path strokeLinecap="round" strokeLinejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path strokeLinecap="round" strokeLinejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
                     <span className="flex-1 text-sm font-medium text-[#0669F7] truncate">
                       {activeLabel || '위치 필터 적용됨'}
                     </span>
@@ -356,7 +356,7 @@ export function MobileJobFilters({
                   >
                     {geoLoading
                       ? <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>
-                      : <span className="text-base">📍</span>
+                      : <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.8}><path strokeLinecap="round" strokeLinejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path strokeLinecap="round" strokeLinejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
                     }
                     <span>{geoLoading ? '위치 찾는 중...' : '현재 위치 사용'}</span>
                   </button>
@@ -373,7 +373,7 @@ export function MobileJobFilters({
                         onClick={() => { setActiveLabel(loc.label); activateGeo(Number(loc.lat), Number(loc.lng), loc.label) }}
                         className="w-full flex items-center gap-2 px-3 py-3 text-sm border border-[#DDDDDD] rounded-xl bg-white hover:border-[#0669F7] hover:text-[#0669F7] text-left transition-colors"
                       >
-                        <span className="shrink-0 text-base">{loc.is_default ? '⭐' : '📌'}</span>
+                        <span className="shrink-0 text-base">{'•'}</span>
                         <span className="truncate">{loc.label}</span>
                       </button>
                     ))}

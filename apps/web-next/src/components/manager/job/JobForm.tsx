@@ -190,7 +190,7 @@ export default function JobForm({
           {/* Title (Korean) */}
           <div>
             <label className={labelClass}>
-              공고 제목 (한국어) <span className="text-[#D81A48]">*</span>
+              공고 제목 (한국어) <span className="text-[#ED1C24]">*</span>
             </label>
             <input
               type="text"
@@ -292,7 +292,7 @@ export default function JobForm({
           {/* Work date */}
           <div>
             <label className={labelClass}>
-              작업일 <span className="text-[#D81A48]">*</span>
+              작업일 <span className="text-[#ED1C24]">*</span>
             </label>
             <input
               type="date"
@@ -352,7 +352,7 @@ export default function JobForm({
           {/* Daily wage */}
           <div>
             <label className={labelClass}>
-              일당 (VND) <span className="text-[#D81A48]">*</span>
+              일당 (VND) <span className="text-[#ED1C24]">*</span>
             </label>
             <input
               type="number"
@@ -372,7 +372,7 @@ export default function JobForm({
           {/* Slots total */}
           <div>
             <label className={labelClass}>
-              채용 인원 수 <span className="text-[#D81A48]">*</span>
+              채용 인원 수 <span className="text-[#ED1C24]">*</span>
             </label>
             <input
               type="number"
@@ -397,10 +397,10 @@ export default function JobForm({
         <div className="bg-white border border-t-0 border-[#EFF1F5] rounded-b-sm px-5 pb-5 pt-4">
           <div className="grid grid-cols-2 gap-3">
             {[
-              { key: 'meals', label: '식사 제공', emoji: '🍚', value: meals, setter: setMeals },
-              { key: 'transport', label: '교통비 지원', emoji: '🚌', value: transport, setter: setTransport },
-              { key: 'accommodation', label: '숙박 제공', emoji: '🏠', value: accommodation, setter: setAccommodation },
-              { key: 'insurance', label: '산재보험', emoji: '🛡️', value: insurance, setter: setInsurance },
+              { key: 'meals', label: '식사 제공', value: meals, setter: setMeals },
+              { key: 'transport', label: '교통비 지원', value: transport, setter: setTransport },
+              { key: 'accommodation', label: '숙박 제공', value: accommodation, setter: setAccommodation },
+              { key: 'insurance', label: '산재보험', value: insurance, setter: setInsurance },
             ].map((b) => (
               <label
                 key={b.key}
@@ -416,7 +416,6 @@ export default function JobForm({
                   onChange={(e) => b.setter(e.target.checked)}
                   className="sr-only"
                 />
-                <span className="text-lg">{b.emoji}</span>
                 <span className="text-sm text-[#25282A] font-medium">{b.label}</span>
               </label>
             ))}
@@ -476,7 +475,7 @@ export default function JobForm({
       )}
 
       {error && (
-        <div className="p-3 rounded-2xl bg-red-50 border border-red-200 text-sm text-[#D81A48]">
+        <div className="p-3 rounded-2xl bg-red-50 border border-red-200 text-sm text-[#ED1C24]">
           {error}
         </div>
       )}

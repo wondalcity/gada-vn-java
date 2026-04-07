@@ -254,7 +254,7 @@ export default function ManagerSignatureStep({ draft, onChange, onNext, onBack }
 
       {/* Error message */}
       {error && (
-        <div className="p-3 bg-red-50 border border-red-200 rounded-2xl text-sm text-[#D81A48]">
+        <div className="p-3 bg-red-50 border border-red-200 rounded-2xl text-sm text-[#ED1C24]">
           {error}
         </div>
       )}

@@ -17,19 +17,18 @@ import TermsStep from './steps/TermsStep'
 
 interface WizardStep {
   label: string
-  icon: string
 }
 
 // ─── Constants ───────────────────────────────────────────────────────────────
 
 const STEPS: WizardStep[] = [
-  { label: '기본정보', icon: '👤' },
-  { label: '경력',    icon: '🏗️' },
-  { label: '주소',    icon: '📍' },
-  { label: '신분증',  icon: '🪪' },
-  { label: '서명',    icon: '✍️' },
-  { label: '계좌',    icon: '🏦' },
-  { label: '약관',    icon: '📋' },
+  { label: '기본정보' },
+  { label: '경력' },
+  { label: '주소' },
+  { label: '신분증' },
+  { label: '서명' },
+  { label: '계좌' },
+  { label: '약관' },
 ]
 
 // ─── Helper: determine first incomplete step ──────────────────────────────────
@@ -65,7 +64,7 @@ function Toast({ message, type }: { message: string; type: 'success' | 'error' }
   return (
     <div
       className={`fixed top-4 left-1/2 -translate-x-1/2 z-50 px-4 py-3 rounded-2xl shadow-md text-sm font-medium text-white transition-all ${
-        type === 'success' ? 'bg-green-600' : 'bg-[#D81A48]'
+        type === 'success' ? 'bg-green-600' : 'bg-[#ED1C24]'
       }`}
     >
       {message}
@@ -399,7 +398,7 @@ export default function WorkerProfileWizard({ locale: _locale }: WorkerProfileWi
 
         {/* Save error */}
         {saveError && (
-          <div className="mt-3 p-3 bg-red-50 border border-red-200 rounded-2xl text-sm text-[#D81A48]">
+          <div className="mt-3 p-3 bg-red-50 border border-red-200 rounded-2xl text-sm text-[#ED1C24]">
             {saveError}
           </div>
         )}

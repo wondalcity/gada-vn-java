@@ -58,7 +58,7 @@ export function SiteDetailView({ site, jobs, locale }: Props) {
           </div>
         )}
         {images.length === 0 && (
-          <div className="mb-8 h-48 rounded-lg bg-gradient-to-br from-[#0669F7] to-[#0550C4] flex items-center justify-center">
+          <div className="mb-8 h-48 rounded-lg bg-[#0669F7] flex items-center justify-center">
             <span className="text-4xl font-black text-white/30">{site.nameKo.charAt(0)}</span>
           </div>
         )}

@@ -248,7 +248,7 @@ export default function AttendanceManagerClient({ jobId, locale }: Props) {
                 {[
                   { label: t('manager_attendance.status_attended'), count: attendedCount, cls: 'bg-green-50 text-green-700 border-green-200' },
                   { label: t('manager_attendance.status_half_day'), count: halfDayCount, cls: 'bg-yellow-50 text-yellow-700 border-yellow-200' },
-                  { label: t('manager_attendance.status_absent'), count: absentCount, cls: 'bg-red-50 text-[#D81A48] border-red-200' },
+                  { label: t('manager_attendance.status_absent'), count: absentCount, cls: 'bg-red-50 text-[#ED1C24] border-red-200' },
                   { label: t('manager_attendance.status_pending'), count: pendingCount, cls: 'bg-gray-100 text-[#98A2B2] border-[#EFF1F5]' },
                 ].map(({ label, count, cls }) => (
                   <span key={label} className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium border ${cls}`}>
@@ -289,7 +289,7 @@ export default function AttendanceManagerClient({ jobId, locale }: Props) {
 
         {/* Save error */}
         {saveError && (
-          <p className="text-xs text-[#D81A48]">{saveError}</p>
+          <p className="text-xs text-[#ED1C24]">{saveError}</p>
         )}
       </div>
 
@@ -313,7 +313,7 @@ export default function AttendanceManagerClient({ jobId, locale }: Props) {
           </>
         ) : error ? (
           <div className="py-12 text-center">
-            <p className="text-[#D81A48] text-sm mb-3">{error}</p>
+            <p className="text-[#ED1C24] text-sm mb-3">{error}</p>
             <button
               type="button"
               onClick={() => setSelectedDate(new Date(selectedDate))}

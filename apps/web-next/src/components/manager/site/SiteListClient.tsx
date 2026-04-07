@@ -60,7 +60,7 @@ export default function SiteListClient({ locale }: SiteListClientProps) {
 
   if (error) {
     return (
-      <div className="p-4 rounded-2xl bg-red-50 border border-red-200 text-sm text-[#D81A48] text-center">
+      <div className="p-4 rounded-2xl bg-red-50 border border-red-200 text-sm text-[#ED1C24] text-center">
         {error}
       </div>
     )

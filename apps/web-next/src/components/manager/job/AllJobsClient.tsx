@@ -82,7 +82,7 @@ function SiteGroupedJobList({
                 style={
                   coverUrl
                     ? { backgroundImage: `url(${coverUrl})`, backgroundSize: 'cover', backgroundPosition: 'center' }
-                    : { background: 'linear-gradient(135deg, #0669F7 0%, #1A4FD6 100%)' }
+                    : { background: '#0669F7' }
                 }
               >
                 {!coverUrl && (
@@ -316,7 +316,7 @@ export default function AllJobsClient({ locale }: AllJobsClientProps) {
 
   if (error) {
     return (
-      <div className="p-4 rounded-2xl bg-red-50 border border-red-200 text-sm text-[#D81A48] text-center">
+      <div className="p-4 rounded-2xl bg-red-50 border border-red-200 text-sm text-[#ED1C24] text-center">
         {error}
       </div>
     )

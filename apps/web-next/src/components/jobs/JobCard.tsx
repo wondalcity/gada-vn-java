@@ -19,7 +19,7 @@ function formatVnd(n: number, locale: string) {
 const STATUS_COLORS = {
   OPEN:      { bg: '#E8FBE8', text: '#1A6B1A', dot: '#00C800' },
   FILLED:    { bg: '#EFF1F5', text: '#98A2B2', dot: '#DBDFE9' },
-  CANCELLED: { bg: '#FDE8EE', text: '#D81A48', dot: '#D81A48' },
+  CANCELLED: { bg: '#FDE8EE', text: '#ED1C24', dot: '#ED1C24' },
   COMPLETED: { bg: '#EFF1F5', text: '#98A2B2', dot: '#DBDFE9' },
 } as const
 
@@ -51,7 +51,7 @@ export function JobCard({ job, locale, basePath = '/jobs' }: Props) {
       style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}
     >
       {/* Cover image / gradient placeholder */}
-      <div className="relative w-full h-36 overflow-hidden bg-gradient-to-br from-[#0454C5] via-[#0669F7] to-[#4D9CFF] shrink-0">
+      <div className="relative w-full h-36 overflow-hidden bg-[#0669F7] shrink-0">
         {job.coverImageUrl ? (
           <img
             src={job.coverImageUrl}
@@ -151,7 +151,7 @@ export function JobCard({ job, locale, basePath = '/jobs' }: Props) {
                   className="h-1.5 rounded-full transition-all"
                   style={{
                     width: `${slotsProgress}%`,
-                    background: slotsProgress >= 80 ? '#D81A48' : '#0669F7',
+                    background: slotsProgress >= 80 ? '#ED1C24' : '#0669F7',
                   }}
                 />
               </div>

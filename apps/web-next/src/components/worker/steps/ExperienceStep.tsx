@@ -100,7 +100,7 @@ export default function ExperienceStep({ draft, onChange, onNext, isSaving }: Ex
             <TradeSkeleton />
           </div>
         ) : fetchError ? (
-          <div className="p-4 text-sm text-[#D81A48]">{fetchError}</div>
+          <div className="p-4 text-sm text-[#ED1C24]">{fetchError}</div>
         ) : filteredTrades.length === 0 ? (
           <div className="p-4 text-sm text-[#98A2B2] text-center">검색 결과가 없습니다.</div>
         ) : (

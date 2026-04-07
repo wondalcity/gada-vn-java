@@ -4,7 +4,6 @@ import * as React from 'react'
 
 interface Step {
   label: string
-  icon: string
 }
 
 interface WizardProgressBarProps {
@@ -43,7 +42,7 @@ export default function WizardProgressBar({ steps, currentStep, completedSteps }
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
                     </svg>
                   ) : (
-                    <span className="text-base leading-none">{step.icon}</span>
+                    <span className="text-sm font-bold">{index + 1}</span>
                   )}
                 </div>
                 <span

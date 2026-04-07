@@ -117,7 +117,7 @@ export function PhoneInput({
           'flex items-center min-h-[52px] bg-white rounded-2xl border overflow-hidden',
           'transition-colors duration-150',
           error
-            ? 'border-[#D81A48] focus-within:ring-1 focus-within:ring-[#D81A48]'
+            ? 'border-[#ED1C24] focus-within:ring-1 focus-within:ring-[#ED1C24]'
             : 'border-[#EFF1F5] focus-within:border-[#0669F7] focus-within:ring-1 focus-within:ring-[#0669F7]',
           disabled && 'bg-[#EFF1F5] cursor-not-allowed',
         )}
@@ -162,7 +162,7 @@ export function PhoneInput({
       </div>
 
       {error && (
-        <p id={`${inputId}-error`} className="text-[13px] leading-[18px] text-[#D81A48]">
+        <p id={`${inputId}-error`} className="text-[13px] leading-[18px] text-[#ED1C24]">
           {error}
         </p>
       )}

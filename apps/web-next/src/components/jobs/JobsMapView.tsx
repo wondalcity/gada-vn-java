@@ -156,7 +156,7 @@ function AirbnbJobCard({
       }}
     >
       {/* Cover image */}
-      <div className={`w-[72px] h-[72px] rounded-xl overflow-hidden shrink-0 bg-gradient-to-br from-[#0454C5] to-[#3186FF] transition-all ${
+      <div className={`w-[72px] h-[72px] rounded-xl overflow-hidden shrink-0 bg-[#0669F7] transition-all ${
         isSelected ? 'ring-2 ring-[#25282A] ring-offset-1' : ''
       }`}>
         {job.coverImageUrl ? (
@@ -232,7 +232,7 @@ function MapPopupCard({
       }}
     >
       {/* Cover */}
-      <div className="relative h-40 overflow-hidden bg-gradient-to-br from-[#0454C5] to-[#3186FF]">
+      <div className="relative h-40 overflow-hidden bg-[#0669F7]">
         {job.coverImageUrl && (
           // eslint-disable-next-line @next/next/no-img-element
           <img src={job.coverImageUrl} alt={job.titleKo} className="w-full h-full object-cover" />
@@ -325,7 +325,7 @@ function MobileJobCard({
     >
       <div className="flex gap-3 p-3.5">
         {/* Image */}
-        <div className="w-[92px] h-[92px] rounded-xl overflow-hidden shrink-0 bg-gradient-to-br from-[#0454C5] to-[#3186FF]">
+        <div className="w-[92px] h-[92px] rounded-xl overflow-hidden shrink-0 bg-[#0669F7]">
           {job.coverImageUrl ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img src={job.coverImageUrl} alt={job.titleKo} className="w-full h-full object-cover" />

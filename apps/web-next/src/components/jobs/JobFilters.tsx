@@ -31,9 +31,9 @@ interface Props {
 }
 
 const STATUS_VALUES = [
-  { value: '',            emoji: '🟢', key: 'listing.filter.status_open' },
-  { value: 'ALMOST_FULL', emoji: '🟡', key: 'listing.filter.status_closing_soon' },
-  { value: 'FILLED',      emoji: '⚫', key: 'listing.filter.status_closed' },
+  { value: '',            dotColor: 'bg-[#00C800]', key: 'listing.filter.status_open' },
+  { value: 'ALMOST_FULL', dotColor: 'bg-[#FFC72C]', key: 'listing.filter.status_closing_soon' },
+  { value: 'FILLED',      dotColor: 'bg-[#7A7B7A]', key: 'listing.filter.status_closed' },
 ] as const
 
 const RADIUS_OPTIONS = [10, 30, 50, 100]
@@ -187,7 +187,7 @@ export function JobFilters({
                   : 'bg-white border-[#EFF1F5] text-[#25282A] hover:border-[#0669F7] hover:text-[#0669F7]'
               }`}
             >
-              <span className="text-xs">{opt.emoji}</span>
+              <span className={} />
               <span>{t(opt.key as any)}</span>
             </button>
           ))}
@@ -201,7 +201,7 @@ export function JobFilters({
         {geoActive ? (
           /* Active location chip */
           <div className="flex items-center gap-2 px-3 py-2 bg-[#E6F0FE] border border-[#0669F7] rounded-lg">
-            <span className="text-sm">📍</span>
+            <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.8}><path strokeLinecap="round" strokeLinejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path strokeLinecap="round" strokeLinejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
             <span className="flex-1 text-xs font-medium text-[#0669F7] truncate">
               {activeLabel || t('listing.filter.active_location')}
             </span>
@@ -211,7 +211,7 @@ export function JobFilters({
               aria-label={t('listing.filter.clear_location_aria')}
               className="text-[#0669F7] hover:text-blue-800 font-bold text-sm leading-none"
             >
-              ✕
+              ×
             </button>
           </div>
         ) : (
@@ -223,15 +223,15 @@ export function JobFilters({
             className="w-full flex items-center justify-center gap-2 px-3 py-2 text-sm border border-[#EFF1F5] rounded-lg bg-white text-[#25282A] hover:border-[#0669F7] hover:text-[#0669F7] disabled:opacity-50 transition-colors"
           >
             {geoLoading
-              ? <span className="inline-block animate-spin text-base">⟳</span>
-              : <span className="text-base">📍</span>
+              ? <svg className="w-4 h-4 animate-spin text-[#0669F7]" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" /></svg>
+              : <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.8}><path strokeLinecap="round" strokeLinejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path strokeLinecap="round" strokeLinejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
             }
             <span>{geoLoading ? t('listing.filter.finding_location') : t('listing.filter.use_location')}</span>
           </button>
         )}
 
         {geoError && (
-          <p className="text-xs text-[#D81A48] mt-1">{geoError}</p>
+          <p className="text-xs text-[#ED1C24] mt-1">{geoError}</p>
         )}
 
         {/* Saved locations — only when no geo filter active and user is logged in */}
@@ -244,7 +244,7 @@ export function JobFilters({
                 onClick={() => { setActiveLabel(loc.label); activateGeo(Number(loc.lat), Number(loc.lng), loc.label) }}
                 className="flex items-center gap-2 px-3 py-2 text-xs border border-[#EFF1F5] rounded-lg bg-white text-[#25282A] hover:border-[#0669F7] hover:text-[#0669F7] transition-colors text-left"
               >
-                <span>{loc.is_default ? '⭐' : '📌'}</span>
+                <span>{'•'}</span>
                 <span className="truncate">{loc.label}</span>
               </button>
             ))}

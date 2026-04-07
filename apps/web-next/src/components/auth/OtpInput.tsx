@@ -101,7 +101,7 @@ export function OtpInput({
             'transition-colors duration-150 outline-none',
             'focus:border-[#0669F7] focus:ring-1 focus:ring-[#0669F7]',
             error
-              ? 'border-[#D81A48] bg-[#FFF6F7]'
+              ? 'border-[#ED1C24] bg-[#FFF6F7]'
               : digits[i] && digits[i] !== ' '
               ? 'border-[#0669F7] bg-[#F5F9FF]'
               : 'border-[#EFF1F5] bg-white',

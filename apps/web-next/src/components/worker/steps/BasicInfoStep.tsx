@@ -19,10 +19,10 @@ function getMaxBirthDate(): string {
 
 type GenderOption = 'MALE' | 'FEMALE' | 'OTHER'
 
-const GENDER_OPTIONS: { value: GenderOption; label: string; icon: string }[] = [
-  { value: 'MALE',   label: '남성', icon: '♂' },
-  { value: 'FEMALE', label: '여성', icon: '♀' },
-  { value: 'OTHER',  label: '기타', icon: '⚧' },
+const GENDER_OPTIONS: { value: GenderOption; label: string }[] = [
+  { value: 'MALE',   label: '남성' },
+  { value: 'FEMALE', label: '여성' },
+  { value: 'OTHER',  label: '기타' },
 ]
 
 export default function BasicInfoStep({ draft, onChange, onNext, isSaving }: BasicInfoStepProps) {
@@ -49,7 +49,7 @@ export default function BasicInfoStep({ draft, onChange, onNext, isSaving }: Bas
       {/* Full name */}
       <div>
         <label htmlFor="fullName" className="block text-sm font-medium text-[#25282A] mb-1">
-          이름 <span className="text-[#D81A48]">*</span>
+          이름 <span className="text-[#ED1C24]">*</span>
         </label>
         <input
           id="fullName"
@@ -64,7 +64,7 @@ export default function BasicInfoStep({ draft, onChange, onNext, isSaving }: Bas
       {/* Date of birth */}
       <div>
         <label htmlFor="dateOfBirth" className="block text-sm font-medium text-[#25282A] mb-1">
-          생년월일 <span className="text-[#D81A48]">*</span>
+          생년월일 <span className="text-[#ED1C24]">*</span>
         </label>
         <input
           id="dateOfBirth"
@@ -79,7 +79,7 @@ export default function BasicInfoStep({ draft, onChange, onNext, isSaving }: Bas
       {/* Gender */}
       <div>
         <p className="block text-sm font-medium text-[#25282A] mb-2">
-          성별 <span className="text-[#D81A48]">*</span>
+          성별 <span className="text-[#ED1C24]">*</span>
         </p>
         <div className="flex gap-3">
           {GENDER_OPTIONS.map((opt) => {
@@ -90,16 +90,15 @@ export default function BasicInfoStep({ draft, onChange, onNext, isSaving }: Bas
                 type="button"
                 onClick={() => onChange({ gender: opt.value })}
                 className={`
-                  flex-1 flex flex-col items-center justify-center gap-1 py-4 rounded-2xl border-2
-                  transition-all duration-150 min-h-[80px]
+                  flex-1 flex items-center justify-center py-3.5 rounded-2xl border-2
+                  transition-all duration-150 min-h-[52px]
                   ${isSelected
                     ? 'border-[#0669F7] bg-blue-50 text-[#0669F7]'
                     : 'border-[#EFF1F5] bg-white text-[#98A2B2] hover:border-[#0669F7] hover:text-[#0669F7]'
                   }
                 `}
               >
-                <span className="text-2xl leading-none">{opt.icon}</span>
-                <span className="text-sm font-medium">{opt.label}</span>
+                <span className="text-sm font-semibold">{opt.label}</span>
               </button>
             )
           })}

@@ -9,9 +9,9 @@
   --color-primary: #0669F7;
   --color-primary-on: #FFFFFF;
   --color-primary-container: #E6F0FE;
-  --color-secondary: #FDBC08;
+  --color-secondary: #FFC72C;
   --color-tertiary: #00C800;
-  --color-error: #D81A48;
+  --color-error: #ED1C24;
 
   /* Surface */
   --color-surface: #FFFFFF;
@@ -170,13 +170,46 @@ a, button {
   background: currentColor;
 }
 
-/* ── Card press effect ───────────────────────────────────── */
+/* ── Card press effect (touch devices) ───────────────────── */
 @media (hover: none) {
   .press-effect {
     transition: transform 0.1s ease, opacity 0.1s ease;
   }
   .press-effect:active {
-    transform: scale(0.97);
-    opacity: 0.85;
+    transform: scale(0.98);
+    opacity: 0.9;
   }
 }
+
+/* ── Desktop hover press effect ──────────────────────────── */
+@media (hover: hover) {
+  .press-effect {
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+  }
+  .press-effect:hover {
+    transform: translateY(-1px);
+  }
+  .press-effect:active {
+    transform: scale(0.99);
+  }
+}
+
+/* ── Focus ring ──────────────────────────────────────────── */
+.focus-ring:focus-visible {
+  outline: 2px solid #0669F7;
+  outline-offset: 2px;
+}
+
+/* ── Skeleton shimmer ────────────────────────────────────── */
+.skeleton {
+  background: linear-gradient(90deg, #EFF1F5 25%, #E2E6ED 50%, #EFF1F5 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite linear;
+}
+
+/* ── Status tag colors ───────────────────────────────────── */
+.status-pending    { background: #FFF8E6; color: #92620A; border-color: #F5D87D; }
+.status-accepted   { background: #E6F9E6; color: #1A6B1A; border-color: #86D98A; }
+.status-rejected   { background: #FDE8EE; color: #ED1C24; border-color: #F4B0C0; }
+.status-contracted { background: #E6F0FE; color: #0669F7; border-color: #A8C7FD; }
+.status-withdrawn  { background: #F2F4F5; color: #7A7B7A; border-color: #DDDDDD; }

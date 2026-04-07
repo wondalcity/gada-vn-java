@@ -56,7 +56,7 @@ export default function AttendanceAuditList({ attendanceId, jobId, idToken }: Pr
   }
 
   if (error) {
-    return <p className="text-xs text-[#D81A48] pt-2">{error}</p>
+    return <p className="text-xs text-[#ED1C24] pt-2">{error}</p>
   }
 
   if (entries.length === 0) {
@@ -86,7 +86,7 @@ export default function AttendanceAuditList({ attendanceId, jobId, idToken }: Pr
                   'font-medium',
                   entry.newStatus === 'ATTENDED' ? 'text-green-700' :
                   entry.newStatus === 'HALF_DAY' ? 'text-yellow-700' :
-                  entry.newStatus === 'ABSENT' ? 'text-[#D81A48]' :
+                  entry.newStatus === 'ABSENT' ? 'text-[#ED1C24]' :
                   'text-[#98A2B2]',
                 ].join(' ')}>
                   {STATUS_LABELS[entry.newStatus ?? ''] ?? entry.newStatus}

@@ -202,7 +202,7 @@ export default function WorkerExperienceClient({ locale }: { locale: string }) {
     <div className="pb-8">
       {/* Toast */}
       {toast && (
-        <div className={`fixed top-4 left-1/2 -translate-x-1/2 z-50 px-4 py-3 rounded-2xl shadow-md text-sm font-medium text-white ${toast.type === 'success' ? 'bg-green-600' : 'bg-[#D81A48]'}`}>
+        <div className={`fixed top-4 left-1/2 -translate-x-1/2 z-50 px-4 py-3 rounded-2xl shadow-md text-sm font-medium text-white ${toast.type === 'success' ? 'bg-green-600' : 'bg-[#ED1C24]'}`}>
           {toast.message}
         </div>
       )}
@@ -237,7 +237,7 @@ export default function WorkerExperienceClient({ locale }: { locale: string }) {
           </h2>
           <form onSubmit={handleSubmit} className="space-y-3">
             <div>
-              <label className={labelCls}>{t('experience.company_name')} <span className="text-[#D81A48]">*</span></label>
+              <label className={labelCls}>{t('experience.company_name')} <span className="text-[#ED1C24]">*</span></label>
               <input
                 name="companyName"
                 value={form.companyName}
@@ -248,7 +248,7 @@ export default function WorkerExperienceClient({ locale }: { locale: string }) {
               />
             </div>
             <div>
-              <label className={labelCls}>{t('experience.role')} <span className="text-[#D81A48]">*</span></label>
+              <label className={labelCls}>{t('experience.role')} <span className="text-[#ED1C24]">*</span></label>
               <input
                 name="role"
                 value={form.role}
@@ -260,7 +260,7 @@ export default function WorkerExperienceClient({ locale }: { locale: string }) {
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className={labelCls}>{t('experience.start_date')} <span className="text-[#D81A48]">*</span></label>
+                <label className={labelCls}>{t('experience.start_date')} <span className="text-[#ED1C24]">*</span></label>
                 <input
                   type="month"
                   name="startDate"
@@ -363,7 +363,7 @@ export default function WorkerExperienceClient({ locale }: { locale: string }) {
                     type="button"
                     onClick={() => handleDelete(exp.id)}
                     disabled={deletingId === exp.id}
-                    className="p-2 text-[#7A7B7A] hover:text-[#D81A48] rounded-xl transition-colors disabled:opacity-40"
+                    className="p-2 text-[#7A7B7A] hover:text-[#ED1C24] rounded-xl transition-colors disabled:opacity-40"
                   >
                     <TrashIcon />
                   </button>

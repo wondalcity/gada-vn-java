@@ -162,14 +162,16 @@ export default function WorkerDetailModal({
                 ? 'bg-[#E8FBE8] text-[#1A6B1A]'
                 : 'bg-[#EFF1F5] text-[#98A2B2]'
             }`}>
-              {worker.idVerified ? '✓ ' : ''}{t('manager_workers.id_verified')}
+              {worker.idVerified && <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>}
+              {t('manager_workers.id_verified')}
             </span>
             <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold ${
               worker.hasSignature
                 ? 'bg-[#E8FBE8] text-[#1A6B1A]'
                 : 'bg-[#EFF1F5] text-[#98A2B2]'
             }`}>
-              {worker.hasSignature ? '✓ ' : ''}{t('manager_workers.signature_done')}
+              {worker.hasSignature && <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>}
+              {t('manager_workers.signature_done')}
             </span>
           </div>
 
@@ -179,7 +181,7 @@ export default function WorkerDetailModal({
           {/* Notes (for rejected) */}
           {status === 'REJECTED' && notes && (
             <div className="bg-[#FDE8EE] rounded-2xl p-3 mb-4">
-              <p className="text-xs text-[#D81A48] mb-1 font-bold">{t('manager_workers.rejection_reason')}</p>
+              <p className="text-xs text-[#ED1C24] mb-1 font-bold">{t('manager_workers.rejection_reason')}</p>
               <p className="text-sm text-[#25282A]">{notes}</p>
             </div>
           )}
@@ -206,7 +208,7 @@ export default function WorkerDetailModal({
                     type="button"
                     onClick={() => setShowRejectForm(true)}
                     disabled={isActing}
-                    className="w-full h-14 rounded-2xl bg-[#FDE8EE] text-[#D81A48] font-bold text-sm disabled:opacity-40"
+                    className="w-full h-14 rounded-2xl bg-[#FDE8EE] text-[#ED1C24] font-bold text-sm disabled:opacity-40"
                   >
                             {t('manager_workers.reject')}
                   </button>
@@ -233,7 +235,7 @@ export default function WorkerDetailModal({
                       type="button"
                       onClick={handleRejectConfirm}
                       disabled={isActing}
-                      className="flex-1 h-12 rounded-2xl bg-[#FDE8EE] text-[#D81A48] font-bold text-sm disabled:opacity-40"
+                      className="flex-1 h-12 rounded-2xl bg-[#FDE8EE] text-[#ED1C24] font-bold text-sm disabled:opacity-40"
                     >
                       {isActing ? t('manager_workers.processing') : t('manager_workers.confirm')}
                     </button>
@@ -248,7 +250,7 @@ export default function WorkerDetailModal({
               type="button"
               onClick={() => setShowCancelConfirm(true)}
               disabled={isActing}
-              className="w-full h-14 rounded-2xl bg-[#FDE8EE] text-[#D81A48] font-bold text-sm disabled:opacity-40"
+              className="w-full h-14 rounded-2xl bg-[#FDE8EE] text-[#ED1C24] font-bold text-sm disabled:opacity-40"
             >
               {t('manager_workers.cancel_hire')}
             </button>

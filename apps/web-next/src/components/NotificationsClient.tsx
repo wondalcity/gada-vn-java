@@ -27,21 +27,36 @@ function timeAgo(dateStr: string, t: ReturnType<typeof useTranslations<'notifica
   return t('time.days_ago', { n: d })
 }
 
-const TYPE_ICONS: Record<string, string> = {
-  NEW_APPLICATION:    '📋',
-  APPLICATION_ACCEPTED: '✅',
-  APPLICATION_REJECTED: '❌',
-  CONTRACT_CREATED:   '📝',
-  CONTRACT_SIGNED:    '✍️',
-  ATTENDANCE_MARKED:  '📍',
-  ADMIN:              '📣',
+function NotifIcon({ type }: { type: string }) {
+  const cls = 'w-5 h-5'
+  if (type === 'APPLICATION_ACCEPTED')
+    return <svg className={cls} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+  if (type === 'APPLICATION_REJECTED')
+    return <svg className={cls} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+  if (type === 'NEW_APPLICATION')
+    return <svg className={cls} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg>
+  if (type === 'CONTRACT_CREATED' || type === 'CONTRACT_SIGNED')
+    return <svg className={cls} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+  if (type === 'ATTENDANCE_MARKED')
+    return <svg className={cls} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+  // Default bell
+  return <svg className={cls} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>
+}
+
+function notifIconBg(type: string): string {
+  if (type === 'APPLICATION_ACCEPTED') return 'bg-[#E6F9E6] text-[#1A6B1A]'
+  if (type === 'APPLICATION_REJECTED') return 'bg-[#FDE8EE] text-[#ED1C24]'
+  if (type === 'NEW_APPLICATION') return 'bg-[#E6F0FE] text-[#0669F7]'
+  if (type === 'CONTRACT_CREATED' || type === 'CONTRACT_SIGNED') return 'bg-[#E6F0FE] text-[#0669F7]'
+  if (type === 'ATTENDANCE_MARKED') return 'bg-[#E6F9E6] text-[#1A6B1A]'
+  return 'bg-[#F2F4F5] text-[#7A7B7A]'
 }
 
 const DEMO_NOTIFICATIONS: Notification[] = [
   {
     id: 'notif-1',
     type: 'APPLICATION_ACCEPTED',
-    title: '합격 축하드립니다! 🎉',
+    title: '합격 축하드립니다',
     body: '전기 배선 작업 (롯데몰 하노이 지하 1층 공사) 공고에 합격하셨습니다. 계약서를 확인해 주세요.',
     read: false,
     created_at: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
@@ -161,7 +176,7 @@ export default function NotificationsClient() {
   if (error) {
     return (
       <div className="max-w-[1760px] mx-auto px-4 py-6">
-        <p className="text-[#D81A48] text-sm text-center">{error}</p>
+        <p className="text-[#ED1C24] text-sm text-center">{error}</p>
       </div>
     )
   }
@@ -204,13 +219,13 @@ export default function NotificationsClient() {
             <div
               key={n.id}
               className={`px-4 py-4 flex gap-3 cursor-pointer transition-colors ${
-                n.read ? 'bg-white' : 'bg-blue-50'
+                n.read ? 'bg-white' : 'bg-[#E6F0FE]'
               }`}
               onClick={() => !n.read && markRead(n.id)}
             >
               {/* Icon */}
-              <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-lg flex-shrink-0">
-                {TYPE_ICONS[n.type] ?? '🔔'}
+              <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 ${notifIconBg(n.type)}`}>
+                <NotifIcon type={n.type} />
               </div>
 
               {/* Content */}

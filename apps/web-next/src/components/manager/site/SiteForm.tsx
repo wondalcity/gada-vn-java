@@ -247,7 +247,7 @@ export default function SiteForm({ mode, initialData, siteId, locale, idToken }:
         {/* Site Name (Korean) */}
         <div>
           <label className={labelClass}>
-            현장 이름 (한국어) <span className="text-[#D81A48]">*</span>
+            현장 이름 (한국어) <span className="text-[#ED1C24]">*</span>
           </label>
           <input
             type="text"
@@ -277,7 +277,7 @@ export default function SiteForm({ mode, initialData, siteId, locale, idToken }:
         {/* Address — Google Maps Autocomplete */}
         <div>
           <label className={labelClass}>
-            주소 <span className="text-[#D81A48]">*</span>
+            주소 <span className="text-[#ED1C24]">*</span>
           </label>
           {mapsError ? (
             <input
@@ -307,7 +307,7 @@ export default function SiteForm({ mode, initialData, siteId, locale, idToken }:
         {/* Province */}
         <div>
           <label className={labelClass}>
-            성/시 <span className="text-[#D81A48]">*</span>
+            성/시 <span className="text-[#ED1C24]">*</span>
           </label>
           <input
             type="text"
@@ -394,7 +394,7 @@ export default function SiteForm({ mode, initialData, siteId, locale, idToken }:
       )}
 
       {error && (
-        <div className="p-3 rounded-2xl bg-red-50 border border-red-200 text-sm text-[#D81A48]">
+        <div className="p-3 rounded-2xl bg-red-50 border border-red-200 text-sm text-[#ED1C24]">
           {error}
         </div>
       )}

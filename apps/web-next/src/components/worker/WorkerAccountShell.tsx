@@ -139,7 +139,7 @@ export default function WorkerAccountShell({ locale, userName, userPhone, isMana
         >
           {/* Mini profile card */}
           <div className="flex items-center gap-3 px-3.5 py-3 rounded-2xl bg-white border border-[#EFF1F5] shadow-sm">
-            <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[#0669F7] to-[#1A4FD6] flex items-center justify-center text-white text-sm font-bold shrink-0 shadow-sm">
+            <div className="w-9 h-9 rounded-full bg-[#0669F7] flex items-center justify-center text-white text-sm font-bold shrink-0">
               {initial}
             </div>
             <div className="min-w-0 flex-1">

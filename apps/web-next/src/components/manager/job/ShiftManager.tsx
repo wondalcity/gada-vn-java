@@ -270,7 +270,7 @@ export default function ShiftManager({ jobId, initialShifts, idToken }: ShiftMan
       )}
 
       {error && (
-        <div className="mb-3 p-3 rounded-2xl bg-red-50 border border-red-200 text-xs text-[#D81A48]">
+        <div className="mb-3 p-3 rounded-2xl bg-red-50 border border-red-200 text-xs text-[#ED1C24]">
           {error}
         </div>
       )}
@@ -293,7 +293,7 @@ export default function ShiftManager({ jobId, initialShifts, idToken }: ShiftMan
                 <button
                   type="button"
                   onClick={() => setCancelShiftId(shift.id)}
-                  className="text-xs text-[#D81A48] font-medium px-2 py-1 rounded-2xl hover:bg-red-50"
+                  className="text-xs text-[#ED1C24] font-medium px-2 py-1 rounded-2xl hover:bg-red-50"
                 >
                   취소
                 </button>

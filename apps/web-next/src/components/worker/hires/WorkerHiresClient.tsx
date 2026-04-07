@@ -135,7 +135,7 @@ export default function WorkerHiresClient() {
     return (
       <div className="py-6">
         <h1 className="text-xl font-bold text-[#25282A] mb-6">{t('worker_hires.title')}</h1>
-        <p className="text-[#D81A48] text-sm">{error}</p>
+        <p className="text-[#ED1C24] text-sm">{error}</p>
       </div>
     )
   }

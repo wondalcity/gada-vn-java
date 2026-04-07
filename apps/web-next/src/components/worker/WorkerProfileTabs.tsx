@@ -143,8 +143,8 @@ async function saveProfile(token: string, data: Record<string, unknown>): Promis
 
 function Toast({ message, type }: { message: string; type: 'success' | 'error' }) {
   return (
-    <div className={`fixed top-4 left-1/2 -translate-x-1/2 z-50 px-5 py-3 rounded-full shadow-lg text-sm font-medium text-white ${type === 'success' ? 'bg-green-600' : 'bg-[#D81A48]'}`}>
-      {type === 'success' ? '✓ ' : '✕ '}{message}
+    <div className={`fixed top-4 left-1/2 -translate-x-1/2 z-50 px-5 py-3 rounded-full shadow-lg text-sm font-medium text-white ${type === 'success' ? 'bg-green-600' : 'bg-[#ED1C24]'}`}>
+      {message}
     </div>
   )
 }
@@ -373,7 +373,7 @@ function BasicTab({ profile, onSaved }: { profile: WorkerProfile; onSaved: (p: P
           </button>
           {profileImageUrl && (
             <button type="button" onClick={handleDeleteProfileImage}
-              className="px-4 py-2 rounded-full border border-[#D81A48] text-[#D81A48] text-xs font-medium">
+              className="px-4 py-2 rounded-full border border-[#ED1C24] text-[#ED1C24] text-xs font-medium">
               {t('profile_tabs.basic.photo_delete')}
             </button>
           )}
@@ -382,7 +382,7 @@ function BasicTab({ profile, onSaved }: { profile: WorkerProfile; onSaved: (p: P
         <input ref={imageInputRef} type="file" accept="image/jpeg,image/png,image/webp" className="hidden"
           onChange={e => { const f = e.target.files?.[0]; if (f) handleProfileImage(f) }} />
       </div>
-      {imageError && <p className="text-xs text-[#D81A48]">{imageError}</p>}
+      {imageError && <p className="text-xs text-[#ED1C24]">{imageError}</p>}
 
       <Field label={t('profile_tabs.basic.full_name')}>
         <input type="text" value={fullName} onChange={e => setFullName(e.target.value)}
@@ -458,7 +458,7 @@ function BasicTab({ profile, onSaved }: { profile: WorkerProfile; onSaved: (p: P
                   />
                 </div>
               )}
-              {otpSent && phoneError && <p className="text-xs text-[#D81A48]">{phoneError}</p>}
+              {otpSent && phoneError && <p className="text-xs text-[#ED1C24]">{phoneError}</p>}
             </div>
             <div className="flex gap-2 pt-1">
               <button
@@ -493,9 +493,9 @@ function BasicTab({ profile, onSaved }: { profile: WorkerProfile; onSaved: (p: P
           className={inputCls}
         />
       </Field>
-      {emailError && <p className="text-xs text-[#D81A48] mt-1">{emailError}</p>}
+      {emailError && <p className="text-xs text-[#ED1C24] mt-1">{emailError}</p>}
 
-      {error && <p className="text-xs text-[#D81A48]">{error}</p>}
+      {error && <p className="text-xs text-[#ED1C24]">{error}</p>}
       <SaveButton saving={saving} onClick={save} label={t('profile_tabs.shared_save')} />
     </div>
   )
@@ -602,7 +602,7 @@ function ExperienceTab({ profile, onSaved }: { profile: WorkerProfile; onSaved: 
                   />
                   <span className="text-xs text-[#98A2B2]">{t('profile_tabs.experience.years_unit')}</span>
                   <button type="button" onClick={() => toggleTrade(tr.id)}
-                    className="ml-1 w-5 h-5 rounded-full bg-[#D81A48] text-white text-xs flex items-center justify-center">✕</button>
+                    className="ml-1 w-5 h-5 rounded-full bg-[#ED1C24] text-white text-xs flex items-center justify-center">×</button>
                 </div>
               </div>
             ))}
@@ -629,7 +629,7 @@ function ExperienceTab({ profile, onSaved }: { profile: WorkerProfile; onSaved: 
                       <p className={`text-sm font-medium ${isSelected ? 'text-[#0669F7]' : 'text-[#25282A]'}`}>{tr.nameKo}</p>
                       <p className="text-xs text-[#98A2B2]">{tr.nameVi}</p>
                     </div>
-                    {isSelected && <span className="text-[#0669F7] text-lg">✓</span>}
+                    {isSelected && <svg className="w-5 h-5 text-[#0669F7]" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>}
                   </button>
                 </li>
               )
@@ -639,7 +639,7 @@ function ExperienceTab({ profile, onSaved }: { profile: WorkerProfile; onSaved: 
       </div>
 
       <p className="text-xs text-[#98A2B2]">{t('profile_tabs.experience.hint')}</p>
-      {saveError && <p className="text-sm text-[#D81A48]">{saveError}</p>}
+      {saveError && <p className="text-sm text-[#ED1C24]">{saveError}</p>}
       <SaveButton saving={saving} onClick={save} label={t('profile_tabs.shared_save')} />
     </div>
   )
@@ -824,14 +824,14 @@ function AddressTab({ profile, onSaved }: { profile: WorkerProfile; onSaved: (p:
           <div className="flex flex-col gap-1.5">
             {savedLocations.map(loc => (
               <div key={loc.id} className="flex items-center gap-2 px-3 py-2 bg-white border border-[#EFF1F5] rounded-lg">
-                <span className="text-sm">{loc.is_default ? '⭐' : '📌'}</span>
+<span className="w-1.5 h-1.5 rounded-full bg-[#0669F7] shrink-0" />
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium text-[#25282A] truncate">{loc.label}</p>
                   {loc.address && <p className="text-xs text-[#98A2B2] truncate">{loc.address}</p>}
                 </div>
                 <button type="button" onClick={() => deleteLocation(loc.id)}
-                  className="text-[#98A2B2] hover:text-[#D81A48] text-sm font-bold shrink-0"
-                  aria-label="delete">✕</button>
+                  className="text-[#98A2B2] hover:text-[#ED1C24] text-sm font-bold shrink-0"
+                  aria-label="delete">×</button>
               </div>
             ))}
           </div>
@@ -906,7 +906,7 @@ function BankTab({ profile, onSaved }: { profile: WorkerProfile; onSaved: (p: Pa
         {t('profile_tabs.bank.privacy_notice')}
       </p>
 
-      {error && <p className="text-xs text-[#D81A48]">{error}</p>}
+      {error && <p className="text-xs text-[#ED1C24]">{error}</p>}
       <SaveButton saving={saving} onClick={save} label={t('profile_tabs.shared_save')} />
     </div>
   )
@@ -917,7 +917,7 @@ function BankTab({ profile, onSaved }: { profile: WorkerProfile; onSaved: (p: Pa
 function StatusBadge({ verified, hasDoc }: { verified: boolean; hasDoc: boolean }) {
   const t = useTranslations('worker')
   if (verified) return (
-    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-green-50 text-green-700 border border-green-200">✓ {t('profile_tabs.id.status_verified')}</span>
+    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-green-50 text-green-700 border border-green-200"><svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>{t('profile_tabs.id.status_verified')}</span>
   )
   if (hasDoc) return (
     <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-yellow-50 text-yellow-700 border border-yellow-200">{t('profile_tabs.id.status_pending')}</span>
@@ -1008,7 +1008,7 @@ function IdTab({ profile, onSaved }: { profile: WorkerProfile; onSaved: (p: Part
           placeholder={t('profile_tabs.id.number_placeholder')} className={inputCls} />
       </div>
 
-      {error && <p className="text-xs text-[#D81A48]">{error}</p>}
+      {error && <p className="text-xs text-[#ED1C24]">{error}</p>}
       {success && <p className="text-xs text-green-700">{success}</p>}
       <SaveButton saving={saving} onClick={save} label={t('profile_tabs.id.save_button')} />
     </div>
@@ -1164,7 +1164,7 @@ function SignatureTab({ profile, onSaved }: { profile: WorkerProfile; onSaved: (
         <p className="text-xs text-[#98A2B2] mt-1">{t('profile_tabs.signature.draw_hint')}</p>
       </div>
 
-      {error && <p className="text-xs text-[#D81A48]">{error}</p>}
+      {error && <p className="text-xs text-[#ED1C24]">{error}</p>}
       {success && <p className="text-xs text-green-700">{success}</p>}
 
       <div className="flex gap-3">

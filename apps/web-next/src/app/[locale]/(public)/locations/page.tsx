@@ -32,19 +32,18 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 // to a region-based gradient determined by slug prefix.
 const PROVINCE_THEMES: Record<string, {
   gradient: string
-  icon: string
   regionKey: string
 }> = {
-  'hn':    { gradient: 'from-[#1A1A2E] to-[#16213E]', icon: '🏛️', regionKey: 'red_river_delta' },
-  'hcm':   { gradient: 'from-[#0F3460] to-[#533483]', icon: '🌆', regionKey: 'southeast' },
-  'dn':    { gradient: 'from-[#0A3D62] to-[#1289A7]', icon: '🌊', regionKey: 'south_central' },
-  'hp':    { gradient: 'from-[#006266] to-[#1289A7]', icon: '⚓', regionKey: 'red_river_delta' },
-  'ct':    { gradient: 'from-[#1B6CA8] to-[#006266]', icon: '🛶', regionKey: 'mekong_delta' },
-  'bd':    { gradient: 'from-[#6A3093] to-[#A044FF]', icon: '🏭', regionKey: 'southeast' },
-  'dn-t':  { gradient: 'from-[#134E5E] to-[#71B280]', icon: '🌿', regionKey: 'southeast' },
-  'qni':   { gradient: 'from-[#1565C0] to-[#42A5F5]', icon: '⛰️', regionKey: 'northeast' },
-  'br-vt': { gradient: 'from-[#E65C00] to-[#F9D423]', icon: '🛢️', regionKey: 'southeast' },
-  'la':    { gradient: 'from-[#1D8348] to-[#27AE60]', icon: '🌾', regionKey: 'mekong_delta' },
+  'hn':    { gradient: 'from-[#1A1A2E] to-[#16213E]', regionKey: 'red_river_delta' },
+  'hcm':   { gradient: 'from-[#0F3460] to-[#533483]', regionKey: 'southeast' },
+  'dn':    { gradient: 'from-[#0A3D62] to-[#1289A7]', regionKey: 'south_central' },
+  'hp':    { gradient: 'from-[#006266] to-[#1289A7]', regionKey: 'red_river_delta' },
+  'ct':    { gradient: 'from-[#1B6CA8] to-[#006266]', regionKey: 'mekong_delta' },
+  'bd':    { gradient: 'from-[#6A3093] to-[#A044FF]', regionKey: 'southeast' },
+  'dn-t':  { gradient: 'from-[#134E5E] to-[#71B280]', regionKey: 'southeast' },
+  'qni':   { gradient: 'from-[#1565C0] to-[#42A5F5]', regionKey: 'northeast' },
+  'br-vt': { gradient: 'from-[#E65C00] to-[#F9D423]', regionKey: 'southeast' },
+  'la':    { gradient: 'from-[#1D8348] to-[#27AE60]', regionKey: 'mekong_delta' },
 }
 
 // Region-based fallback gradients keyed by province slug prefix
@@ -68,9 +67,17 @@ function getProvinceTheme(slug: string) {
   const match = REGION_GRADIENTS.find(r => r.test(slug))
   return {
     gradient: match?.gradient ?? 'from-[#2c3e50] to-[#3498db]',
-    icon: '🏗️',
     regionKey: match?.regionKey ?? 'vietnam',
   }
+}
+
+function ProvinceIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className ?? 'w-5 h-5'} fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.6}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+      <path strokeLinecap="round" strokeLinejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+    </svg>
+  )
 }
 
 export default async function LocationsPage({ params }: Props) {
@@ -135,7 +142,7 @@ export default async function LocationsPage({ params }: Props) {
                   <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
 
                   {/* Icon */}
-                  <div className="absolute top-3 left-3 text-2xl">{theme.icon}</div>
+                  <div className="absolute top-3 left-3 text-white/80"><ProvinceIcon className="w-6 h-6" /></div>
 
                   {/* Text */}
                   <div className="absolute bottom-0 left-0 right-0 p-3">
@@ -169,8 +176,8 @@ export default async function LocationsPage({ params }: Props) {
                   className="group flex items-center gap-3 p-3 bg-white rounded-xl border border-[#EFF1F5] hover:border-[#0669F7] hover:shadow-sm transition-all"
                 >
                   {/* Mini gradient thumbnail */}
-                  <div className={`w-9 h-9 rounded-lg shrink-0 bg-gradient-to-br ${theme.gradient} flex items-center justify-center text-base`}>
-                    {theme.icon}
+                  <div className={`w-9 h-9 rounded-lg shrink-0 bg-gradient-to-br ${theme.gradient} flex items-center justify-center text-white/80`}>
+                    <ProvinceIcon className="w-4 h-4" />
                   </div>
                   <div className="min-w-0">
                     <p className="text-sm font-semibold text-[#25282A] truncate group-hover:text-[#0669F7] transition-colors">

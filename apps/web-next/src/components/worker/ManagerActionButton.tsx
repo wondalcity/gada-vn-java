@@ -65,7 +65,7 @@ export function ManagerActionButton({ locale, isManager, managerStatus, variant 
     return (
       <Link
         href={'/manager' as never}
-        className="flex items-center justify-between px-4 py-3 bg-gradient-to-r from-[#0669F7] to-[#1A4FD6] text-white rounded-2xl text-sm font-semibold hover:from-[#0554D6] hover:to-[#1440B8] transition-all shadow-sm"
+        className="flex items-center justify-between px-4 py-3 bg-[#0669F7] text-white rounded-2xl text-sm font-semibold hover:bg-[#0557D4] transition-colors border border-[#0448B0]"
       >
         <div className="flex items-center gap-2.5">
           <div className="w-7 h-7 rounded-lg bg-white/15 flex items-center justify-center shrink-0">
@@ -106,7 +106,7 @@ export function ManagerActionButton({ locale, isManager, managerStatus, variant 
             <p className="text-xs text-[#856404]/70">{t('worker_profile.manager_pending_desc')}</p>
           </div>
         </div>
-        <span className="px-2.5 py-1 rounded-lg bg-[#FDBC08] text-white text-xs font-bold">{t('worker_profile.manager_pending_badge')}</span>
+        <span className="px-2.5 py-1 rounded-lg bg-[#FFC72C] text-[#3C2C02] text-xs font-bold">{t('worker_profile.manager_pending_badge')}</span>
       </div>
     )
   }

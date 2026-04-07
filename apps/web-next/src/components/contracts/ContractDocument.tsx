@@ -308,7 +308,7 @@ export function ContractDocument({ contract, documentRef }: Props) {
                   />
                 ) : contract.workerSignedAt ? (
                   <div style={{ textAlign: 'center' }}>
-                    <div style={{ fontSize: '22px', color: '#1a4fa0' }}>✅</div>
+                    <svg style={{ width: '22px', height: '22px', color: '#1a4fa0', margin: '0 auto' }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                     <span style={{ fontSize: '10px', color: '#1a4fa0', fontWeight: 700 }}>서명 완료</span>
                   </div>
                 ) : (
@@ -371,7 +371,7 @@ export function ContractDocument({ contract, documentRef }: Props) {
                   />
                 ) : contract.managerSignedAt ? (
                   <div style={{ textAlign: 'center' }}>
-                    <div style={{ fontSize: '22px', color: '#1a4fa0' }}>✅</div>
+                    <svg style={{ width: '22px', height: '22px', color: '#1a4fa0', margin: '0 auto' }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                     <span style={{ fontSize: '10px', color: '#1a4fa0', fontWeight: 700 }}>서명 완료</span>
                   </div>
                 ) : (

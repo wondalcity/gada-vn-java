@@ -27,7 +27,7 @@ export default function ConfirmModal({
 
   const confirmClassName =
     confirmVariant === 'danger'
-      ? 'px-5 py-2.5 rounded-2xl bg-[#FDE8EE] text-[#D81A48] font-bold text-sm disabled:opacity-40'
+      ? 'px-5 py-2.5 rounded-2xl bg-[#FDE8EE] text-[#ED1C24] font-bold text-sm disabled:opacity-40'
       : 'px-5 py-2.5 rounded-2xl bg-[#0669F7] text-white font-bold text-sm disabled:opacity-40'
 
   return (

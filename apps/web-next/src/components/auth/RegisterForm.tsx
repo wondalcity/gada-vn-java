@@ -197,7 +197,7 @@ export function RegisterForm({ locale }: RegisterFormProps) {
         {/* ── 이름 */}
         <div className="flex flex-col gap-2">
           <p className="text-[14px] font-semibold text-[#25282A]">
-            {t('register.name_label')} <span className="text-[#D81A48]">*</span>
+            {t('register.name_label')} <span className="text-[#ED1C24]">*</span>
           </p>
           <input
             type="text"
@@ -212,7 +212,7 @@ export function RegisterForm({ locale }: RegisterFormProps) {
         {/* ── 전화번호 ──────────────────────────────── */}
         <div className="flex flex-col gap-2">
           <p className="text-[14px] font-semibold text-[#25282A]">
-            {t('register.phone_label')} <span className="text-[#D81A48]">*</span>
+            {t('register.phone_label')} <span className="text-[#ED1C24]">*</span>
           </p>
           <p className="text-[12px] text-[#98A2B2] -mt-1">{t('register.phone_hint')}</p>
 
@@ -234,7 +234,7 @@ export function RegisterForm({ locale }: RegisterFormProps) {
             </button>
           </div>
 
-          {error && <p className="text-[13px] text-[#D81A48]">{error}</p>}
+          {error && <p className="text-[13px] text-[#ED1C24]">{error}</p>}
         </div>
 
         {/* ── OTP 입력 ──────────────────────────────── */}
@@ -251,7 +251,7 @@ export function RegisterForm({ locale }: RegisterFormProps) {
               disabled={isLoading}
             />
             {otpFieldError && (
-              <p className="text-center text-[13px] text-[#D81A48]">{otpFieldError}</p>
+              <p className="text-center text-[13px] text-[#ED1C24]">{otpFieldError}</p>
             )}
             <button
               type="button"

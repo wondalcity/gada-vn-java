@@ -41,7 +41,7 @@ export default function BusinessInfoStep({ draft, onChange, onNext, onBack }: Pr
       {isCorporate ? (
         <div>
           <label htmlFor="companyName" className="block text-sm font-medium text-[#25282A] mb-1.5">
-            회사명 <span className="text-[#D81A48]">*</span>
+            회사명 <span className="text-[#ED1C24]">*</span>
           </label>
           <input
             id="companyName"
@@ -139,7 +139,7 @@ export default function BusinessInfoStep({ draft, onChange, onNext, onBack }: Pr
           onChange={handleFileChange}
         />
         {fileError && (
-          <p className="text-xs text-[#D81A48] mt-1">{fileError}</p>
+          <p className="text-xs text-[#ED1C24] mt-1">{fileError}</p>
         )}
         <p className="text-xs text-[#98A2B2] mt-1">
           사업자 등록증 또는 이에 준하는 서류를 첨부해주세요. PDF, JPG, PNG (최대 20MB)
