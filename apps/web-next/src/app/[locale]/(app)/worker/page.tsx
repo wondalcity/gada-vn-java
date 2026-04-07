@@ -158,7 +158,7 @@ export default async function WorkerHomePage({ params }: Props) {
             <div>
               <div className="flex items-center gap-2">
                 <p className="font-bold text-base leading-tight">{displayName}</p>
-                <Link href={`/${locale}/worker/settings` as never} className="opacity-70 hover:opacity-100 transition-opacity">
+                <Link href={'/worker/settings' as never} className="opacity-70 hover:opacity-100 transition-opacity">
                   <span className="text-lg leading-none">⚙️</span>
                 </Link>
               </div>
@@ -204,10 +204,10 @@ export default async function WorkerHomePage({ params }: Props) {
         {/* Mobile quick actions */}
         <div className="grid grid-cols-4 gap-2 mt-3">
           {[
-            { href: `/${locale}/worker/applications`, icon: '📋', label: t('dashboard.quick_actions.applications') },
-            { href: `/${locale}/worker/contracts`,    icon: '📄', label: t('dashboard.quick_actions.contracts') },
-            { href: `/${locale}/worker/profile`,      icon: '👤', label: t('dashboard.quick_actions.profile') },
-            { href: `/${locale}/jobs`,                icon: '🔍', label: t('dashboard.quick_actions.find_jobs') },
+            { href: '/worker/applications', icon: '📋', label: t('dashboard.quick_actions.applications') },
+            { href: '/worker/contracts',    icon: '📄', label: t('dashboard.quick_actions.contracts') },
+            { href: '/worker/profile',      icon: '👤', label: t('dashboard.quick_actions.profile') },
+            { href: '/jobs',                icon: '🔍', label: t('dashboard.quick_actions.find_jobs') },
           ].map(({ href, icon, label }) => (
             <Link
               key={href}
@@ -230,7 +230,7 @@ export default async function WorkerHomePage({ params }: Props) {
           <p className="text-sm text-[#98A2B2] mt-0.5">{t('dashboard.activity_subtitle')}</p>
         </div>
         <Link
-          href={`/${locale}/jobs` as never}
+          href={'/jobs' as never}
           className="flex items-center gap-2 px-4 py-2 rounded-xl bg-[#0669F7] text-white text-sm font-semibold hover:bg-[#0554D6] transition-colors"
         >
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
@@ -280,7 +280,7 @@ export default async function WorkerHomePage({ params }: Props) {
                 </span>
               )}
             </div>
-            <Link href={`/${locale}/worker/applications` as never} className="text-sm text-[#0669F7] font-medium hover:underline">
+            <Link href={'/worker/applications' as never} className="text-sm text-[#0669F7] font-medium hover:underline">
               {t('dashboard.view_all')}
             </Link>
           </div>
@@ -295,7 +295,7 @@ export default async function WorkerHomePage({ params }: Props) {
               <p className="text-[#25282A] font-semibold text-sm mb-1">{t('dashboard.empty_title')}</p>
               <p className="text-[#98A2B2] text-xs mb-4">{t('dashboard.empty_subtitle')}</p>
               <Link
-                href={`/${locale}/jobs` as never}
+                href={'/jobs' as never}
                 className="inline-flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-[#0669F7] text-white text-sm font-bold hover:bg-[#0554D6] transition-colors"
               >
                 {t('dashboard.browse_jobs')}
@@ -330,7 +330,7 @@ export default async function WorkerHomePage({ params }: Props) {
 
               {applications.length > 5 && (
                 <Link
-                  href={`/${locale}/worker/applications` as never}
+                  href={'/worker/applications' as never}
                   className="flex items-center justify-center gap-1.5 w-full py-3 text-sm text-[#0669F7] font-semibold border border-[#C8D8FF] rounded-2xl bg-white hover:bg-[#E6F0FE] transition-colors"
                 >
                   {t('dashboard.view_more', { n: applications.length - 5 })}

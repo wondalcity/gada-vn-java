@@ -271,7 +271,7 @@ export default function PublicHeaderSearch({ locale }: PublicHeaderSearchProps) 
     if (keyword.trim()) params.set('q', keyword.trim());
     if (province) params.set('province', province);
     if (trade) params.set('trade', trade);
-    router.push(`/${locale}/jobs?${params.toString()}` as never);
+    router.push(`/jobs?${params.toString()}` as never);
     closePanel();
   };
 

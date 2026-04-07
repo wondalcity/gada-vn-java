@@ -193,14 +193,14 @@ export default function WorkerHiresClient() {
               <div className="mt-3 flex items-center gap-2 flex-wrap">
                 {hire.contractId && (
                   <Link
-                    href={`/${locale}/worker/contracts/${hire.contractId}`}
+                    href={`/worker/contracts/${hire.contractId}`}
                     className="px-4 py-2 rounded-full bg-[#0669F7] text-white font-medium text-xs"
                   >
                     {t('worker_hires.view_contract')}
                   </Link>
                 )}
                 <Link
-                  href={`/${locale}/worker/attendance?jobId=${hire.jobId}`}
+                  href={`/worker/attendance?jobId=${hire.jobId}`}
                   className="px-4 py-2 rounded-full border border-[#EFF1F5] text-[#98A2B2] font-medium text-xs hover:border-[#0669F7] hover:text-[#0669F7] transition-colors"
                 >
                   {t('worker_hires.view_attendance')}

@@ -99,14 +99,14 @@ export default function JobDetailClient({ jobId, locale }: JobDetailClientProps)
     try {
       if (!idToken) {
         siteStore.deleteJob(jobId)
-        router.push(`/${locale}/manager/sites/${job?.siteId}`)
+        router.push(`/manager/sites/${job?.siteId}`)
       } else {
         await apiClient(`/manager/jobs/${jobId}/status`, {
           method: 'PATCH',
           token: idToken,
           body: JSON.stringify({ status: 'CANCELLED' }),
         })
-        router.push(`/${locale}/manager/sites/${job?.siteId}`)
+        router.push(`/manager/sites/${job?.siteId}`)
       }
     } catch (e) {
       alert(e instanceof Error ? e.message : t('manager_job_detail.delete_error'))
@@ -150,7 +150,7 @@ export default function JobDetailClient({ jobId, locale }: JobDetailClientProps)
         <div>
           <h2 className="text-lg font-bold text-[#25282A] mb-1">{job.title}</h2>
           <Link
-            href={`/${locale}/manager/sites/${job.siteId}`}
+            href={`/manager/sites/${job.siteId}`}
             className="text-sm text-[#0669F7] hover:underline"
           >
             {job.siteName}
@@ -273,7 +273,7 @@ export default function JobDetailClient({ jobId, locale }: JobDetailClientProps)
       <div className="bg-white rounded-2xl shadow-sm border border-[#EFF1F5] p-4 mb-4">
         <div className="flex flex-wrap items-center gap-3">
           <Link
-            href={`/${locale}/manager/jobs/${jobId}/edit`}
+            href={`/manager/jobs/${jobId}/edit`}
             className="px-5 py-2.5 rounded-full bg-[#0669F7] text-white font-medium text-sm"
           >
             {t('manager_job_detail.edit')}
@@ -325,7 +325,7 @@ export default function JobDetailClient({ jobId, locale }: JobDetailClientProps)
         <div className="flex items-center justify-between mb-3">
           <h3 className="text-sm font-semibold text-[#25282A]">{t('manager_job_detail.applicants_title')}</h3>
           <Link
-            href={`/${locale}/manager/jobs/${jobId}/applicants`}
+            href={`/manager/jobs/${jobId}/applicants`}
             className="text-xs text-[#0669F7] font-medium"
           >
             {t('manager_job_detail.view_all')}

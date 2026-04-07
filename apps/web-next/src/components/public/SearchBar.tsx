@@ -25,7 +25,7 @@ export function SearchBar({ provinces, trades = [], locale }: Props) {
     if (selectedProvince) params.set('province', selectedProvince)
     if (selectedTrade) params.set('trade', selectedTrade)
     params.set('view', 'map')
-    router.push(`/${locale}/jobs?${params.toString()}`)
+    router.push(`/jobs?${params.toString()}`)
   }
 
   return (

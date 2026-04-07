@@ -52,7 +52,7 @@ export function ManagerActionButton({ locale, isManager, managerStatus, variant 
     if (variant === 'hero') {
       return (
         <Link
-          href={`/${locale}/manager` as never}
+          href={'/manager' as never}
           className="relative mt-3 flex items-center justify-center gap-2 w-full py-2.5 rounded-xl bg-white/15 border border-white/30 text-white text-sm font-semibold hover:bg-white/25 transition-colors active:bg-white/30"
         >
           <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
@@ -64,7 +64,7 @@ export function ManagerActionButton({ locale, isManager, managerStatus, variant 
     }
     return (
       <Link
-        href={`/${locale}/manager` as never}
+        href={'/manager' as never}
         className="flex items-center justify-between px-4 py-3 bg-gradient-to-r from-[#0669F7] to-[#1A4FD6] text-white rounded-2xl text-sm font-semibold hover:from-[#0554D6] hover:to-[#1440B8] transition-all shadow-sm"
       >
         <div className="flex items-center gap-2.5">

@@ -187,7 +187,7 @@ export default function NearbyJobsSection({ locale }: Props) {
     <div className="mb-6">
       <div className="flex items-center justify-between mb-3">
         <h2 className="text-base font-semibold text-[#25282A]">내 주변 일자리</h2>
-        <Link href={`/${locale}/jobs`} className="text-sm text-[#0669F7] font-medium">
+        <Link href={'/jobs'} className="text-sm text-[#0669F7] font-medium">
           전체 보기 →
         </Link>
       </div>
@@ -271,7 +271,7 @@ export default function NearbyJobsSection({ locale }: Props) {
           {jobs.slice(0, 5).map(job => (
             <Link
               key={job.id}
-              href={`/${locale}/jobs/${job.slug}`}
+              href={`/jobs/${job.slug}`}
               className="flex items-start gap-3 bg-white rounded-2xl p-4 hover:bg-[#F2F4F5] transition-colors"
             >
               {job.coverImageUrl ? (
@@ -301,7 +301,7 @@ export default function NearbyJobsSection({ locale }: Props) {
           ))}
           {jobs.length > 5 && (
             <Link
-              href={`/${locale}/jobs`}
+              href={'/jobs'}
               className="block w-full py-3 text-center text-sm text-[#0669F7] font-medium border border-[#0669F7]/30 rounded-xl bg-white hover:bg-[#E6F0FE] transition-colors"
             >
               {jobs.length - 5}개 더 보기

@@ -234,7 +234,7 @@ export default function ManagerSearchModal({
     if (jobStatus !== 'ALL') params.set('status', jobStatus)
 
     const query = params.toString()
-    const href = `/${locale}/manager/jobs${query ? `?${query}` : ''}`
+    const href = `/manager/jobs${query ? `?${query}` : ''}`
     router.push(href as never)
     onClose()
   }, [keyword, province, siteId, jobStatus, locale, router, onClose])

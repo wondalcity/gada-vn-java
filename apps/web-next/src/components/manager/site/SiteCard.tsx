@@ -12,7 +12,7 @@ interface SiteCardProps {
 
 export default function SiteCard({ site, locale }: SiteCardProps) {
   return (
-    <Link href={`/${locale}/manager/sites/${site.id}`} className="press-effect block">
+    <Link href={`/manager/sites/${site.id}`} className="press-effect block">
       <div
         className="bg-white rounded-2xl overflow-hidden hover:shadow-lg transition-all"
         style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}

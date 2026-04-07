@@ -14,31 +14,31 @@ interface Props {
 }
 
 const MANAGER_ROOT_PATHS = (locale: string) => new Set([
-  `/${locale}/manager`,
-  `/${locale}/manager/sites`,
-  `/${locale}/manager/jobs`,
-  `/${locale}/manager/hires`,
-  `/${locale}/manager/contracts`,
-  `/${locale}/manager/notifications`,
-  `/${locale}/manager/profile`,
-  `/${locale}/manager/my-listings`,
-  `/${locale}/manager/settings`,
+  '/manager',
+  '/manager/sites',
+  '/manager/jobs',
+  '/manager/hires',
+  '/manager/contracts',
+  '/manager/notifications',
+  '/manager/profile',
+  '/manager/my-listings',
+  '/manager/settings',
 ])
 
 type TFn = (key: string) => string
 
 function getManagerPageTitle(pathname: string, locale: string, t: TFn): string {
-  if (pathname.startsWith(`/${locale}/manager/sites/`) && pathname.includes('/jobs/new')) return t('manager_app_bar.page_new_job')
-  if (pathname.startsWith(`/${locale}/manager/sites/`) && pathname.endsWith('/edit')) return t('manager_app_bar.page_edit_site')
-  if (pathname.startsWith(`/${locale}/manager/sites/`) && pathname.endsWith('/jobs')) return t('manager_app_bar.page_site_jobs')
-  if (pathname.startsWith(`/${locale}/manager/sites/new`)) return t('manager_app_bar.page_new_site')
-  if (pathname.startsWith(`/${locale}/manager/sites/`)) return t('manager_app_bar.page_site_detail')
-  if (pathname.startsWith(`/${locale}/manager/jobs/`) && pathname.endsWith('/edit')) return t('manager_app_bar.page_edit_job')
-  if (pathname.startsWith(`/${locale}/manager/jobs/`) && pathname.endsWith('/applicants')) return t('manager_app_bar.page_job_applicants')
-  if (pathname.startsWith(`/${locale}/manager/jobs/`) && pathname.endsWith('/attendance')) return t('manager_app_bar.page_job_attendance')
-  if (pathname.startsWith(`/${locale}/manager/jobs/`)) return t('manager_app_bar.page_job_detail')
-  if (pathname.startsWith(`/${locale}/manager/hires/`)) return t('manager_app_bar.page_hire_detail')
-  if (pathname.startsWith(`/${locale}/manager/contracts/`)) return t('manager_app_bar.page_contract')
+  if (pathname.startsWith('/manager/sites/') && pathname.includes('/jobs/new')) return t('manager_app_bar.page_new_job')
+  if (pathname.startsWith('/manager/sites/') && pathname.endsWith('/edit')) return t('manager_app_bar.page_edit_site')
+  if (pathname.startsWith('/manager/sites/') && pathname.endsWith('/jobs')) return t('manager_app_bar.page_site_jobs')
+  if (pathname.startsWith('/manager/sites/new')) return t('manager_app_bar.page_new_site')
+  if (pathname.startsWith('/manager/sites/')) return t('manager_app_bar.page_site_detail')
+  if (pathname.startsWith('/manager/jobs/') && pathname.endsWith('/edit')) return t('manager_app_bar.page_edit_job')
+  if (pathname.startsWith('/manager/jobs/') && pathname.endsWith('/applicants')) return t('manager_app_bar.page_job_applicants')
+  if (pathname.startsWith('/manager/jobs/') && pathname.endsWith('/attendance')) return t('manager_app_bar.page_job_attendance')
+  if (pathname.startsWith('/manager/jobs/')) return t('manager_app_bar.page_job_detail')
+  if (pathname.startsWith('/manager/hires/')) return t('manager_app_bar.page_hire_detail')
+  if (pathname.startsWith('/manager/contracts/')) return t('manager_app_bar.page_contract')
   return ''
 }
 
@@ -68,7 +68,7 @@ export function ManagerAppBar({ locale, user }: Props) {
         {/* Mobile: back button on sub-pages, logo on root pages */}
         {isRootPage ? (
           <Link
-            href={`/${locale}/manager`}
+            href={'/manager'}
             className="md:hidden flex items-center shrink-0"
           >
             <img src="/logo.png" alt="GADA VN" className="h-8 w-auto" />
@@ -99,22 +99,22 @@ export function ManagerAppBar({ locale, user }: Props) {
 
         {/* Desktop nav links */}
         <nav className="hidden md:flex items-center gap-6 text-sm font-medium">
-          <Link href={`/${locale}/manager` as never} className={navClass(`/${locale}/manager`, true)}>
+          <Link href={'/manager' as never} className={navClass('/manager', true)}>
             {t('manager_nav.home')}
           </Link>
-          <Link href={`/${locale}/manager/sites` as never} className={navClass(`/${locale}/manager/sites`)}>
+          <Link href={'/manager/sites' as never} className={navClass('/manager/sites')}>
             {t('manager_nav.sites_full')}
           </Link>
-          <Link href={`/${locale}/manager/jobs` as never} className={navClass(`/${locale}/manager/jobs`)}>
+          <Link href={'/manager/jobs' as never} className={navClass('/manager/jobs')}>
             {t('manager_nav.jobs_full')}
           </Link>
-          <Link href={`/${locale}/manager/hires` as never} className={navClass(`/${locale}/manager/hires`)}>
+          <Link href={'/manager/hires' as never} className={navClass('/manager/hires')}>
             {t('manager_nav.hires_full')}
           </Link>
-          <Link href={`/${locale}/manager/contracts` as never} className={navClass(`/${locale}/manager/contracts`)}>
+          <Link href={'/manager/contracts' as never} className={navClass('/manager/contracts')}>
             {t('manager_nav.contracts_full')}
           </Link>
-          <Link href={`/${locale}/manager/settings` as never} className={navClass(`/${locale}/manager/settings`)}>
+          <Link href={'/manager/settings' as never} className={navClass('/manager/settings')}>
             {t('manager_nav.settings')}
           </Link>
         </nav>
@@ -136,7 +136,7 @@ export function ManagerAppBar({ locale, user }: Props) {
 
           {/* Notification button — mobile only */}
           <Link
-            href={`/${locale}/manager/notifications` as never}
+            href={'/manager/notifications' as never}
             aria-label={t('manager_app_bar.notifications')}
             className="md:hidden flex items-center justify-center w-9 h-9 rounded-full text-[#98A2B2] hover:text-[#0669F7] hover:bg-[#EFF1F5] transition-colors"
           >
@@ -156,7 +156,7 @@ export function ManagerAppBar({ locale, user }: Props) {
             </div>
           ) : (
             <Link
-              href={`/${locale}/login`}
+              href={'/login'}
               className="text-sm font-semibold text-white bg-[#0669F7] hover:bg-blue-700 px-4 py-1.5 rounded-full transition-colors"
             >
               {t('manager_app_bar.login')}

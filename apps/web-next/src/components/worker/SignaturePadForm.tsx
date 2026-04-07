@@ -217,7 +217,7 @@ export default function SignaturePadForm({ locale }: { locale: string }) {
     <div className="max-w-lg mx-auto px-4 py-6">
       {/* Back link */}
       <Link
-        href={`/${locale}/worker/profile`}
+        href={'/worker/profile'}
         className="inline-flex items-center gap-1 text-sm text-[#98A2B2] hover:text-[#0669F7] mb-6 transition-colors"
       >
         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

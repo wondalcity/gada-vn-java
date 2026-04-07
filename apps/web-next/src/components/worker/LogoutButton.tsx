@@ -8,7 +8,7 @@ export function LogoutButton({ locale }: { locale: string }) {
 
   function handleLogout() {
     clearSessionCookie()
-    router.push(`/${locale}/login`)
+    router.push('/login')
   }
 
   return (

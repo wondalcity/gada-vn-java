@@ -37,7 +37,7 @@ export default function JobCard({ job, locale, showSite = false }: JobCardProps)
   const activeBenefits = benefits.filter((b) => job.benefits[b.key])
 
   return (
-    <Link href={`/${locale}/manager/jobs/${job.id}`} className="press-effect block group">
+    <Link href={`/manager/jobs/${job.id}`} className="press-effect block group">
       <div
         className="bg-white rounded-2xl p-4 hover:shadow-lg transition-all"
         style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}

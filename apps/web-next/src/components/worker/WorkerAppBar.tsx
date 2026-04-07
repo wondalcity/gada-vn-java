@@ -16,25 +16,25 @@ interface Props {
 }
 
 const WORKER_ROOT_PATHS = (locale: string) => new Set([
-  `/${locale}/worker`,
-  `/${locale}/worker/jobs`,
-  `/${locale}/worker/applications`,
-  `/${locale}/worker/attendance`,
-  `/${locale}/worker/profile`,
-  `/${locale}/worker/hires`,
-  `/${locale}/worker/notifications`,
-  `/${locale}/worker/contracts`,
+  '/worker',
+  '/worker/jobs',
+  '/worker/applications',
+  '/worker/attendance',
+  '/worker/profile',
+  '/worker/hires',
+  '/worker/notifications',
+  '/worker/contracts',
 ])
 
 function getPageTitle(pathname: string, locale: string, t: ReturnType<typeof useTranslations<'worker'>>): string {
-  if (pathname.startsWith(`/${locale}/worker/jobs/`)) return t('app_bar.pages.job_detail')
-  if (pathname.startsWith(`/${locale}/worker/applications/`)) return t('app_bar.pages.application_detail')
-  if (pathname.startsWith(`/${locale}/worker/hires/`)) return t('app_bar.pages.hire_detail')
-  if (pathname.startsWith(`/${locale}/worker/contracts/`)) return t('app_bar.pages.contract')
-  if (pathname === `/${locale}/worker/profile/id-upload`) return t('app_bar.pages.id_upload')
-  if (pathname === `/${locale}/worker/profile/id`) return t('app_bar.pages.id_verify')
-  if (pathname === `/${locale}/worker/profile/experience`) return t('app_bar.pages.career')
-  if (pathname === `/${locale}/worker/profile/signature`) return t('app_bar.pages.signature')
+  if (pathname.startsWith('/worker/jobs/')) return t('app_bar.pages.job_detail')
+  if (pathname.startsWith('/worker/applications/')) return t('app_bar.pages.application_detail')
+  if (pathname.startsWith('/worker/hires/')) return t('app_bar.pages.hire_detail')
+  if (pathname.startsWith('/worker/contracts/')) return t('app_bar.pages.contract')
+  if (pathname === '/worker/profile/id-upload') return t('app_bar.pages.id_upload')
+  if (pathname === '/worker/profile/id') return t('app_bar.pages.id_verify')
+  if (pathname === '/worker/profile/experience') return t('app_bar.pages.career')
+  if (pathname === '/worker/profile/signature') return t('app_bar.pages.signature')
   return ''
 }
 
@@ -65,7 +65,7 @@ export function WorkerAppBar({ locale, user, provinces = [] }: Props) {
         {/* Mobile: back button on sub-pages, logo on root pages */}
         {isRootPage ? (
           <Link
-            href={`/${locale}/worker`}
+            href={'/worker'}
             className="md:hidden flex items-center shrink-0"
           >
             <img src="/logo.png" alt="GADA VN" className="h-8 w-auto" />
@@ -97,8 +97,8 @@ export function WorkerAppBar({ locale, user, provinces = [] }: Props) {
         {/* Desktop nav */}
         <nav className="hidden md:flex items-center gap-5 text-sm font-medium">
           <Link
-            href={`/${locale}/worker/jobs`}
-            className={navClass(`/${locale}/worker/jobs`)}
+            href={'/worker/jobs'}
+            className={navClass('/worker/jobs')}
           >
             {t('app_bar.jobs')}
           </Link>
@@ -110,7 +110,7 @@ export function WorkerAppBar({ locale, user, provinces = [] }: Props) {
           <LocaleSwitcher />
           <PublicHeaderSearch locale={locale} />
           <Link
-            href={`/${locale}/worker/notifications`}
+            href={'/worker/notifications'}
             className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-[#EFF1F5] transition-colors"
             aria-label={t('app_bar.notifications_aria')}
           >
@@ -129,7 +129,7 @@ export function WorkerAppBar({ locale, user, provinces = [] }: Props) {
             </div>
           ) : (
             <Link
-              href={`/${locale}/login`}
+              href={'/login'}
               className="text-sm font-semibold text-white bg-[#0669F7] hover:bg-blue-700 px-4 py-1.5 rounded-full transition-colors"
             >
               {t('app_bar.login')}

@@ -205,10 +205,10 @@ export default function SiteForm({ mode, initialData, siteId, locale, idToken }:
       if (!idToken) {
         if (mode === 'create') {
           const newSite = siteStore.create(payload)
-          router.push(`/${locale}/manager/sites/${newSite.id}`)
+          router.push(`/manager/sites/${newSite.id}`)
         } else if (siteId) {
           siteStore.update(siteId, payload)
-          router.push(`/${locale}/manager/sites/${siteId}`)
+          router.push(`/manager/sites/${siteId}`)
         }
         return
       }
@@ -222,14 +222,14 @@ export default function SiteForm({ mode, initialData, siteId, locale, idToken }:
           token: idToken,
           body: JSON.stringify(apiPayload),
         })
-        router.push(`/${locale}/manager/sites/${res.data.id}`)
+        router.push(`/manager/sites/${res.data.id}`)
       } else {
         await apiClient<Site>(`/manager/sites/${siteId}`, {
           method: 'PUT',
           token: idToken,
           body: JSON.stringify(apiPayload),
         })
-        router.push(`/${locale}/manager/sites/${siteId}`)
+        router.push(`/manager/sites/${siteId}`)
       }
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : '저장에 실패했습니다.')

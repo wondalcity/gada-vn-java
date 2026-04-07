@@ -220,7 +220,7 @@ export default function WorkerContractsClient() {
                 {/* Action button */}
                 <div className="mt-3">
                   <Link
-                    href={`/${locale}/worker/contracts/${c.id}` as never}
+                    href={`/worker/contracts/${c.id}` as never}
                     className={`flex items-center justify-center gap-2 w-full py-2.5 rounded-full text-sm font-semibold transition-colors ${
                       needsSign
                         ? 'bg-amber-500 text-white hover:bg-amber-600'

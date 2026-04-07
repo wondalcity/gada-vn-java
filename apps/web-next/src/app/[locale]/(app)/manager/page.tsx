@@ -70,7 +70,7 @@ export default function ManagerHomePage({ params }: Props) {
     {
       label: '운영중 현장',
       value: displayStats.activeSites,
-      href: `/${locale}/manager/sites`,
+      href: '/manager/sites',
       color: '#0669F7',
       bg: '#E6F0FE',
       icon: (
@@ -82,7 +82,7 @@ export default function ManagerHomePage({ params }: Props) {
     {
       label: '모집중 공고',
       value: displayStats.openJobs,
-      href: `/${locale}/manager/jobs`,
+      href: '/manager/jobs',
       color: '#1A6B1A',
       bg: '#E8FBE8',
       icon: (
@@ -94,7 +94,7 @@ export default function ManagerHomePage({ params }: Props) {
     {
       label: '검토 대기',
       value: displayStats.pendingApplications,
-      href: `/${locale}/manager/hires`,
+      href: '/manager/hires',
       color: '#856404',
       bg: '#FFF3CD',
       icon: (
@@ -106,15 +106,15 @@ export default function ManagerHomePage({ params }: Props) {
   ]
 
   const quickActions = [
-    { href: `/${locale}/manager/sites/new`, emoji: '🏗️', label: '현장등록' },
-    { href: `/${locale}/manager/jobs`,      emoji: '📋', label: '공고관리' },
-    { href: `/${locale}/manager/hires`,     emoji: '👥', label: '채용관리' },
-    { href: `/${locale}/manager/contracts`, emoji: '📄', label: '계약서' },
+    { href: '/manager/sites/new', emoji: '🏗️', label: '현장등록' },
+    { href: '/manager/jobs',      emoji: '📋', label: '공고관리' },
+    { href: '/manager/hires',     emoji: '👥', label: '채용관리' },
+    { href: '/manager/contracts', emoji: '📄', label: '계약서' },
   ]
 
   const menuCards = [
     {
-      href: `/${locale}/manager/sites`,
+      href: '/manager/sites',
       icon: (
         <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
           <path strokeLinecap="round" strokeLinejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
@@ -125,7 +125,7 @@ export default function ManagerHomePage({ params }: Props) {
       badge: displayStats.activeSites > 0 ? `${displayStats.activeSites}개` : null,
     },
     {
-      href: `/${locale}/manager/jobs`,
+      href: '/manager/jobs',
       icon: (
         <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
           <path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
@@ -136,7 +136,7 @@ export default function ManagerHomePage({ params }: Props) {
       badge: displayStats.openJobs > 0 ? `모집중 ${displayStats.openJobs}` : null,
     },
     {
-      href: `/${locale}/manager/hires`,
+      href: '/manager/hires',
       icon: (
         <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
           <path strokeLinecap="round" strokeLinejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -148,7 +148,7 @@ export default function ManagerHomePage({ params }: Props) {
       badgeUrgent: displayStats.pendingApplications > 0,
     },
     {
-      href: `/${locale}/manager/contracts`,
+      href: '/manager/contracts',
       icon: (
         <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
           <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
@@ -184,7 +184,7 @@ export default function ManagerHomePage({ params }: Props) {
               <div>
                 <div className="flex items-center gap-2">
                   <p className="font-bold text-base leading-tight">{displayName}</p>
-                  <Link href={`/${locale}/manager/settings` as never} className="opacity-70 hover:opacity-100 transition-opacity">
+                  <Link href={'/manager/settings' as never} className="opacity-70 hover:opacity-100 transition-opacity">
                     <span className="text-lg leading-none">⚙️</span>
                   </Link>
                 </div>
@@ -228,7 +228,7 @@ export default function ManagerHomePage({ params }: Props) {
 
           {/* Switch to worker view — mobile only */}
           <Link
-            href={`/${locale}/worker` as never}
+            href={'/worker' as never}
             className="mt-3 w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-white border border-[#EFF1F5] text-[#4B5563] text-sm font-medium shadow-sm hover:border-[#0669F7] hover:text-[#0669F7] hover:bg-[#E6F0FE] transition-colors"
           >
             <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
@@ -250,7 +250,7 @@ export default function ManagerHomePage({ params }: Props) {
             </div>
             <div className="flex items-center gap-2">
               <Link
-                href={`/${locale}/worker` as never}
+                href={'/worker' as never}
                 className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-[#EFF1F5] bg-white text-[#4B5563] text-sm font-medium hover:border-[#0669F7] hover:text-[#0669F7] hover:bg-[#E6F0FE] transition-colors"
               >
                 <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -259,7 +259,7 @@ export default function ManagerHomePage({ params }: Props) {
                 근로자 화면으로 전환
               </Link>
               <Link
-                href={`/${locale}/manager/sites/new` as never}
+                href={'/manager/sites/new' as never}
                 className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#0669F7] text-white text-sm font-semibold hover:bg-[#0554D6] transition-colors"
               >
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
@@ -303,7 +303,7 @@ export default function ManagerHomePage({ params }: Props) {
             Worker-view shortcut banner
             ────────────────────────────────────────── */}
         <Link
-          href={`/${locale}/manager/my-listings` as never}
+          href={'/manager/my-listings' as never}
           className="flex items-center gap-3 mb-4 md:mb-6 p-4 rounded-xl bg-gradient-to-r from-[#0669F7] to-[#1E7FFF] text-white hover:opacity-95 transition-opacity active:opacity-80"
         >
           <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center shrink-0">
@@ -360,7 +360,7 @@ export default function ManagerHomePage({ params }: Props) {
 
         {/* New site CTA */}
         <div className="mt-4 p-4 rounded-2xl border-2 border-dashed border-[#DBDFE9] text-center hover:border-[#0669F7] hover:bg-[#E6F0FE] active:bg-[#E6F0FE] transition-colors">
-          <Link href={`/${locale}/manager/sites/new` as never} className="block">
+          <Link href={'/manager/sites/new' as never} className="block">
             <p className="text-sm font-bold text-[#25282A]">+ 새 현장 등록</p>
             <p className="text-xs text-[#98A2B2] mt-0.5">새로운 건설 현장을 등록하고 공고를 올리세요</p>
           </Link>

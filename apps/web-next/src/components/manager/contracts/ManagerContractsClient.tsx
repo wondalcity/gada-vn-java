@@ -227,7 +227,7 @@ export default function ManagerContractsClient() {
               {/* Link to detail */}
               <div className="mt-3 pt-3 border-t border-[#EFF1F5]">
                 <Link
-                  href={`/${locale}/manager/contracts/${contract.id}`}
+                  href={`/manager/contracts/${contract.id}`}
                   className="inline-flex items-center px-4 py-1.5 rounded-full bg-[#0669F7] text-white font-medium text-xs hover:bg-blue-700 transition-colors"
                 >
                   {t('manager_contracts.view_contract')}

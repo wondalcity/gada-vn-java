@@ -105,21 +105,21 @@ function SitePreviewCard({ site, locale }: { site: ManagerSite; locale: string }
       {/* Actions */}
       <div className="flex border-t border-[#EFF1F5]">
         <Link
-          href={`/${locale}/manager/sites/${site.id}`}
+          href={`/manager/sites/${site.id}`}
           className="flex-1 py-2.5 text-xs font-medium text-[#98A2B2] text-center hover:bg-gray-50 transition-colors"
         >
           상세보기
         </Link>
         <div className="w-px bg-[#EFF1F5]" />
         <Link
-          href={`/${locale}/manager/sites/${site.id}/jobs/new`}
+          href={`/manager/sites/${site.id}/jobs/new`}
           className="flex-1 py-2.5 text-xs font-medium text-[#0669F7] text-center hover:bg-[#E6F0FE] transition-colors"
         >
           + 공고 추가
         </Link>
         <div className="w-px bg-[#EFF1F5]" />
         <Link
-          href={`/${locale}/manager/sites/${site.id}/edit`}
+          href={`/manager/sites/${site.id}/edit`}
           className="flex-1 py-2.5 text-xs font-medium text-[#98A2B2] text-center hover:bg-gray-50 transition-colors"
         >
           수정
@@ -142,7 +142,7 @@ function JobPreviewCard({ job, locale }: { job: ManagerJob; locale: string }) {
 
   return (
     <Link
-      href={`/${locale}/manager/jobs/${job.id}`}
+      href={`/manager/jobs/${job.id}`}
       className="group block bg-white rounded border border-[#EFF1F5] hover:border-[#0669F7] hover:shadow-md transition-all overflow-hidden"
     >
       {/* Cover image */}
@@ -332,7 +332,7 @@ export default function ManagerListingsClient({ locale }: { locale: string }) {
         {/* Context-aware add button */}
         {tab === 'sites' ? (
           <Link
-            href={`/${locale}/manager/sites/new`}
+            href={'/manager/sites/new'}
             className="flex items-center gap-1.5 px-4 py-2 rounded bg-[#0669F7] text-white text-sm font-medium whitespace-nowrap"
           >
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
@@ -342,7 +342,7 @@ export default function ManagerListingsClient({ locale }: { locale: string }) {
           </Link>
         ) : (
           <Link
-            href={`/${locale}/manager/sites`}
+            href={'/manager/sites'}
             className="flex items-center gap-1.5 px-4 py-2 rounded bg-[#0669F7] text-white text-sm font-medium whitespace-nowrap"
           >
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
@@ -376,7 +376,7 @@ export default function ManagerListingsClient({ locale }: { locale: string }) {
             title="등록된 공고가 없습니다"
             desc="현장을 등록한 후 공고를 올려보세요"
             ctaLabel="첫 현장 등록하기"
-            ctaHref={`/${locale}/manager/sites/new`}
+            ctaHref={'/manager/sites/new'}
           />
         ) : (
           <div className="grid grid-cols-2 gap-3">
@@ -391,7 +391,7 @@ export default function ManagerListingsClient({ locale }: { locale: string }) {
             title="등록된 현장이 없습니다"
             desc="첫 번째 건설 현장을 등록해보세요"
             ctaLabel="현장 등록하기"
-            ctaHref={`/${locale}/manager/sites/new`}
+            ctaHref={'/manager/sites/new'}
           />
         ) : (
           <div className="grid grid-cols-2 gap-3">

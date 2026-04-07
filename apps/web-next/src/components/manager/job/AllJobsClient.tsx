@@ -296,12 +296,12 @@ export default function AllJobsClient({ locale }: AllJobsClientProps) {
   function clearFilter(key: string) {
     const params = new URLSearchParams(searchParams.toString())
     params.delete(key)
-    router.push(`/${locale}/manager/jobs${params.toString() ? `?${params}` : ''}` as never)
+    router.push(`/manager/jobs${params.toString() ? `?${params}` : ''}` as never)
   }
 
   function handleSiteSelect(siteId: string) {
     setShowSitePicker(false)
-    router.push(`/${locale}/manager/sites/${siteId}/jobs/new`)
+    router.push(`/manager/sites/${siteId}/jobs/new`)
   }
 
   if (isLoading) {
@@ -358,7 +358,7 @@ export default function AllJobsClient({ locale }: AllJobsClientProps) {
           ))}
           <button
             type="button"
-            onClick={() => router.push(`/${locale}/manager/jobs` as never)}
+            onClick={() => router.push('/manager/jobs' as never)}
             className="text-xs text-[#98A2B2] hover:text-[#25282A] underline"
           >
             전체 초기화

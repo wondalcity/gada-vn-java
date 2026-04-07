@@ -84,7 +84,7 @@ export default function SiteListClient({ locale }: SiteListClientProps) {
         </svg>
         <p className="text-[#98A2B2] text-sm mb-4">등록된 현장이 없습니다</p>
         <button
-          onClick={() => router.push(`/${locale}/manager/sites/new`)}
+          onClick={() => router.push('/manager/sites/new')}
           className="px-5 py-2.5 rounded-full bg-[#0669F7] text-white font-medium text-sm"
         >
           첫 현장 등록하기

@@ -131,9 +131,9 @@ function useAuthProvider(locale: string) {
     setState({ user, idToken, isLoading: false })
 
     if (isNewUser) {
-      router.push(`/${locale}/register`)
+      router.push('/register')
     } else {
-      router.push((redirectTo ?? `/${locale}/worker`) as any)
+      router.push((redirectTo ?? '/worker') as any)
     }
   }
 
@@ -244,7 +244,7 @@ function useAuthProvider(locale: string) {
     await signOutFirebase()
     clearSessionCookie()
     setState({ user: null, idToken: null, isLoading: false })
-    router.push(`/${locale}/login`)
+    router.push('/login')
   }
 
   return {

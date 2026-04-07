@@ -70,7 +70,7 @@ export default function ApplyButton({
   async function handleApply() {
     const idToken = getSessionCookie()
     if (!idToken) {
-      router.push(`/${locale}/login?redirect=/${locale}/jobs/${slug}`)
+      router.push(`/login?redirect=/jobs/${slug}`)
       return
     }
     setPhase('applying')
@@ -246,7 +246,7 @@ export default function ApplyButton({
         {/* Action buttons */}
         <div className="flex flex-col gap-3">
           <Link
-            href={`/${locale}/worker/applications`}
+            href={'/worker/applications'}
             className="text-center h-14 flex items-center justify-center rounded-2xl bg-[#E6F0FE] text-[#0669F7] text-sm font-bold hover:bg-[#D6E8FE] transition-colors"
           >
             {t('apply_btn.view_applications')}
@@ -348,7 +348,7 @@ export default function ApplyButton({
       return (
         <button
           type="button"
-          onClick={() => router.push(`/${locale}/login?redirect=/${locale}/jobs/${slug}`)}
+          onClick={() => router.push(`/login?redirect=/jobs/${slug}`)}
           className="h-12 px-5 rounded-2xl bg-[#0669F7] text-white font-bold text-sm whitespace-nowrap"
         >
           {t('apply_btn.login_required')}
@@ -369,7 +369,7 @@ export default function ApplyButton({
         <>
           <button
             type="button"
-            onClick={() => router.push(`/${locale}/worker/applications`)}
+            onClick={() => router.push('/worker/applications')}
             className="h-12 px-5 rounded-2xl bg-[#E6F0FE] text-[#0669F7] font-bold text-sm whitespace-nowrap"
           >
             {t('apply_btn.applications_status')}
@@ -457,7 +457,7 @@ export default function ApplyButton({
       >
         <button
           type="button"
-          onClick={() => router.push(`/${locale}/login?redirect=/${locale}/jobs/${slug}`)}
+          onClick={() => router.push(`/login?redirect=/jobs/${slug}`)}
           className={`${sticky ? 'w-full' : ''} h-14 px-5 rounded-2xl bg-[#0669F7] text-white font-bold text-sm`}
         >
           {t('apply_btn.login_required')}

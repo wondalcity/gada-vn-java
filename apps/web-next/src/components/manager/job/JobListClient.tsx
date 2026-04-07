@@ -67,7 +67,7 @@ export default function JobListClient({ siteId, locale }: JobListClientProps) {
     <>
       <div className="flex justify-end mb-4">
         <Link
-          href={`/${locale}/manager/sites/${siteId}/jobs/new`}
+          href={`/manager/sites/${siteId}/jobs/new`}
           className="px-5 py-2.5 rounded-full bg-[#0669F7] text-white font-medium text-sm"
         >
           일자리 추가
@@ -91,7 +91,7 @@ export default function JobListClient({ siteId, locale }: JobListClientProps) {
           </svg>
           <p className="text-[#98A2B2] text-sm mb-4">등록된 일자리가 없습니다</p>
           <Link
-            href={`/${locale}/manager/sites/${siteId}/jobs/new`}
+            href={`/manager/sites/${siteId}/jobs/new`}
             className="px-5 py-2.5 rounded-full bg-[#0669F7] text-white font-medium text-sm"
           >
             첫 일자리 등록하기

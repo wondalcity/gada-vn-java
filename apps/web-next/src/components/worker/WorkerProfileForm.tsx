@@ -227,7 +227,7 @@ export default function WorkerProfileForm({ locale }: { locale: string }) {
             </span>
           ) : (
             <Link
-              href={`/${locale}/worker/profile/signature`}
+              href={'/worker/profile/signature'}
               className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium bg-gray-100 text-[#98A2B2] border border-[#EFF1F5] hover:border-[#0669F7] hover:text-[#0669F7] transition-colors"
             >
               {t('worker_profile_form.signature_register')}
@@ -414,7 +414,7 @@ export default function WorkerProfileForm({ locale }: { locale: string }) {
         {/* Sub-page links */}
         <div className="mt-4 space-y-2">
           <Link
-            href={`/${locale}/worker/profile/experience`}
+            href={'/worker/profile/experience'}
             className="flex items-center justify-between w-full px-4 py-3 bg-white rounded-2xl shadow-sm border border-[#EFF1F5] text-sm text-[#25282A] hover:border-[#0669F7] transition-colors"
           >
             <span>{t('worker_profile_form.link_experience')}</span>
@@ -423,7 +423,7 @@ export default function WorkerProfileForm({ locale }: { locale: string }) {
             </svg>
           </Link>
           <Link
-            href={`/${locale}/worker/profile/id`}
+            href={'/worker/profile/id'}
             className="flex items-center justify-between w-full px-4 py-3 bg-white rounded-2xl shadow-sm border border-[#EFF1F5] text-sm text-[#25282A] hover:border-[#0669F7] transition-colors"
           >
             <span>{t('worker_profile_form.link_id_upload')}</span>
@@ -432,7 +432,7 @@ export default function WorkerProfileForm({ locale }: { locale: string }) {
             </svg>
           </Link>
           <Link
-            href={`/${locale}/worker/profile/signature`}
+            href={'/worker/profile/signature'}
             className="flex items-center justify-between w-full px-4 py-3 bg-white rounded-2xl shadow-sm border border-[#EFF1F5] text-sm text-[#25282A] hover:border-[#0669F7] transition-colors"
           >
             <span>{t('worker_profile_form.link_signature')}</span>

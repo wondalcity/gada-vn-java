@@ -28,7 +28,7 @@ export function PublicHeaderAuthMenu({ locale, userName, isManager, isManagerCon
 
   function logout() {
     clearSessionCookie()
-    router.push(`/${locale}/login`)
+    router.push('/login')
   }
 
   // If name looks like a phone number (starts with + or is all digits), use a fallback label
@@ -64,7 +64,7 @@ export function PublicHeaderAuthMenu({ locale, userName, isManager, isManagerCon
 
           {/* Jobs — mobile only (desktop has it in nav) */}
           <Link
-            href={`/${locale}/jobs`}
+            href={'/jobs'}
             className="md:hidden flex items-center gap-2.5 px-4 py-2.5 text-sm text-[#25282A] hover:bg-[#EFF1F5] hover:text-[#0669F7]"
             onClick={() => setOpen(false)}
           >
@@ -77,7 +77,7 @@ export function PublicHeaderAuthMenu({ locale, userName, isManager, isManagerCon
           {/* My page — hidden in manager context */}
           {!isManagerContext && (
             <Link
-              href={`/${locale}/worker`}
+              href={'/worker'}
               className="flex items-center gap-2.5 px-4 py-2.5 text-sm text-[#25282A] hover:bg-[#EFF1F5] hover:text-[#0669F7]"
               onClick={() => setOpen(false)}
             >
@@ -91,7 +91,7 @@ export function PublicHeaderAuthMenu({ locale, userName, isManager, isManagerCon
           {/* Applications — hidden in manager context */}
           {!isManagerContext && (
             <Link
-              href={`/${locale}/worker/applications`}
+              href={'/worker/applications'}
               className="flex items-center gap-2.5 px-4 py-2.5 text-sm text-[#25282A] hover:bg-[#EFF1F5] hover:text-[#0669F7]"
               onClick={() => setOpen(false)}
             >
@@ -105,7 +105,7 @@ export function PublicHeaderAuthMenu({ locale, userName, isManager, isManagerCon
           {/* Manager page */}
           {isManager && (
             <Link
-              href={`/${locale}/manager`}
+              href={'/manager'}
               className="flex items-center gap-2.5 px-4 py-2.5 text-sm text-[#0669F7] font-semibold hover:bg-[#E6F0FE]"
               onClick={() => setOpen(false)}
             >

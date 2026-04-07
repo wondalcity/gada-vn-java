@@ -141,10 +141,10 @@ export default function JobForm({
         // Demo mode — use siteStore
         if (mode === 'create') {
           const newJob = siteStore.createJob(siteId, payload as Parameters<typeof siteStore.createJob>[1])
-          router.push(`/${locale}/manager/jobs/${newJob.id}`)
+          router.push(`/manager/jobs/${newJob.id}`)
         } else {
           siteStore.updateJob(jobId!, payload as Partial<Job>)
-          router.push(`/${locale}/manager/jobs/${jobId}`)
+          router.push(`/manager/jobs/${jobId}`)
         }
         return
       }
@@ -155,14 +155,14 @@ export default function JobForm({
           token: idToken,
           body: JSON.stringify(payload),
         })
-        router.push(`/${locale}/manager/jobs/${res.data.id}`)
+        router.push(`/manager/jobs/${res.data.id}`)
       } else {
         await apiClient<Job>(`/manager/jobs/${jobId}`, {
           method: 'PUT',
           token: idToken,
           body: JSON.stringify(payload),
         })
-        router.push(`/${locale}/manager/jobs/${jobId}`)
+        router.push(`/manager/jobs/${jobId}`)
       }
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : '저장에 실패했습니다.'

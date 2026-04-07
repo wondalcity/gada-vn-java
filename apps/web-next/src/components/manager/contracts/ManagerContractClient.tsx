@@ -189,7 +189,7 @@ export default function ManagerContractClient({ contractId }: Props) {
 
       {/* Header */}
       <div className="flex items-center gap-3">
-        <Link href={`/${locale}/manager/contracts`} className="p-1.5 rounded-full hover:bg-[#F2F4F5] transition-colors text-[#98A2B2]">
+        <Link href={'/manager/contracts'} className="p-1.5 rounded-full hover:bg-[#F2F4F5] transition-colors text-[#98A2B2]">
           <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" /></svg>
         </Link>
         <div className="flex-1">

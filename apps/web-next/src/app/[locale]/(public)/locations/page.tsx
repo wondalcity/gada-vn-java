@@ -112,7 +112,7 @@ export default async function LocationsPage({ params }: Props) {
               return (
                 <Link
                   key={province.code}
-                  href={`/${locale}/locations/${province.slug}`}
+                  href={`/locations/${province.slug}`}
                   className="group block relative overflow-hidden rounded-2xl aspect-[4/5] shadow-sm hover:shadow-lg transition-shadow"
                 >
                   {/* Gradient background */}
@@ -165,7 +165,7 @@ export default async function LocationsPage({ params }: Props) {
               return (
                 <Link
                   key={province.code}
-                  href={`/${locale}/locations/${province.slug}`}
+                  href={`/locations/${province.slug}`}
                   className="group flex items-center gap-3 p-3 bg-white rounded-xl border border-[#EFF1F5] hover:border-[#0669F7] hover:shadow-sm transition-all"
                 >
                   {/* Mini gradient thumbnail */}

@@ -43,7 +43,7 @@ export function LocationsDropdown({ locale, provinces }: Props) {
     closeTimer.current = setTimeout(() => setOpen(false), 150)
   }
 
-  const isActive = pathname.startsWith(`/${locale}/locations`)
+  const isActive = pathname.startsWith('/locations')
 
   const major = MAJOR_SLUGS
     .map(s => provinces.find(p => p.slug === s))
@@ -80,10 +80,10 @@ export function LocationsDropdown({ locale, provinces }: Props) {
               {major.map(p => (
                 <Link
                   key={p.slug}
-                  href={`/${locale}/locations/${p.slug}`}
+                  href={`/locations/${p.slug}`}
                   onClick={() => setOpen(false)}
                   className={`flex flex-col items-center gap-1.5 p-2.5 rounded-xl border transition-all hover:border-[#0669F7] hover:bg-[#EEF5FF] group ${
-                    pathname === `/${locale}/locations/${p.slug}`
+                    pathname === `/locations/${p.slug}`
                       ? 'border-[#0669F7] bg-[#EEF5FF]'
                       : 'border-[#EFF1F5]'
                   }`}
@@ -104,10 +104,10 @@ export function LocationsDropdown({ locale, provinces }: Props) {
               {others.map(p => (
                 <Link
                   key={p.slug}
-                  href={`/${locale}/locations/${p.slug}`}
+                  href={`/locations/${p.slug}`}
                   onClick={() => setOpen(false)}
                   className={`flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-xs font-medium transition-colors hover:bg-[#EEF5FF] hover:text-[#0669F7] ${
-                    pathname === `/${locale}/locations/${p.slug}`
+                    pathname === `/locations/${p.slug}`
                       ? 'bg-[#EEF5FF] text-[#0669F7]'
                       : 'text-[#4B5563]'
                   }`}
@@ -122,7 +122,7 @@ export function LocationsDropdown({ locale, provinces }: Props) {
           {/* View all */}
           <div className="px-4 py-3 bg-[#F7F8FA] border-t border-[#EFF1F5]">
             <Link
-              href={`/${locale}/locations`}
+              href={'/locations'}
               onClick={() => setOpen(false)}
               className="flex items-center justify-center gap-1.5 text-xs font-semibold text-[#0669F7] hover:underline"
             >

@@ -254,7 +254,7 @@ export default function WorkerApplicationsClient({ locale }: { locale?: string }
             return (
               <Link
                 key={app.id}
-                href={`/${locale ?? 'ko'}/worker/applications/${app.id}`}
+                href={`/worker/applications/${app.id}`}
                 className="block press-effect bg-white rounded-2xl shadow-sm border border-[#EFF1F5] p-4 relative"
               >
                 {/* Status badge */}

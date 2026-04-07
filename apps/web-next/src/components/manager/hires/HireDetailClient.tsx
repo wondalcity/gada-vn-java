@@ -117,7 +117,7 @@ export default function HireDetailClient({ hireId }: Props) {
     <>
       {/* Back nav — desktop only (mobile uses AppBar back button) */}
       <Link
-        href={`/${locale}/manager/hires`}
+        href={'/manager/hires'}
         className="hidden md:inline-flex items-center gap-1.5 text-sm text-[#98A2B2] hover:text-[#25282A] mb-4 transition-colors"
       >
         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -167,7 +167,7 @@ export default function HireDetailClient({ hireId }: Props) {
       <div className="bg-white rounded-2xl shadow-sm border border-[#EFF1F5] p-5 mb-4">
         <h3 className="text-sm font-semibold text-[#25282A] mb-3">근무 정보</h3>
         <InfoRow label="공고명" value={
-          <Link href={`/${locale}/manager/jobs/${hire.jobId}`} className="text-[#0669F7] hover:underline">
+          <Link href={`/manager/jobs/${hire.jobId}`} className="text-[#0669F7] hover:underline">
             {hire.jobTitle}
           </Link>
         } />
@@ -188,7 +188,7 @@ export default function HireDetailClient({ hireId }: Props) {
                 {CONTRACT_STATUS_LABELS[hire.contract.status]}
               </span>
               <Link
-                href={`/${locale}/manager/contracts/${hire.contract.id}`}
+                href={`/manager/contracts/${hire.contract.id}`}
                 className="px-4 py-2 rounded-2xl bg-[#0669F7] text-white font-medium text-sm hover:bg-blue-700 transition-colors"
               >
                 계약서 보기

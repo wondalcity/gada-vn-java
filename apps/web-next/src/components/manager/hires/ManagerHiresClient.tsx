@@ -302,7 +302,7 @@ export default function ManagerHiresClient() {
               <div className="flex items-start justify-between gap-2 mb-2">
                 <div>
                   <Link
-                    href={`/${locale}/manager/hires/${hire.id}`}
+                    href={`/manager/hires/${hire.id}`}
                     className="font-semibold text-[#25282A] text-sm hover:text-[#0669F7] transition-colors"
                   >
                     {hire.workerName}
@@ -340,7 +340,7 @@ export default function ManagerHiresClient() {
                       {CONTRACT_STATUS_LABELS[hire.contract.status]}
                     </span>
                     <Link
-                      href={`/${locale}/manager/contracts/${hire.contract.id}`}
+                      href={`/manager/contracts/${hire.contract.id}`}
                       className="px-4 py-1.5 rounded-full bg-[#0669F7] text-white font-medium text-xs hover:bg-blue-700 transition-colors"
                     >
                       {t('manager_hires.view_contract')}

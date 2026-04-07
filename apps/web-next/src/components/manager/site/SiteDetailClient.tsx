@@ -92,7 +92,7 @@ export default function SiteDetailClient({ siteId, locale }: SiteDetailClientPro
       if (!idToken) {
         // Demo mode
         siteStore.delete(siteId)
-        router.push(`/${locale}/manager/sites`)
+        router.push('/manager/sites')
         return
       }
       await apiClient(`/manager/sites/${siteId}/status`, {
@@ -100,7 +100,7 @@ export default function SiteDetailClient({ siteId, locale }: SiteDetailClientPro
         token: idToken,
         body: JSON.stringify({ status: 'COMPLETED' }),
       })
-      router.push(`/${locale}/manager/sites`)
+      router.push('/manager/sites')
     } catch (e) {
       alert(e instanceof Error ? e.message : t('manager_site_detail.delete_error'))
     } finally {
@@ -171,7 +171,7 @@ export default function SiteDetailClient({ siteId, locale }: SiteDetailClientPro
       <div className="bg-white rounded-2xl shadow-sm border border-[#EFF1F5] p-4 mb-6">
         <div className="flex flex-wrap items-center gap-3">
           <Link
-            href={`/${locale}/manager/sites/${siteId}/edit`}
+            href={`/manager/sites/${siteId}/edit`}
             className="px-5 py-2.5 rounded-full bg-[#0669F7] text-white font-medium text-sm"
           >
             {t('manager_site_detail.edit')}
@@ -204,7 +204,7 @@ export default function SiteDetailClient({ siteId, locale }: SiteDetailClientPro
         <div className="flex items-center justify-between mb-3">
           <h3 className="text-base font-semibold text-[#25282A]">{t('manager_site_detail.jobs_section_title')}</h3>
           <Link
-            href={`/${locale}/manager/sites/${siteId}/jobs/new`}
+            href={`/manager/sites/${siteId}/jobs/new`}
             className="px-4 py-2 rounded-full bg-[#0669F7] text-white font-medium text-sm"
           >
             {t('manager_site_detail.add_job')}
@@ -214,7 +214,7 @@ export default function SiteDetailClient({ siteId, locale }: SiteDetailClientPro
           <div className="bg-white rounded-2xl shadow-sm border border-[#EFF1F5] p-8 text-center">
             <p className="text-[#98A2B2] text-sm mb-3">{t('manager_site_detail.no_jobs')}</p>
             <Link
-              href={`/${locale}/manager/sites/${siteId}/jobs/new`}
+              href={`/manager/sites/${siteId}/jobs/new`}
               className="px-5 py-2.5 rounded-full bg-[#0669F7] text-white font-medium text-sm"
             >
               {t('manager_site_detail.add_first_job')}
