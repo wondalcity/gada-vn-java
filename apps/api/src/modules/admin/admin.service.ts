@@ -1,6 +1,7 @@
 import { Injectable, NotFoundException, BadRequestException, Logger } from '@nestjs/common';
 import * as crypto from 'crypto';
 import * as bcrypt from 'bcryptjs';
+import * as nodemailer from 'nodemailer';
 import { AdminRepository } from './admin.repository';
 import { NotificationsService } from '../notifications/notifications.service';
 import { FirebaseService } from '../../common/firebase/firebase.service';
@@ -8,12 +9,28 @@ import { FirebaseService } from '../../common/firebase/firebase.service';
 @Injectable()
 export class AdminService {
   private readonly logger = new Logger(AdminService.name);
+  private readonly mailer: nodemailer.Transporter | null;
 
   constructor(
     private readonly repo: AdminRepository,
     private readonly notifications: NotificationsService,
     private readonly firebase: FirebaseService,
-  ) {}
+  ) {
+    const host = process.env.SMTP_HOST;
+    if (host) {
+      this.mailer = nodemailer.createTransport({
+        host,
+        port: parseInt(process.env.SMTP_PORT ?? '587', 10),
+        secure: process.env.SMTP_SECURE === 'true',
+        auth: {
+          user: process.env.SMTP_USER,
+          pass: process.env.SMTP_PASS,
+        },
+      });
+    } else {
+      this.mailer = null;
+    }
+  }
 
   async listManagers(status: string, page: number, limit: number) {
     const [data, total] = await Promise.all([
@@ -300,9 +317,51 @@ export class AdminService {
       this.logger.log(`[SMS DEV] To: ${phone} | ${message}`);
       return;
     }
-    // TODO: integrate real SMS provider (e.g. Twilio, ESMS.vn)
-    // Example: await this.smsProvider.send(phone, message);
-    this.logger.warn(`SMS provider not configured. Would send to ${phone}`);
+    // ESMS.vn integration — set ESMS_API_KEY and ESMS_SECRET in env
+    const apiKey = process.env.ESMS_API_KEY;
+    const secret = process.env.ESMS_SECRET;
+    if (!apiKey || !secret) {
+      this.logger.warn(`SMS not configured (missing ESMS_API_KEY / ESMS_SECRET). Would send to ${phone}`);
+      return;
+    }
+    const res = await fetch('https://rest.esms.vn/MainService.svc/json/SendMultipleSMSBrandname_V4_post_json/', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        ApiKey: apiKey,
+        Content: message,
+        Phone: phone,
+        SecretKey: secret,
+        Brandname: process.env.ESMS_BRAND ?? 'GADA VN',
+        SmsType: '2',
+      }),
+    });
+    if (!res.ok) {
+      this.logger.warn(`ESMS send failed for ${phone}: HTTP ${res.status}`);
+    }
+  }
+
+  private async sendInviteEmail(to: string, name: string | undefined, inviteUrl: string, inviterEmail?: string): Promise<void> {
+    if (!this.mailer) {
+      this.logger.warn(`Email not configured (missing SMTP_HOST). Invite URL: ${inviteUrl}`);
+      return;
+    }
+    const from = process.env.SMTP_FROM ?? `"GADA VN Admin" <noreply@gada.vn>`;
+    const inviterNote = inviterEmail ? `<p>초대한 사람: ${inviterEmail}</p>` : '';
+    await this.mailer.sendMail({
+      from,
+      to,
+      subject: '[GADA VN] 관리자 초대',
+      html: `
+        <h2>안녕하세요${name ? `, ${name}님` : ''}!</h2>
+        <p>GADA VN 관리자 패널에 초대되었습니다.</p>
+        ${inviterNote}
+        <p>아래 링크를 클릭하여 계정을 활성화하세요:</p>
+        <p><a href="${inviteUrl}" style="background:#0669F7;color:white;padding:12px 24px;border-radius:8px;text-decoration:none;display:inline-block;">계정 활성화</a></p>
+        <p style="color:#888;font-size:12px;">이 링크는 보안상 24시간 후 만료됩니다.</p>
+      `,
+    });
+    this.logger.log(`Invite email sent to ${to}`);
   }
 
   async getPushSchedules() {
@@ -386,7 +445,8 @@ export class AdminService {
 
     const inviteUrl = `${process.env.ADMIN_BASE_URL ?? 'http://localhost:8080'}/accept-invite?token=${token}`;
     this.logger.log(`[INVITE] ${data.email} → ${inviteUrl}`);
-    // TODO: send email via SMTP (configure SMTP_HOST, SMTP_USER, SMTP_PASS in env)
+
+    await this.sendInviteEmail(data.email, data.name, inviteUrl, data.inviterEmail);
 
     return { ...adminUser, inviteUrl };
   }

@@ -6,6 +6,7 @@ import { useAuth } from '@/hooks/useAuth'
 import { apiClient } from '@/lib/api/client'
 import type { WorkerApplication, ApplicationStatus } from '@/types/application'
 import ConfirmModal from '@/components/manager/ConfirmModal'
+import { Link } from '@/components/navigation'
 
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'https://api.gada.vn/api/v1'
 
@@ -87,7 +88,7 @@ const DEMO_APPLICATIONS: WorkerApplication[] = [
   },
 ]
 
-export default function WorkerApplicationsClient() {
+export default function WorkerApplicationsClient({ locale }: { locale?: string }) {
   const { idToken } = useAuth()
   const t = useTranslations('common')
   const [applications, setApplications] = React.useState<WorkerApplication[]>([])
@@ -251,7 +252,11 @@ export default function WorkerApplicationsClient() {
         ) : (
           filtered.map(app => {
             return (
-              <div key={app.id} className="press-effect bg-white rounded-2xl shadow-sm border border-[#EFF1F5] p-4 relative">
+              <Link
+                key={app.id}
+                href={`/${locale ?? 'ko'}/worker/applications/${app.id}`}
+                className="block press-effect bg-white rounded-2xl shadow-sm border border-[#EFF1F5] p-4 relative"
+              >
                 {/* Status badge */}
                 <span className={`absolute top-4 right-4 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${STATUS_CLASS[app.status]}`}>
                   {STATUS_LABEL[app.status]}
@@ -298,7 +303,7 @@ export default function WorkerApplicationsClient() {
                     </span>
                   )}
                 </div>
-              </div>
+              </Link>
             )
           })
         )}

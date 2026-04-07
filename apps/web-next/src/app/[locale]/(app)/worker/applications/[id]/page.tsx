@@ -1,12 +1,21 @@
+import { getAuthUser } from '@/lib/auth/server'
+import WorkerAccountShell from '@/components/worker/WorkerAccountShell'
+import WorkerApplicationDetailClient from '@/components/worker/applications/WorkerApplicationDetailClient'
+
 interface Props { params: Promise<{ locale: string; id: string }> }
 
 export default async function WorkerApplicationDetailPage({ params }: Props) {
-  const { id } = await params
+  const { locale, id } = await params
+  const user = await getAuthUser()
+
   return (
-    <div>
-      {/* TODO: implement WorkerApplicationDetailPage — screen-map.md B-06 */}
-      {/* Application ID: {id} */}
-      {/* DELETE /worker/applications/{id} to withdraw */}
-    </div>
+    <WorkerAccountShell
+      locale={locale}
+      userName={user?.name ?? null}
+      userPhone={user?.phone}
+      isManager={user?.isManager}
+    >
+      <WorkerApplicationDetailClient id={id} locale={locale} />
+    </WorkerAccountShell>
   )
 }

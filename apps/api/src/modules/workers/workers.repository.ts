@@ -205,6 +205,84 @@ export class WorkersRepository {
     return (rowCount ?? 0) > 0;
   }
 
+  // ── Experiences ──────────────────────────────────────────────────────────
+
+  async findExperiencesByUserId(userId: string) {
+    const { rows } = await this.db.query(
+      `SELECT we.id, we.company_name AS "companyName", we.role,
+              we.start_date AS "startDate", we.end_date AS "endDate",
+              we.description
+       FROM app.worker_experiences we
+       JOIN app.worker_profiles wp ON wp.id = we.worker_id
+       WHERE wp.user_id = $1
+       ORDER BY we.start_date DESC`,
+      [userId],
+    );
+    return rows;
+  }
+
+  async createExperience(
+    userId: string,
+    data: { companyName: string; role: string; startDate: string; endDate?: string | null; description?: string | null },
+  ) {
+    const { rows: wpRows } = await this.db.query(
+      'SELECT id FROM app.worker_profiles WHERE user_id = $1',
+      [userId],
+    );
+    if (!wpRows[0]) throw new Error('Worker profile not found');
+    const workerId = wpRows[0].id;
+
+    const { rows } = await this.db.query(
+      `INSERT INTO app.worker_experiences (worker_id, company_name, role, start_date, end_date, description)
+       VALUES ($1, $2, $3, $4, $5, $6)
+       RETURNING id, company_name AS "companyName", role,
+                 start_date AS "startDate", end_date AS "endDate", description`,
+      [workerId, data.companyName, data.role, data.startDate, data.endDate ?? null, data.description ?? null],
+    );
+    return rows[0];
+  }
+
+  async updateExperience(
+    userId: string,
+    experienceId: string,
+    data: { companyName?: string; role?: string; startDate?: string; endDate?: string | null; description?: string | null },
+  ) {
+    const setClauses: string[] = ['updated_at = NOW()'];
+    const params: unknown[] = [experienceId, userId];
+
+    function add(col: string, val: unknown) {
+      params.push(val);
+      setClauses.push(`${col} = $${params.length}`);
+    }
+
+    if (data.companyName !== undefined) add('company_name', data.companyName);
+    if (data.role !== undefined)        add('role', data.role);
+    if (data.startDate !== undefined)   add('start_date', data.startDate);
+    if (data.endDate !== undefined)     add('end_date', data.endDate ?? null);
+    if (data.description !== undefined) add('description', data.description ?? null);
+
+    const { rows } = await this.db.query(
+      `UPDATE app.worker_experiences we
+       SET ${setClauses.join(', ')}
+       FROM app.worker_profiles wp
+       WHERE we.id = $1 AND we.worker_id = wp.id AND wp.user_id = $2
+       RETURNING we.id, we.company_name AS "companyName", we.role,
+                 we.start_date AS "startDate", we.end_date AS "endDate", we.description`,
+      params,
+    );
+    return rows[0] ?? null;
+  }
+
+  async deleteExperience(userId: string, experienceId: string) {
+    const { rowCount } = await this.db.query(
+      `DELETE FROM app.worker_experiences we
+       USING app.worker_profiles wp
+       WHERE we.id = $1 AND we.worker_id = wp.id AND wp.user_id = $2`,
+      [experienceId, userId],
+    );
+    return (rowCount ?? 0) > 0;
+  }
+
   async replaceTradeSkillsByUserId(
     userId: string,
     skills: { tradeId: number; years: number }[],

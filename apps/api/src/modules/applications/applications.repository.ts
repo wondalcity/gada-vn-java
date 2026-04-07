@@ -23,6 +23,25 @@ export class ApplicationsRepository {
     return rows[0] || null;
   }
 
+  async findByIdAndWorker(id: string, userId: string) {
+    const { rows } = await this.db.query(
+      `SELECT
+         a.id, a.job_id AS "jobId", j.title AS "jobTitle",
+         s.id AS "siteId", s.name AS "siteName", s.address AS "siteAddress",
+         j.work_date AS "workDate", j.start_time AS "startTime", j.end_time AS "endTime",
+         j.daily_wage::INTEGER AS "dailyWage",
+         a.status, a.applied_at AS "appliedAt", a.reviewed_at AS "reviewedAt",
+         a.notes
+       FROM app.job_applications a
+       JOIN app.worker_profiles wp ON a.worker_id = wp.id
+       JOIN app.jobs j ON a.job_id = j.id
+       JOIN app.construction_sites s ON j.site_id = s.id
+       WHERE a.id = $1 AND wp.user_id = $2`,
+      [id, userId],
+    );
+    return rows[0] || null;
+  }
+
   async findByWorkerUserId(userId: string, page: number, limit: number) {
     const offset = (page - 1) * limit;
     const { rows } = await this.db.query(

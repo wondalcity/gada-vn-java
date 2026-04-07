@@ -1,13 +1,21 @@
+import { getAuthUser } from '@/lib/auth/server'
+import WorkerAccountShell from '@/components/worker/WorkerAccountShell'
+import WorkerExperienceClient from '@/components/worker/profile/WorkerExperienceClient'
+
 interface Props { params: Promise<{ locale: string }> }
 
 export default async function WorkerExperiencePage({ params }: Props) {
+  const { locale } = await params
+  const user = await getAuthUser()
+
   return (
-    <div>
-      {/* TODO: implement WorkerExperiencePage — screen-map.md B-10 */}
-      {/* GET /worker/experiences */}
-      {/* POST /worker/experiences */}
-      {/* PUT /worker/experiences/{id} */}
-      {/* DELETE /worker/experiences/{id} */}
-    </div>
+    <WorkerAccountShell
+      locale={locale}
+      userName={user?.name ?? null}
+      userPhone={user?.phone}
+      isManager={user?.isManager}
+    >
+      <WorkerExperienceClient locale={locale} />
+    </WorkerAccountShell>
   )
 }

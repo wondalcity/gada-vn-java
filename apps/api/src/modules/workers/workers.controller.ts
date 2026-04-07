@@ -79,4 +79,40 @@ export class WorkersController {
   ) {
     return this.workersService.replaceTradeSkills(user.id, body.skills ?? []);
   }
+
+  // ── Experiences ───────────────────────────────────────────────────────────
+
+  @Get('me/experiences')
+  @Roles('WORKER')
+  async getMyExperiences(@CurrentUser() user: CurrentUserPayload) {
+    return this.workersService.getExperiences(user.id);
+  }
+
+  @Post('me/experiences')
+  @Roles('WORKER')
+  async createMyExperience(
+    @CurrentUser() user: CurrentUserPayload,
+    @Body() body: { companyName: string; role: string; startDate: string; endDate?: string; description?: string },
+  ) {
+    return this.workersService.createExperience(user.id, body);
+  }
+
+  @Put('me/experiences/:id')
+  @Roles('WORKER')
+  async updateMyExperience(
+    @CurrentUser() user: CurrentUserPayload,
+    @Param('id') id: string,
+    @Body() body: { companyName?: string; role?: string; startDate?: string; endDate?: string | null; description?: string | null },
+  ) {
+    return this.workersService.updateExperience(user.id, id, body);
+  }
+
+  @Delete('me/experiences/:id')
+  @Roles('WORKER')
+  async deleteMyExperience(
+    @CurrentUser() user: CurrentUserPayload,
+    @Param('id') id: string,
+  ) {
+    return this.workersService.deleteExperience(user.id, id);
+  }
 }

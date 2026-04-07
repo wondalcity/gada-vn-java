@@ -5,6 +5,9 @@ import Link from 'next/link'
 import { useTranslations } from 'next-intl'
 import { getSessionCookie } from '@/lib/auth/session'
 import { apiClient, ApiError } from '@/lib/api/client'
+import type { Trade } from '@/lib/api/public'
+
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'https://api.gada.vn/api/v1'
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -79,6 +82,16 @@ export default function WorkerProfileForm({ locale }: { locale: string }) {
   const [isLoading, setIsLoading] = React.useState(true)
   const [isSaving, setIsSaving] = React.useState(false)
   const [toast, setToast] = React.useState<{ message: string; type: 'success' | 'error' } | null>(null)
+  const [trades, setTrades] = React.useState<Trade[]>([])
+
+  // ── Fetch trades for selector ─────────────────────────────────────────────
+
+  React.useEffect(() => {
+    fetch(`${API_BASE}/public/trades?locale=${locale}`)
+      .then(r => r.ok ? r.json() : null)
+      .then(json => { if (json?.data) setTrades(json.data) })
+      .catch(() => undefined)
+  }, [locale])
 
   // ── Fetch profile on mount ────────────────────────────────────────────────
 
@@ -348,21 +361,26 @@ export default function WorkerProfileForm({ locale }: { locale: string }) {
                 />
               </div>
 
-              {/* Primary trade — TODO: replace with trade selector */}
+              {/* Primary trade selector */}
               <div>
                 <label htmlFor="primaryTradeId" className="block text-sm font-medium text-[#25282A] mb-1">
                   {t('worker_profile_form.field_trade')}
                   <span className="ml-1 text-xs text-[#98A2B2] font-normal">{t('worker_profile_form.field_trade_hint')}</span>
                 </label>
-                <input
+                <select
                   id="primaryTradeId"
                   name="primaryTradeId"
-                  type="text"
                   value={profile.primaryTradeId}
                   onChange={handleChange}
-                  placeholder={t('worker_profile_form.placeholder_trade')}
-                  className="w-full px-3 py-2 rounded-2xl border border-[#EFF1F5] focus:outline-none focus:border-[#0669F7] text-sm text-[#25282A]"
-                />
+                  className="w-full px-3 py-2 rounded-2xl border border-[#EFF1F5] focus:outline-none focus:border-[#0669F7] text-sm text-[#25282A] bg-white"
+                >
+                  <option value="">{t('worker_profile_form.placeholder_trade')}</option>
+                  {trades.map(tr => (
+                    <option key={tr.id} value={String(tr.id)}>
+                      {locale === 'vi' ? tr.nameVi : tr.nameKo}
+                    </option>
+                  ))}
+                </select>
               </div>
 
               {/* Province */}
@@ -395,6 +413,15 @@ export default function WorkerProfileForm({ locale }: { locale: string }) {
 
         {/* Sub-page links */}
         <div className="mt-4 space-y-2">
+          <Link
+            href={`/${locale}/worker/profile/experience`}
+            className="flex items-center justify-between w-full px-4 py-3 bg-white rounded-2xl shadow-sm border border-[#EFF1F5] text-sm text-[#25282A] hover:border-[#0669F7] transition-colors"
+          >
+            <span>{t('worker_profile_form.link_experience')}</span>
+            <svg className="w-4 h-4 text-[#98A2B2]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+            </svg>
+          </Link>
           <Link
             href={`/${locale}/worker/profile/id`}
             className="flex items-center justify-between w-full px-4 py-3 bg-white rounded-2xl shadow-sm border border-[#EFF1F5] text-sm text-[#25282A] hover:border-[#0669F7] transition-colors"

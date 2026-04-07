@@ -34,6 +34,16 @@ export class ApplicationsController {
     return this.applicationsService.withdraw(id, user.id);
   }
 
+  // Worker fetches a single application by ID
+  @Get('applications/:id/detail')
+  @Roles('WORKER', 'MANAGER')
+  async getMyApplicationById(
+    @Param('id') id: string,
+    @CurrentUser() user: CurrentUserPayload,
+  ) {
+    return this.applicationsService.findOneByWorker(id, user.id);
+  }
+
   // Worker (or manager) fetches their own applications
   @Get('applications/mine')
   @Roles('WORKER', 'MANAGER')

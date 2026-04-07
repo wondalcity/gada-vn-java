@@ -15,7 +15,7 @@ export default async function WorkerApplicationsPage({ params }: Props) {
       userPhone={user?.phone}
       isManager={user?.isManager}
     >
-      <WorkerApplicationsClient />
+      <WorkerApplicationsClient locale={locale} />
     </WorkerAccountShell>
   )
 }

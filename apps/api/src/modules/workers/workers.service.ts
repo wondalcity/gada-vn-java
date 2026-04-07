@@ -45,4 +45,32 @@ export class WorkersService {
   async replaceTradeSkills(userId: string, skills: { tradeId: number; years: number }[]) {
     return this.repo.replaceTradeSkillsByUserId(userId, skills);
   }
+
+  // ── Experiences ───────────────────────────────────────────────────────────
+
+  async getExperiences(userId: string) {
+    return this.repo.findExperiencesByUserId(userId);
+  }
+
+  async createExperience(
+    userId: string,
+    data: { companyName: string; role: string; startDate: string; endDate?: string | null; description?: string | null },
+  ) {
+    return this.repo.createExperience(userId, data);
+  }
+
+  async updateExperience(
+    userId: string,
+    experienceId: string,
+    data: { companyName?: string; role?: string; startDate?: string; endDate?: string | null; description?: string | null },
+  ) {
+    const result = await this.repo.updateExperience(userId, experienceId, data);
+    if (!result) throw new Error(`Experience ${experienceId} not found`);
+    return result;
+  }
+
+  async deleteExperience(userId: string, experienceId: string) {
+    const deleted = await this.repo.deleteExperience(userId, experienceId);
+    return { deleted };
+  }
 }

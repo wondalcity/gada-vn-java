@@ -31,6 +31,12 @@ export class ApplicationsService {
     return this.repo.findByWorkerUserId(userId, page, limit);
   }
 
+  async findOneByWorker(id: string, userId: string) {
+    const result = await this.repo.findByIdAndWorker(id, userId);
+    if (!result) throw new NotFoundException(`Application ${id} not found`);
+    return result;
+  }
+
   async findByJob(jobId: string, managerUserId: string) {
     return this.repo.findByJobId(jobId, managerUserId);
   }
