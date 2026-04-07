@@ -307,7 +307,7 @@ function IdSection({ profile, onSaved }: { profile: WorkerProfile; onSaved: (p: 
       <View style={{ height: 12 }} />
       <FieldLabel label={t('worker.field_id_photo')} />
       <View style={s.idPhotoRow}>
-        <TouchableOpacity style={[s.idPhotoZone, frontUrl && s.idPhotoZoneDone]} onPress={() => handlePickId('front')} disabled={saving} activeOpacity={0.7}>
+        <TouchableOpacity style={[s.idPhotoZone, !!frontUrl && s.idPhotoZoneDone]} onPress={() => handlePickId('front')} disabled={saving} activeOpacity={0.7}>
           {frontUrl ? (
             <Image source={{ uri: frontUrl }} style={s.idPhotoImg} resizeMode="cover" />
           ) : (
@@ -317,7 +317,7 @@ function IdSection({ profile, onSaved }: { profile: WorkerProfile; onSaved: (p: 
             </>
           )}
         </TouchableOpacity>
-        <TouchableOpacity style={[s.idPhotoZone, backUrl && s.idPhotoZoneDone]} onPress={() => handlePickId('back')} disabled={saving} activeOpacity={0.7}>
+        <TouchableOpacity style={[s.idPhotoZone, !!backUrl && s.idPhotoZoneDone]} onPress={() => handlePickId('back')} disabled={saving} activeOpacity={0.7}>
           {backUrl ? (
             <Image source={{ uri: backUrl }} style={s.idPhotoImg} resizeMode="cover" />
           ) : (

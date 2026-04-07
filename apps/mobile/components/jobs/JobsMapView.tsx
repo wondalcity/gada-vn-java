@@ -103,7 +103,7 @@ function JobCard({
             )}
           </View>
 
-          <Text style={styles.cardDate}>{formatDate(job.workDate ?? '')}</Text>
+          <Text style={styles.cardDate}>{formatDate(job.workDate instanceof Date ? job.workDate.toISOString() : (job.workDate ?? ''))}</Text>
         </View>
       </View>
 
