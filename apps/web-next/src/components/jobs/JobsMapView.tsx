@@ -109,28 +109,29 @@ function WageMarker({
 function AirbnbJobCard({
   job,
   locale,
-  basePath,
   isSelected,
   isHovered,
   onMouseEnter,
   onMouseLeave,
+  onClick,
 }: {
   job: PublicJob
   locale: string
-  basePath: string
   isSelected: boolean
   isHovered: boolean
   onMouseEnter: () => void
   onMouseLeave: () => void
+  onClick: () => void
 }) {
   const remaining = job.slotsTotal - job.slotsFilled
 
   return (
-    <Link
-      href={`${basePath}/${job.slug ?? job.id}`}
+    <button
+      type="button"
       data-job-id={job.id}
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
+      onClick={onClick}
       className="w-full text-left flex gap-3 px-4 py-3.5 transition-colors relative"
       style={{
         background: isSelected ? '#F7F7F7' : isHovered ? '#FAFAFA' : '#fff',
@@ -186,7 +187,7 @@ function AirbnbJobCard({
           </svg>
         </div>
       )}
-    </Link>
+    </button>
   )
 }
 
@@ -539,6 +540,17 @@ export default function JobsMapView({
     }
   }, [jobsWithCoords, center, zoom])
 
+  const handleCardClick = useCallback((job: PublicJob) => {
+    if (job.id === selectedJobId) {
+      setSelectedJobId(null)
+      setIsZoomedIn(false)
+      return
+    }
+    setSelectedJobId(job.id)
+    setCardKey(k => k + 1)
+    flyToJob(job)
+  }, [selectedJobId, flyToJob])
+
   const handleMarkerSelect = useCallback((id: string | null) => {
     if (!id) { setSelectedJobId(null); return }
     const job = jobs.find(j => j.id === id)
@@ -639,11 +651,11 @@ export default function JobsMapView({
           <AirbnbJobCard
             job={job}
             locale={locale}
-            basePath={basePath}
             isHovered={hoveredJobId === job.id}
             isSelected={selectedJobId === job.id}
             onMouseEnter={() => setHoveredJobId(job.id)}
             onMouseLeave={() => setHoveredJobId(null)}
+            onClick={() => handleCardClick(job)}
           />
           {i < jobsWithCoords.length - 1 && <div className="mx-4 border-b border-[#F2F2F2]" />}
         </React.Fragment>
@@ -658,11 +670,11 @@ export default function JobsMapView({
               <AirbnbJobCard
                 job={job}
                 locale={locale}
-                basePath={basePath}
                 isHovered={hoveredJobId === job.id}
                 isSelected={selectedJobId === job.id}
                 onMouseEnter={() => setHoveredJobId(job.id)}
                 onMouseLeave={() => setHoveredJobId(null)}
+                onClick={() => handleCardClick(job)}
               />
               {i < jobsWithoutCoords.length - 1 && <div className="mx-4 border-b border-[#F2F2F2]" />}
             </React.Fragment>
