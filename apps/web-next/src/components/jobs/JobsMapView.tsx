@@ -521,7 +521,10 @@ export default function JobsMapView({
     const cardHalfHeightPx = fromMobile ? 100 : 170  // ~half card height
     const latOffsetDeg = (cardHalfHeightPx * metersPerPx) / 111320
 
-    mapRef.current.panTo({ lat: job.siteLat - latOffsetDeg, lng: job.siteLng })
+    // setCenter first so the center is committed before setZoom fires.
+    // panTo + setZoom has a race condition where setZoom zooms into the
+    // old center before the pan animation reaches the target.
+    mapRef.current.setCenter({ lat: job.siteLat - latOffsetDeg, lng: job.siteLng })
     mapRef.current.setZoom(TARGET_ZOOM)
     setIsZoomedIn(true)
   }, [])
