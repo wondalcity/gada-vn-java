@@ -1,7 +1,8 @@
 'use client'
 
 import * as React from 'react'
-import { useRouter, useSearchParams, usePathname } from 'next/navigation'
+import { useRouter, usePathname } from '@/i18n/navigation'
+import { useSearchParams } from 'next/navigation'
 import { useTranslations } from 'next-intl'
 import { getSessionCookie } from '@/lib/auth/session'
 import type { Province, Trade } from '@/lib/api/public'

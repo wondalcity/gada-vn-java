@@ -1,6 +1,6 @@
 'use client'
 
-import { useRouter } from 'next/navigation'
+import { useRouter } from '@/i18n/navigation'
 import { clearSessionCookie } from '../../lib/auth/session'
 
 export function LogoutButton({ locale }: { locale: string }) {

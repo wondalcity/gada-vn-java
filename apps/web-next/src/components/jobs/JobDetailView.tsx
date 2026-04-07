@@ -1,7 +1,7 @@
 'use client'
 
 import * as React from 'react'
-import Link from 'next/link'
+import { Link } from '@/i18n/navigation'
 import { useTranslations } from 'next-intl'
 import type { PublicJobDetail } from '@/lib/api/public'
 import ApplyButton from './ApplyButton'

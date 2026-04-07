@@ -1,6 +1,6 @@
 'use client'
 
-import { useRouter } from 'next/navigation'
+import { useRouter } from '@/i18n/navigation'
 import { useState } from 'react'
 import { useTranslations } from 'next-intl'
 import type { Province, Trade } from '@/lib/api/public'

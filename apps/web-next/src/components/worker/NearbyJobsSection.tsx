@@ -1,7 +1,7 @@
 'use client'
 
 import * as React from 'react'
-import Link from 'next/link'
+import { Link } from '@/i18n/navigation'
 import { fetchPublicJobs, type PublicJob } from '@/lib/api/public'
 import { getSessionCookie } from '@/lib/auth/session'
 

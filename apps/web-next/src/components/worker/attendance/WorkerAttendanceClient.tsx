@@ -1,7 +1,8 @@
 'use client'
 
 import * as React from 'react'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useRouter } from '@/i18n/navigation'
+import { useSearchParams } from 'next/navigation'
 import { getSessionCookie } from '@/lib/auth/session'
 import type { WorkerAttendanceRecord, AttendanceStatus } from '@/types/attendance'
 import { STATUS_LABELS, STATUS_COLORS, formatHoursWorked } from '@/lib/attendance'

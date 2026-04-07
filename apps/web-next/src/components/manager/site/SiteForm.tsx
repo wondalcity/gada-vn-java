@@ -1,7 +1,7 @@
 'use client'
 
 import * as React from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter } from '@/i18n/navigation'
 import { apiClient } from '@/lib/api/client'
 import { siteStore } from '@/lib/demo/siteStore'
 import { getGoogleMapsLoader } from '@/lib/maps/loader'

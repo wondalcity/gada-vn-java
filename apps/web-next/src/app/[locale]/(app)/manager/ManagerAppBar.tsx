@@ -1,8 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import Link from 'next/link'
-import { usePathname, useRouter } from 'next/navigation'
+import { Link, usePathname, useRouter } from '@/i18n/navigation'
 import { useTranslations } from 'next-intl'
 import type { AuthUser } from '@/lib/auth/server'
 import { PublicHeaderAuthMenu } from '@/components/public/PublicHeaderAuthMenu'

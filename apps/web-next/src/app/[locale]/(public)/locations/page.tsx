@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import Link from 'next/link'
+import { Link } from '@/i18n/navigation'
 import { getTranslations } from 'next-intl/server'
 import { fetchProvinces } from '@/lib/api/public'
 import { Breadcrumb } from '@/components/public/Breadcrumb'

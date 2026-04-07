@@ -1,7 +1,7 @@
 'use client'
 
 import * as React from 'react'
-import Link from 'next/link'
+import { Link } from '@/i18n/navigation'
 import { getSessionCookie } from '@/lib/auth/session'
 import type { Applicant, JobSlotMeta, ApplicationStatus } from '@/types/application'
 import SlotProgressBar from './SlotProgressBar'
