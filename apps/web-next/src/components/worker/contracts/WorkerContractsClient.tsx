@@ -19,10 +19,10 @@ interface ContractListItem {
 }
 
 const STATUS_CONFIG = {
-  PENDING_WORKER_SIGN:  { label: '서명 필요',       bg: 'bg-amber-50 text-amber-700 border-amber-200',  dot: '#F59E0B' },
-  PENDING_MANAGER_SIGN: { label: '사업주 서명 대기', bg: 'bg-blue-50 text-blue-700 border-blue-200',     dot: '#0669F7' },
-  FULLY_SIGNED:         { label: '계약 완료',        bg: 'bg-green-50 text-green-700 border-green-200',  dot: '#16A34A' },
-  VOID:                 { label: '계약 무효',        bg: 'bg-gray-100 text-gray-500 border-gray-200',    dot: '#9CA3AF' },
+  PENDING_WORKER_SIGN:  { label: '서명 필요',       bg: 'bg-[#FFF8E6] text-[#856404] border-[#F5D87D]',  dot: '#F59E0B' },
+  PENDING_MANAGER_SIGN: { label: '사업주 서명 대기', bg: 'bg-[#E6F0FE] text-[#0669F7] border-[#B3D9FF]',     dot: '#0669F7' },
+  FULLY_SIGNED:         { label: '계약 완료',        bg: 'bg-[#E6F9E6] text-[#1A6B1A] border-[#86D98A]',  dot: '#16A34A' },
+  VOID:                 { label: '계약 무효',        bg: 'bg-[#EFF1F5] text-[#7A7B7A] border-[#DDDDDD]',    dot: '#9CA3AF' },
 } as const
 
 const DEMO_CONTRACTS: ContractListItem[] = [
@@ -95,11 +95,11 @@ export default function WorkerContractsClient() {
         <div className="space-y-3">
           {[1, 2, 3].map(i => (
             <div key={i} className="bg-white rounded-2xl border border-[#EFF1F5] p-4 animate-pulse shadow-sm">
-              <div className="h-4 bg-gray-200 rounded w-2/3 mb-3" />
-              <div className="h-3 bg-gray-200 rounded w-1/2 mb-2" />
-              <div className="h-3 bg-gray-200 rounded w-1/3" />
+              <div className="h-4 bg-[#DDDDDD] rounded w-2/3 mb-3" />
+              <div className="h-3 bg-[#DDDDDD] rounded w-1/2 mb-2" />
+              <div className="h-3 bg-[#DDDDDD] rounded w-1/3" />
               <div className="flex gap-2 mt-3">
-                <div className="h-6 bg-gray-200 rounded-full w-20" />
+                <div className="h-6 bg-[#DDDDDD] rounded-full w-20" />
               </div>
             </div>
           ))}
@@ -113,7 +113,7 @@ export default function WorkerContractsClient() {
       <div className="py-6">
         <h1 className="text-xl font-bold text-[#25282A] mb-6">계약서</h1>
         <p className="text-[#ED1C24] text-sm mb-4">{error}</p>
-        <button type="button" onClick={load} className="px-5 py-2.5 rounded-full bg-[#0669F7] text-white font-medium text-sm">다시 시도</button>
+        <button type="button" onClick={load} className="px-5 py-2.5 rounded-full bg-[#0669F7] text-white font-medium hover:bg-[#0557D4] transition-colors text-sm">다시 시도</button>
       </div>
     )
   }
@@ -128,14 +128,14 @@ export default function WorkerContractsClient() {
         <div className="flex items-center gap-3">
           <h1 className="text-xl font-bold text-[#25282A]">계약서</h1>
           {isDemo && (
-            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-700 border border-amber-200">
+            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-[#FFE9B0] text-[#856404] border border-[#F5D87D]">
               데모 데이터
             </span>
           )}
         </div>
         {pendingCount > 0 && (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-100 text-amber-700 border border-amber-200">
-            <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-[#FFE9B0] text-[#856404] border border-[#F5D87D]">
+            <span className="w-1.5 h-1.5 rounded-full bg-[#FFC72C]" />
             서명 필요 {pendingCount}건
           </span>
         )}
@@ -160,7 +160,7 @@ export default function WorkerContractsClient() {
               <div
                 key={c.id}
                 className={`bg-white rounded-2xl border p-4 shadow-sm transition-colors ${
-                  needsSign ? 'border-amber-300 ring-1 ring-amber-100' : 'border-[#EFF1F5]'
+                  needsSign ? 'border-[#F5D87D] ring-1 ring-amber-100' : 'border-[#EFF1F5]'
                 }`}
               >
                 {/* Header row */}
@@ -198,7 +198,7 @@ export default function WorkerContractsClient() {
 
                 {/* Signature progress */}
                 <div className="flex items-center gap-2 mt-3 pt-3 border-t border-[#F2F4F5] text-xs">
-                  <span className={`flex items-center gap-1 ${c.workerSignedAt ? 'text-green-600 font-semibold' : 'text-[#B2B2B2]'}`}>
+                  <span className={`flex items-center gap-1 ${c.workerSignedAt ? 'text-[#1A6B1A] font-semibold' : 'text-[#B2B2B2]'}`}>
                     {c.workerSignedAt ? (
                       <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
                     ) : (
@@ -207,7 +207,7 @@ export default function WorkerContractsClient() {
                     근로자 서명
                   </span>
                   <svg className="w-3 h-3 text-[#D1D5DB]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" /></svg>
-                  <span className={`flex items-center gap-1 ${c.status === 'FULLY_SIGNED' ? 'text-green-600 font-semibold' : 'text-[#B2B2B2]'}`}>
+                  <span className={`flex items-center gap-1 ${c.status === 'FULLY_SIGNED' ? 'text-[#1A6B1A] font-semibold' : 'text-[#B2B2B2]'}`}>
                     {c.status === 'FULLY_SIGNED' ? (
                       <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
                     ) : (
@@ -223,7 +223,7 @@ export default function WorkerContractsClient() {
                     href={`/worker/contracts/${c.id}` as never}
                     className={`flex items-center justify-center gap-2 w-full py-2.5 rounded-full text-sm font-semibold transition-colors ${
                       needsSign
-                        ? 'bg-amber-500 text-white hover:bg-amber-600'
+                        ? 'bg-[#FFC72C] text-white hover:bg-[#D4A600]'
                         : 'bg-[#EEF5FF] text-[#0669F7] hover:bg-[#DDEAFF]'
                     }`}
                   >

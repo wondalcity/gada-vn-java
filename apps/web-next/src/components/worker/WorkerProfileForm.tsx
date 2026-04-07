@@ -44,7 +44,7 @@ const EMPTY_PROFILE: WorkerProfile = {
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
 function SkeletonField() {
-  return <div className="h-10 bg-gray-100 rounded-2xl animate-pulse w-full" />
+  return <div className="h-10 bg-[#EFF1F5] rounded-2xl animate-pulse w-full" />
 }
 
 function SkeletonForm() {
@@ -52,11 +52,11 @@ function SkeletonForm() {
     <div className="space-y-4">
       {Array.from({ length: 6 }).map((_, i) => (
         <div key={i}>
-          <div className="h-4 bg-gray-100 rounded w-24 mb-1 animate-pulse" />
+          <div className="h-4 bg-[#EFF1F5] rounded w-24 mb-1 animate-pulse" />
           <SkeletonField />
         </div>
       ))}
-      <div className="h-10 bg-gray-100 rounded-full animate-pulse mt-6" />
+      <div className="h-10 bg-[#EFF1F5] rounded-full animate-pulse mt-6" />
     </div>
   )
 }
@@ -65,7 +65,7 @@ function Toast({ message, type }: { message: string; type: 'success' | 'error' }
   return (
     <div
       className={`fixed top-4 left-1/2 -translate-x-1/2 z-50 px-4 py-3 rounded-2xl shadow-md text-sm font-medium text-white transition-all ${
-        type === 'success' ? 'bg-green-600' : 'bg-[#ED1C24]'
+        type === 'success' ? 'bg-[#00C800]' : 'bg-[#ED1C24]'
       }`}
     >
       {message}
@@ -193,8 +193,8 @@ export default function WorkerProfileForm({ locale }: { locale: string }) {
           <span
             className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium ${
               profile.idVerified
-                ? 'bg-green-50 text-green-700 border border-green-200'
-                : 'bg-gray-100 text-[#98A2B2] border border-[#EFF1F5]'
+                ? 'bg-[#E6F9E6] text-[#1A6B1A] border border-[#86D98A]'
+                : 'bg-[#EFF1F5] text-[#98A2B2] border border-[#EFF1F5]'
             }`}
           >
             {profile.idVerified ? (
@@ -215,7 +215,7 @@ export default function WorkerProfileForm({ locale }: { locale: string }) {
 
           {/* Signature status */}
           {profile.signatureUrl ? (
-            <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium bg-green-50 text-green-700 border border-green-200">
+            <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium bg-[#E6F9E6] text-[#1A6B1A] border border-[#86D98A]">
               <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
                 <path
                   fillRule="evenodd"
@@ -228,7 +228,7 @@ export default function WorkerProfileForm({ locale }: { locale: string }) {
           ) : (
             <Link
               href={'/worker/profile/signature'}
-              className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium bg-gray-100 text-[#98A2B2] border border-[#EFF1F5] hover:border-[#0669F7] hover:text-[#0669F7] transition-colors"
+              className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium bg-[#EFF1F5] text-[#98A2B2] border border-[#EFF1F5] hover:border-[#0669F7] hover:text-[#0669F7] transition-colors"
             >
               {t('worker_profile_form.signature_register')}
             </Link>
@@ -403,7 +403,7 @@ export default function WorkerProfileForm({ locale }: { locale: string }) {
               <button
                 type="submit"
                 disabled={isSaving}
-                className="w-full py-3 rounded-full bg-[#0669F7] text-white font-medium disabled:opacity-50 mt-2 text-sm hover:bg-blue-700 transition-colors"
+                className="w-full py-3 rounded-full bg-[#0669F7] text-white font-medium disabled:opacity-50 mt-2 text-sm hover:bg-[#0557D4] transition-colors"
               >
                 {isSaving ? t('worker_profile_form.saving') : t('worker_profile_form.save')}
               </button>

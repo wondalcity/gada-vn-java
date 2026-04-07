@@ -49,11 +49,11 @@ function getFirstIncompleteStep(draft: ProfileDraft): number {
 function WizardSkeleton() {
   return (
     <div className="space-y-4 animate-pulse">
-      <div className="h-5 bg-gray-100 rounded w-1/3" />
-      <div className="h-10 bg-gray-100 rounded-2xl" />
-      <div className="h-10 bg-gray-100 rounded-2xl" />
-      <div className="h-20 bg-gray-100 rounded-2xl" />
-      <div className="h-12 bg-gray-100 rounded-full mt-6" />
+      <div className="h-5 bg-[#EFF1F5] rounded w-1/3" />
+      <div className="h-10 bg-[#EFF1F5] rounded-2xl" />
+      <div className="h-10 bg-[#EFF1F5] rounded-2xl" />
+      <div className="h-20 bg-[#EFF1F5] rounded-2xl" />
+      <div className="h-12 bg-[#EFF1F5] rounded-full mt-6" />
     </div>
   )
 }
@@ -64,7 +64,7 @@ function Toast({ message, type }: { message: string; type: 'success' | 'error' }
   return (
     <div
       className={`fixed top-4 left-1/2 -translate-x-1/2 z-50 px-4 py-3 rounded-2xl shadow-md text-sm font-medium text-white transition-all ${
-        type === 'success' ? 'bg-green-600' : 'bg-[#ED1C24]'
+        type === 'success' ? 'bg-[#00C800]' : 'bg-[#ED1C24]'
       }`}
     >
       {message}
@@ -398,7 +398,7 @@ export default function WorkerProfileWizard({ locale: _locale }: WorkerProfileWi
 
         {/* Save error */}
         {saveError && (
-          <div className="mt-3 p-3 bg-red-50 border border-red-200 rounded-2xl text-sm text-[#ED1C24]">
+          <div className="mt-3 p-3 bg-[#FDE8EE] border border-[#F4A8B8] rounded-2xl text-sm text-[#ED1C24]">
             {saveError}
           </div>
         )}

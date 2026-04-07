@@ -62,7 +62,7 @@ export async function PublicHeader({ locale, user, provinces = [] }: Props) {
               </Link>
               <Link
                 href="/register"
-                className="text-sm font-semibold text-white bg-[#0669F7] hover:bg-blue-700 px-4 py-1.5 rounded-full transition-colors"
+                className="text-sm font-semibold text-white bg-[#0669F7] hover:bg-[#0557D4] px-4 py-1.5 rounded-full transition-colors"
               >
                 {t('header.register_free')}
               </Link>

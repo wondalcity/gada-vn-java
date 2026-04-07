@@ -234,7 +234,7 @@ export default function Step2SiteSignature({ draft, onChange, onNext, onBack }: 
         {/* Existing signature */}
         {draft.signatureUrl && !showCanvas && (
           <div className="mb-3">
-            <div className="border border-[#EFF1F5] rounded-2xl p-3 bg-gray-50">
+            <div className="border border-[#EFF1F5] rounded-2xl p-3 bg-[#F2F4F5]">
               <img src={draft.signatureUrl} alt="현재 서명" className="max-h-20 object-contain mx-auto" />
             </div>
             <button
@@ -269,7 +269,7 @@ export default function Step2SiteSignature({ draft, onChange, onNext, onBack }: 
               <p className="text-xs text-[#ED1C24] mt-1">{sigError}</p>
             )}
             {sigSaved && (
-              <p className="text-xs text-green-700 mt-1">서명이 저장되었습니다</p>
+              <p className="text-xs text-[#1A6B1A] mt-1">서명이 저장되었습니다</p>
             )}
 
             <div className="flex gap-3 mt-3">
@@ -304,7 +304,7 @@ export default function Step2SiteSignature({ draft, onChange, onNext, onBack }: 
         <button
           type="button"
           onClick={onNext}
-          className="w-full py-3.5 rounded-full bg-[#0669F7] text-white font-semibold text-sm"
+          className="w-full py-3.5 rounded-full bg-[#0669F7] text-white font-semibold hover:bg-[#0557D4] transition-colors text-sm"
         >
           다음
         </button>

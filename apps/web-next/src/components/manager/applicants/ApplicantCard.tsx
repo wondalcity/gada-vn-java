@@ -26,8 +26,8 @@ const STATUS_BG_TEXT: Record<ApplicationStatus, { bg: string; text: string; dot:
 
 function getAvatarBg(status: ApplicationStatus): string {
   if (status === 'PENDING') return 'bg-[#0669F7] text-white'
-  if (status === 'ACCEPTED') return 'bg-green-600 text-white'
-  return 'bg-gray-400 text-white'
+  if (status === 'ACCEPTED') return 'bg-[#00C800] text-white'
+  return 'bg-[#7A7B7A] text-white'
 }
 
 export default function ApplicantCard({ applicant, onOpenDetail, onQuickAccept, onQuickReject, isActing }: Props) {
@@ -118,7 +118,7 @@ export default function ApplicantCard({ applicant, onOpenDetail, onQuickAccept, 
               type="button"
               onClick={handleAccept}
               disabled={isActing}
-              className="px-3 py-1.5 rounded-xl bg-[#0669F7] text-white font-bold text-xs disabled:opacity-40"
+              className="px-3 py-1.5 rounded-xl bg-[#0669F7] text-white font-bold text-xs hover:bg-[#0557D4] disabled:opacity-40"
             >
               {t('manager_applicants.quick_accept')}
             </button>

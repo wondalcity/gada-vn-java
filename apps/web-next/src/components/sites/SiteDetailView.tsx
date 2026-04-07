@@ -34,10 +34,10 @@ export function SiteDetailView({ site, jobs, locale }: Props) {
             )}
           </div>
           <div className="flex flex-wrap items-center gap-2 shrink-0">
-            <span className="text-xs font-medium text-[#0669F7] bg-blue-50 border border-blue-200 px-3 py-1 rounded-full">
+            <span className="text-xs font-medium text-[#0669F7] bg-[#E6F0FE] border border-[#B3D9FF] px-3 py-1 rounded-full">
               {site.province}
             </span>
-            <span className="text-xs font-medium text-green-700 bg-green-50 border border-green-200 px-3 py-1 rounded-full">
+            <span className="text-xs font-medium text-[#1A6B1A] bg-[#E6F9E6] border border-[#86D98A] px-3 py-1 rounded-full">
               활성 공고 {site.activeJobCount}건
             </span>
           </div>

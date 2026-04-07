@@ -45,7 +45,7 @@ function FilterChip({ label, onRemove }: { label: string; onRemove: () => void }
         type="button"
         onClick={(e) => { e.stopPropagation(); onRemove() }}
         aria-label="필터 제거"
-        className="ml-0.5 w-3.5 h-3.5 flex items-center justify-center rounded-full hover:bg-blue-200 transition-colors"
+        className="ml-0.5 w-3.5 h-3.5 flex items-center justify-center rounded-full hover:bg-[#B3D9FF] transition-colors"
       >
         <svg className="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M6 18L18 6M6 6l12 12" />
@@ -263,7 +263,7 @@ export function MobileJobFilters({
                 <button
                   type="button"
                   onClick={() => setDrawerOpen(false)}
-                  className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100"
+                  className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-[#EFF1F5]"
                 >
                   <svg className="w-5 h-5 text-[#7A7B7A]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -392,7 +392,7 @@ export function MobileJobFilters({
                           className={`flex-1 py-2 rounded-xl text-xs font-semibold transition-colors ${
                             selectedRadius === r
                               ? 'bg-[#0669F7] text-white'
-                              : 'bg-[#F5F7FA] text-[#7A7B7A] hover:bg-gray-200'
+                              : 'bg-[#F5F7FA] text-[#7A7B7A] hover:bg-[#DDDDDD]'
                           }`}
                         >
                           {r}km
@@ -409,7 +409,7 @@ export function MobileJobFilters({
               <button
                 type="button"
                 onClick={() => setDrawerOpen(false)}
-                className="w-full py-3.5 rounded-full bg-[#0669F7] text-white font-semibold text-sm"
+                className="w-full py-3.5 rounded-full bg-[#0669F7] text-white font-semibold hover:bg-[#0557D4] transition-colors text-sm"
               >
                 {activeFilterCount > 0 ? `필터 적용 (${activeFilterCount})` : '닫기'}
               </button>

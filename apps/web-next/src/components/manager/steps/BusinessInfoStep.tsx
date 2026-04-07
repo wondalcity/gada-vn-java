@@ -53,7 +53,7 @@ export default function BusinessInfoStep({ draft, onChange, onNext, onBack }: Pr
           />
         </div>
       ) : (
-        <div className="p-3 bg-blue-50 border border-blue-200 rounded-2xl text-sm text-[#0669F7]">
+        <div className="p-3 bg-[#E6F0FE] border border-[#B3D9FF] rounded-2xl text-sm text-[#0669F7]">
           개인사업자는 대표자명이 회사명으로 사용됩니다.
         </div>
       )}
@@ -84,7 +84,7 @@ export default function BusinessInfoStep({ draft, onChange, onNext, onBack }: Pr
         {/* Existing URL badge */}
         {draft.businessRegDocUrl && !draft.businessRegDoc && (
           <div className="flex items-center gap-2 mb-2">
-            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-green-50 border border-green-200 rounded-2xl text-xs text-green-700">
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-[#E6F9E6] border border-[#86D98A] rounded-2xl text-xs text-[#1A6B1A]">
               <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
                 <path
                   fillRule="evenodd"
@@ -102,7 +102,7 @@ export default function BusinessInfoStep({ draft, onChange, onNext, onBack }: Pr
           onClick={() => fileInputRef.current?.click()}
           className={`w-full px-3 py-4 rounded-2xl border-2 border-dashed text-sm transition-colors flex flex-col items-center gap-2 ${
             draft.businessRegDoc
-              ? 'border-[#0669F7] text-[#0669F7] bg-blue-50'
+              ? 'border-[#0669F7] text-[#0669F7] bg-[#E6F0FE]'
               : 'border-[#EFF1F5] text-[#98A2B2] hover:border-[#0669F7]'
           }`}
         >
@@ -159,7 +159,7 @@ export default function BusinessInfoStep({ draft, onChange, onNext, onBack }: Pr
           type="button"
           onClick={onNext}
           disabled={!canNext}
-          className="w-full py-3.5 rounded-full bg-[#0669F7] text-white font-semibold text-sm disabled:opacity-40"
+          className="w-full py-3.5 rounded-full bg-[#0669F7] text-white font-semibold text-sm hover:bg-[#0557D4] disabled:opacity-40"
         >
           다음
         </button>

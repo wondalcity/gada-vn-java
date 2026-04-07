@@ -205,7 +205,7 @@ export default function ManagerSignatureStep({ draft, onChange, onNext, onBack }
       {draft.signatureUrl && !showCanvas && (
         <div>
           <p className="text-sm font-medium text-[#25282A] mb-2">현재 서명</p>
-          <div className="border border-[#EFF1F5] rounded-2xl p-3 bg-gray-50">
+          <div className="border border-[#EFF1F5] rounded-2xl p-3 bg-[#F2F4F5]">
             <img
               src={draft.signatureUrl}
               alt="현재 서명"
@@ -247,14 +247,14 @@ export default function ManagerSignatureStep({ draft, onChange, onNext, onBack }
 
       {/* Success message */}
       {saved && (
-        <div className="p-3 bg-green-50 border border-green-200 rounded-2xl text-sm text-green-700">
+        <div className="p-3 bg-[#E6F9E6] border border-[#86D98A] rounded-2xl text-sm text-[#1A6B1A]">
           서명이 저장되었습니다
         </div>
       )}
 
       {/* Error message */}
       {error && (
-        <div className="p-3 bg-red-50 border border-red-200 rounded-2xl text-sm text-[#ED1C24]">
+        <div className="p-3 bg-[#FDE8EE] border border-[#F4A8B8] rounded-2xl text-sm text-[#ED1C24]">
           {error}
         </div>
       )}
@@ -272,7 +272,7 @@ export default function ManagerSignatureStep({ draft, onChange, onNext, onBack }
           <button
             type="button"
             onClick={handleSave}
-            className="flex-1 py-3 rounded-full bg-[#0669F7] text-white font-medium text-sm hover:bg-blue-700 transition-colors"
+            className="flex-1 py-3 rounded-full bg-[#0669F7] text-white font-medium text-sm hover:bg-[#0557D4] transition-colors"
           >
             완료
           </button>
@@ -299,7 +299,7 @@ export default function ManagerSignatureStep({ draft, onChange, onNext, onBack }
           <button
             type="button"
             onClick={onNext}
-            className="flex-1 py-3.5 rounded-full bg-[#0669F7] text-white font-semibold text-sm"
+            className="flex-1 py-3.5 rounded-full bg-[#0669F7] text-white font-semibold hover:bg-[#0557D4] transition-colors text-sm"
           >
             다음
           </button>

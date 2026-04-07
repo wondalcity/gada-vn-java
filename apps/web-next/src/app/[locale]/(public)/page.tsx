@@ -74,9 +74,9 @@ export default async function LandingPage({ params }: Props) {
         <div className="max-w-[1760px] mx-auto px-4 sm:px-6 xl:px-20 text-center">
           <h1 className="text-3xl md:text-5xl font-black text-white leading-tight mb-4">
             {t('hero.h1')}<br />
-            <span className="text-blue-200">{t('hero.h1_highlight')}</span>
+            <span className="text-white/70">{t('hero.h1_highlight')}</span>
           </h1>
-          <p className="text-base md:text-lg text-blue-100 mb-8">
+          <p className="text-base md:text-lg text-white/80 mb-8">
             {t('hero.description')}
           </p>
 
@@ -87,17 +87,17 @@ export default async function LandingPage({ params }: Props) {
           <div className="mt-10 flex flex-wrap items-center justify-center gap-8">
             <div className="text-center">
               <p className="text-2xl font-black text-white">{totalJobs.toLocaleString()}+</p>
-              <p className="text-xs text-blue-200 mt-0.5">{t('hero.stat_jobs')}</p>
+              <p className="text-xs text-white/70 mt-0.5">{t('hero.stat_jobs')}</p>
             </div>
             <div className="w-px h-8 bg-white/20 hidden sm:block" />
             <div className="text-center">
               <p className="text-2xl font-black text-white">{totalCities}+</p>
-              <p className="text-xs text-blue-200 mt-0.5">{t('hero.stat_cities')}</p>
+              <p className="text-xs text-white/70 mt-0.5">{t('hero.stat_cities')}</p>
             </div>
             <div className="w-px h-8 bg-white/20 hidden sm:block" />
             <div className="text-center">
               <p className="text-2xl font-black text-white">{t('hero.stat_free')}</p>
-              <p className="text-xs text-blue-200 mt-0.5">{t('hero.stat_signup')}</p>
+              <p className="text-xs text-white/70 mt-0.5">{t('hero.stat_signup')}</p>
             </div>
           </div>
         </div>

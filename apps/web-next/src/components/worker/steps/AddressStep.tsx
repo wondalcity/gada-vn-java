@@ -106,7 +106,7 @@ export default function AddressStep({ draft, onChange, onNext, isSaving }: Addre
               defaultValue={draft.addressLabel}
               placeholder={mapsLoaded ? 'Vietnamese 주소를 검색하세요...' : '지도 로딩 중...'}
               disabled={!mapsLoaded}
-              className="w-full pl-9 pr-3 py-3 rounded-2xl border border-[#EFF1F5] focus:outline-none focus:border-[#0669F7] text-sm text-[#25282A] disabled:bg-gray-50 disabled:text-[#98A2B2]"
+              className="w-full pl-9 pr-3 py-3 rounded-2xl border border-[#EFF1F5] focus:outline-none focus:border-[#0669F7] text-sm text-[#25282A] disabled:bg-[#F2F4F5] disabled:text-[#98A2B2]"
             />
             {!mapsLoaded && (
               <div className="absolute right-3 top-1/2 -translate-y-1/2">
@@ -121,7 +121,7 @@ export default function AddressStep({ draft, onChange, onNext, isSaving }: Addre
       ) : (
         /* Fallback: manual inputs when Google Maps unavailable */
         <div className="space-y-4">
-          <p className="text-xs text-[#98A2B2] bg-yellow-50 border border-yellow-200 rounded-2xl p-3">
+          <p className="text-xs text-[#98A2B2] bg-[#FFF8E6] border border-[#F5D87D] rounded-2xl p-3">
             지도 서비스를 불러오지 못했습니다. 직접 입력해주세요.
           </p>
           <div>
@@ -149,7 +149,7 @@ export default function AddressStep({ draft, onChange, onNext, isSaving }: Addre
 
       {/* Selected address card */}
       {hasAddress && (
-        <div className="p-4 bg-gray-50 border border-[#EFF1F5] rounded-2xl space-y-2">
+        <div className="p-4 bg-[#F2F4F5] border border-[#EFF1F5] rounded-2xl space-y-2">
           <div className="flex items-start gap-2">
             <svg className="w-4 h-4 text-[#0669F7] flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
               <path fillRule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd" />
@@ -183,7 +183,7 @@ export default function AddressStep({ draft, onChange, onNext, isSaving }: Addre
           type="button"
           onClick={onNext}
           disabled={isSaving}
-          className="px-8 py-3 rounded-full bg-[#0669F7] text-white font-medium text-sm disabled:opacity-40 hover:bg-blue-700 transition-colors"
+          className="px-8 py-3 rounded-full bg-[#0669F7] text-white font-medium text-sm disabled:opacity-40 hover:bg-[#0557D4] transition-colors"
         >
           {isSaving ? '저장 중...' : '다음'}
         </button>

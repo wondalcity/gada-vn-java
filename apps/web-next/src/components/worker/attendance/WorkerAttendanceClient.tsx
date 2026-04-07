@@ -148,7 +148,7 @@ export default function WorkerAttendanceClient() {
       <div className="py-6 flex items-center gap-3">
         <h1 className="text-xl font-bold text-[#25282A]">근무 이력</h1>
         {isDemo && (
-          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-700 border border-amber-200">
+          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-[#FFE9B0] text-[#856404] border border-[#F5D87D]">
             데모 데이터
           </span>
         )}
@@ -161,9 +161,9 @@ export default function WorkerAttendanceClient() {
       {!isLoading && !error && (
         <div className="grid grid-cols-3 gap-3 mb-4">
           {[
-            { label: '출근', value: attendedDays, cls: 'text-green-700' },
+            { label: '출근', value: attendedDays, cls: 'text-[#1A6B1A]' },
             { label: '결근', value: absentDays, cls: 'text-[#ED1C24]' },
-            { label: '반차', value: halfDayDays, cls: 'text-yellow-700' },
+            { label: '반차', value: halfDayDays, cls: 'text-[#856404]' },
           ].map(({ label, value, cls }) => (
             <div key={label} className="bg-white rounded-2xl shadow-sm border border-[#EFF1F5] px-4 py-3 text-center">
               <p className={`text-2xl font-bold ${cls}`}>{value}</p>
@@ -195,7 +195,7 @@ export default function WorkerAttendanceClient() {
                 {tab.label}
                 {tab.key !== 'all' && (
                   <span className={`text-xs px-1.5 py-0.5 rounded-full ${
-                    activeTab === tab.key ? 'bg-[#0669F7] text-white' : 'bg-gray-100 text-[#7A7B7A]'
+                    activeTab === tab.key ? 'bg-[#0669F7] text-white' : 'bg-[#EFF1F5] text-[#7A7B7A]'
                   }`}>
                     {count}
                   </span>
@@ -212,9 +212,9 @@ export default function WorkerAttendanceClient() {
           <div className="space-y-3">
             {[1, 2, 3].map(i => (
               <div key={i} className="bg-white rounded-2xl shadow-sm border border-[#EFF1F5] p-4 animate-pulse">
-                <div className="h-4 bg-gray-200 rounded w-1/2 mb-2" />
-                <div className="h-3 bg-gray-200 rounded w-1/3 mb-2" />
-                <div className="h-3 bg-gray-200 rounded w-2/3" />
+                <div className="h-4 bg-[#DDDDDD] rounded w-1/2 mb-2" />
+                <div className="h-3 bg-[#DDDDDD] rounded w-1/3 mb-2" />
+                <div className="h-3 bg-[#DDDDDD] rounded w-2/3" />
               </div>
             ))}
           </div>

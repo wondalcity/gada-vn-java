@@ -26,9 +26,9 @@ export default async function WorkerAttendancePage({ params }: Props) {
                 key={i}
                 className="bg-white rounded-2xl shadow-sm border border-[#EFF1F5] p-4 animate-pulse"
               >
-                <div className="h-4 bg-gray-200 rounded w-1/2 mb-2" />
-                <div className="h-3 bg-gray-200 rounded w-1/3 mb-2" />
-                <div className="h-3 bg-gray-200 rounded w-2/3" />
+                <div className="h-4 bg-[#DDDDDD] rounded w-1/2 mb-2" />
+                <div className="h-3 bg-[#DDDDDD] rounded w-1/3 mb-2" />
+                <div className="h-3 bg-[#DDDDDD] rounded w-2/3" />
               </div>
             ))}
           </div>

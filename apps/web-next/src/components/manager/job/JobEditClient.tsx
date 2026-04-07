@@ -36,8 +36,8 @@ export default function JobEditClient({ jobId, locale }: JobEditClientProps) {
       <div className="animate-pulse space-y-4">
         {[1, 2, 3, 4].map((i) => (
           <div key={i} className="bg-white rounded-2xl shadow-sm border border-[#EFF1F5] p-5 space-y-3">
-            <div className="h-4 bg-gray-200 rounded w-1/3" />
-            <div className="h-10 bg-gray-200 rounded" />
+            <div className="h-4 bg-[#DDDDDD] rounded w-1/3" />
+            <div className="h-10 bg-[#DDDDDD] rounded" />
           </div>
         ))}
       </div>
@@ -46,7 +46,7 @@ export default function JobEditClient({ jobId, locale }: JobEditClientProps) {
 
   if (error) {
     return (
-      <div className="p-4 rounded-2xl bg-red-50 border border-red-200 text-sm text-[#ED1C24] text-center">
+      <div className="p-4 rounded-2xl bg-[#FDE8EE] border border-[#F4A8B8] text-sm text-[#ED1C24] text-center">
         {error}
       </div>
     )

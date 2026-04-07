@@ -47,7 +47,7 @@ export function ProvinceJobsView({
             <h1 className="text-3xl font-bold text-[#25282A]">
               {province.nameVi} 지역 건설 일자리
             </h1>
-            <span className="text-sm font-semibold text-[#0669F7] bg-blue-50 border border-blue-200 px-3 py-1 rounded-full">
+            <span className="text-sm font-semibold text-[#0669F7] bg-[#E6F0FE] border border-[#B3D9FF] px-3 py-1 rounded-full">
               {total}건
             </span>
           </div>

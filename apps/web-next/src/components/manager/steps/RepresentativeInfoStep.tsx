@@ -82,7 +82,7 @@ export default function RepresentativeInfoStep({ draft, onChange, onNext, onBack
                   flex-1 flex items-center justify-center py-3.5 rounded-2xl border-2
                   transition-all duration-150 min-h-[52px]
                   ${isSelected
-                    ? 'border-[#0669F7] bg-blue-50 text-[#0669F7]'
+                    ? 'border-[#0669F7] bg-[#E6F0FE] text-[#0669F7]'
                     : 'border-[#EFF1F5] bg-white text-[#98A2B2] hover:border-[#0669F7] hover:text-[#0669F7]'
                   }
                 `}
@@ -123,7 +123,7 @@ export default function RepresentativeInfoStep({ draft, onChange, onNext, onBack
           type="button"
           onClick={onNext}
           disabled={!canNext}
-          className="w-full py-3.5 rounded-full bg-[#0669F7] text-white font-semibold text-sm disabled:opacity-40"
+          className="w-full py-3.5 rounded-full bg-[#0669F7] text-white font-semibold text-sm hover:bg-[#0557D4] disabled:opacity-40"
         >
           다음
         </button>

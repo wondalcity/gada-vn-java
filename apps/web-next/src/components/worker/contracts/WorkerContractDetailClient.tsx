@@ -98,14 +98,14 @@ function SignaturePad({
           <button
             type="button"
             onClick={() => setUseSaved(false)}
-            className={`flex-1 py-2 text-xs font-medium transition-colors ${!useSaved ? 'bg-[#0669F7] text-white' : 'bg-white text-[#98A2B2] hover:text-[#25282A]'}`}
+            className={`flex-1 py-2 text-xs font-medium hover:bg-[#0557D4] transition-colors ${!useSaved ? 'bg-[#0669F7] text-white' : 'bg-white text-[#98A2B2] hover:text-[#25282A]'}`}
           >
             직접 서명
           </button>
           <button
             type="button"
             onClick={() => setUseSaved(true)}
-            className={`flex-1 py-2 text-xs font-medium transition-colors ${useSaved ? 'bg-[#0669F7] text-white' : 'bg-white text-[#98A2B2] hover:text-[#25282A]'}`}
+            className={`flex-1 py-2 text-xs font-medium hover:bg-[#0557D4] transition-colors ${useSaved ? 'bg-[#0669F7] text-white' : 'bg-white text-[#98A2B2] hover:text-[#25282A]'}`}
           >
             저장된 서명 사용
           </button>
@@ -144,7 +144,7 @@ function SignaturePad({
       )}
 
       {error && (
-        <div className="p-3 bg-red-50 border border-red-200 rounded-xl text-sm text-[#ED1C24]">
+        <div className="p-3 bg-[#FDE8EE] border border-[#F4A8B8] rounded-xl text-sm text-[#ED1C24]">
           {error}
         </div>
       )}
@@ -162,7 +162,7 @@ function SignaturePad({
           type="button"
           onClick={handleSign}
           disabled={isSigning || (!useSaved && !hasDrawn)}
-          className="flex-1 py-3 rounded-full bg-[#0669F7] text-white font-semibold text-sm disabled:opacity-40 hover:bg-blue-700 transition-colors"
+          className="flex-1 py-3 rounded-full bg-[#0669F7] text-white font-semibold text-sm disabled:opacity-40 hover:bg-[#0557D4] transition-colors"
         >
           {isSigning ? t('worker_contracts.sign_signing') : t('worker_contracts.sign_complete')}
         </button>
@@ -262,7 +262,7 @@ function SignatureBox({
       <button
         type="button"
         onClick={onSignClick}
-        className="rounded-xl border-2 border-[#0669F7] bg-blue-50 p-3 flex flex-col items-center gap-2 min-h-[100px] justify-center hover:bg-blue-100 active:scale-[0.97] transition-all w-full"
+        className="rounded-xl border-2 border-[#0669F7] bg-[#E6F0FE] p-3 flex flex-col items-center gap-2 min-h-[100px] justify-center hover:bg-[#D6E8FE] active:scale-[0.97] transition-all w-full"
       >
         <p className="text-xs font-semibold text-[#0669F7]">{label}</p>
         <div className="w-10 h-10 rounded-full bg-[#0669F7] flex items-center justify-center shadow-sm">
@@ -288,13 +288,13 @@ function SignatureBox({
       <button
         type="button"
         onClick={() => onView(sigUrl)}
-        className="rounded-xl border-2 border-green-200 bg-green-50 p-3 flex flex-col items-center gap-1 min-h-[100px] justify-center hover:border-green-400 transition-colors w-full"
+        className="rounded-xl border-2 border-[#86D98A] bg-[#E6F9E6] p-3 flex flex-col items-center gap-1 min-h-[100px] justify-center hover:border-[#00C800] transition-colors w-full"
       >
-        <p className="text-xs font-medium text-green-700">{label}</p>
-        <div className="w-full h-14 flex items-center justify-center overflow-hidden rounded-lg bg-white border border-green-100">
+        <p className="text-xs font-medium text-[#1A6B1A]">{label}</p>
+        <div className="w-full h-14 flex items-center justify-center overflow-hidden rounded-lg bg-white border border-[#86D98A]">
           <img src={sigUrl} alt={label} className="max-h-full max-w-full object-contain p-1" />
         </div>
-        <p className="text-xs text-green-600 flex items-center gap-1">
+        <p className="text-xs text-[#1A6B1A] flex items-center gap-1">
           <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
           {t('worker_contracts.sig_view')}
         </p>
@@ -302,12 +302,12 @@ function SignatureBox({
     )
   }
   return (
-    <div className="rounded-xl border-2 border-green-200 bg-green-50 p-3 flex flex-col items-center gap-2 min-h-[100px] justify-center">
-      <p className="text-xs font-medium text-green-700">{label}</p>
-      <div className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center">
-        <svg className="w-6 h-6 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
+    <div className="rounded-xl border-2 border-[#86D98A] bg-[#E6F9E6] p-3 flex flex-col items-center gap-2 min-h-[100px] justify-center">
+      <p className="text-xs font-medium text-[#1A6B1A]">{label}</p>
+      <div className="w-12 h-12 rounded-full bg-[#D6F0D6] flex items-center justify-center">
+        <svg className="w-6 h-6 text-[#1A6B1A]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
       </div>
-      <p className="text-xs text-green-600">{t('worker_contracts.sig_done')}</p>
+      <p className="text-xs text-[#1A6B1A]">{t('worker_contracts.sig_done')}</p>
     </div>
   )
 }
@@ -330,7 +330,7 @@ function SignatureStatusCard({ contract, onSignClick }: { contract: Contract; on
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
               </button>
             </div>
-            <div className="p-4 bg-gray-50 flex items-center justify-center min-h-[160px]">
+            <div className="p-4 bg-[#F2F4F5] flex items-center justify-center min-h-[160px]">
               <img src={viewingUrl} alt={t('worker_contracts.sig_image')} className="max-w-full max-h-64 object-contain" />
             </div>
           </div>
@@ -410,13 +410,13 @@ export default function WorkerContractDetailClient({ contractId }: Props) {
   if (isLoading) {
     return (
       <div className="py-6 space-y-4 animate-pulse">
-        <div className="h-6 bg-gray-200 rounded w-1/3" />
+        <div className="h-6 bg-[#DDDDDD] rounded w-1/3" />
         <div className="bg-white rounded-2xl border border-[#EFF1F5] p-4 space-y-3">
-          <div className="h-4 bg-gray-200 rounded w-3/4" />
-          <div className="h-4 bg-gray-200 rounded w-1/2" />
-          <div className="h-4 bg-gray-200 rounded w-2/3" />
+          <div className="h-4 bg-[#DDDDDD] rounded w-3/4" />
+          <div className="h-4 bg-[#DDDDDD] rounded w-1/2" />
+          <div className="h-4 bg-[#DDDDDD] rounded w-2/3" />
         </div>
-        <div className="h-40 bg-gray-200 rounded-2xl" />
+        <div className="h-40 bg-[#DDDDDD] rounded-2xl" />
       </div>
     )
   }
@@ -429,7 +429,7 @@ export default function WorkerContractDetailClient({ contractId }: Props) {
           {t('worker_contracts.list_back')}
         </Link>
         <p className="text-[#ED1C24] text-sm mb-4">{error ?? t('worker_contracts.not_found')}</p>
-        <button type="button" onClick={load} className="px-5 py-2.5 rounded-full bg-[#0669F7] text-white font-medium text-sm">
+        <button type="button" onClick={load} className="px-5 py-2.5 rounded-full bg-[#0669F7] text-white font-medium hover:bg-[#0557D4] transition-colors text-sm">
           {t('worker_contracts.retry')}
         </button>
       </div>
@@ -481,7 +481,7 @@ export default function WorkerContractDetailClient({ contractId }: Props) {
 
       {/* Success message */}
       {successMessage && (
-        <div className="p-3 bg-green-50 border border-green-200 rounded-xl text-sm text-green-700 flex items-center gap-2">
+        <div className="p-3 bg-[#E6F9E6] border border-[#86D98A] rounded-xl text-sm text-[#1A6B1A] flex items-center gap-2">
           <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
           {successMessage}
         </div>
@@ -489,21 +489,21 @@ export default function WorkerContractDetailClient({ contractId }: Props) {
 
       {/* Status banner */}
       {contract.status === 'PENDING_WORKER_SIGN' && (
-        <div className="p-4 bg-amber-50 border border-amber-200 rounded-xl flex items-start gap-3">
-          <svg className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
-          <p className="text-sm font-medium text-amber-700">{t('worker_contracts.banner_need_sign')}</p>
+        <div className="p-4 bg-[#FFF8E6] border border-[#F5D87D] rounded-xl flex items-start gap-3">
+          <svg className="w-5 h-5 text-[#FFC72C] shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
+          <p className="text-sm font-medium text-[#856404]">{t('worker_contracts.banner_need_sign')}</p>
         </div>
       )}
       {contract.status === 'PENDING_MANAGER_SIGN' && (
-        <div className="p-4 bg-blue-50 border border-blue-200 rounded-xl flex items-start gap-3">
-          <svg className="w-5 h-5 text-blue-500 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-          <p className="text-sm font-medium text-blue-700">{t('worker_contracts.banner_waiting_manager')}</p>
+        <div className="p-4 bg-[#E6F0FE] border border-[#B3D9FF] rounded-xl flex items-start gap-3">
+          <svg className="w-5 h-5 text-[#0669F7] shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+          <p className="text-sm font-medium text-[#0669F7]">{t('worker_contracts.banner_waiting_manager')}</p>
         </div>
       )}
       {contract.status === 'FULLY_SIGNED' && (
-        <div className="p-4 bg-green-50 border border-green-200 rounded-xl flex items-start gap-3">
-          <svg className="w-5 h-5 text-green-500 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-          <p className="text-sm font-medium text-green-700">{t('worker_contracts.banner_fully_signed')}</p>
+        <div className="p-4 bg-[#E6F9E6] border border-[#86D98A] rounded-xl flex items-start gap-3">
+          <svg className="w-5 h-5 text-[#00C800] shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+          <p className="text-sm font-medium text-[#1A6B1A]">{t('worker_contracts.banner_fully_signed')}</p>
         </div>
       )}
 

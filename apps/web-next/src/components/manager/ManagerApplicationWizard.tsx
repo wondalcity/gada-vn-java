@@ -71,8 +71,8 @@ function ManagerProgressBar({ currentStep }: { currentStep: number }) {
 function ApprovedState({ locale }: { locale: string }) {
   return (
     <div className="flex flex-col items-center py-12 text-center">
-      <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center mb-4">
-        <svg className="w-8 h-8 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+      <div className="w-16 h-16 rounded-full bg-[#D6F0D6] flex items-center justify-center mb-4">
+        <svg className="w-8 h-8 text-[#1A6B1A]" fill="currentColor" viewBox="0 0 20 20">
           <path
             fillRule="evenodd"
             d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
@@ -84,7 +84,7 @@ function ApprovedState({ locale }: { locale: string }) {
       <p className="text-sm text-[#98A2B2] mb-6">현장 관리 기능을 모두 사용할 수 있습니다.</p>
       <a
         href={`/${locale}/manager/sites`}
-        className="px-6 py-3 rounded-full bg-[#0669F7] text-white font-semibold text-sm inline-block"
+        className="px-6 py-3 rounded-full bg-[#0669F7] text-white font-semibold hover:bg-[#0557D4] transition-colors text-sm inline-block"
       >
         현장 관리 시작하기
       </a>
@@ -113,8 +113,8 @@ function PendingState({
 
   return (
     <div className="flex flex-col items-center py-10 text-center">
-      <div className="w-16 h-16 rounded-full bg-yellow-100 flex items-center justify-center mb-4">
-        <svg className="w-8 h-8 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <div className="w-16 h-16 rounded-full bg-[#FFE9B0] flex items-center justify-center mb-4">
+        <svg className="w-8 h-8 text-[#856404]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path
             strokeLinecap="round"
             strokeLinejoin="round"
@@ -132,7 +132,7 @@ function PendingState({
       </p>
 
       {/* Animated shimmer progress bar */}
-      <div className="w-full max-w-xs h-2 bg-gray-100 rounded-full overflow-hidden mb-6">
+      <div className="w-full max-w-xs h-2 bg-[#EFF1F5] rounded-full overflow-hidden mb-6">
         <div className="h-full bg-[#FFC72C] rounded-full animate-pulse" />
       </div>
 
@@ -140,7 +140,7 @@ function PendingState({
         <button
           type="button"
           onClick={onEdit}
-          className="w-full py-3.5 rounded-full bg-[#0669F7] text-white font-semibold text-sm"
+          className="w-full py-3.5 rounded-full bg-[#0669F7] text-white font-semibold hover:bg-[#0557D4] transition-colors text-sm"
         >
           신청 내용 수정
         </button>
@@ -165,7 +165,7 @@ function RejectedState({
 }) {
   return (
     <div className="flex flex-col items-center py-10 text-center">
-      <div className="w-16 h-16 rounded-full bg-red-100 flex items-center justify-center mb-4">
+      <div className="w-16 h-16 rounded-full bg-[#FCB8C2] flex items-center justify-center mb-4">
         <svg className="w-8 h-8 text-[#ED1C24]" fill="currentColor" viewBox="0 0 20 20">
           <path
             fillRule="evenodd"
@@ -176,14 +176,14 @@ function RejectedState({
       </div>
       <h2 className="text-lg font-semibold text-[#25282A] mb-2">신청이 반려되었습니다</h2>
       {rejectionReason && (
-        <div className="w-full p-3 border border-red-200 bg-red-50 rounded-2xl text-sm text-[#25282A] text-left mb-5">
+        <div className="w-full p-3 border border-[#F4A8B8] bg-[#FDE8EE] rounded-2xl text-sm text-[#25282A] text-left mb-5">
           {rejectionReason}
         </div>
       )}
       <button
         type="button"
         onClick={onReApply}
-        className="w-full py-3.5 rounded-full bg-[#0669F7] text-white font-semibold text-sm"
+        className="w-full py-3.5 rounded-full bg-[#0669F7] text-white font-semibold hover:bg-[#0557D4] transition-colors text-sm"
       >
         다시 신청하기
       </button>
@@ -196,11 +196,11 @@ function RejectedState({
 function WizardSkeleton() {
   return (
     <div className="space-y-4 animate-pulse">
-      <div className="h-5 bg-gray-100 rounded w-1/3" />
-      <div className="h-10 bg-gray-100 rounded-2xl" />
-      <div className="h-10 bg-gray-100 rounded-2xl" />
-      <div className="h-20 bg-gray-100 rounded-2xl" />
-      <div className="h-12 bg-gray-100 rounded-full mt-6" />
+      <div className="h-5 bg-[#EFF1F5] rounded w-1/3" />
+      <div className="h-10 bg-[#EFF1F5] rounded-2xl" />
+      <div className="h-10 bg-[#EFF1F5] rounded-2xl" />
+      <div className="h-20 bg-[#EFF1F5] rounded-2xl" />
+      <div className="h-12 bg-[#EFF1F5] rounded-full mt-6" />
     </div>
   )
 }

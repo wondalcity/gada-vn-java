@@ -72,7 +72,7 @@ export default function AttendanceWorkerRow({
       <button
         type="button"
         onClick={() => setIsExpanded(e => !e)}
-        className="w-full text-left px-4 py-3 flex items-center gap-3 hover:bg-gray-50 transition-colors"
+        className="w-full text-left px-4 py-3 flex items-center gap-3 hover:bg-[#F2F4F5] transition-colors"
         aria-expanded={isExpanded}
       >
         {/* Avatar */}
@@ -173,7 +173,7 @@ export default function AttendanceWorkerRow({
               type="button"
               onClick={handleSave}
               disabled={isSaving || !draft.isDirty}
-              className="px-4 py-2 rounded-2xl bg-[#0669F7] text-white text-sm font-medium disabled:opacity-50 hover:bg-blue-700 transition-colors"
+              className="px-4 py-2 rounded-2xl bg-[#0669F7] text-white text-sm font-medium disabled:opacity-50 hover:bg-[#0557D4] transition-colors"
             >
               {isSaving ? '저장 중...' : '저장'}
             </button>
@@ -183,7 +183,7 @@ export default function AttendanceWorkerRow({
                 type="button"
                 onClick={handleRevert}
                 disabled={isSaving}
-                className="px-4 py-2 rounded-2xl border border-[#EFF1F5] text-[#98A2B2] text-sm font-medium hover:border-gray-400 transition-colors disabled:opacity-50"
+                className="px-4 py-2 rounded-2xl border border-[#EFF1F5] text-[#98A2B2] text-sm font-medium hover:border-[#DDDDDD] transition-colors disabled:opacity-50"
               >
                 취소
               </button>

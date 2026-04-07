@@ -298,7 +298,7 @@ export default function SiteForm({ mode, initialData, siteId, locale, idToken }:
             />
           )}
           {lat && lng && !mapsError && (
-            <div className="mt-2 p-3 rounded-2xl bg-blue-50 border border-blue-200 text-xs text-[#0669F7]">
+            <div className="mt-2 p-3 rounded-2xl bg-[#E6F0FE] border border-[#B3D9FF] text-xs text-[#0669F7]">
               선택된 주소: {address}{lat && lng && ` (${lat.toFixed(5)}, ${lng.toFixed(5)})`}
             </div>
           )}
@@ -363,7 +363,7 @@ export default function SiteForm({ mode, initialData, siteId, locale, idToken }:
 
       {/* ── Image notice (create only) ─────────────────────────── */}
       {mode === 'create' && (
-        <div className="bg-blue-50 border border-blue-200 rounded-2xl p-4 flex gap-3">
+        <div className="bg-[#E6F0FE] border border-[#B3D9FF] rounded-2xl p-4 flex gap-3">
           <svg className="w-5 h-5 text-[#0669F7] shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
           </svg>
@@ -394,7 +394,7 @@ export default function SiteForm({ mode, initialData, siteId, locale, idToken }:
       )}
 
       {error && (
-        <div className="p-3 rounded-2xl bg-red-50 border border-red-200 text-sm text-[#ED1C24]">
+        <div className="p-3 rounded-2xl bg-[#FDE8EE] border border-[#F4A8B8] text-sm text-[#ED1C24]">
           {error}
         </div>
       )}
@@ -410,7 +410,7 @@ export default function SiteForm({ mode, initialData, siteId, locale, idToken }:
         <button
           type="submit"
           disabled={isSaving}
-          className="px-5 py-2.5 rounded-full bg-[#0669F7] text-white font-medium text-sm disabled:opacity-40"
+          className="px-5 py-2.5 rounded-full bg-[#0669F7] text-white font-medium text-sm hover:bg-[#0557D4] disabled:opacity-40"
         >
           {isSaving ? '저장 중...' : '저장'}
         </button>

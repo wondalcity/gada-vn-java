@@ -196,7 +196,7 @@ export default function SignatureStep({ draft, onChange, onNext, idToken }: Sign
       {draft.signatureUrl && (
         <div>
           <p className="text-sm font-medium text-[#25282A] mb-2">현재 서명</p>
-          <div className="border border-[#EFF1F5] rounded-2xl p-3 bg-gray-50">
+          <div className="border border-[#EFF1F5] rounded-2xl p-3 bg-[#F2F4F5]">
             <img
               src={draft.signatureUrl}
               alt="현재 서명"
@@ -230,12 +230,12 @@ export default function SignatureStep({ draft, onChange, onNext, idToken }: Sign
 
       {/* Messages */}
       {successMessage && (
-        <div className="p-3 bg-green-50 border border-green-200 rounded-2xl text-sm text-green-700">
+        <div className="p-3 bg-[#E6F9E6] border border-[#86D98A] rounded-2xl text-sm text-[#1A6B1A]">
           {successMessage}
         </div>
       )}
       {errorMessage && (
-        <div className="p-3 bg-red-50 border border-red-200 rounded-2xl text-sm text-[#ED1C24]">
+        <div className="p-3 bg-[#FDE8EE] border border-[#F4A8B8] rounded-2xl text-sm text-[#ED1C24]">
           {errorMessage}
         </div>
       )}
@@ -257,7 +257,7 @@ export default function SignatureStep({ draft, onChange, onNext, idToken }: Sign
           type="button"
           onClick={handleSave}
           disabled={isSaving}
-          className="flex-1 py-3 rounded-full bg-[#0669F7] text-white font-medium text-sm disabled:opacity-40 hover:bg-blue-700 transition-colors"
+          className="flex-1 py-3 rounded-full bg-[#0669F7] text-white font-medium text-sm disabled:opacity-40 hover:bg-[#0557D4] transition-colors"
         >
           {isSaving ? '저장 중...' : '저장'}
         </button>
@@ -275,7 +275,7 @@ export default function SignatureStep({ draft, onChange, onNext, idToken }: Sign
         <button
           type="button"
           onClick={onNext}
-          className="px-8 py-3 rounded-full bg-[#0669F7] text-white font-medium text-sm hover:bg-blue-700 transition-colors"
+          className="px-8 py-3 rounded-full bg-[#0669F7] text-white font-medium text-sm hover:bg-[#0557D4] transition-colors"
         >
           다음
         </button>

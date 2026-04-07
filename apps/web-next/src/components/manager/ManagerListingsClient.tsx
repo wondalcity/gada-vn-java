@@ -106,7 +106,7 @@ function SitePreviewCard({ site, locale }: { site: ManagerSite; locale: string }
       <div className="flex border-t border-[#EFF1F5]">
         <Link
           href={`/manager/sites/${site.id}`}
-          className="flex-1 py-2.5 text-xs font-medium text-[#98A2B2] text-center hover:bg-gray-50 transition-colors"
+          className="flex-1 py-2.5 text-xs font-medium text-[#98A2B2] text-center hover:bg-[#F2F4F5] transition-colors"
         >
           상세보기
         </Link>
@@ -120,7 +120,7 @@ function SitePreviewCard({ site, locale }: { site: ManagerSite; locale: string }
         <div className="w-px bg-[#EFF1F5]" />
         <Link
           href={`/manager/sites/${site.id}/edit`}
-          className="flex-1 py-2.5 text-xs font-medium text-[#98A2B2] text-center hover:bg-gray-50 transition-colors"
+          className="flex-1 py-2.5 text-xs font-medium text-[#98A2B2] text-center hover:bg-[#F2F4F5] transition-colors"
         >
           수정
         </Link>
@@ -219,7 +219,7 @@ function JobPreviewCard({ job, locale }: { job: ManagerJob; locale: string }) {
           <div className="flex justify-between text-[10px] text-[#98A2B2]">
             <span>채용 {job.slotsFilled}/{job.slotsTotal}명</span>
             {job.applicationCount.accepted > 0 && (
-              <span className="text-green-600">확정 {job.applicationCount.accepted}명</span>
+              <span className="text-[#1A6B1A]">확정 {job.applicationCount.accepted}명</span>
             )}
           </div>
         </div>
@@ -243,7 +243,7 @@ function EmptyState({
       <p className="text-xs text-[#98A2B2] mb-4">{desc}</p>
       <Link
         href={ctaHref as never}
-        className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-full bg-[#0669F7] text-white text-sm font-medium"
+        className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-full bg-[#0669F7] text-white hover:bg-[#0557D4] transition-colors text-sm font-medium"
       >
         {ctaLabel}
       </Link>
@@ -301,7 +301,7 @@ export default function ManagerListingsClient({ locale }: { locale: string }) {
       <div className="grid grid-cols-3 gap-2 mb-4">
         {[
           { label: '운영중 현장', value: activeSites, color: 'text-[#0669F7]' },
-          { label: '모집중 공고', value: openJobs, color: 'text-green-600' },
+          { label: '모집중 공고', value: openJobs, color: 'text-[#1A6B1A]' },
           { label: '대기 지원자', value: pendingTotal, color: 'text-orange-500' },
         ].map((s) => (
           <div key={s.label} className="bg-white rounded border border-[#EFF1F5] p-3 text-center">
@@ -333,7 +333,7 @@ export default function ManagerListingsClient({ locale }: { locale: string }) {
         {tab === 'sites' ? (
           <Link
             href={'/manager/sites/new'}
-            className="flex items-center gap-1.5 px-4 py-2 rounded bg-[#0669F7] text-white text-sm font-medium whitespace-nowrap"
+            className="flex items-center gap-1.5 px-4 py-2 rounded bg-[#0669F7] text-white hover:bg-[#0557D4] transition-colors text-sm font-medium whitespace-nowrap"
           >
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
@@ -343,7 +343,7 @@ export default function ManagerListingsClient({ locale }: { locale: string }) {
         ) : (
           <Link
             href={'/manager/sites'}
-            className="flex items-center gap-1.5 px-4 py-2 rounded bg-[#0669F7] text-white text-sm font-medium whitespace-nowrap"
+            className="flex items-center gap-1.5 px-4 py-2 rounded bg-[#0669F7] text-white hover:bg-[#0557D4] transition-colors text-sm font-medium whitespace-nowrap"
           >
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
@@ -358,16 +358,16 @@ export default function ManagerListingsClient({ locale }: { locale: string }) {
         <div className="grid grid-cols-2 gap-3">
           {[...Array(4)].map((_, i) => (
             <div key={i} className="bg-white rounded border border-[#EFF1F5] animate-pulse">
-              <div className="h-36 bg-gray-200" />
+              <div className="h-36 bg-[#DDDDDD]" />
               <div className="p-3 space-y-2">
-                <div className="h-3 bg-gray-200 rounded w-3/4" />
-                <div className="h-3 bg-gray-200 rounded w-1/2" />
+                <div className="h-3 bg-[#DDDDDD] rounded w-3/4" />
+                <div className="h-3 bg-[#DDDDDD] rounded w-1/2" />
               </div>
             </div>
           ))}
         </div>
       ) : error ? (
-        <div className="p-4 rounded bg-red-50 border border-red-200 text-sm text-[#ED1C24] text-center">
+        <div className="p-4 rounded bg-[#FDE8EE] border border-[#F4A8B8] text-sm text-[#ED1C24] text-center">
           {error}
         </div>
       ) : tab === 'jobs' ? (

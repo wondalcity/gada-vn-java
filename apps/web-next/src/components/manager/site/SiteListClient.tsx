@@ -15,11 +15,11 @@ interface SiteListClientProps {
 function SkeletonCard() {
   return (
     <div className="bg-white rounded-2xl shadow-sm border border-[#EFF1F5] overflow-hidden animate-pulse">
-      <div className="h-40 bg-gray-200" />
+      <div className="h-40 bg-[#DDDDDD]" />
       <div className="p-4 space-y-2">
-        <div className="h-4 bg-gray-200 rounded w-3/4" />
-        <div className="h-3 bg-gray-200 rounded w-1/2" />
-        <div className="h-3 bg-gray-200 rounded w-1/4" />
+        <div className="h-4 bg-[#DDDDDD] rounded w-3/4" />
+        <div className="h-3 bg-[#DDDDDD] rounded w-1/2" />
+        <div className="h-3 bg-[#DDDDDD] rounded w-1/4" />
       </div>
     </div>
   )
@@ -60,7 +60,7 @@ export default function SiteListClient({ locale }: SiteListClientProps) {
 
   if (error) {
     return (
-      <div className="p-4 rounded-2xl bg-red-50 border border-red-200 text-sm text-[#ED1C24] text-center">
+      <div className="p-4 rounded-2xl bg-[#FDE8EE] border border-[#F4A8B8] text-sm text-[#ED1C24] text-center">
         {error}
       </div>
     )
@@ -85,7 +85,7 @@ export default function SiteListClient({ locale }: SiteListClientProps) {
         <p className="text-[#98A2B2] text-sm mb-4">등록된 현장이 없습니다</p>
         <button
           onClick={() => router.push('/manager/sites/new')}
-          className="px-5 py-2.5 rounded-full bg-[#0669F7] text-white font-medium text-sm"
+          className="px-5 py-2.5 rounded-full bg-[#0669F7] text-white font-medium hover:bg-[#0557D4] transition-colors text-sm"
         >
           첫 현장 등록하기
         </button>
@@ -97,7 +97,7 @@ export default function SiteListClient({ locale }: SiteListClientProps) {
     <>
       {isDemo && (
         <div className="mb-3 flex items-center gap-2">
-          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-700 border border-amber-200">
+          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-[#FFE9B0] text-[#856404] border border-[#F5D87D]">
             데모 데이터
           </span>
           <span className="text-xs text-[#98A2B2]">실제 현장을 등록하면 여기에 표시됩니다</span>

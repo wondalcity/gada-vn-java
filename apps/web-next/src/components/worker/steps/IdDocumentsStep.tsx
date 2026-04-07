@@ -31,7 +31,7 @@ function UploadZone({ label, currentUrl, preview, onFileChange }: UploadZoneProp
         onClick={() => inputRef.current?.click()}
         className={`relative w-full h-40 rounded-2xl border-2 border-dashed ${
           displayUrl ? 'border-[#0669F7]' : 'border-[#EFF1F5]'
-        } flex items-center justify-center overflow-hidden hover:border-[#0669F7] transition-colors bg-gray-50`}
+        } flex items-center justify-center overflow-hidden hover:border-[#0669F7] transition-colors bg-[#F2F4F5]`}
       >
         {displayUrl ? (
           <img src={displayUrl} alt={label} className="w-full h-full object-cover" />
@@ -73,7 +73,7 @@ function UploadZone({ label, currentUrl, preview, onFileChange }: UploadZoneProp
 function VerificationBadge({ idVerified, hasDocuments }: { idVerified: boolean; hasDocuments: boolean }) {
   if (idVerified) {
     return (
-      <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium bg-green-50 text-green-700 border border-green-200">
+      <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium bg-[#E6F9E6] text-[#1A6B1A] border border-[#86D98A]">
         <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
           <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
         </svg>
@@ -83,13 +83,13 @@ function VerificationBadge({ idVerified, hasDocuments }: { idVerified: boolean; 
   }
   if (hasDocuments) {
     return (
-      <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium bg-yellow-50 text-yellow-700 border border-yellow-200">
+      <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium bg-[#FFF8E6] text-[#856404] border border-[#F5D87D]">
         검토 중
       </span>
     )
   }
   return (
-    <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium bg-gray-100 text-[#98A2B2] border border-[#EFF1F5]">
+    <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium bg-[#EFF1F5] text-[#98A2B2] border border-[#EFF1F5]">
       미등록
     </span>
   )
@@ -181,7 +181,7 @@ export default function IdDocumentsStep({ draft, onChange, onNext, idToken }: Id
           type="button"
           onClick={handleUpload}
           disabled={isUploading}
-          className="w-full py-3 rounded-full border border-[#0669F7] text-[#0669F7] font-medium text-sm disabled:opacity-40 hover:bg-blue-50 transition-colors"
+          className="w-full py-3 rounded-full border border-[#0669F7] text-[#0669F7] font-medium text-sm disabled:opacity-40 hover:bg-[#E6F0FE] transition-colors"
         >
           {isUploading ? '업로드 중...' : '서류 제출하기'}
         </button>
@@ -189,12 +189,12 @@ export default function IdDocumentsStep({ draft, onChange, onNext, idToken }: Id
 
       {/* Messages */}
       {successMessage && (
-        <div className="p-3 bg-green-50 border border-green-200 rounded-2xl text-sm text-green-700">
+        <div className="p-3 bg-[#E6F9E6] border border-[#86D98A] rounded-2xl text-sm text-[#1A6B1A]">
           {successMessage}
         </div>
       )}
       {errorMessage && (
-        <div className="p-3 bg-red-50 border border-red-200 rounded-2xl text-sm text-[#ED1C24]">
+        <div className="p-3 bg-[#FDE8EE] border border-[#F4A8B8] rounded-2xl text-sm text-[#ED1C24]">
           {errorMessage}
         </div>
       )}
@@ -211,7 +211,7 @@ export default function IdDocumentsStep({ draft, onChange, onNext, idToken }: Id
         <button
           type="button"
           onClick={onNext}
-          className="px-8 py-3 rounded-full bg-[#0669F7] text-white font-medium text-sm hover:bg-blue-700 transition-colors"
+          className="px-8 py-3 rounded-full bg-[#0669F7] text-white font-medium text-sm hover:bg-[#0557D4] transition-colors"
         >
           다음
         </button>

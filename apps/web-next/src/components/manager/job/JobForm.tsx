@@ -238,7 +238,7 @@ export default function JobForm({
                     key={t.id}
                     type="button"
                     onMouseDown={() => selectTrade(t)}
-                    className="w-full text-left px-3 py-2 text-sm text-[#25282A] hover:bg-gray-50"
+                    className="w-full text-left px-3 py-2 text-sm text-[#25282A] hover:bg-[#F2F4F5]"
                   >
                     {t.nameKo ?? t.name}
                   </button>
@@ -406,7 +406,7 @@ export default function JobForm({
                 key={b.key}
                 className={`flex items-center gap-2.5 p-3 rounded-2xl border cursor-pointer transition-colors ${
                   b.value
-                    ? 'border-[#0669F7] bg-blue-50'
+                    ? 'border-[#0669F7] bg-[#E6F0FE]'
                     : 'border-[#EFF1F5] bg-white'
                 }`}
               >
@@ -475,7 +475,7 @@ export default function JobForm({
       )}
 
       {error && (
-        <div className="p-3 rounded-2xl bg-red-50 border border-red-200 text-sm text-[#ED1C24]">
+        <div className="p-3 rounded-2xl bg-[#FDE8EE] border border-[#F4A8B8] text-sm text-[#ED1C24]">
           {error}
         </div>
       )}
@@ -491,7 +491,7 @@ export default function JobForm({
         <button
           type="submit"
           disabled={isSaving}
-          className="px-5 py-2.5 rounded-full bg-[#0669F7] text-white font-medium text-sm disabled:opacity-40"
+          className="px-5 py-2.5 rounded-full bg-[#0669F7] text-white font-medium text-sm hover:bg-[#0557D4] disabled:opacity-40"
         >
           {isSaving ? '저장 중...' : '저장'}
         </button>

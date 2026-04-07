@@ -143,7 +143,7 @@ async function saveProfile(token: string, data: Record<string, unknown>): Promis
 
 function Toast({ message, type }: { message: string; type: 'success' | 'error' }) {
   return (
-    <div className={`fixed top-4 left-1/2 -translate-x-1/2 z-50 px-5 py-3 rounded-full shadow-lg text-sm font-medium text-white ${type === 'success' ? 'bg-green-600' : 'bg-[#ED1C24]'}`}>
+    <div className={`fixed top-4 left-1/2 -translate-x-1/2 z-50 px-5 py-3 rounded-full shadow-lg text-sm font-medium text-white ${type === 'success' ? 'bg-[#00C800]' : 'bg-[#ED1C24]'}`}>
       {message}
     </div>
   )
@@ -154,8 +154,8 @@ function Skeleton() {
     <div className="space-y-4 animate-pulse">
       {Array.from({ length: 4 }).map((_, i) => (
         <div key={i} className="space-y-2">
-          <div className="h-4 bg-gray-100 rounded w-1/4" />
-          <div className="h-10 bg-gray-100 rounded-lg" />
+          <div className="h-4 bg-[#EFF1F5] rounded w-1/4" />
+          <div className="h-10 bg-[#EFF1F5] rounded-lg" />
         </div>
       ))}
     </div>
@@ -180,7 +180,7 @@ function SaveButton({ saving, onClick, label }: { saving: boolean; onClick: () =
       type="button"
       onClick={onClick}
       disabled={saving}
-      className="w-full mt-6 py-3 rounded-full bg-[#0669F7] text-white font-medium text-sm disabled:opacity-40 hover:bg-blue-700 transition-colors"
+      className="w-full mt-6 py-3 rounded-full bg-[#0669F7] text-white font-medium text-sm disabled:opacity-40 hover:bg-[#0557D4] transition-colors"
     >
       {saving ? t('profile_tabs.shared_saving') : label}
     </button>
@@ -198,7 +198,7 @@ function UploadZone({ label, url, onChange }: { label: string; url: string | nul
       <button
         type="button"
         onClick={() => ref.current?.click()}
-        className={`relative w-full h-36 rounded-lg border-2 border-dashed flex items-center justify-center overflow-hidden transition-colors bg-gray-50 ${url ? 'border-[#0669F7]' : 'border-[#EFF1F5] hover:border-[#0669F7]'}`}
+        className={`relative w-full h-36 rounded-lg border-2 border-dashed flex items-center justify-center overflow-hidden transition-colors bg-[#F2F4F5] ${url ? 'border-[#0669F7]' : 'border-[#EFF1F5] hover:border-[#0669F7]'}`}
       >
         {url ? (
           <img src={url} alt={label} className="w-full h-full object-cover" />
@@ -368,7 +368,7 @@ function BasicTab({ profile, onSaved }: { profile: WorkerProfile; onSaved: (p: P
         </div>
         <div className="flex flex-col gap-1.5">
           <button type="button" onClick={() => imageInputRef.current?.click()} disabled={imageUploading}
-            className="px-4 py-2 rounded-full bg-[#0669F7] text-white text-xs font-medium disabled:opacity-40">
+            className="px-4 py-2 rounded-full bg-[#0669F7] text-white text-xs font-medium hover:bg-[#0557D4] disabled:opacity-40">
             {profileImageUrl ? t('profile_tabs.basic.photo_change') : t('profile_tabs.basic.photo_register')}
           </button>
           {profileImageUrl && (
@@ -395,7 +395,7 @@ function BasicTab({ profile, onSaved }: { profile: WorkerProfile; onSaved: (p: P
         <div className="flex gap-2">
           {(['MALE','FEMALE','OTHER'] as const).map(g => (
             <button key={g} type="button" onClick={() => setGender(g)}
-              className={`flex-1 py-2.5 rounded-lg border-2 text-sm font-medium transition-all ${gender === g ? 'border-[#0669F7] bg-blue-50 text-[#0669F7]' : 'border-[#EFF1F5] text-[#98A2B2]'}`}>
+              className={`flex-1 py-2.5 rounded-lg border-2 text-sm font-medium transition-all ${gender === g ? 'border-[#0669F7] bg-[#E6F0FE] text-[#0669F7]' : 'border-[#EFF1F5] text-[#98A2B2]'}`}>
               {g === 'MALE' ? t('profile_tabs.basic.male') : g === 'FEMALE' ? t('profile_tabs.basic.female') : t('profile_tabs.basic.other')}
             </button>
           ))}
@@ -415,7 +415,7 @@ function BasicTab({ profile, onSaved }: { profile: WorkerProfile; onSaved: (p: P
           <button
             type="button"
             onClick={openPhoneModal}
-            className="shrink-0 px-3 py-2.5 rounded-lg border border-[#0669F7] text-[#0669F7] text-xs font-medium hover:bg-blue-50 transition-colors"
+            className="shrink-0 px-3 py-2.5 rounded-lg border border-[#0669F7] text-[#0669F7] text-xs font-medium hover:bg-[#E6F0FE] transition-colors"
           >
             {t('profile_tabs.basic.phone_change')}
           </button>
@@ -439,7 +439,7 @@ function BasicTab({ profile, onSaved }: { profile: WorkerProfile; onSaved: (p: P
                 type="button"
                 onClick={handleSendPhoneOtp}
                 disabled={phoneSending || otpSent || newPhone.length < 8}
-                className="w-full py-3 rounded-2xl bg-[#0669F7] text-white text-sm font-medium disabled:opacity-40 transition-colors"
+                className="w-full py-3 rounded-2xl bg-[#0669F7] text-white text-sm font-medium disabled:opacity-40 hover:bg-[#0557D4] transition-colors"
               >
                 {phoneSending ? '...' : otpSent ? t('profile_tabs.basic.phone_sent') : t('profile_tabs.basic.phone_send_otp')}
               </button>
@@ -473,7 +473,7 @@ function BasicTab({ profile, onSaved }: { profile: WorkerProfile; onSaved: (p: P
                   type="button"
                   onClick={handleVerifyPhoneOtp}
                   disabled={phoneVerifying || !phoneOtp.trim()}
-                  className="flex-1 py-3 rounded-full bg-[#0669F7] text-white text-sm font-medium disabled:opacity-40"
+                  className="flex-1 py-3 rounded-full bg-[#0669F7] text-white text-sm font-medium hover:bg-[#0557D4] disabled:opacity-40"
                 >
                   {phoneVerifying ? t('profile_tabs.basic.phone_verifying') : t('profile_tabs.basic.phone_verify')}
                 </button>
@@ -589,7 +589,7 @@ function ExperienceTab({ profile, onSaved }: { profile: WorkerProfile; onSaved: 
           {selectedTrades
             .sort((a, b) => (selectedMap.get(b.id) ?? 0) - (selectedMap.get(a.id) ?? 0))
             .map(tr => (
-              <div key={tr.id} className="flex items-center gap-2 p-2.5 bg-blue-50 border border-[#0669F7] rounded-lg">
+              <div key={tr.id} className="flex items-center gap-2 p-2.5 bg-[#E6F0FE] border border-[#0669F7] rounded-lg">
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium text-[#0669F7] truncate">{tr.nameKo}</p>
                 </div>
@@ -624,7 +624,7 @@ function ExperienceTab({ profile, onSaved }: { profile: WorkerProfile; onSaved: 
               return (
                 <li key={tr.id}>
                   <button type="button" onClick={() => toggleTrade(tr.id)}
-                    className={`w-full flex items-center justify-between px-4 py-3 text-left hover:bg-gray-50 border-b border-[#EFF1F5] last:border-0 ${isSelected ? 'bg-blue-50' : ''}`}>
+                    className={`w-full flex items-center justify-between px-4 py-3 text-left hover:bg-[#F2F4F5] border-b border-[#EFF1F5] last:border-0 ${isSelected ? 'bg-[#E6F0FE]' : ''}`}>
                     <div>
                       <p className={`text-sm font-medium ${isSelected ? 'text-[#0669F7]' : 'text-[#25282A]'}`}>{tr.nameKo}</p>
                       <p className="text-xs text-[#98A2B2]">{tr.nameVi}</p>
@@ -768,7 +768,7 @@ function AddressTab({ profile, onSaved }: { profile: WorkerProfile; onSaved: (p:
           <input ref={inputRef} type="text" defaultValue={profile.current_province ?? ''}
             placeholder={mapsLoaded ? t('profile_tabs.address.search_placeholder') : t('profile_tabs.address.maps_loading')}
             disabled={!mapsLoaded}
-            className={`${inputCls} disabled:bg-gray-50`} />
+            className={`${inputCls} disabled:bg-[#F2F4F5]`} />
         </Field>
       ) : (
         <>
@@ -784,7 +784,7 @@ function AddressTab({ profile, onSaved }: { profile: WorkerProfile; onSaved: (p:
       )}
 
       {(addressLabel || province) && (
-        <div className="p-3 bg-gray-50 rounded-lg border border-[#EFF1F5] text-sm">
+        <div className="p-3 bg-[#F2F4F5] rounded-lg border border-[#EFF1F5] text-sm">
           <p className="font-medium text-[#25282A]">{addressLabel || province}</p>
           {district && <p className="text-xs text-[#98A2B2] mt-0.5">{district}</p>}
           {lat != null && <p className="text-xs text-[#98A2B2] mt-0.5">{lat.toFixed(5)}, {lng?.toFixed(5)}</p>}
@@ -806,7 +806,7 @@ function AddressTab({ profile, onSaved }: { profile: WorkerProfile; onSaved: (p:
               type="button"
               onClick={saveAsSearchLocation}
               disabled={savingLocation || !locationLabel.trim()}
-              className="px-4 py-1.5 text-sm font-medium bg-[#0669F7] text-white rounded-lg disabled:opacity-50 whitespace-nowrap"
+              className="px-4 py-1.5 text-sm font-medium bg-[#0669F7] text-white rounded-lg hover:bg-[#0557D4] disabled:opacity-50 whitespace-nowrap"
             >
               {savingLocation ? t('profile_tabs.address.location_saving') : t('profile_tabs.address.location_save')}
             </button>
@@ -902,7 +902,7 @@ function BankTab({ profile, onSaved }: { profile: WorkerProfile; onSaved: (p: Pa
         <p className="text-xs text-[#98A2B2] mt-1">{t('profile_tabs.bank.bankbook_hint')}</p>
       </div>
 
-      <p className="text-xs text-[#98A2B2] bg-gray-50 rounded-lg p-3 border border-[#EFF1F5]">
+      <p className="text-xs text-[#98A2B2] bg-[#F2F4F5] rounded-lg p-3 border border-[#EFF1F5]">
         {t('profile_tabs.bank.privacy_notice')}
       </p>
 
@@ -917,12 +917,12 @@ function BankTab({ profile, onSaved }: { profile: WorkerProfile; onSaved: (p: Pa
 function StatusBadge({ verified, hasDoc }: { verified: boolean; hasDoc: boolean }) {
   const t = useTranslations('worker')
   if (verified) return (
-    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-green-50 text-green-700 border border-green-200"><svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>{t('profile_tabs.id.status_verified')}</span>
+    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-[#E6F9E6] text-[#1A6B1A] border border-[#86D98A]"><svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>{t('profile_tabs.id.status_verified')}</span>
   )
   if (hasDoc) return (
-    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-yellow-50 text-yellow-700 border border-yellow-200">{t('profile_tabs.id.status_pending')}</span>
+    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-[#FFF8E6] text-[#856404] border border-[#F5D87D]">{t('profile_tabs.id.status_pending')}</span>
   )
-  return <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-[#98A2B2] border border-[#EFF1F5]">{t('profile_tabs.id.status_none')}</span>
+  return <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-[#EFF1F5] text-[#98A2B2] border border-[#EFF1F5]">{t('profile_tabs.id.status_none')}</span>
 }
 
 function IdTab({ profile, onSaved }: { profile: WorkerProfile; onSaved: (p: Partial<WorkerProfile>) => void }) {
@@ -1009,7 +1009,7 @@ function IdTab({ profile, onSaved }: { profile: WorkerProfile; onSaved: (p: Part
       </div>
 
       {error && <p className="text-xs text-[#ED1C24]">{error}</p>}
-      {success && <p className="text-xs text-green-700">{success}</p>}
+      {success && <p className="text-xs text-[#1A6B1A]">{success}</p>}
       <SaveButton saving={saving} onClick={save} label={t('profile_tabs.id.save_button')} />
     </div>
   )
@@ -1146,7 +1146,7 @@ function SignatureTab({ profile, onSaved }: { profile: WorkerProfile; onSaved: (
       {existingUrl && (
         <div>
           <p className="text-xs font-medium text-[#98A2B2] mb-1">{t('profile_tabs.signature.current_label')}</p>
-          <div className="border border-[#EFF1F5] rounded-lg p-3 bg-gray-50">
+          <div className="border border-[#EFF1F5] rounded-lg p-3 bg-[#F2F4F5]">
             <img src={existingUrl} alt={t('profile_tabs.signature.current_label')} className="max-h-20 object-contain mx-auto" />
           </div>
           <p className="text-xs text-[#98A2B2] mt-1">{t('profile_tabs.signature.overwrite_hint')}</p>
@@ -1165,7 +1165,7 @@ function SignatureTab({ profile, onSaved }: { profile: WorkerProfile; onSaved: (
       </div>
 
       {error && <p className="text-xs text-[#ED1C24]">{error}</p>}
-      {success && <p className="text-xs text-green-700">{success}</p>}
+      {success && <p className="text-xs text-[#1A6B1A]">{success}</p>}
 
       <div className="flex gap-3">
         <button type="button" onClick={() => { clear(); setError(''); setSuccess('') }}
@@ -1173,7 +1173,7 @@ function SignatureTab({ profile, onSaved }: { profile: WorkerProfile; onSaved: (
           {t('profile_tabs.signature.clear')}
         </button>
         <button type="button" onClick={handleSave} disabled={saving}
-          className="flex-1 py-3 rounded-full bg-[#0669F7] text-white font-medium text-sm disabled:opacity-40">
+          className="flex-1 py-3 rounded-full bg-[#0669F7] text-white font-medium text-sm hover:bg-[#0557D4] disabled:opacity-40">
           {saving ? t('profile_tabs.signature.saving') : t('profile_tabs.signature.save')}
         </button>
       </div>
@@ -1221,8 +1221,8 @@ function LanguageTab({ currentLocale }: { currentLocale: string }) {
               className={[
                 'flex items-center gap-4 px-5 py-4 rounded-2xl border-2 text-left transition-all',
                 isCurrent
-                  ? 'border-[#0669F7] bg-blue-50'
-                  : 'border-[#EFF1F5] bg-white hover:border-[#0669F7]/40 hover:bg-gray-50',
+                  ? 'border-[#0669F7] bg-[#E6F0FE]'
+                  : 'border-[#EFF1F5] bg-white hover:border-[#0669F7]/40 hover:bg-[#F2F4F5]',
                 !!pending && !isCurrent ? 'opacity-40' : '',
               ].join(' ')}
             >
@@ -1266,10 +1266,10 @@ function ProfileCompletionBar({ profile }: { profile: WorkerProfile }) {
   const isComplete = pct === 100
   const isGood = pct >= 60
   const theme = isComplete
-    ? { card: 'bg-green-50 border-green-200', bar: 'bg-green-500', pct: 'text-green-600', sub: 'text-green-500' }
+    ? { card: 'bg-[#E6F9E6] border-[#86D98A]', bar: 'bg-[#00C800]', pct: 'text-[#1A6B1A]', sub: 'text-[#00C800]' }
     : isGood
-    ? { card: 'bg-blue-50 border-blue-200', bar: 'bg-[#0669F7]', pct: 'text-[#0669F7]', sub: 'text-[#5596F8]' }
-    : { card: 'bg-amber-50 border-amber-200', bar: 'bg-amber-500', pct: 'text-amber-600', sub: 'text-amber-500' }
+    ? { card: 'bg-[#E6F0FE] border-[#B3D9FF]', bar: 'bg-[#0669F7]', pct: 'text-[#0669F7]', sub: 'text-[#5596F8]' }
+    : { card: 'bg-[#FFF8E6] border-[#F5D87D]', bar: 'bg-[#FFC72C]', pct: 'text-[#856404]', sub: 'text-[#FFC72C]' }
 
   return (
     <div className={`rounded-2xl px-4 py-3 border ${theme.card}`}>
@@ -1391,7 +1391,7 @@ export default function WorkerProfileTabs({ locale }: { locale: string }) {
             <div className="flex items-center gap-2.5">
               <h1 className="text-xl font-bold text-[#25282A]">{t('profile_tabs.title')}</h1>
               {isNew && (
-                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-700 border border-blue-200">
+                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-[#D6E8FE] text-[#0669F7] border border-[#B3D9FF]">
                   {t('profile_tabs.new_badge')}
                 </span>
               )}
@@ -1434,7 +1434,7 @@ export default function WorkerProfileTabs({ locale }: { locale: string }) {
       {/* Content */}
       <div className="py-4">
         {isNew && (
-          <div className="mb-4 px-3 py-2 rounded-xl bg-blue-50 border border-blue-200 flex items-center gap-2 text-xs text-blue-700">
+          <div className="mb-4 px-3 py-2 rounded-xl bg-[#E6F0FE] border border-[#B3D9FF] flex items-center gap-2 text-xs text-[#0669F7]">
             <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>

@@ -93,7 +93,7 @@ export default function BasicInfoStep({ draft, onChange, onNext, isSaving }: Bas
                   flex-1 flex items-center justify-center py-3.5 rounded-2xl border-2
                   transition-all duration-150 min-h-[52px]
                   ${isSelected
-                    ? 'border-[#0669F7] bg-blue-50 text-[#0669F7]'
+                    ? 'border-[#0669F7] bg-[#E6F0FE] text-[#0669F7]'
                     : 'border-[#EFF1F5] bg-white text-[#98A2B2] hover:border-[#0669F7] hover:text-[#0669F7]'
                   }
                 `}
@@ -128,7 +128,7 @@ export default function BasicInfoStep({ draft, onChange, onNext, isSaving }: Bas
         type="button"
         onClick={handleNext}
         disabled={isNextDisabled}
-        className="w-full py-3 rounded-full bg-[#0669F7] text-white font-medium text-sm disabled:opacity-40 hover:bg-blue-700 transition-colors"
+        className="w-full py-3 rounded-full bg-[#0669F7] text-white font-medium text-sm disabled:opacity-40 hover:bg-[#0557D4] transition-colors"
       >
         {isSaving ? '저장 중...' : '다음'}
       </button>

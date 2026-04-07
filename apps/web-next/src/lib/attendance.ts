@@ -24,8 +24,8 @@ export const STATUS_LABELS: Record<string, string> = {
 }
 
 export const STATUS_COLORS: Record<string, string> = {
-  PENDING:  'bg-gray-100 text-[#7A7B7A] border-[#DDDDDD]',
-  ATTENDED: 'bg-green-50 text-green-700 border-green-200',
-  HALF_DAY: 'bg-yellow-50 text-yellow-700 border-yellow-200',
-  ABSENT:   'bg-red-50 text-[#ED1C24] border-red-200',
+  PENDING:  'bg-[#EFF1F5] text-[#7A7B7A] border-[#DDDDDD]',
+  ATTENDED: 'bg-[#E6F9E6] text-[#1A6B1A] border-[#86D98A]',
+  HALF_DAY: 'bg-[#FFF8E6] text-[#856404] border-[#F5D87D]',
+  ABSENT:   'bg-[#FDE8EE] text-[#ED1C24] border-[#F4A8B8]',
 }

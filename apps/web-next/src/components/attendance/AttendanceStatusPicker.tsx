@@ -24,7 +24,7 @@ export default function AttendanceStatusPicker({ value, onChange, disabled }: Pr
     {
       status: 'ATTENDED',
       label: t('worker_attendance.attended'),
-      selectedClass: 'border-green-500 bg-green-50 text-green-700',
+      selectedClass: 'border-[#00C800] bg-[#E6F9E6] text-[#1A6B1A]',
       icon: (
         <svg className="w-4 h-4" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
           <polyline points="2,8 6,12 14,4" />
@@ -34,7 +34,7 @@ export default function AttendanceStatusPicker({ value, onChange, disabled }: Pr
     {
       status: 'HALF_DAY',
       label: t('worker_attendance.half_day'),
-      selectedClass: 'border-yellow-500 bg-yellow-50 text-yellow-700',
+      selectedClass: 'border-[#FFC72C] bg-[#FFF8E6] text-[#856404]',
       icon: (
         <svg className="w-4 h-4" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
           <path d="M8 2a6 6 0 0 0 0 12V2z" />
@@ -45,7 +45,7 @@ export default function AttendanceStatusPicker({ value, onChange, disabled }: Pr
     {
       status: 'ABSENT',
       label: t('worker_attendance.absent'),
-      selectedClass: 'border-[#ED1C24] bg-red-50 text-[#ED1C24]',
+      selectedClass: 'border-[#ED1C24] bg-[#FDE8EE] text-[#ED1C24]',
       icon: (
         <svg className="w-4 h-4" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" aria-hidden="true">
           <line x1="3" y1="3" x2="13" y2="13" />
@@ -56,7 +56,7 @@ export default function AttendanceStatusPicker({ value, onChange, disabled }: Pr
     {
       status: 'PENDING',
       label: t('worker_attendance.pending'),
-      selectedClass: 'border-[#EFF1F5] bg-gray-100 text-[#98A2B2]',
+      selectedClass: 'border-[#EFF1F5] bg-[#EFF1F5] text-[#98A2B2]',
       icon: (
         <svg className="w-4 h-4" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" aria-hidden="true">
           <circle cx="8" cy="8" r="6" />
@@ -82,7 +82,7 @@ export default function AttendanceStatusPicker({ value, onChange, disabled }: Pr
               'flex-1 py-3 rounded-2xl text-sm font-medium border-2 transition-all flex flex-col items-center gap-1',
               isSelected
                 ? selectedClass
-                : 'border-[#EFF1F5] text-[#98A2B2] hover:border-gray-400',
+                : 'border-[#EFF1F5] text-[#98A2B2] hover:border-[#DDDDDD]',
               disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer',
             ].join(' ')}
           >

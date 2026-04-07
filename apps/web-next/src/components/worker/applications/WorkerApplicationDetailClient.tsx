@@ -110,9 +110,9 @@ export default function WorkerApplicationDetailClient({ id, locale }: { id: stri
   if (isLoading) {
     return (
       <div className="py-6 animate-pulse space-y-4">
-        <div className="h-6 bg-gray-200 rounded w-1/2" />
-        <div className="h-40 bg-gray-100 rounded-2xl" />
-        <div className="h-20 bg-gray-100 rounded-2xl" />
+        <div className="h-6 bg-[#DDDDDD] rounded w-1/2" />
+        <div className="h-40 bg-[#EFF1F5] rounded-2xl" />
+        <div className="h-20 bg-[#EFF1F5] rounded-2xl" />
       </div>
     )
   }

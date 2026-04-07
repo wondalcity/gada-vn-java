@@ -202,7 +202,7 @@ export default function WorkerExperienceClient({ locale }: { locale: string }) {
     <div className="pb-8">
       {/* Toast */}
       {toast && (
-        <div className={`fixed top-4 left-1/2 -translate-x-1/2 z-50 px-4 py-3 rounded-2xl shadow-md text-sm font-medium text-white ${toast.type === 'success' ? 'bg-green-600' : 'bg-[#ED1C24]'}`}>
+        <div className={`fixed top-4 left-1/2 -translate-x-1/2 z-50 px-4 py-3 rounded-2xl shadow-md text-sm font-medium text-white ${toast.type === 'success' ? 'bg-[#00C800]' : 'bg-[#ED1C24]'}`}>
           {toast.message}
         </div>
       )}
@@ -221,7 +221,7 @@ export default function WorkerExperienceClient({ locale }: { locale: string }) {
           <button
             type="button"
             onClick={openAdd}
-            className="flex items-center gap-1.5 px-4 py-2 rounded-full bg-[#0669F7] text-white text-sm font-medium hover:bg-blue-700 transition-colors"
+            className="flex items-center gap-1.5 px-4 py-2 rounded-full bg-[#0669F7] text-white text-sm font-medium hover:bg-[#0557D4] transition-colors"
           >
             <PlusIcon />
             {t('experience.add')}
@@ -304,7 +304,7 @@ export default function WorkerExperienceClient({ locale }: { locale: string }) {
               <button
                 type="submit"
                 disabled={isSaving}
-                className="flex-1 py-2.5 rounded-full bg-[#0669F7] text-white text-sm font-medium disabled:opacity-50 hover:bg-blue-700 transition-colors"
+                className="flex-1 py-2.5 rounded-full bg-[#0669F7] text-white text-sm font-medium disabled:opacity-50 hover:bg-[#0557D4] transition-colors"
               >
                 {isSaving ? t('saving') : t('save')}
               </button>
@@ -318,9 +318,9 @@ export default function WorkerExperienceClient({ locale }: { locale: string }) {
         <div className="space-y-3">
           {[1, 2].map(i => (
             <div key={i} className="bg-white rounded-2xl border border-[#EFF1F5] p-4 animate-pulse">
-              <div className="h-4 bg-gray-200 rounded w-1/2 mb-2" />
-              <div className="h-3 bg-gray-100 rounded w-1/3 mb-1" />
-              <div className="h-3 bg-gray-100 rounded w-1/4" />
+              <div className="h-4 bg-[#DDDDDD] rounded w-1/2 mb-2" />
+              <div className="h-3 bg-[#EFF1F5] rounded w-1/3 mb-1" />
+              <div className="h-3 bg-[#EFF1F5] rounded w-1/4" />
             </div>
           ))}
         </div>
@@ -332,7 +332,7 @@ export default function WorkerExperienceClient({ locale }: { locale: string }) {
           <button
             type="button"
             onClick={openAdd}
-            className="inline-flex items-center gap-1.5 px-5 py-2 rounded-full bg-[#0669F7] text-white text-sm font-medium hover:bg-blue-700 transition-colors"
+            className="inline-flex items-center gap-1.5 px-5 py-2 rounded-full bg-[#0669F7] text-white text-sm font-medium hover:bg-[#0557D4] transition-colors"
           >
             <PlusIcon />
             {t('experience.add')}

@@ -85,7 +85,7 @@ export default function TermsStep({ draft, onChange, onComplete, isSaving }: Ter
       </div>
 
       {/* Summary card */}
-      <div className="bg-gray-50 border border-[#EFF1F5] rounded-2xl p-4">
+      <div className="bg-[#F2F4F5] border border-[#EFF1F5] rounded-2xl p-4">
         <p className="text-sm font-medium text-[#25282A] mb-3">입력 완료 항목</p>
         <ul className="space-y-2">
           {summaryItems.map((item) => (
@@ -93,7 +93,7 @@ export default function TermsStep({ draft, onChange, onComplete, isSaving }: Ter
               <span className="w-6 flex items-center justify-center text-[#98A2B2] flex-shrink-0">{item.icon}</span>
               <span className="text-sm text-[#25282A] flex-1">{item.label}</span>
               {item.filled ? (
-                <span className="flex items-center gap-1 text-xs text-green-700">
+                <span className="flex items-center gap-1 text-xs text-[#1A6B1A]">
                   <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                   </svg>
@@ -114,7 +114,7 @@ export default function TermsStep({ draft, onChange, onComplete, isSaving }: Ter
           <button
             type="button"
             onClick={handleAgreeAll}
-            className="w-full py-2.5 rounded-2xl border border-[#0669F7] text-[#0669F7] text-sm font-medium hover:bg-blue-50 transition-colors"
+            className="w-full py-2.5 rounded-2xl border border-[#0669F7] text-[#0669F7] text-sm font-medium hover:bg-[#E6F0FE] transition-colors"
           >
             전체 동의
           </button>
@@ -167,7 +167,7 @@ export default function TermsStep({ draft, onChange, onComplete, isSaving }: Ter
 
       {/* Error message */}
       {error && (
-        <div className="p-3 bg-red-50 border border-red-200 rounded-2xl text-sm text-[#ED1C24]">
+        <div className="p-3 bg-[#FDE8EE] border border-[#F4A8B8] rounded-2xl text-sm text-[#ED1C24]">
           {error}
         </div>
       )}
@@ -177,7 +177,7 @@ export default function TermsStep({ draft, onChange, onComplete, isSaving }: Ter
         type="button"
         onClick={handleComplete}
         disabled={!canComplete || isSaving}
-        className="w-full py-3 rounded-full bg-[#0669F7] text-white font-medium text-sm disabled:opacity-40 hover:bg-blue-700 transition-colors"
+        className="w-full py-3 rounded-full bg-[#0669F7] text-white font-medium text-sm disabled:opacity-40 hover:bg-[#0557D4] transition-colors"
       >
         {isSaving ? '저장 중...' : '프로필 완성하기'}
       </button>

@@ -97,15 +97,15 @@ export default function HireDetailClient({ hireId }: Props) {
   if (isLoading) {
     return (
       <div className="animate-pulse space-y-4">
-        <div className="h-32 bg-gray-200 rounded-2xl" />
-        <div className="h-48 bg-gray-200 rounded-2xl" />
+        <div className="h-32 bg-[#DDDDDD] rounded-2xl" />
+        <div className="h-48 bg-[#DDDDDD] rounded-2xl" />
       </div>
     )
   }
 
   if (!hire) {
     return (
-      <div className="p-6 rounded-2xl bg-red-50 border border-red-200 text-sm text-[#ED1C24] text-center">
+      <div className="p-6 rounded-2xl bg-[#FDE8EE] border border-[#F4A8B8] text-sm text-[#ED1C24] text-center">
         합격자 정보를 불러올 수 없습니다
       </div>
     )
@@ -127,9 +127,9 @@ export default function HireDetailClient({ hireId }: Props) {
       </Link>
 
       {isDemo && (
-        <div className="mb-4 flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-amber-50 border border-amber-200 text-sm text-amber-700">
+        <div className="mb-4 flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-[#FFF8E6] border border-[#F5D87D] text-sm text-[#856404]">
           <span className="font-semibold">데모 데이터</span>
-          <span className="text-amber-600">— API 연결 후 실제 데이터가 표시됩니다</span>
+          <span className="text-[#856404]">— API 연결 후 실제 데이터가 표시됩니다</span>
         </div>
       )}
 
@@ -145,8 +145,8 @@ export default function HireDetailClient({ hireId }: Props) {
           </div>
           <span className={`ml-auto inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${
             hire.status === 'CONTRACTED'
-              ? 'bg-green-50 text-green-700 border border-green-200'
-              : 'bg-blue-50 text-blue-700 border border-blue-200'
+              ? 'bg-[#E6F9E6] text-[#1A6B1A] border border-[#86D98A]'
+              : 'bg-[#E6F0FE] text-[#0669F7] border border-[#B3D9FF]'
           }`}>
             {hire.status === 'CONTRACTED' ? '계약완료' : '합격'}
           </span>
@@ -189,7 +189,7 @@ export default function HireDetailClient({ hireId }: Props) {
               </span>
               <Link
                 href={`/manager/contracts/${hire.contract.id}`}
-                className="px-4 py-2 rounded-2xl bg-[#0669F7] text-white font-medium text-sm hover:bg-blue-700 transition-colors"
+                className="px-4 py-2 rounded-2xl bg-[#0669F7] text-white font-medium text-sm hover:bg-[#0557D4] transition-colors"
               >
                 계약서 보기
               </Link>
@@ -218,7 +218,7 @@ export default function HireDetailClient({ hireId }: Props) {
             <button
               onClick={handleCreateContract}
               disabled={creatingContract || isDemo}
-              className="px-5 py-2.5 rounded-2xl bg-[#0669F7] text-white font-medium text-sm hover:bg-blue-700 transition-colors disabled:opacity-40"
+              className="px-5 py-2.5 rounded-2xl bg-[#0669F7] text-white font-medium text-sm hover:bg-[#0557D4] transition-colors disabled:opacity-40"
             >
               {creatingContract ? '생성 중...' : '계약서 생성'}
             </button>

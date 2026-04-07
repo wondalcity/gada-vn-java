@@ -49,7 +49,7 @@ export default function BankAccountStep({ draft, onChange, onNext, isSaving }: B
       </div>
 
       {/* Helper text */}
-      <p className="text-xs text-[#98A2B2] bg-gray-50 rounded-2xl p-3 border border-[#EFF1F5]">
+      <p className="text-xs text-[#98A2B2] bg-[#F2F4F5] rounded-2xl p-3 border border-[#EFF1F5]">
         계좌 정보는 급여 지급 및 정산 시에만 사용됩니다. 언제든지 수정할 수 있습니다.
       </p>
 
@@ -66,7 +66,7 @@ export default function BankAccountStep({ draft, onChange, onNext, isSaving }: B
           type="button"
           onClick={onNext}
           disabled={isSaving}
-          className="px-8 py-3 rounded-full bg-[#0669F7] text-white font-medium text-sm disabled:opacity-40 hover:bg-blue-700 transition-colors"
+          className="px-8 py-3 rounded-full bg-[#0669F7] text-white font-medium text-sm disabled:opacity-40 hover:bg-[#0557D4] transition-colors"
         >
           {isSaving ? '저장 중...' : '다음'}
         </button>

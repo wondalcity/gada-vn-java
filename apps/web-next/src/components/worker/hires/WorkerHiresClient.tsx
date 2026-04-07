@@ -78,7 +78,7 @@ function formatDate(d: string): string {
 function BuildingIllustration() {
   return (
     <svg
-      className="w-20 h-20 text-gray-300 mx-auto mb-4"
+      className="w-20 h-20 text-[#DDDDDD] mx-auto mb-4"
       fill="none"
       viewBox="0 0 64 64"
       stroke="currentColor"
@@ -121,9 +121,9 @@ export default function WorkerHiresClient() {
         <div className="space-y-3">
           {[1, 2, 3].map(i => (
             <div key={i} className="bg-white rounded-2xl shadow-sm border border-[#EFF1F5] p-4 animate-pulse">
-              <div className="h-4 bg-gray-200 rounded w-2/3 mb-3" />
-              <div className="h-3 bg-gray-200 rounded w-1/2 mb-2" />
-              <div className="h-3 bg-gray-200 rounded w-1/3" />
+              <div className="h-4 bg-[#DDDDDD] rounded w-2/3 mb-3" />
+              <div className="h-3 bg-[#DDDDDD] rounded w-1/2 mb-2" />
+              <div className="h-3 bg-[#DDDDDD] rounded w-1/3" />
             </div>
           ))}
         </div>
@@ -148,7 +148,7 @@ export default function WorkerHiresClient() {
       <div className="py-6 flex items-center gap-3">
         <h1 className="text-xl font-bold text-[#25282A]">{t('worker_hires.title')}</h1>
         {isDemo && (
-          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-700 border border-amber-200">
+          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-[#FFE9B0] text-[#856404] border border-[#F5D87D]">
             {t('demo_data')}
           </span>
         )}
@@ -165,7 +165,7 @@ export default function WorkerHiresClient() {
           {displayHires.map(hire => (
             <div key={hire.id} className="bg-white rounded-2xl shadow-sm border border-[#EFF1F5] p-4 relative">
               {/* Accepted badge */}
-              <span className="absolute top-4 right-4 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-50 text-green-700 border border-green-200">
+              <span className="absolute top-4 right-4 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-[#E6F9E6] text-[#1A6B1A] border border-[#86D98A]">
                 {t('worker_hires.badge_accepted')}
               </span>
 
@@ -194,7 +194,7 @@ export default function WorkerHiresClient() {
                 {hire.contractId && (
                   <Link
                     href={`/worker/contracts/${hire.contractId}`}
-                    className="px-4 py-2 rounded-full bg-[#0669F7] text-white font-medium text-xs"
+                    className="px-4 py-2 rounded-full bg-[#0669F7] text-white font-medium hover:bg-[#0557D4] transition-colors text-xs"
                   >
                     {t('worker_hires.view_contract')}
                   </Link>

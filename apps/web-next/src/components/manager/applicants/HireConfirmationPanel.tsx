@@ -35,7 +35,7 @@ export default function HireConfirmationPanel({
               {acceptedCount}명 합격 처리됨 / {slotsTotal}명 모집
             </p>
             {/* Mini progress bar */}
-            <div className="w-full bg-gray-200 rounded-full h-1.5 mt-1.5">
+            <div className="w-full bg-[#DDDDDD] rounded-full h-1.5 mt-1.5">
               <div
                 className="bg-[#0669F7] h-1.5 rounded-full transition-all"
                 style={{ width: `${progress}%` }}
@@ -49,7 +49,7 @@ export default function HireConfirmationPanel({
                 type="button"
                 onClick={() => setShowConfirm(true)}
                 disabled={isConfirming || acceptedCount === 0}
-                className="px-5 py-2.5 rounded-full bg-[#0669F7] text-white font-medium text-sm disabled:opacity-40"
+                className="px-5 py-2.5 rounded-full bg-[#0669F7] text-white font-medium text-sm hover:bg-[#0557D4] disabled:opacity-40"
               >
                 선발 완료하기
               </button>
@@ -57,7 +57,7 @@ export default function HireConfirmationPanel({
               <button
                 type="button"
                 disabled
-                className="px-5 py-2.5 rounded-full bg-[#0669F7] text-white font-medium text-sm disabled:opacity-40"
+                className="px-5 py-2.5 rounded-full bg-[#0669F7] text-white font-medium text-sm hover:bg-[#0557D4] disabled:opacity-40"
               >
                 모집이 완료되었습니다
               </button>

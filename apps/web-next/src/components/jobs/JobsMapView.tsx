@@ -739,7 +739,7 @@ export default function JobsMapView({
         <div className="flex-1 overflow-y-auto px-5 py-4">{filterPanel}</div>
         <div className="shrink-0 px-5 pt-3 pb-5 border-t border-[#F2F2F2]">
           <button type="button" onClick={() => setFilterOpen(false)}
-            className="w-full py-3.5 rounded-full bg-[#0669F7] text-white font-semibold text-sm">
+            className="w-full py-3.5 rounded-full bg-[#0669F7] text-white font-semibold hover:bg-[#0557D4] transition-colors text-sm">
             {activeFilterCount > 0 ? `필터 적용 (${activeFilterCount})` : '닫기'}
           </button>
         </div>

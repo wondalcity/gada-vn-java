@@ -85,7 +85,7 @@ export function ManagerActionButton({ locale, isManager, managerStatus, variant 
   if (status === 'pending') {
     if (variant === 'hero') {
       return (
-        <div className="relative mt-3 flex items-center justify-center gap-2 w-full py-2.5 rounded-xl bg-amber-400/20 border border-amber-300/40 text-amber-200 text-sm font-semibold">
+        <div className="relative mt-3 flex items-center justify-center gap-2 w-full py-2.5 rounded-xl bg-[#FFC72C]/20 border border-[#F5D87D]/40 text-[#FFC72C] text-sm font-semibold">
           <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>

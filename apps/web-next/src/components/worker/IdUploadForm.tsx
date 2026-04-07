@@ -47,7 +47,7 @@ function UploadZone({ label, tapLabel, currentUrl, preview, onFileChange }: Uplo
         onClick={() => inputRef.current?.click()}
         className={`relative w-full h-40 rounded-2xl border-2 border-dashed ${
           displayUrl ? 'border-[#0669F7]' : 'border-[#EFF1F5]'
-        } flex items-center justify-center overflow-hidden hover:border-[#0669F7] transition-colors bg-gray-50`}
+        } flex items-center justify-center overflow-hidden hover:border-[#0669F7] transition-colors bg-[#F2F4F5]`}
       >
         {displayUrl ? (
           <img src={displayUrl} alt={label} className="w-full h-full object-cover" />
@@ -89,7 +89,7 @@ function UploadZone({ label, tapLabel, currentUrl, preview, onFileChange }: Uplo
 function VerifiedBadge({ status, labels }: { status: VerifiedStatus; labels: { verified: string; review: string; unregistered: string } }) {
   if (status === 'verified') {
     return (
-      <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium bg-green-50 text-green-700 border border-green-200">
+      <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium bg-[#E6F9E6] text-[#1A6B1A] border border-[#86D98A]">
         <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
           <path
             fillRule="evenodd"
@@ -103,7 +103,7 @@ function VerifiedBadge({ status, labels }: { status: VerifiedStatus; labels: { v
   }
   if (status === 'pending') {
     return (
-      <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium bg-yellow-50 text-yellow-700 border border-yellow-200">
+      <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium bg-[#FFF8E6] text-[#856404] border border-[#F5D87D]">
         <svg className="w-3 h-3 animate-spin" fill="none" viewBox="0 0 24 24">
           <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
           <path
@@ -117,7 +117,7 @@ function VerifiedBadge({ status, labels }: { status: VerifiedStatus; labels: { v
     )
   }
   return (
-    <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium bg-gray-100 text-[#98A2B2] border border-[#EFF1F5]">
+    <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium bg-[#EFF1F5] text-[#98A2B2] border border-[#EFF1F5]">
       {labels.unregistered}
     </span>
   )
@@ -212,7 +212,7 @@ export default function IdUploadForm({ locale }: { locale: string }) {
       {isLoading ? (
         <div className="bg-white rounded-2xl shadow-sm border border-[#EFF1F5] p-5 space-y-4">
           {Array.from({ length: 3 }).map((_, i) => (
-            <div key={i} className="h-10 bg-gray-100 rounded-2xl animate-pulse" />
+            <div key={i} className="h-10 bg-[#EFF1F5] rounded-2xl animate-pulse" />
           ))}
         </div>
       ) : (
@@ -254,12 +254,12 @@ export default function IdUploadForm({ locale }: { locale: string }) {
 
             {/* Success / error messages */}
             {successMessage && (
-              <div className="p-3 bg-green-50 border border-green-200 rounded-2xl text-sm text-green-700">
+              <div className="p-3 bg-[#E6F9E6] border border-[#86D98A] rounded-2xl text-sm text-[#1A6B1A]">
                 {successMessage}
               </div>
             )}
             {errorMessage && (
-              <div className="p-3 bg-red-50 border border-red-200 rounded-2xl text-sm text-[#ED1C24]">
+              <div className="p-3 bg-[#FDE8EE] border border-[#F4A8B8] rounded-2xl text-sm text-[#ED1C24]">
                 {errorMessage}
               </div>
             )}
@@ -268,7 +268,7 @@ export default function IdUploadForm({ locale }: { locale: string }) {
             <button
               type="submit"
               disabled={isUploading || (!frontFile && !backFile && !idNumber)}
-              className="w-full py-3 rounded-full bg-[#0669F7] text-white font-medium disabled:opacity-50 text-sm hover:bg-blue-700 transition-colors"
+              className="w-full py-3 rounded-full bg-[#0669F7] text-white font-medium disabled:opacity-50 text-sm hover:bg-[#0557D4] transition-colors"
             >
               {isUploading ? t('worker_id_upload.uploading') : t('worker_id_upload.submit')}
             </button>

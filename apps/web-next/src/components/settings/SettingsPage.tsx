@@ -57,8 +57,8 @@ function LanguageSection({ currentLocale }: { currentLocale: string }) {
               className={[
                 'flex items-center gap-4 px-5 py-4 rounded-2xl border-2 text-left transition-all',
                 isCurrent
-                  ? 'border-[#0669F7] bg-blue-50'
-                  : 'border-[#EFF1F5] bg-white hover:border-[#0669F7]/40 hover:bg-gray-50',
+                  ? 'border-[#0669F7] bg-[#E6F0FE]'
+                  : 'border-[#EFF1F5] bg-white hover:border-[#0669F7]/40 hover:bg-[#F2F4F5]',
                 !!pending && !isCurrent ? 'opacity-40' : '',
               ].join(' ')}
             >

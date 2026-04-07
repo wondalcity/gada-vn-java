@@ -27,12 +27,12 @@ function SkeletonCard() {
   return (
     <div className="bg-white rounded-2xl shadow-sm border border-[#EFF1F5] p-4 animate-pulse space-y-2">
       <div className="flex justify-between">
-        <div className="h-4 bg-gray-200 rounded w-1/2" />
-        <div className="h-5 bg-gray-200 rounded-full w-14" />
+        <div className="h-4 bg-[#DDDDDD] rounded w-1/2" />
+        <div className="h-5 bg-[#DDDDDD] rounded-full w-14" />
       </div>
-      <div className="h-3 bg-gray-200 rounded w-1/3" />
-      <div className="h-4 bg-gray-200 rounded w-1/4" />
-      <div className="h-2 bg-gray-200 rounded w-full" />
+      <div className="h-3 bg-[#DDDDDD] rounded w-1/3" />
+      <div className="h-4 bg-[#DDDDDD] rounded w-1/4" />
+      <div className="h-2 bg-[#DDDDDD] rounded w-full" />
     </div>
   )
 }
@@ -316,7 +316,7 @@ export default function AllJobsClient({ locale }: AllJobsClientProps) {
 
   if (error) {
     return (
-      <div className="p-4 rounded-2xl bg-red-50 border border-red-200 text-sm text-[#ED1C24] text-center">
+      <div className="p-4 rounded-2xl bg-[#FDE8EE] border border-[#F4A8B8] text-sm text-[#ED1C24] text-center">
         {error}
       </div>
     )
@@ -327,7 +327,7 @@ export default function AllJobsClient({ locale }: AllJobsClientProps) {
       {/* Demo badge */}
       {isDemo && (
         <div className="mb-2 flex items-center gap-2">
-          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-700 border border-amber-200">
+          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-[#FFE9B0] text-[#856404] border border-[#F5D87D]">
             데모 데이터
           </span>
           <span className="text-xs text-[#98A2B2]">실제 공고를 등록하면 여기에 표시됩니다</span>
@@ -367,7 +367,7 @@ export default function AllJobsClient({ locale }: AllJobsClientProps) {
       )}
 
       {/* Tab filter */}
-      <div className="sticky top-0 z-10 bg-gray-50 -mx-4 px-4 pb-2">
+      <div className="sticky top-0 z-10 bg-[#F2F4F5] -mx-4 px-4 pb-2">
         <div className="flex gap-1 overflow-x-auto scrollbar-hide">
           {STATUS_TABS.map((tab) => (
             <button
@@ -403,7 +403,7 @@ export default function AllJobsClient({ locale }: AllJobsClientProps) {
             <button
               type="button"
               onClick={() => setShowSitePicker(true)}
-              className="px-5 py-2.5 rounded-full bg-[#0669F7] text-white font-medium text-sm"
+              className="px-5 py-2.5 rounded-full bg-[#0669F7] text-white font-medium hover:bg-[#0557D4] transition-colors text-sm"
             >
               첫 공고 등록하기
             </button>

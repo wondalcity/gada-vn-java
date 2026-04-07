@@ -36,8 +36,8 @@ const EMPTY_FORM: FormValues = {
 function ApprovedState() {
   return (
     <div className="flex flex-col items-center py-12 text-center">
-      <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center mb-4">
-        <svg className="w-8 h-8 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+      <div className="w-16 h-16 rounded-full bg-[#D6F0D6] flex items-center justify-center mb-4">
+        <svg className="w-8 h-8 text-[#1A6B1A]" fill="currentColor" viewBox="0 0 20 20">
           <path
             fillRule="evenodd"
             d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
@@ -70,8 +70,8 @@ function PendingState({
 
   return (
     <div className="flex flex-col items-center py-12 text-center">
-      <div className="w-16 h-16 rounded-full bg-yellow-100 flex items-center justify-center mb-4">
-        <svg className="w-8 h-8 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <div className="w-16 h-16 rounded-full bg-[#FFE9B0] flex items-center justify-center mb-4">
+        <svg className="w-8 h-8 text-[#856404]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path
             strokeLinecap="round"
             strokeLinejoin="round"
@@ -107,7 +107,7 @@ function RejectedState({
 }) {
   return (
     <div className="mb-6">
-      <div className="flex items-start gap-3 p-4 bg-red-50 border border-red-200 rounded-2xl mb-4">
+      <div className="flex items-start gap-3 p-4 bg-[#FDE8EE] border border-[#F4A8B8] rounded-2xl mb-4">
         <svg
           className="w-5 h-5 text-[#ED1C24] flex-shrink-0 mt-0.5"
           fill="currentColor"
@@ -271,7 +271,7 @@ function RegistrationForm({ onSuccess, idToken }: RegistrationFormProps) {
           onClick={() => fileInputRef.current?.click()}
           className={`w-full px-3 py-3 rounded-2xl border-2 border-dashed text-sm transition-colors ${
             values.registrationDoc
-              ? 'border-[#0669F7] text-[#0669F7] bg-blue-50'
+              ? 'border-[#0669F7] text-[#0669F7] bg-[#E6F0FE]'
               : 'border-[#EFF1F5] text-[#98A2B2] hover:border-[#0669F7]'
           }`}
         >
@@ -312,7 +312,7 @@ function RegistrationForm({ onSuccess, idToken }: RegistrationFormProps) {
 
       {/* Error message */}
       {errorMessage && (
-        <div className="p-3 bg-red-50 border border-red-200 rounded-2xl text-sm text-[#ED1C24]">
+        <div className="p-3 bg-[#FDE8EE] border border-[#F4A8B8] rounded-2xl text-sm text-[#ED1C24]">
           {errorMessage}
         </div>
       )}
@@ -321,7 +321,7 @@ function RegistrationForm({ onSuccess, idToken }: RegistrationFormProps) {
       <button
         type="submit"
         disabled={isSubmitting}
-        className="w-full py-3 rounded-full bg-[#0669F7] text-white font-medium disabled:opacity-50 text-sm hover:bg-blue-700 transition-colors"
+        className="w-full py-3 rounded-full bg-[#0669F7] text-white font-medium disabled:opacity-50 text-sm hover:bg-[#0557D4] transition-colors"
       >
         {isSubmitting ? '신청 중...' : '매니저 등록 신청'}
       </button>
@@ -383,8 +383,8 @@ export default function ManagerRegistrationForm() {
         <div className="bg-white rounded-2xl shadow-sm border border-[#EFF1F5] p-5 space-y-4">
           {Array.from({ length: 4 }).map((_, i) => (
             <div key={i}>
-              <div className="h-4 bg-gray-100 rounded w-24 mb-1 animate-pulse" />
-              <div className="h-10 bg-gray-100 rounded-2xl animate-pulse" />
+              <div className="h-4 bg-[#EFF1F5] rounded w-24 mb-1 animate-pulse" />
+              <div className="h-10 bg-[#EFF1F5] rounded-2xl animate-pulse" />
             </div>
           ))}
         </div>

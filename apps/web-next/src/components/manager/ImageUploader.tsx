@@ -123,7 +123,7 @@ export default function ImageUploader({
 
                 {/* Cover badge */}
                 {isCover && (
-                  <div className="absolute bottom-0 left-0 right-0 bg-[#0669F7]/90 text-white text-[10px] font-semibold text-center py-0.5">
+                  <div className="absolute bottom-0 left-0 right-0 bg-[#0669F7]/90 text-white hover:bg-[#0557D4] transition-colors text-[10px] font-semibold text-center py-0.5">
                     대표
                   </div>
                 )}
@@ -139,7 +139,7 @@ export default function ImageUploader({
           type="button"
           onClick={() => inputRef.current?.click()}
           disabled={isUploading}
-          className="w-full py-3 rounded-2xl border-2 border-dashed border-[#EFF1F5] flex items-center justify-center gap-2 bg-gray-50 hover:bg-[#E6F0FE] hover:border-[#0669F7] transition-colors disabled:opacity-60 text-sm text-[#98A2B2] hover:text-[#0669F7]"
+          className="w-full py-3 rounded-2xl border-2 border-dashed border-[#EFF1F5] flex items-center justify-center gap-2 bg-[#F2F4F5] hover:bg-[#E6F0FE] hover:border-[#0669F7] transition-colors disabled:opacity-60 text-sm text-[#98A2B2] hover:text-[#0669F7]"
         >
           {isUploading ? (
             <>

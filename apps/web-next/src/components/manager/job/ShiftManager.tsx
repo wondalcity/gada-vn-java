@@ -193,7 +193,7 @@ export default function ShiftManager({ jobId, initialShifts, idToken }: ShiftMan
 
       {/* Single date add */}
       {showSingleAdd && (
-        <div className="mb-4 p-3 bg-gray-50 rounded-2xl border border-[#EFF1F5] flex items-end gap-2">
+        <div className="mb-4 p-3 bg-[#F2F4F5] rounded-2xl border border-[#EFF1F5] flex items-end gap-2">
           <div className="flex-1">
             <label className="block text-xs font-medium text-[#25282A] mb-1">날짜 선택</label>
             <input
@@ -208,7 +208,7 @@ export default function ShiftManager({ jobId, initialShifts, idToken }: ShiftMan
             type="button"
             onClick={handleAddSingle}
             disabled={!singleDate || isAddingSingle}
-            className="px-4 py-2 rounded-full bg-[#0669F7] text-white font-medium text-sm disabled:opacity-40"
+            className="px-4 py-2 rounded-full bg-[#0669F7] text-white font-medium text-sm hover:bg-[#0557D4] disabled:opacity-40"
           >
             {isAddingSingle ? '추가 중...' : '추가'}
           </button>
@@ -224,7 +224,7 @@ export default function ShiftManager({ jobId, initialShifts, idToken }: ShiftMan
 
       {/* Range add */}
       {showRangeAdd && (
-        <div className="mb-4 p-3 bg-gray-50 rounded-2xl border border-[#EFF1F5] space-y-2">
+        <div className="mb-4 p-3 bg-[#F2F4F5] rounded-2xl border border-[#EFF1F5] space-y-2">
           <p className="text-xs text-[#98A2B2]">일요일을 제외한 평일+토요일이 추가됩니다</p>
           <div className="flex items-end gap-2">
             <div className="flex-1">
@@ -254,7 +254,7 @@ export default function ShiftManager({ jobId, initialShifts, idToken }: ShiftMan
               type="button"
               onClick={handleAddRange}
               disabled={!rangeFrom || !rangeTo || isAddingRange}
-              className="px-4 py-2 rounded-full bg-[#0669F7] text-white font-medium text-sm disabled:opacity-40"
+              className="px-4 py-2 rounded-full bg-[#0669F7] text-white font-medium text-sm hover:bg-[#0557D4] disabled:opacity-40"
             >
               {isAddingRange ? '추가 중...' : '추가'}
             </button>
@@ -270,7 +270,7 @@ export default function ShiftManager({ jobId, initialShifts, idToken }: ShiftMan
       )}
 
       {error && (
-        <div className="mb-3 p-3 rounded-2xl bg-red-50 border border-red-200 text-xs text-[#ED1C24]">
+        <div className="mb-3 p-3 rounded-2xl bg-[#FDE8EE] border border-[#F4A8B8] text-xs text-[#ED1C24]">
           {error}
         </div>
       )}
@@ -293,7 +293,7 @@ export default function ShiftManager({ jobId, initialShifts, idToken }: ShiftMan
                 <button
                   type="button"
                   onClick={() => setCancelShiftId(shift.id)}
-                  className="text-xs text-[#ED1C24] font-medium px-2 py-1 rounded-2xl hover:bg-red-50"
+                  className="text-xs text-[#ED1C24] font-medium px-2 py-1 rounded-2xl hover:bg-[#FDE8EE]"
                 >
                   취소
                 </button>

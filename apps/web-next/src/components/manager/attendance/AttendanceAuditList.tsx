@@ -49,7 +49,7 @@ export default function AttendanceAuditList({ attendanceId, jobId, idToken }: Pr
     return (
       <div className="space-y-2 pt-2">
         {[1, 2].map(i => (
-          <div key={i} className="h-12 bg-gray-100 rounded animate-pulse" />
+          <div key={i} className="h-12 bg-[#EFF1F5] rounded animate-pulse" />
         ))}
       </div>
     )
@@ -84,8 +84,8 @@ export default function AttendanceAuditList({ attendanceId, jobId, idToken }: Pr
                 <span className="text-[#98A2B2]"> → </span>
                 <span className={[
                   'font-medium',
-                  entry.newStatus === 'ATTENDED' ? 'text-green-700' :
-                  entry.newStatus === 'HALF_DAY' ? 'text-yellow-700' :
+                  entry.newStatus === 'ATTENDED' ? 'text-[#1A6B1A]' :
+                  entry.newStatus === 'HALF_DAY' ? 'text-[#856404]' :
                   entry.newStatus === 'ABSENT' ? 'text-[#ED1C24]' :
                   'text-[#98A2B2]',
                 ].join(' ')}>

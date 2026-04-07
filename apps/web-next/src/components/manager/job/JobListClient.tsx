@@ -17,12 +17,12 @@ function SkeletonCard() {
   return (
     <div className="bg-white rounded-2xl shadow-sm border border-[#EFF1F5] p-4 animate-pulse space-y-2">
       <div className="flex justify-between">
-        <div className="h-4 bg-gray-200 rounded w-1/2" />
-        <div className="h-5 bg-gray-200 rounded-full w-14" />
+        <div className="h-4 bg-[#DDDDDD] rounded w-1/2" />
+        <div className="h-5 bg-[#DDDDDD] rounded-full w-14" />
       </div>
-      <div className="h-3 bg-gray-200 rounded w-1/3" />
-      <div className="h-4 bg-gray-200 rounded w-1/4" />
-      <div className="h-2 bg-gray-200 rounded w-full" />
+      <div className="h-3 bg-[#DDDDDD] rounded w-1/3" />
+      <div className="h-4 bg-[#DDDDDD] rounded w-1/4" />
+      <div className="h-2 bg-[#DDDDDD] rounded w-full" />
     </div>
   )
 }
@@ -57,7 +57,7 @@ export default function JobListClient({ siteId, locale }: JobListClientProps) {
 
   if (error) {
     return (
-      <div className="p-4 rounded-2xl bg-red-50 border border-red-200 text-sm text-[#ED1C24] text-center">
+      <div className="p-4 rounded-2xl bg-[#FDE8EE] border border-[#F4A8B8] text-sm text-[#ED1C24] text-center">
         {error}
       </div>
     )
@@ -68,7 +68,7 @@ export default function JobListClient({ siteId, locale }: JobListClientProps) {
       <div className="flex justify-end mb-4">
         <Link
           href={`/manager/sites/${siteId}/jobs/new`}
-          className="px-5 py-2.5 rounded-full bg-[#0669F7] text-white font-medium text-sm"
+          className="px-5 py-2.5 rounded-full bg-[#0669F7] text-white font-medium hover:bg-[#0557D4] transition-colors text-sm"
         >
           일자리 추가
         </Link>
@@ -92,7 +92,7 @@ export default function JobListClient({ siteId, locale }: JobListClientProps) {
           <p className="text-[#98A2B2] text-sm mb-4">등록된 일자리가 없습니다</p>
           <Link
             href={`/manager/sites/${siteId}/jobs/new`}
-            className="px-5 py-2.5 rounded-full bg-[#0669F7] text-white font-medium text-sm"
+            className="px-5 py-2.5 rounded-full bg-[#0669F7] text-white font-medium hover:bg-[#0557D4] transition-colors text-sm"
           >
             첫 일자리 등록하기
           </Link>

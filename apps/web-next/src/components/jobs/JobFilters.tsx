@@ -209,7 +209,7 @@ export function JobFilters({
               type="button"
               onClick={clearGeo}
               aria-label={t('listing.filter.clear_location_aria')}
-              className="text-[#0669F7] hover:text-blue-800 font-bold text-sm leading-none"
+              className="text-[#0669F7] hover:text-[#0448B0] font-bold text-sm leading-none"
             >
               ×
             </button>
@@ -264,7 +264,7 @@ export function JobFilters({
                   className={`flex-1 py-1.5 rounded-md text-xs font-medium transition-colors ${
                     selectedRadius === r
                       ? 'bg-[#0669F7] text-white'
-                      : 'bg-[#F2F4F5] text-[#98A2B2] hover:bg-gray-200'
+                      : 'bg-[#F2F4F5] text-[#98A2B2] hover:bg-[#DDDDDD]'
                   }`}
                 >
                   {r}km

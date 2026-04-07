@@ -52,7 +52,7 @@ export default function BusinessTypeStep({ draft, onChange, onNext }: Props) {
           onClick={() => onChange({ businessType: 'INDIVIDUAL' })}
           className={`flex-1 p-5 rounded-2xl cursor-pointer transition-all flex flex-col items-center gap-3 border-2 ${
             draft.businessType === 'INDIVIDUAL'
-              ? 'border-[#0669F7] bg-blue-50 text-[#0669F7]'
+              ? 'border-[#0669F7] bg-[#E6F0FE] text-[#0669F7]'
               : 'border-[#EFF1F5] bg-white text-[#98A2B2] hover:border-[#0669F7] hover:text-[#0669F7]'
           }`}
         >
@@ -69,7 +69,7 @@ export default function BusinessTypeStep({ draft, onChange, onNext }: Props) {
           onClick={() => onChange({ businessType: 'CORPORATE' })}
           className={`flex-1 p-5 rounded-2xl cursor-pointer transition-all flex flex-col items-center gap-3 border-2 ${
             draft.businessType === 'CORPORATE'
-              ? 'border-[#0669F7] bg-blue-50 text-[#0669F7]'
+              ? 'border-[#0669F7] bg-[#E6F0FE] text-[#0669F7]'
               : 'border-[#EFF1F5] bg-white text-[#98A2B2] hover:border-[#0669F7] hover:text-[#0669F7]'
           }`}
         >
@@ -85,7 +85,7 @@ export default function BusinessTypeStep({ draft, onChange, onNext }: Props) {
         type="button"
         onClick={onNext}
         disabled={!canNext}
-        className="w-full py-3.5 rounded-full bg-[#0669F7] text-white font-semibold text-sm disabled:opacity-40"
+        className="w-full py-3.5 rounded-full bg-[#0669F7] text-white font-semibold text-sm hover:bg-[#0557D4] disabled:opacity-40"
       >
         다음
       </button>

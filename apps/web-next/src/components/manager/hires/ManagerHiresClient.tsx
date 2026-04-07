@@ -124,7 +124,7 @@ function formatDate(d: string): string {
 function PeopleIllustration() {
   return (
     <svg
-      className="w-16 h-16 text-gray-300 mx-auto mb-4"
+      className="w-16 h-16 text-[#DDDDDD] mx-auto mb-4"
       fill="none"
       viewBox="0 0 64 64"
       stroke="currentColor"
@@ -234,10 +234,10 @@ export default function ManagerHiresClient() {
               key={i}
               className="bg-white rounded-2xl shadow-sm border border-[#EFF1F5] p-4 animate-pulse"
             >
-              <div className="h-4 bg-gray-200 rounded w-1/2 mb-3" />
-              <div className="h-3 bg-gray-200 rounded w-2/3 mb-2" />
-              <div className="h-3 bg-gray-200 rounded w-1/3 mb-2" />
-              <div className="h-8 bg-gray-200 rounded w-28 mt-3" />
+              <div className="h-4 bg-[#DDDDDD] rounded w-1/2 mb-3" />
+              <div className="h-3 bg-[#DDDDDD] rounded w-2/3 mb-2" />
+              <div className="h-3 bg-[#DDDDDD] rounded w-1/3 mb-2" />
+              <div className="h-8 bg-[#DDDDDD] rounded w-28 mt-3" />
             </div>
           ))}
         </div>
@@ -250,7 +250,7 @@ export default function ManagerHiresClient() {
       <div className="flex items-center gap-3 mb-2">
         <h1 className="text-xl font-bold text-[#25282A]">{t('manager_hires.title')}</h1>
         {isDemo && (
-          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-700 border border-amber-200">
+          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-[#FFE9B0] text-[#856404] border border-[#F5D87D]">
             {t('manager_hires.demo_badge')}
           </span>
         )}
@@ -259,12 +259,12 @@ export default function ManagerHiresClient() {
       {/* Summary stats */}
       {displayHires.length > 0 && (
         <div className="flex gap-4 mb-4">
-          <div className="flex-1 bg-blue-50 rounded-2xl p-3 text-center">
+          <div className="flex-1 bg-[#E6F0FE] rounded-2xl p-3 text-center">
             <p className="text-2xl font-bold text-[#0669F7]">{displayHires.length}</p>
             <p className="text-xs text-[#98A2B2] mt-0.5">{t('manager_hires.total_accepted')}</p>
           </div>
-          <div className="flex-1 bg-green-50 rounded-2xl p-3 text-center">
-            <p className="text-2xl font-bold text-green-600">{contractedCount}</p>
+          <div className="flex-1 bg-[#E6F9E6] rounded-2xl p-3 text-center">
+            <p className="text-2xl font-bold text-[#1A6B1A]">{contractedCount}</p>
             <p className="text-xs text-[#98A2B2] mt-0.5">{t('manager_hires.contracted_count')}</p>
           </div>
         </div>
@@ -312,8 +312,8 @@ export default function ManagerHiresClient() {
                 <span
                   className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium whitespace-nowrap ${
                     hire.status === 'CONTRACTED'
-                      ? 'bg-green-50 text-green-700 border border-green-200'
-                      : 'bg-blue-50 text-blue-700 border border-blue-200'
+                      ? 'bg-[#E6F9E6] text-[#1A6B1A] border border-[#86D98A]'
+                      : 'bg-[#E6F0FE] text-[#0669F7] border border-[#B3D9FF]'
                   }`}
                 >
                   {hire.status === 'CONTRACTED' ? t('manager_hires.status_contracted') : t('manager_hires.status_accepted')}
@@ -341,7 +341,7 @@ export default function ManagerHiresClient() {
                     </span>
                     <Link
                       href={`/manager/contracts/${hire.contract.id}`}
-                      className="px-4 py-1.5 rounded-full bg-[#0669F7] text-white font-medium text-xs hover:bg-blue-700 transition-colors"
+                      className="px-4 py-1.5 rounded-full bg-[#0669F7] text-white font-medium text-xs hover:bg-[#0557D4] transition-colors"
                     >
                       {t('manager_hires.view_contract')}
                     </Link>

@@ -204,7 +204,7 @@ export default function AttendanceManagerClient({ jobId, locale }: Props) {
             <button
               type="button"
               onClick={() => setSelectedDate(d => addDays(d, -1))}
-              className="p-1.5 rounded-2xl border border-[#EFF1F5] hover:border-gray-400 transition-colors"
+              className="p-1.5 rounded-2xl border border-[#EFF1F5] hover:border-[#DDDDDD] transition-colors"
               aria-label={t('manager_attendance.prev_day')}
             >
               <svg className="w-4 h-4 text-[#25282A]" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" aria-hidden="true">
@@ -217,7 +217,7 @@ export default function AttendanceManagerClient({ jobId, locale }: Props) {
             <button
               type="button"
               onClick={() => setSelectedDate(d => addDays(d, 1))}
-              className="p-1.5 rounded-2xl border border-[#EFF1F5] hover:border-gray-400 transition-colors"
+              className="p-1.5 rounded-2xl border border-[#EFF1F5] hover:border-[#DDDDDD] transition-colors"
               aria-label={t('manager_attendance.next_day')}
             >
               <svg className="w-4 h-4 text-[#25282A]" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" aria-hidden="true">
@@ -246,10 +246,10 @@ export default function AttendanceManagerClient({ jobId, locale }: Props) {
               </span>
               <div className="flex items-center gap-1.5 flex-wrap">
                 {[
-                  { label: t('manager_attendance.status_attended'), count: attendedCount, cls: 'bg-green-50 text-green-700 border-green-200' },
-                  { label: t('manager_attendance.status_half_day'), count: halfDayCount, cls: 'bg-yellow-50 text-yellow-700 border-yellow-200' },
-                  { label: t('manager_attendance.status_absent'), count: absentCount, cls: 'bg-red-50 text-[#ED1C24] border-red-200' },
-                  { label: t('manager_attendance.status_pending'), count: pendingCount, cls: 'bg-gray-100 text-[#98A2B2] border-[#EFF1F5]' },
+                  { label: t('manager_attendance.status_attended'), count: attendedCount, cls: 'bg-[#E6F9E6] text-[#1A6B1A] border-[#86D98A]' },
+                  { label: t('manager_attendance.status_half_day'), count: halfDayCount, cls: 'bg-[#FFF8E6] text-[#856404] border-[#F5D87D]' },
+                  { label: t('manager_attendance.status_absent'), count: absentCount, cls: 'bg-[#FDE8EE] text-[#ED1C24] border-[#F4A8B8]' },
+                  { label: t('manager_attendance.status_pending'), count: pendingCount, cls: 'bg-[#EFF1F5] text-[#98A2B2] border-[#EFF1F5]' },
                 ].map(({ label, count, cls }) => (
                   <span key={label} className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium border ${cls}`}>
                     {label} {count}
@@ -274,7 +274,7 @@ export default function AttendanceManagerClient({ jobId, locale }: Props) {
               type="button"
               onClick={saveAll}
               disabled={isSavingAll || dirtyCount === 0}
-              className="px-4 py-1.5 rounded-2xl bg-[#0669F7] text-white text-xs font-medium disabled:opacity-50 hover:bg-blue-700 transition-colors"
+              className="px-4 py-1.5 rounded-2xl bg-[#0669F7] text-white text-xs font-medium disabled:opacity-50 hover:bg-[#0557D4] transition-colors"
             >
               {isSavingAll ? t('manager_attendance.saving') : t('manager_attendance.save_all')}
             </button>
@@ -301,12 +301,12 @@ export default function AttendanceManagerClient({ jobId, locale }: Props) {
             {[1, 2, 3].map(i => (
               <div key={i} className="bg-white rounded-2xl shadow-sm border border-[#EFF1F5] p-4 animate-pulse">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-gray-200" />
+                  <div className="w-10 h-10 rounded-full bg-[#DDDDDD]" />
                   <div className="flex-1 space-y-2">
-                    <div className="h-4 bg-gray-200 rounded w-1/3" />
-                    <div className="h-3 bg-gray-200 rounded w-1/2" />
+                    <div className="h-4 bg-[#DDDDDD] rounded w-1/3" />
+                    <div className="h-3 bg-[#DDDDDD] rounded w-1/2" />
                   </div>
-                  <div className="h-6 bg-gray-200 rounded-full w-16" />
+                  <div className="h-6 bg-[#DDDDDD] rounded-full w-16" />
                 </div>
               </div>
             ))}

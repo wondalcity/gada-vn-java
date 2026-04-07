@@ -34,11 +34,11 @@ function formatDate(d: string): string {
 }
 
 const STATUS_CLASS: Record<ApplicationStatus, string> = {
-  PENDING: 'bg-yellow-50 text-yellow-700 border-yellow-200',
-  ACCEPTED: 'bg-green-50 text-green-700 border-green-200',
-  REJECTED: 'bg-red-50 text-[#ED1C24] border-red-200',
-  WITHDRAWN: 'bg-gray-100 text-[#7A7B7A] border-[#DDDDDD]',
-  CONTRACTED: 'bg-blue-50 text-[#0669F7] border-blue-200',
+  PENDING: 'bg-[#FFF8E6] text-[#856404] border-[#F5D87D]',
+  ACCEPTED: 'bg-[#E6F9E6] text-[#1A6B1A] border-[#86D98A]',
+  REJECTED: 'bg-[#FDE8EE] text-[#ED1C24] border-[#F4A8B8]',
+  WITHDRAWN: 'bg-[#EFF1F5] text-[#7A7B7A] border-[#DDDDDD]',
+  CONTRACTED: 'bg-[#E6F0FE] text-[#0669F7] border-[#B3D9FF]',
 }
 
 const DEMO_APPLICATIONS: WorkerApplication[] = [
@@ -186,9 +186,9 @@ export default function WorkerApplicationsClient({ locale }: { locale?: string }
         <div className="space-y-3">
           {[1, 2, 3].map(i => (
             <div key={i} className="bg-white rounded-2xl border border-[#EFF1F5] p-4 animate-pulse shadow-sm">
-              <div className="h-4 bg-gray-200 rounded w-2/3 mb-3" />
-              <div className="h-3 bg-gray-200 rounded w-1/2 mb-2" />
-              <div className="h-3 bg-gray-200 rounded w-1/3" />
+              <div className="h-4 bg-[#DDDDDD] rounded w-2/3 mb-3" />
+              <div className="h-3 bg-[#DDDDDD] rounded w-1/2 mb-2" />
+              <div className="h-3 bg-[#DDDDDD] rounded w-1/3" />
             </div>
           ))}
         </div>
@@ -210,7 +210,7 @@ export default function WorkerApplicationsClient({ locale }: { locale?: string }
       <div className="py-6 flex items-center gap-3">
         <h1 className="text-xl font-bold text-[#25282A]">{t('worker_applications.title')}</h1>
         {isDemo && (
-          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-700 border border-amber-200">
+          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-[#FFE9B0] text-[#856404] border border-[#F5D87D]">
             {t('demo_data')}
           </span>
         )}
@@ -233,7 +233,7 @@ export default function WorkerApplicationsClient({ locale }: { locale?: string }
               {TAB_LABELS[tab]}
               {tabCounts[tab] > 0 && (
                 <span className={`ml-1.5 text-xs px-1.5 py-0.5 rounded-full ${
-                  activeTab === tab ? 'bg-[#0669F7] text-white' : 'bg-gray-100 text-[#7A7B7A]'
+                  activeTab === tab ? 'bg-[#0669F7] text-white' : 'bg-[#EFF1F5] text-[#7A7B7A]'
                 }`}>
                   {tabCounts[tab]}
                 </span>
@@ -295,7 +295,7 @@ export default function WorkerApplicationsClient({ locale }: { locale?: string }
                     </span>
                   )}
                   {app.status === 'CONTRACTED' && (
-                    <span className="inline-flex items-center gap-1.5 text-sm text-green-700 font-medium">
+                    <span className="inline-flex items-center gap-1.5 text-sm text-[#1A6B1A] font-medium">
                       <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                         <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                       </svg>

@@ -30,7 +30,7 @@ function dataUrlToBlob(dataUrl: string): Blob | null {
 function SummaryCard({ draft }: { draft: ManagerDraft }) {
   const businessTypeLabel = draft.businessType === 'INDIVIDUAL' ? '개인사업자' : draft.businessType === 'CORPORATE' ? '법인사업자' : null
   const signatureStatus = (draft.signatureDataUrl || draft.signatureUrl) ? '완료' : '미등록'
-  const signatureColor = (draft.signatureDataUrl || draft.signatureUrl) ? 'text-green-700' : 'text-[#98A2B2]'
+  const signatureColor = (draft.signatureDataUrl || draft.signatureUrl) ? 'text-[#1A6B1A]' : 'text-[#98A2B2]'
 
   const rows: { label: string; value: string | null; highlight?: boolean }[] = [
     { label: '사업자 유형', value: businessTypeLabel },
@@ -43,7 +43,7 @@ function SummaryCard({ draft }: { draft: ManagerDraft }) {
   ]
 
   return (
-    <div className="bg-gray-50 border border-[#EFF1F5] rounded-2xl p-4">
+    <div className="bg-[#F2F4F5] border border-[#EFF1F5] rounded-2xl p-4">
       <p className="text-sm font-medium text-[#25282A] mb-3">신청 내용 확인</p>
       <ul className="space-y-2">
         {rows.map((row) => {
@@ -148,7 +148,7 @@ export default function ManagerAgreementStep({
           <button
             type="button"
             onClick={handleAgreeAll}
-            className="w-full py-2.5 rounded-2xl border border-[#0669F7] text-[#0669F7] text-sm font-medium hover:bg-blue-50 transition-colors"
+            className="w-full py-2.5 rounded-2xl border border-[#0669F7] text-[#0669F7] text-sm font-medium hover:bg-[#E6F0FE] transition-colors"
           >
             전체 동의
           </button>
@@ -201,7 +201,7 @@ export default function ManagerAgreementStep({
 
       {/* Submit error */}
       {submitError && (
-        <div className="p-3 bg-red-50 border border-red-200 rounded-2xl text-sm text-[#ED1C24]">
+        <div className="p-3 bg-[#FDE8EE] border border-[#F4A8B8] rounded-2xl text-sm text-[#ED1C24]">
           {submitError}
         </div>
       )}
@@ -220,7 +220,7 @@ export default function ManagerAgreementStep({
           type="button"
           onClick={handleSubmit}
           disabled={!canSubmit || loading}
-          className="w-full py-3.5 rounded-full bg-[#0669F7] text-white font-semibold text-sm disabled:opacity-40 flex items-center justify-center gap-2"
+          className="w-full py-3.5 rounded-full bg-[#0669F7] text-white font-semibold text-sm hover:bg-[#0557D4] disabled:opacity-40 flex items-center justify-center gap-2"
         >
           {loading ? (
             <>

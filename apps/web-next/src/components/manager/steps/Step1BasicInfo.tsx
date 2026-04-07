@@ -81,7 +81,7 @@ export default function Step1BasicInfo({ draft, onChange, onNext }: Props) {
               onClick={() => onChange({ businessType: opt.value })}
               className={`flex-1 p-4 rounded-2xl border-2 flex flex-col items-center gap-2 transition-all ${
                 draft.businessType === opt.value
-                  ? 'border-[#0669F7] bg-blue-50 text-[#0669F7]'
+                  ? 'border-[#0669F7] bg-[#E6F0FE] text-[#0669F7]'
                   : 'border-[#EFF1F5] bg-white text-[#98A2B2] hover:border-[#0669F7]'
               }`}
             >
@@ -215,7 +215,7 @@ export default function Step1BasicInfo({ draft, onChange, onNext }: Props) {
         </label>
         {draft.businessRegDocUrl && !draft.businessRegDoc && (
           <div className="flex items-center gap-2 mb-2">
-            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-green-50 border border-green-200 rounded-2xl text-xs text-green-700">
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-[#E6F9E6] border border-[#86D98A] rounded-2xl text-xs text-[#1A6B1A]">
               <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
                 <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
               </svg>
@@ -228,7 +228,7 @@ export default function Step1BasicInfo({ draft, onChange, onNext }: Props) {
           onClick={() => fileInputRef.current?.click()}
           className={`w-full px-3 py-3 rounded-2xl border-2 border-dashed text-sm transition-colors flex items-center justify-center gap-2 ${
             draft.businessRegDoc
-              ? 'border-[#0669F7] text-[#0669F7] bg-blue-50'
+              ? 'border-[#0669F7] text-[#0669F7] bg-[#E6F0FE]'
               : 'border-[#EFF1F5] text-[#98A2B2] hover:border-[#0669F7]'
           }`}
         >
@@ -256,7 +256,7 @@ export default function Step1BasicInfo({ draft, onChange, onNext }: Props) {
         type="button"
         onClick={onNext}
         disabled={!canNext}
-        className="w-full py-3.5 rounded-full bg-[#0669F7] text-white font-semibold text-sm disabled:opacity-40"
+        className="w-full py-3.5 rounded-full bg-[#0669F7] text-white font-semibold text-sm hover:bg-[#0557D4] disabled:opacity-40"
       >
         다음
       </button>

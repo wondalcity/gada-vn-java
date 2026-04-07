@@ -157,7 +157,7 @@ export function ManagerAppBar({ locale, user }: Props) {
           ) : (
             <Link
               href={'/login'}
-              className="text-sm font-semibold text-white bg-[#0669F7] hover:bg-blue-700 px-4 py-1.5 rounded-full transition-colors"
+              className="text-sm font-semibold text-white bg-[#0669F7] hover:bg-[#0557D4] px-4 py-1.5 rounded-full transition-colors"
             >
               {t('manager_app_bar.login')}
             </Link>

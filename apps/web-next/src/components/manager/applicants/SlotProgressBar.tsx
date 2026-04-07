@@ -18,12 +18,12 @@ export default function SlotProgressBar({ slotsFilled, slotsTotal, jobStatus }: 
           {slotsFilled}/{slotsTotal}명 선발됨
         </span>
         {jobStatus === 'FILLED' && (
-          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-50 text-green-700 border border-green-200">
+          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-[#E6F9E6] text-[#1A6B1A] border border-[#86D98A]">
             모집 완료
           </span>
         )}
       </div>
-      <div className="w-full bg-gray-200 rounded-full h-2">
+      <div className="w-full bg-[#DDDDDD] rounded-full h-2">
         <div
           className="bg-[#0669F7] h-2 rounded-full transition-all"
           style={{ width: `${progress}%` }}

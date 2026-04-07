@@ -101,7 +101,7 @@ function formatDate(d: string): string {
 function DocumentIllustration() {
   return (
     <svg
-      className="w-16 h-16 text-gray-300 mx-auto mb-4"
+      className="w-16 h-16 text-[#DDDDDD] mx-auto mb-4"
       fill="none"
       viewBox="0 0 64 64"
       stroke="currentColor"
@@ -148,10 +148,10 @@ export default function ManagerContractsClient() {
               key={i}
               className="bg-white rounded-2xl shadow-sm border border-[#EFF1F5] p-4 animate-pulse"
             >
-              <div className="h-4 bg-gray-200 rounded w-1/2 mb-3" />
-              <div className="h-3 bg-gray-200 rounded w-2/3 mb-2" />
-              <div className="h-3 bg-gray-200 rounded w-1/3 mb-2" />
-              <div className="h-6 bg-gray-200 rounded w-24 mt-3" />
+              <div className="h-4 bg-[#DDDDDD] rounded w-1/2 mb-3" />
+              <div className="h-3 bg-[#DDDDDD] rounded w-2/3 mb-2" />
+              <div className="h-3 bg-[#DDDDDD] rounded w-1/3 mb-2" />
+              <div className="h-6 bg-[#DDDDDD] rounded w-24 mt-3" />
             </div>
           ))}
         </div>
@@ -167,7 +167,7 @@ export default function ManagerContractsClient() {
         <button
           type="button"
           onClick={load}
-          className="px-5 py-2.5 rounded-full bg-[#0669F7] text-white font-medium text-sm"
+          className="px-5 py-2.5 rounded-full bg-[#0669F7] text-white font-medium hover:bg-[#0557D4] transition-colors text-sm"
         >
           {t('manager_contracts.retry')}
         </button>
@@ -183,7 +183,7 @@ export default function ManagerContractsClient() {
       <div className="flex items-center gap-3 mb-6">
         <h1 className="text-xl font-bold text-[#25282A]">{t('manager_contracts.title')}</h1>
         {isDemo && (
-          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-700 border border-amber-200">
+          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-[#FFE9B0] text-[#856404] border border-[#F5D87D]">
             {t('manager_contracts.demo_badge')}
           </span>
         )}
@@ -228,7 +228,7 @@ export default function ManagerContractsClient() {
               <div className="mt-3 pt-3 border-t border-[#EFF1F5]">
                 <Link
                   href={`/manager/contracts/${contract.id}`}
-                  className="inline-flex items-center px-4 py-1.5 rounded-full bg-[#0669F7] text-white font-medium text-xs hover:bg-blue-700 transition-colors"
+                  className="inline-flex items-center px-4 py-1.5 rounded-full bg-[#0669F7] text-white font-medium text-xs hover:bg-[#0557D4] transition-colors"
                 >
                   {t('manager_contracts.view_contract')}
                 </Link>

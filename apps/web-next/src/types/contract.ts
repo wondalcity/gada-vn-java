@@ -56,8 +56,8 @@ export const CONTRACT_STATUS_LABELS: Record<ContractStatus, string> = {
 }
 
 export const CONTRACT_STATUS_COLORS: Record<ContractStatus, string> = {
-  PENDING_WORKER_SIGN:   'bg-amber-100 text-amber-700',
-  PENDING_MANAGER_SIGN:  'bg-blue-100 text-blue-700',
-  FULLY_SIGNED:          'bg-green-100 text-green-700',
-  VOID:                  'bg-gray-100 text-gray-500',
+  PENDING_WORKER_SIGN:   'bg-[#FFE9B0] text-[#856404]',
+  PENDING_MANAGER_SIGN:  'bg-[#D6E8FE] text-[#0669F7]',
+  FULLY_SIGNED:          'bg-[#D6F0D6] text-[#1A6B1A]',
+  VOID:                  'bg-[#EFF1F5] text-[#7A7B7A]',
 }

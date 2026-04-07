@@ -33,11 +33,11 @@ type Phase =
   | 'error'         // apply/withdraw error
 
 const STATUS_LABEL_CLASSES: Record<string, string> = {
-  APPLIED:   'bg-yellow-50 text-yellow-700 border-yellow-200',
-  HIRED:     'bg-green-50 text-green-700 border-green-200',
-  COMPLETED: 'bg-blue-50 text-[#0669F7] border-blue-200',
-  REJECTED:  'bg-red-50 text-[#ED1C24] border-red-200',
-  WITHDRAWN: 'bg-gray-100 text-[#98A2B2] border-[#EFF1F5]',
+  APPLIED:   'bg-[#FFF8E6] text-[#856404] border-[#F5D87D]',
+  HIRED:     'bg-[#E6F9E6] text-[#1A6B1A] border-[#86D98A]',
+  COMPLETED: 'bg-[#E6F0FE] text-[#0669F7] border-[#B3D9FF]',
+  REJECTED:  'bg-[#FDE8EE] text-[#ED1C24] border-[#F4A8B8]',
+  WITHDRAWN: 'bg-[#EFF1F5] text-[#98A2B2] border-[#EFF1F5]',
 }
 
 export default function ApplyButton({
@@ -215,7 +215,7 @@ export default function ApplyButton({
         {/* Status row */}
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
-            <svg className="w-4 h-4 text-green-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <svg className="w-4 h-4 text-[#1A6B1A] shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
             <span className="text-sm font-bold text-[#25282A]">{t('apply_btn.applied_title')}</span>
@@ -325,7 +325,7 @@ export default function ApplyButton({
           type="button"
           onClick={() => setPhase('confirming')}
           disabled={isLoading}
-          className={`${sticky ? 'w-full' : ''} h-14 px-5 rounded-2xl bg-[#0669F7] text-white font-bold text-sm disabled:opacity-40 flex items-center justify-center gap-2`}
+          className={`${sticky ? 'w-full' : ''} h-14 px-5 rounded-2xl bg-[#0669F7] text-white font-bold text-sm hover:bg-[#0557D4] disabled:opacity-40 flex items-center justify-center gap-2`}
         >
           {isLoading && (
             <svg className="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
@@ -349,7 +349,7 @@ export default function ApplyButton({
         <button
           type="button"
           onClick={() => router.push(`/login?redirect=/jobs/${slug}`)}
-          className="h-12 px-5 rounded-2xl bg-[#0669F7] text-white font-bold text-sm whitespace-nowrap"
+          className="h-12 px-5 rounded-2xl bg-[#0669F7] text-white hover:bg-[#0557D4] transition-colors font-bold text-sm whitespace-nowrap"
         >
           {t('apply_btn.login_required')}
         </button>
@@ -358,7 +358,7 @@ export default function ApplyButton({
     if (!isJobOpen && phase !== 'applied') {
       return (
         <button type="button" disabled
-          className="h-12 px-5 rounded-2xl bg-[#0669F7] text-white font-bold text-sm disabled:opacity-40 whitespace-nowrap"
+          className="h-12 px-5 rounded-2xl bg-[#0669F7] text-white font-bold text-sm hover:bg-[#0557D4] disabled:opacity-40 whitespace-nowrap"
         >
           {isExpired ? t('apply_btn.deadline_expired') : t('card.status.filled')}
         </button>
@@ -394,7 +394,7 @@ export default function ApplyButton({
           type="button"
           onClick={() => setPhase('confirming')}
           disabled={phase === 'applying'}
-          className="h-12 px-5 rounded-2xl bg-[#0669F7] text-white font-bold text-sm disabled:opacity-40 whitespace-nowrap flex items-center gap-2"
+          className="h-12 px-5 rounded-2xl bg-[#0669F7] text-white font-bold text-sm hover:bg-[#0557D4] disabled:opacity-40 whitespace-nowrap flex items-center gap-2"
         >
           {phase === 'applying' && (
             <svg className="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
@@ -458,7 +458,7 @@ export default function ApplyButton({
         <button
           type="button"
           onClick={() => router.push(`/login?redirect=/jobs/${slug}`)}
-          className={`${sticky ? 'w-full' : ''} h-14 px-5 rounded-2xl bg-[#0669F7] text-white font-bold text-sm`}
+          className={`${sticky ? 'w-full' : ''} h-14 px-5 rounded-2xl bg-[#0669F7] text-white hover:bg-[#0557D4] transition-colors font-bold text-sm`}
         >
           {t('apply_btn.login_required')}
         </button>
@@ -477,7 +477,7 @@ export default function ApplyButton({
         style={sticky ? stickyStyle : undefined}
       >
         <button type="button" disabled
-          className={`${sticky ? 'w-full' : ''} h-14 px-5 rounded-2xl bg-[#0669F7] text-white font-bold text-sm disabled:opacity-40`}
+          className={`${sticky ? 'w-full' : ''} h-14 px-5 rounded-2xl bg-[#0669F7] text-white font-bold text-sm hover:bg-[#0557D4] disabled:opacity-40`}
         >
           {isExpired ? t('apply_btn.deadline_expired') : t('apply_btn.job_closed')}
         </button>

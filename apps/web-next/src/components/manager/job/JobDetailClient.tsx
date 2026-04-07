@@ -32,11 +32,11 @@ function formatVND(amount: number) {
 function SkeletonDetail() {
   return (
     <div className="animate-pulse space-y-4">
-      <div className="h-5 bg-gray-200 rounded w-2/3" />
-      <div className="h-48 bg-gray-200 rounded-2xl" />
+      <div className="h-5 bg-[#DDDDDD] rounded w-2/3" />
+      <div className="h-48 bg-[#DDDDDD] rounded-2xl" />
       <div className="bg-white rounded-2xl shadow-sm border border-[#EFF1F5] p-5 space-y-3">
         {[1, 2, 3, 4].map((i) => (
-          <div key={i} className="h-4 bg-gray-200 rounded" />
+          <div key={i} className="h-4 bg-[#DDDDDD] rounded" />
         ))}
       </div>
     </div>
@@ -120,7 +120,7 @@ export default function JobDetailClient({ jobId, locale }: JobDetailClientProps)
 
   if (error) {
     return (
-      <div className="p-4 rounded-2xl bg-red-50 border border-red-200 text-sm text-[#ED1C24] text-center">
+      <div className="p-4 rounded-2xl bg-[#FDE8EE] border border-[#F4A8B8] text-sm text-[#ED1C24] text-center">
         {error}
       </div>
     )
@@ -140,9 +140,9 @@ export default function JobDetailClient({ jobId, locale }: JobDetailClientProps)
   return (
     <>
       {isDemo && (
-        <div className="mb-4 flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-amber-50 border border-amber-200 text-sm text-amber-700">
+        <div className="mb-4 flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-[#FFF8E6] border border-[#F5D87D] text-sm text-[#856404]">
           <span className="font-semibold">{t('manager_job_detail.demo_notice')}</span>
-          <span className="text-amber-600">{t('manager_job_detail.demo_notice_sub')}</span>
+          <span className="text-[#856404]">{t('manager_job_detail.demo_notice_sub')}</span>
         </div>
       )}
       {/* Header */}
@@ -205,7 +205,7 @@ export default function JobDetailClient({ jobId, locale }: JobDetailClientProps)
               <p className="text-[#25282A] font-medium mb-1">
                 {t('manager_job_detail.slots_count', { filled: job.slotsFilled, total: job.slotsTotal })}
               </p>
-              <div className="w-full h-1.5 bg-gray-100 rounded-full overflow-hidden">
+              <div className="w-full h-1.5 bg-[#EFF1F5] rounded-full overflow-hidden">
                 <div
                   className="h-full bg-[#0669F7] rounded-full"
                   style={{ width: `${fillPercent}%` }}
@@ -229,7 +229,7 @@ export default function JobDetailClient({ jobId, locale }: JobDetailClientProps)
               job.benefits[b.key] ? (
                 <span
                   key={b.key}
-                  className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-blue-50 border border-blue-200 text-xs text-[#0669F7]"
+                  className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-[#E6F0FE] border border-[#B3D9FF] text-xs text-[#0669F7]"
                 >
                   {b.label}
                 </span>
@@ -274,7 +274,7 @@ export default function JobDetailClient({ jobId, locale }: JobDetailClientProps)
         <div className="flex flex-wrap items-center gap-3">
           <Link
             href={`/manager/jobs/${jobId}/edit`}
-            className="px-5 py-2.5 rounded-full bg-[#0669F7] text-white font-medium text-sm"
+            className="px-5 py-2.5 rounded-full bg-[#0669F7] text-white font-medium hover:bg-[#0557D4] transition-colors text-sm"
           >
             {t('manager_job_detail.edit')}
           </Link>
@@ -333,11 +333,11 @@ export default function JobDetailClient({ jobId, locale }: JobDetailClientProps)
         </div>
         <div className="flex gap-4 text-center">
           <div className="flex-1">
-            <p className="text-2xl font-bold text-yellow-600">{job.applicationCount.pending}</p>
+            <p className="text-2xl font-bold text-[#856404]">{job.applicationCount.pending}</p>
             <p className="text-xs text-[#98A2B2] mt-0.5">{t('manager_job_detail.pending_count')}</p>
           </div>
           <div className="flex-1">
-            <p className="text-2xl font-bold text-green-600">{job.applicationCount.accepted}</p>
+            <p className="text-2xl font-bold text-[#1A6B1A]">{job.applicationCount.accepted}</p>
             <p className="text-xs text-[#98A2B2] mt-0.5">{t('manager_job_detail.accepted_count')}</p>
           </div>
           <div className="flex-1">

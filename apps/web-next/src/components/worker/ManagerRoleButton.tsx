@@ -48,7 +48,7 @@ export function ManagerRoleButton({ initialManagerStatus }: Props) {
 
   if (status === 'pending') {
     return (
-      <span className="px-4 py-2 rounded-full bg-yellow-50 text-yellow-700 border border-yellow-200 text-sm font-medium">
+      <span className="px-4 py-2 rounded-full bg-[#FFF8E6] text-[#856404] border border-[#F5D87D] text-sm font-medium">
         심사 중
       </span>
     )
@@ -59,7 +59,7 @@ export function ManagerRoleButton({ initialManagerStatus }: Props) {
       type="button"
       onClick={handleRequest}
       disabled={status === 'loading'}
-      className="px-4 py-2 rounded-full border border-gray-300 text-sm font-medium text-gray-700 hover:bg-gray-100 disabled:opacity-50 transition-colors"
+      className="px-4 py-2 rounded-full border border-[#DDDDDD] text-sm font-medium text-[#25282A] hover:bg-[#EFF1F5] disabled:opacity-50 transition-colors"
     >
       {status === 'loading' ? '신청 중...' : '관리자 신청'}
     </button>

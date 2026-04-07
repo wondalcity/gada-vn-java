@@ -160,7 +160,7 @@ export default function NearbyJobsSection({ locale }: Props) {
           <button
             type="button"
             onClick={requestGPS}
-            className="px-5 py-2.5 rounded-full bg-[#0669F7] text-white text-sm font-medium"
+            className="px-5 py-2.5 rounded-full bg-[#0669F7] text-white hover:bg-[#0557D4] transition-colors text-sm font-medium"
           >
             현재 위치 사용
           </button>

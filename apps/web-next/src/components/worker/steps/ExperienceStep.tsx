@@ -23,7 +23,7 @@ function TradeSkeleton() {
   return (
     <div className="space-y-2">
       {Array.from({ length: 6 }).map((_, i) => (
-        <div key={i} className="h-14 bg-gray-100 rounded-2xl animate-pulse" />
+        <div key={i} className="h-14 bg-[#EFF1F5] rounded-2xl animate-pulse" />
       ))}
     </div>
   )
@@ -68,7 +68,7 @@ export default function ExperienceStep({ draft, onChange, onNext, isSaving }: Ex
 
       {/* Selected trade summary */}
       {selectedTrade && (
-        <div className="flex items-center gap-2 p-3 bg-blue-50 border border-[#0669F7] rounded-2xl">
+        <div className="flex items-center gap-2 p-3 bg-[#E6F0FE] border border-[#0669F7] rounded-2xl">
           <svg className="w-4 h-4 text-[#0669F7] flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
             <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
           </svg>
@@ -114,8 +114,8 @@ export default function ExperienceStep({ draft, onChange, onNext, isSaving }: Ex
                     onClick={() => onChange({ primaryTradeId: trade.id })}
                     className={`
                       w-full flex items-center justify-between px-4 py-3 text-left
-                      hover:bg-gray-50 transition-colors border-b border-[#EFF1F5] last:border-0
-                      ${isSelected ? 'bg-blue-50' : ''}
+                      hover:bg-[#F2F4F5] transition-colors border-b border-[#EFF1F5] last:border-0
+                      ${isSelected ? 'bg-[#E6F0FE]' : ''}
                     `}
                   >
                     <div>
@@ -168,7 +168,7 @@ export default function ExperienceStep({ draft, onChange, onNext, isSaving }: Ex
         type="button"
         onClick={onNext}
         disabled={isSaving}
-        className="w-full py-3 rounded-full bg-[#0669F7] text-white font-medium text-sm disabled:opacity-40 hover:bg-blue-700 transition-colors"
+        className="w-full py-3 rounded-full bg-[#0669F7] text-white font-medium text-sm disabled:opacity-40 hover:bg-[#0557D4] transition-colors"
       >
         {isSaving ? '저장 중...' : '다음'}
       </button>

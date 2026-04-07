@@ -104,7 +104,7 @@ export default function SiteInfoStep({ draft, onChange, onNext, onBack }: Props)
           <button
             type="button"
             onClick={onNext}
-            className="flex-1 py-3.5 rounded-full bg-[#0669F7] text-white font-semibold text-sm"
+            className="flex-1 py-3.5 rounded-full bg-[#0669F7] text-white font-semibold hover:bg-[#0557D4] transition-colors text-sm"
           >
             다음
           </button>

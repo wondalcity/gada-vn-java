@@ -449,7 +449,7 @@ export function ContractDownloadButton({ documentRef, contractId, disabled }: Do
       type="button"
       onClick={handleDownload}
       disabled={disabled || isGenerating}
-      className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-[#0669F7] text-white font-medium text-sm hover:bg-blue-700 disabled:opacity-40 transition-colors"
+      className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-[#0669F7] text-white font-medium text-sm hover:bg-[#0557D4] disabled:opacity-40 transition-colors"
     >
       {isGenerating ? (
         <>
