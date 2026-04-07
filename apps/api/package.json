@@ -6,7 +6,7 @@
     "build": "nest build",
     "start": "nest start",
     "dev": "nest start --watch",
-    "lint": "eslint src --ext .ts",
+    "lint": "ESLINT_USE_FLAT_CONFIG=false eslint src --ext .ts",
     "type-check": "tsc --noEmit",
     "test": "jest",
     "test:watch": "jest --watch",

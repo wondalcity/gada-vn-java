@@ -25,8 +25,6 @@ export default function TimeEntry({
   status,
   disabled,
 }: Props) {
-  if (status !== 'ATTENDED' && status !== 'HALF_DAY') return null
-
   const autoComputed = computeHours(checkIn, checkOut)
   const [manualOverride, setManualOverride] = React.useState(false)
 
@@ -37,6 +35,8 @@ export default function TimeEntry({
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [checkIn, checkOut])
+
+  if (status !== 'ATTENDED' && status !== 'HALF_DAY') return null
 
   function handleManualHoursChange(e: React.ChangeEvent<HTMLInputElement>) {
     const val = e.target.value === '' ? null : Number(e.target.value)
