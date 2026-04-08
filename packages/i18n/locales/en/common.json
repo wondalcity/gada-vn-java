@@ -53,7 +53,8 @@
     "jobs": "Jobs",
     "applications": "Applications",
     "attendance": "Attendance",
-    "profile": "Profile"
+    "profile": "Profile",
+    "mypage": "My Page"
   },
   "worker_sidebar": {
     "home": "My Page",

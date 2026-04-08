@@ -17,6 +17,7 @@ interface Props {
 
 const WORKER_ROOT_PATHS = (locale: string) => new Set([
   '/worker',
+  '/worker/home',
   '/worker/jobs',
   '/worker/applications',
   '/worker/attendance',

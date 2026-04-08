@@ -14,6 +14,17 @@ export default function WorkerLayout() {
         headerTintColor: '#fff',
       }}
     >
+      {/* 홈 — landing page */}
+      <Tabs.Screen
+        name="home"
+        options={{
+          title: t('landing.home'),
+          tabBarLabel: t('landing.home'),
+          tabBarIcon: ({ color }) => <Text style={{ color, fontSize: 20 }}>🏠</Text>,
+        }}
+      />
+
+      {/* 일자리 — job feed */}
       <Tabs.Screen
         name="index"
         options={{
@@ -22,6 +33,8 @@ export default function WorkerLayout() {
           tabBarIcon: ({ color }) => <Text style={{ color, fontSize: 20 }}>🏗️</Text>,
         }}
       />
+
+      {/* 지원현황 */}
       <Tabs.Screen
         name="work"
         options={{
@@ -30,6 +43,8 @@ export default function WorkerLayout() {
           tabBarIcon: ({ color }) => <Text style={{ color, fontSize: 20 }}>📋</Text>,
         }}
       />
+
+      {/* 출퇴근 */}
       <Tabs.Screen
         name="attendance"
         options={{
@@ -38,6 +53,18 @@ export default function WorkerLayout() {
           tabBarIcon: ({ color }) => <Text style={{ color, fontSize: 20 }}>⏱️</Text>,
         }}
       />
+
+      {/* 마이페이지 — replaces 프로필 tab, at rightmost */}
+      <Tabs.Screen
+        name="profile"
+        options={{
+          title: t('landing.mypage'),
+          tabBarLabel: t('landing.mypage'),
+          tabBarIcon: ({ color }) => <Text style={{ color, fontSize: 20 }}>👤</Text>,
+        }}
+      />
+
+      {/* Hidden screens */}
       <Tabs.Screen
         name="notifications"
         options={{
@@ -48,15 +75,6 @@ export default function WorkerLayout() {
         }}
       />
       <Tabs.Screen
-        name="profile"
-        options={{
-          title: t('profile.title'),
-          tabBarLabel: t('profile.title'),
-          tabBarIcon: ({ color }) => <Text style={{ color, fontSize: 20 }}>👤</Text>,
-        }}
-      />
-      {/* Settings screen — hidden from tab bar */}
-      <Tabs.Screen
         name="settings"
         options={{
           href: null,
@@ -65,7 +83,6 @@ export default function WorkerLayout() {
           tabBarStyle: { display: 'none' },
         }}
       />
-      {/* Detail screens — hidden from tab bar, back button shown in header */}
       <Tabs.Screen
         name="jobs/[id]"
         options={{
@@ -73,7 +90,7 @@ export default function WorkerLayout() {
           title: t('manager.screen_job_detail'),
           headerShown: true,
           tabBarStyle: { display: 'none' },
-          headerLeft: undefined, // use default Expo back button
+          headerLeft: undefined,
         }}
       />
       <Tabs.Screen

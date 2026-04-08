@@ -53,7 +53,8 @@
     "jobs": "일자리",
     "applications": "지원현황",
     "attendance": "출퇴근",
-    "profile": "프로필"
+    "profile": "프로필",
+    "mypage": "마이페이지"
   },
   "worker_sidebar": {
     "home": "마이페이지",
