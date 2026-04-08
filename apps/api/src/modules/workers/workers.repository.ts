@@ -15,8 +15,10 @@ export class WorkersRepository {
     const { rows } = await this.db.query(
       `SELECT
          wp.*,
+         u.phone, u.email,
          t.name_ko AS trade_name_ko, t.name_vi AS trade_name_vi
        FROM app.worker_profiles wp
+       JOIN auth.users u ON u.id = wp.user_id
        LEFT JOIN ref.construction_trades t ON wp.primary_trade_id = t.id
        WHERE wp.user_id = $1`,
       [userId],
