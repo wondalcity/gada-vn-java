@@ -409,7 +409,10 @@ export default function ApplyButton({
         {phase === 'confirming' && (
           <div className="fixed inset-0 z-[200] flex flex-col justify-end">
             <div className="absolute inset-0 bg-black/40" onClick={() => setPhase('idle')} />
-            <div className="relative bg-white rounded-t-3xl p-6 flex flex-col gap-4 animate-slide-up">
+            <div
+              className="relative bg-white rounded-t-3xl p-6 flex flex-col gap-4 animate-slide-up"
+              style={{ paddingBottom: 'calc(var(--tab-bar-height, 0px) + env(safe-area-inset-bottom, 16px) + 16px)' }}
+            >
               <div className="w-10 h-1 rounded-full bg-[#D0D4DB] mx-auto -mt-1 mb-1" />
               <p className="text-[15px] font-bold text-[#25282A]">{t('apply_btn.confirm_title')}</p>
               <p className="text-xs text-[#98A2B2] -mt-1 font-medium">{t('apply_btn.note_section')}</p>
@@ -437,7 +440,6 @@ export default function ApplyButton({
                   {t('apply_btn.confirm')}
                 </button>
               </div>
-              <div style={{ height: 'env(safe-area-inset-bottom, 0px)' }} />
             </div>
           </div>
         )}
