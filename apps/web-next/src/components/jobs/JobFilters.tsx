@@ -121,6 +121,10 @@ export function JobFilters({
       setGeoError(t('listing.filter.geo_error_unsupported'))
       return
     }
+    if (!window.isSecureContext) {
+      setGeoError(t('listing.filter.geo_error_https'))
+      return
+    }
     setGeoLoading(true)
     setGeoError('')
     navigator.geolocation.getCurrentPosition(
@@ -128,8 +132,12 @@ export function JobFilters({
         activateGeo(pos.coords.latitude, pos.coords.longitude, t('listing.filter.use_location'))
         setGeoLoading(false)
       },
-      () => {
-        setGeoError(t('listing.filter.geo_error_denied'))
+      (err) => {
+        if (err.code === 2) {
+          setGeoError(t('listing.filter.geo_error_unavailable'))
+        } else {
+          setGeoError(t('listing.filter.geo_error_denied'))
+        }
         setGeoLoading(false)
       },
       { timeout: 10000 },

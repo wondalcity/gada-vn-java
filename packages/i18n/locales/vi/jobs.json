@@ -33,7 +33,9 @@
       "status_closing_soon": "Sắp hết hạn",
       "status_closed": "Đã đóng",
       "geo_error_unsupported": "Trình duyệt này không hỗ trợ tính năng vị trí.",
-      "geo_error_denied": "Quyền truy cập vị trí bị từ chối.",
+      "geo_error_https": "Dịch vụ vị trí yêu cầu kết nối bảo mật (HTTPS).",
+      "geo_error_denied": "Quyền truy cập vị trí bị từ chối. Vui lòng cho phép trong cài đặt trình duyệt.",
+      "geo_error_unavailable": "Không thể xác định vị trí của bạn. Vui lòng thử lại.",
       "active_location": "Đang lọc theo vị trí",
       "clear_location_aria": "Xóa bộ lọc vị trí"
     },

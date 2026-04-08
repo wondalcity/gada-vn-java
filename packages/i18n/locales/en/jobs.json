@@ -33,7 +33,9 @@
       "status_closing_soon": "Closing Soon",
       "status_closed": "Closed",
       "geo_error_unsupported": "This browser does not support location features.",
-      "geo_error_denied": "Location permission was denied.",
+      "geo_error_https": "Location services require a secure connection (HTTPS).",
+      "geo_error_denied": "Location permission was denied. Please allow it in your browser settings.",
+      "geo_error_unavailable": "Unable to determine your location. Please try again.",
       "active_location": "Location filter active",
       "clear_location_aria": "Clear location filter"
     },

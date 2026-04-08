@@ -147,14 +147,22 @@ export function MobileJobFilters({
   }
 
   function useGPS() {
-    if (!navigator.geolocation) { setGeoError('위치 기능을 지원하지 않습니다.'); return }
+    if (!navigator.geolocation) { setGeoError('이 브라우저는 위치 기능을 지원하지 않습니다.'); return }
+    if (!window.isSecureContext) { setGeoError('위치 서비스는 보안 연결(HTTPS)에서만 사용할 수 있습니다.'); return }
     setGeoLoading(true); setGeoError('')
     navigator.geolocation.getCurrentPosition(
       pos => {
         activateGeo(pos.coords.latitude, pos.coords.longitude, '현재 위치')
         setGeoLoading(false)
       },
-      () => { setGeoError('위치 권한이 거부되었습니다.'); setGeoLoading(false) },
+      (err) => {
+        if (err.code === 2) {
+          setGeoError('현재 위치를 확인할 수 없습니다. 잠시 후 다시 시도해주세요.')
+        } else {
+          setGeoError('위치 권한이 거부되었습니다. 브라우저 설정에서 허용해주세요.')
+        }
+        setGeoLoading(false)
+      },
       { timeout: 10000 },
     )
   }
