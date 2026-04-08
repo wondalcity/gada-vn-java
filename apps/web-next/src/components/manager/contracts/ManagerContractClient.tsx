@@ -236,37 +236,82 @@ export default function ManagerContractClient({ contractId }: Props) {
       </div>
 
       {/* Signature status */}
-      <div className="bg-white rounded-2xl shadow-sm border border-[#EFF1F5] p-4 space-y-3">
+      <div className="bg-white rounded-2xl shadow-sm border border-[#EFF1F5] p-4 space-y-4">
         <p className="text-sm font-semibold text-[#25282A]">서명 현황</p>
+
+        {/* Signing step flow indicator */}
+        <div className="flex items-center gap-2">
+          {/* Step 1 */}
+          <div className="flex items-center gap-1.5 flex-1">
+            <div className={`w-6 h-6 rounded-full flex items-center justify-center shrink-0 text-[10px] font-bold ${
+              contract.workerSignedAt ? 'bg-[#00C800] text-white' : 'bg-[#FFC72C] text-[#3C2C02]'
+            }`}>
+              {contract.workerSignedAt
+                ? <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
+                : '1'}
+            </div>
+            <span className={`text-xs font-medium ${contract.workerSignedAt ? 'text-[#1A6B1A]' : 'text-[#856404]'}`}>
+              근로자 서명
+            </span>
+          </div>
+          {/* Arrow */}
+          <svg className="w-4 h-4 shrink-0 text-[#DDDDDD]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+          </svg>
+          {/* Step 2 */}
+          <div className="flex items-center gap-1.5 flex-1 justify-end">
+            <div className={`w-6 h-6 rounded-full flex items-center justify-center shrink-0 text-[10px] font-bold ${
+              contract.managerSignedAt ? 'bg-[#00C800] text-white'
+              : contract.status === 'PENDING_MANAGER_SIGN' ? 'bg-[#0669F7] text-white'
+              : 'bg-[#EFF1F5] text-[#98A2B2]'
+            }`}>
+              {contract.managerSignedAt
+                ? <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
+                : contract.status === 'PENDING_MANAGER_SIGN' ? '2'
+                : <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>}
+            </div>
+            <span className={`text-xs font-medium ${
+              contract.managerSignedAt ? 'text-[#1A6B1A]'
+              : contract.status === 'PENDING_MANAGER_SIGN' ? 'text-[#0669F7]'
+              : 'text-[#98A2B2]'
+            }`}>
+              사업주 서명
+            </span>
+          </div>
+        </div>
+
         <div className="grid grid-cols-2 gap-3">
           {/* Worker signature — display only */}
           {contract.workerSignedAt ? (
-            <div className="rounded-xl border-2 border-[#86D98A] bg-[#E6F9E6] p-3 flex flex-col items-center gap-2 min-h-[100px] justify-center">
+            <div className="rounded-xl border-2 border-[#86D98A] bg-[#E6F9E6] p-3 flex flex-col items-center gap-2 min-h-[110px] justify-center">
               <p className="text-xs font-medium text-[#1A6B1A]">근로자 서명</p>
               {contract.workerSigUrl ? (
                 <div className="w-full h-14 flex items-center justify-center overflow-hidden rounded-lg bg-white border border-[#86D98A]">
                   <img src={contract.workerSigUrl} alt="근로자 서명" className="max-h-full max-w-full object-contain p-1" />
                 </div>
               ) : (
-                <div className="w-12 h-12 rounded-full bg-[#D6F0D6] flex items-center justify-center"><svg className="w-6 h-6 text-[#1A6B1A]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg></div>
+                <div className="w-12 h-12 rounded-full bg-[#D6F0D6] flex items-center justify-center">
+                  <svg className="w-6 h-6 text-[#1A6B1A]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
+                </div>
               )}
               <p className="text-xs text-[#1A6B1A]">서명 완료</p>
             </div>
           ) : (
-            <div className="rounded-xl border-2 border-dashed border-[#EFF1F5] p-3 flex flex-col items-center gap-2 min-h-[100px] justify-center">
-              <p className="text-xs font-medium text-[#98A2B2]">근로자 서명</p>
-              <div className="w-10 h-10 rounded-full bg-[#F2F4F5] flex items-center justify-center">
-                <svg className="w-5 h-5 text-[#C8CBD0]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
+            <div className="rounded-xl border-2 border-dashed border-[#F5D87D] bg-[#FFFDF0] p-3 flex flex-col items-center gap-2 min-h-[110px] justify-center">
+              <p className="text-xs font-medium text-[#856404]">근로자 서명</p>
+              <div className="w-10 h-10 rounded-full bg-[#FFF8E6] flex items-center justify-center">
+                <svg className="w-5 h-5 text-[#FFC72C]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}><path strokeLinecap="round" strokeLinejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
               </div>
-              <p className="text-xs text-[#C8CBD0]">서명 대기</p>
+              <p className="text-xs text-[#856404] font-medium">서명 대기중</p>
             </div>
           )}
-          {/* Manager signature — active button when pending */}
+
+          {/* Manager signature — locked until worker signs, then active */}
           {contract.status === 'PENDING_MANAGER_SIGN' ? (
             <button
               type="button"
               onClick={() => setShowSignModal(true)}
-              className="rounded-xl border-2 border-[#0669F7] bg-[#E6F0FE] p-3 flex flex-col items-center gap-2 min-h-[100px] justify-center hover:bg-[#D6E8FE] active:scale-[0.97] transition-all w-full"
+              className="rounded-xl border-2 border-[#0669F7] bg-[#E6F0FE] p-3 flex flex-col items-center gap-2 min-h-[110px] justify-center hover:bg-[#D6E8FE] active:scale-[0.97] transition-all w-full"
             >
               <p className="text-xs font-semibold text-[#0669F7]">사업주 서명</p>
               <div className="w-10 h-10 rounded-full bg-[#0669F7] flex items-center justify-center shadow-sm">
@@ -275,24 +320,29 @@ export default function ManagerContractClient({ contractId }: Props) {
               <p className="text-xs font-bold text-[#0669F7]">서명하기</p>
             </button>
           ) : contract.managerSignedAt ? (
-            <div className="rounded-xl border-2 border-[#86D98A] bg-[#E6F9E6] p-3 flex flex-col items-center gap-2 min-h-[100px] justify-center">
+            <div className="rounded-xl border-2 border-[#86D98A] bg-[#E6F9E6] p-3 flex flex-col items-center gap-2 min-h-[110px] justify-center">
               <p className="text-xs font-medium text-[#1A6B1A]">사업주 서명</p>
               {(contract.companySigUrl ?? contract.managerSigUrl) ? (
                 <div className="w-full h-14 flex items-center justify-center overflow-hidden rounded-lg bg-white border border-[#86D98A]">
                   <img src={(contract.companySigUrl ?? contract.managerSigUrl)!} alt="사업주 서명" className="max-h-full max-w-full object-contain p-1" />
                 </div>
               ) : (
-                <div className="w-12 h-12 rounded-full bg-[#D6F0D6] flex items-center justify-center"><svg className="w-6 h-6 text-[#1A6B1A]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg></div>
+                <div className="w-12 h-12 rounded-full bg-[#D6F0D6] flex items-center justify-center">
+                  <svg className="w-6 h-6 text-[#1A6B1A]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
+                </div>
               )}
               <p className="text-xs text-[#1A6B1A]">서명 완료</p>
             </div>
           ) : (
-            <div className="rounded-xl border-2 border-dashed border-[#EFF1F5] p-3 flex flex-col items-center gap-2 min-h-[100px] justify-center">
+            /* Locked — worker hasn't signed yet */
+            <div className="rounded-xl border-2 border-dashed border-[#EFF1F5] bg-[#F9FAFB] p-3 flex flex-col items-center gap-2 min-h-[110px] justify-center">
               <p className="text-xs font-medium text-[#98A2B2]">사업주 서명</p>
-              <div className="w-10 h-10 rounded-full bg-[#F2F4F5] flex items-center justify-center">
-                <svg className="w-5 h-5 text-[#C8CBD0]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
+              <div className="w-10 h-10 rounded-full bg-[#EFF1F5] flex items-center justify-center">
+                <svg className="w-5 h-5 text-[#C8CBD0]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                </svg>
               </div>
-              <p className="text-xs text-[#C8CBD0]">서명 대기</p>
+              <p className="text-xs text-[#C8CBD0] text-center leading-relaxed">근로자 서명 완료 후<br/>활성화됩니다</p>
             </div>
           )}
         </div>
