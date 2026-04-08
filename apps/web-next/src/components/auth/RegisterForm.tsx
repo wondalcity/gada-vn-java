@@ -178,7 +178,7 @@ export function RegisterForm({ locale }: RegisterFormProps) {
             <button
               type="button"
               onClick={() => { window.location.href = `/${locale}/login` }}
-              className="w-full min-h-[48px] bg-[#0669F7] text-white rounded-2xl text-[15px] font-bold"
+              className="w-full h-14 bg-[#0669F7] text-white rounded-2xl text-sm font-bold"
             >
               {t('register.already_registered_confirm')}
             </button>
@@ -205,7 +205,7 @@ export function RegisterForm({ locale }: RegisterFormProps) {
             onChange={e => setName(e.target.value)}
             disabled={isLoading}
             placeholder={t('register.name_placeholder')}
-            className="min-h-[52px] px-4 border border-[#EFF1F5] rounded-2xl text-[15px] focus:outline-none focus:ring-2 focus:ring-[#0669F7] disabled:opacity-50"
+            className="h-14 px-4 border border-[#EFF1F5] rounded-2xl text-sm focus:outline-none focus:ring-2 focus:ring-[#0669F7] disabled:opacity-50"
           />
         </div>
 
@@ -228,7 +228,7 @@ export function RegisterForm({ locale }: RegisterFormProps) {
               type="button"
               onClick={handleSendOtp}
               disabled={isLoading || !phone || phone === '+84'}
-              className="shrink-0 min-h-[52px] px-4 bg-[#0669F7] text-white rounded-2xl text-[14px] font-bold disabled:opacity-40 whitespace-nowrap hover:bg-[#0557D4] transition-colors"
+              className="shrink-0 h-14 px-4 bg-[#0669F7] text-white rounded-2xl text-sm font-bold disabled:opacity-40 whitespace-nowrap hover:bg-[#0557D4] transition-colors"
             >
               {isLoading && !otpSent ? t('register.sending') : otpSent ? t('register.resend') : t('register.send_otp')}
             </button>
@@ -257,7 +257,7 @@ export function RegisterForm({ locale }: RegisterFormProps) {
               type="button"
               onClick={() => handleVerifyOtp()}
               disabled={isLoading || otp.replace(/\s/g, '').length < 6}
-              className="w-full min-h-[48px] bg-[#0669F7] text-white rounded-2xl text-[15px] font-bold disabled:opacity-40"
+              className="w-full h-14 bg-[#0669F7] text-white rounded-2xl text-sm font-bold disabled:opacity-40"
             >
               {isLoading ? t('register.verifying') : t('register.verify_button')}
             </button>

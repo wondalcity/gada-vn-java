@@ -114,7 +114,7 @@ export function PhoneInput({
 
       <div
         className={cn(
-          'flex items-center min-h-[52px] bg-white rounded-2xl border overflow-hidden',
+          'flex items-center h-14 bg-white rounded-2xl border overflow-hidden',
           'transition-colors duration-150',
           error
             ? 'border-[#ED1C24] focus-within:ring-1 focus-within:ring-[#ED1C24]'
