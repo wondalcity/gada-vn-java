@@ -86,6 +86,28 @@ function IconApplications() {
     </svg>
   )
 }
+// Stat card icons
+function IconPending() {
+  return (
+    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+    </svg>
+  )
+}
+function IconAccepted() {
+  return (
+    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+    </svg>
+  )
+}
+function IconRejected() {
+  return (
+    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+    </svg>
+  )
+}
 function IconContracts() {
   return (
     <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
@@ -152,9 +174,9 @@ export default async function WorkerHomePage({ params }: Props) {
   ]
 
   const statItems = [
-    { label: t('dashboard.stat.pending'),  value: counts.pending,  className: 'text-[#92620A]',  bgClass: 'bg-[#FFF8E6] border border-[#F5D87D]' },
-    { label: t('dashboard.stat.accepted'), value: counts.accepted, className: 'text-[#1A6B1A]',  bgClass: 'bg-[#E6F9E6] border border-[#86D98A]' },
-    { label: t('dashboard.stat.rejected'), value: counts.rejected, className: 'text-[#ED1C24]',  bgClass: 'bg-[#FDE8EE] border border-[#F4B0C0]' },
+    { label: t('dashboard.stat.pending'),  value: counts.pending,  className: 'text-[#92620A]',  bgClass: 'bg-[#FFF8E6] border border-[#F5D87D]',  iconColor: '#92620A',  Icon: IconPending  },
+    { label: t('dashboard.stat.accepted'), value: counts.accepted, className: 'text-[#1A6B1A]',  bgClass: 'bg-[#E6F9E6] border border-[#86D98A]',  iconColor: '#1A6B1A',  Icon: IconAccepted },
+    { label: t('dashboard.stat.rejected'), value: counts.rejected, className: 'text-[#ED1C24]',  bgClass: 'bg-[#FDE8EE] border border-[#F4B0C0]',  iconColor: '#ED1C24',  Icon: IconRejected },
   ]
 
   return (
@@ -256,7 +278,7 @@ export default async function WorkerHomePage({ params }: Props) {
 
       {/* ── DESKTOP: stat cards ───────────────────────────── */}
       <div className="hidden md:grid grid-cols-3 gap-3 mb-6">
-        {statItems.map(({ label, value, className, bgClass }) => (
+        {statItems.map(({ label, value, className, bgClass, iconColor, Icon }) => (
           <div
             key={label}
             className={`rounded-3xl px-5 py-4 flex items-center justify-between ${bgClass}`}
@@ -265,8 +287,9 @@ export default async function WorkerHomePage({ params }: Props) {
               <p className={`text-xs font-medium ${className}`}>{label}</p>
               <p className={`text-3xl font-extrabold mt-0.5 ${className}`}>{value}</p>
             </div>
-            <div className={`w-10 h-10 rounded-full flex items-center justify-center opacity-20 bg-current`}>
-              <IconApplications />
+            <div className="w-10 h-10 rounded-full flex items-center justify-center opacity-30"
+              style={{ backgroundColor: iconColor, color: '#fff' }}>
+              <Icon />
             </div>
           </div>
         ))}
