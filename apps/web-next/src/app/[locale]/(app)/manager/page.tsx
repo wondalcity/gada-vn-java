@@ -169,7 +169,7 @@ export default function ManagerHomePage({ params }: Props) {
   ]
 
   return (
-    <div className="min-h-screen bg-[#F2F4F5]">
+    <div className="min-h-screen bg-[#e5e7eb]">
       <div className="max-w-[1760px] mx-auto px-4 pt-4 pb-6 md:pt-8 md:pb-10">
 
         {/* ── MOBILE: manager hero card ───────────────────── */}

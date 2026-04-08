@@ -164,7 +164,7 @@ export function RegisterForm({ locale }: RegisterFormProps) {
   }
 
   return (
-    <div className="min-h-screen bg-[#F8F8FA] flex flex-col">
+    <div className="min-h-screen bg-[#e5e7eb] flex flex-col">
       {/* Invisible reCAPTCHA container */}
       <div id="recaptcha-container-register" />
 

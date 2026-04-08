@@ -260,7 +260,7 @@ function LoginFormInner({ locale, redirectTo }: LoginFormInnerProps) {
   // Facebook phone collection screens
   if (step === 'fb_phone' || step === 'fb_otp') {
     return (
-      <div className="min-h-screen bg-[#F8F8FA] flex flex-col">
+      <div className="min-h-screen bg-[#e5e7eb] flex flex-col">
         <div id="recaptcha-container-fb" />
         <div className="bg-white px-6 pt-12 pb-6 text-center border-b border-[#EFF1F5]">
           <h1 className="text-[24px] font-bold text-[#25282A]">{t('login.fb_phone_title')}</h1>
@@ -335,7 +335,7 @@ function LoginFormInner({ locale, redirectTo }: LoginFormInnerProps) {
   }
 
   return (
-    <div className="min-h-screen bg-[#F2F4F5] flex flex-col">
+    <div className="min-h-screen bg-[#e5e7eb] flex flex-col">
       {/* Invisible reCAPTCHA container */}
       <div id="recaptcha-container" />
 

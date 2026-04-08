@@ -10,7 +10,7 @@ interface Props {
 export default async function ManagerListingsPage({ params }: Props) {
   const { locale } = await params
   return (
-    <div className="min-h-screen bg-[#F2F4F5]">
+    <div className="min-h-screen bg-[#e5e7eb]">
       <ManagerListingsClient locale={locale} />
     </div>
   )

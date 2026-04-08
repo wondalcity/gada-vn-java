@@ -23,7 +23,7 @@ export default async function ManagerLayout({ children, params }: Props) {
 
   return (
     <ManagerProviders locale={locale}>
-      <div className="min-h-dvh bg-[#F2F4F5]">
+      <div className="min-h-dvh bg-[#e5e7eb]">
         <ManagerAppBar locale={locale} user={user} />
         {/* main-content: top offset for app bar; bottom padding only on mobile */}
         <main className="main-content md:pb-0">
