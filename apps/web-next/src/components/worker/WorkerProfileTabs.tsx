@@ -1190,9 +1190,9 @@ function LanguageTab({ currentLocale }: { currentLocale: string }) {
   const [pending, setPending] = React.useState<string | null>(null)
 
   const LOCALES = [
-    { code: 'ko', label: t('profile_tabs.language.ko'), flag: '🇰🇷' },
-    { code: 'vi', label: t('profile_tabs.language.vi'), flag: '🇻🇳' },
-    { code: 'en', label: t('profile_tabs.language.en'), flag: '🇺🇸' },
+    { code: 'ko', label: t('profile_tabs.language.ko'), abbr: 'KO' },
+    { code: 'vi', label: t('profile_tabs.language.vi'), abbr: 'VI' },
+    { code: 'en', label: t('profile_tabs.language.en'), abbr: 'EN' },
   ]
 
   function handleSelect(code: string) {
@@ -1209,7 +1209,7 @@ function LanguageTab({ currentLocale }: { currentLocale: string }) {
       </div>
 
       <div className="flex flex-col gap-3">
-        {LOCALES.map(({ code, label, flag }) => {
+        {LOCALES.map(({ code, label, abbr }) => {
           const isCurrent = code === currentLocale
           const isLoading = pending === code
           return (
@@ -1226,7 +1226,7 @@ function LanguageTab({ currentLocale }: { currentLocale: string }) {
                 !!pending && !isCurrent ? 'opacity-40' : '',
               ].join(' ')}
             >
-              <span className="text-2xl">{flag}</span>
+              <span className={`w-10 h-10 rounded-full flex items-center justify-center text-xs font-bold shrink-0 ${isCurrent ? 'bg-[#0669F7] text-white' : 'bg-[#EFF1F5] text-[#7A7B7A]'}`}>{abbr}</span>
               <div className="flex-1">
                 <p className={`text-sm font-semibold ${isCurrent ? 'text-[#0669F7]' : 'text-[#25282A]'}`}>{label}</p>
                 {isCurrent && (

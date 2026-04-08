@@ -4,6 +4,7 @@ import { useTranslations } from 'next-intl'
 import { Link } from '@/components/navigation'
 import type { PublicJob } from '@/lib/api/public'
 import { formatDateShort } from '@/lib/utils/date'
+import { pickDummyImage } from '@/lib/utils/dummyImages'
 
 interface Props {
   job: PublicJob
@@ -50,23 +51,14 @@ export function JobCard({ job, locale, basePath = '/jobs' }: Props) {
       className="press-effect group flex flex-col h-full bg-white rounded-2xl overflow-hidden transition-all hover:shadow-lg"
       style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}
     >
-      {/* Cover image / gradient placeholder */}
-      <div className="relative w-full h-36 overflow-hidden bg-[#0669F7] shrink-0">
-        {job.coverImageUrl ? (
-          <img
-            src={job.coverImageUrl}
-            alt={job.titleKo}
-            loading="lazy"
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-          />
-        ) : (
-          <div className="w-full h-full flex items-center justify-center opacity-20">
-            <svg className="w-16 h-16 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1}
-                d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-            </svg>
-          </div>
-        )}
+      {/* Cover image — 1:1 */}
+      <div className="relative w-full overflow-hidden bg-[#25282A] shrink-0" style={{ aspectRatio: '1/1' }}>
+        <img
+          src={job.coverImageUrl ?? pickDummyImage(String(job.id))}
+          alt={job.titleKo}
+          loading="lazy"
+          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+        />
 
         {/* Status badge — top right */}
         <span

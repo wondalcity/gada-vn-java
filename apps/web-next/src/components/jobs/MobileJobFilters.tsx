@@ -320,7 +320,7 @@ export function MobileJobFilters({
                           : 'border-[#DDDDDD] text-[#25282A]'
                       }`}
                     >
-                      <span className={} />
+                      <span className={`w-2 h-2 rounded-full ${opt.dotColor}`} />
                       <span className="text-xs">{opt.label}</span>
                     </button>
                   ))}

@@ -40,7 +40,7 @@ export function ManagerRoleButton({ initialManagerStatus }: Props) {
 
   if (status === 'active') {
     return (
-      <span className="px-4 py-2 rounded-full bg-orange-100 text-orange-700 text-sm font-medium">
+      <span className="px-4 py-2 rounded-full bg-[#E6F9E6] text-[#1A6B1A] text-sm font-medium">
         관리자 활성화됨
       </span>
     )

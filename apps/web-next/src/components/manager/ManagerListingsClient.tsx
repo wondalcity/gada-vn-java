@@ -183,7 +183,7 @@ function JobPreviewCard({ job, locale }: { job: ManagerJob; locale: string }) {
 
         {/* Almost full warning */}
         {isAlmostFull && !hasPending && (
-          <div className="absolute top-2 right-2 bg-orange-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">
+          <div className="absolute top-2 right-2 bg-[#FFC72C] text-[#25282A] text-[10px] font-bold px-2 py-0.5 rounded-full">
             잔여 {remaining}자리
           </div>
         )}
@@ -302,7 +302,7 @@ export default function ManagerListingsClient({ locale }: { locale: string }) {
         {[
           { label: '운영중 현장', value: activeSites, color: 'text-[#0669F7]' },
           { label: '모집중 공고', value: openJobs, color: 'text-[#1A6B1A]' },
-          { label: '대기 지원자', value: pendingTotal, color: 'text-orange-500' },
+          { label: '대기 지원자', value: pendingTotal, color: 'text-[#856404]' },
         ].map((s) => (
           <div key={s.label} className="bg-white rounded border border-[#EFF1F5] p-3 text-center">
             <p className={`text-xl font-bold ${s.color}`}>{s.value}</p>

@@ -6,6 +6,7 @@ import { useTranslations } from 'next-intl'
 import type { PublicJobDetail } from '@/lib/api/public'
 import ApplyButton from './ApplyButton'
 import { formatDate as fmtDate, formatDateShort as fmtDateShort } from '@/lib/utils/date'
+import { DUMMY_CONSTRUCTION_IMAGES } from '@/lib/utils/dummyImages'
 
 interface Props {
   job: PublicJobDetail & {
@@ -146,21 +147,34 @@ function SiteImageGallery({ images, title, viewAllPhotos }: { images: string[]; 
   const [lightboxOpen, setLightboxOpen] = React.useState(false)
 
   if (images.length === 0) return (
-    <div className="w-full h-56 md:h-72 md:rounded-2xl overflow-hidden bg-[#0669F7] flex items-center justify-center mb-0 md:mb-6">
-      <span className="text-6xl font-black text-white/20">{title.charAt(0)}</span>
+    <div className="w-full h-56 md:h-72 md:rounded-2xl overflow-hidden bg-[#25282A] mb-0 md:mb-6">
+      <img src={DUMMY_CONSTRUCTION_IMAGES[0]} alt={title} className="w-full h-full object-cover" />
     </div>
   )
 
   return (
     <>
-      {/* Mobile: swipe carousel */}
+      {/* Mobile: 1:1 swipe carousel */}
       <div className="md:hidden relative">
-        <div className="relative w-full overflow-hidden bg-[#25282A]" style={{ aspectRatio: '4/3' }}>
-          <img src={images[activeIdx]} alt={title} className="w-full h-full object-cover" onClick={() => setLightboxOpen(true)} />
+        <div className="relative w-full overflow-hidden bg-[#25282A]" style={{ aspectRatio: '1/1' }}>
+          <img
+            src={images[activeIdx]}
+            alt={title}
+            className="w-full h-full object-cover"
+            onClick={() => setLightboxOpen(true)}
+          />
           {images.length > 1 && (
             <>
-              <button onClick={() => setActiveIdx(i => (i - 1 + images.length) % images.length)} className="absolute left-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-black/50 text-white text-xl flex items-center justify-center" aria-label="이전">‹</button>
-              <button onClick={() => setActiveIdx(i => (i + 1) % images.length)} className="absolute right-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-black/50 text-white text-xl flex items-center justify-center" aria-label="다음">›</button>
+              <button
+                onClick={() => setActiveIdx(i => (i - 1 + images.length) % images.length)}
+                className="absolute left-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-black/50 text-white flex items-center justify-center text-xl"
+                aria-label="이전"
+              >‹</button>
+              <button
+                onClick={() => setActiveIdx(i => (i + 1) % images.length)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-black/50 text-white flex items-center justify-center text-xl"
+                aria-label="다음"
+              >›</button>
             </>
           )}
           <div className="absolute bottom-3 right-3 bg-black/60 text-white text-xs px-2.5 py-1 rounded-full font-medium backdrop-blur-sm flex items-center gap-1">
@@ -178,37 +192,46 @@ function SiteImageGallery({ images, title, viewAllPhotos }: { images: string[]; 
         )}
       </div>
 
-      {/* Desktop: Airbnb-style grid */}
+      {/* Desktop: 1:1 collage grid — left main + right 2×2 */}
       <div className="hidden md:block relative mb-8 rounded-2xl overflow-hidden" style={{ boxShadow: '0 2px 16px rgba(0,0,0,0.10)' }}>
-        <div className={`grid gap-1 ${images.length >= 3 ? 'grid-cols-2' : 'grid-cols-1'}`} style={{ maxHeight: 480 }}>
-          {/* Main image */}
+        <div className={`grid gap-1 ${images.length >= 2 ? 'grid-cols-2' : 'grid-cols-1'}`}>
+          {/* Main image — always 1:1 */}
           <div
             className="relative overflow-hidden cursor-zoom-in bg-[#25282A]"
-            style={{ aspectRatio: images.length >= 3 ? '4/3' : '16/7' }}
+            style={{ aspectRatio: '1/1' }}
             onClick={() => { setLightboxOpen(true); setActiveIdx(0) }}
           >
             <img src={images[0]} alt={title} className="w-full h-full object-cover hover:scale-[1.02] transition-transform duration-500" />
           </div>
 
-          {/* Right grid (up to 4 images in 2x2) */}
+          {/* Right column — 2×2 grid of 1:1 cells */}
           {images.length >= 2 && (
-            <div className={`grid gap-1 ${images.length >= 4 ? 'grid-rows-2' : 'grid-rows-1'}`}>
-              {images.slice(1, 5).map((url, i) => (
-                <div
-                  key={i}
-                  className="relative overflow-hidden cursor-zoom-in bg-[#25282A]"
-                  style={{ aspectRatio: images.length >= 4 ? '16/9' : '4/3' }}
-                  onClick={() => { setLightboxOpen(true); setActiveIdx(i + 1) }}
-                >
-                  <img src={url} alt={`${title} ${i + 2}`} loading="lazy" className="w-full h-full object-cover hover:scale-[1.02] transition-transform duration-500" />
-                  {/* Dim last tile if more images */}
-                  {i === 3 && images.length > 5 && (
-                    <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
-                      <span className="text-white font-bold text-lg">+{images.length - 5}</span>
-                    </div>
-                  )}
-                </div>
-              ))}
+            <div className="grid grid-cols-2 gap-1">
+              {Array.from({ length: 4 }).map((_, i) => {
+                const url = images[i + 1]
+                const isLast = i === 3 && images.length > 5
+                return (
+                  <div
+                    key={i}
+                    className="relative overflow-hidden cursor-zoom-in bg-[#25282A]"
+                    style={{ aspectRatio: '1/1' }}
+                    onClick={() => url && (setLightboxOpen(true), setActiveIdx(i + 1))}
+                  >
+                    {url ? (
+                      <>
+                        <img src={url} alt={`${title} ${i + 2}`} loading="lazy" className="w-full h-full object-cover hover:scale-[1.02] transition-transform duration-500" />
+                        {isLast && (
+                          <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+                            <span className="text-white font-bold text-xl">+{images.length - 5}</span>
+                          </div>
+                        )}
+                      </>
+                    ) : (
+                      <div className="w-full h-full bg-[#1a1a1a]" />
+                    )}
+                  </div>
+                )
+              })}
             </div>
           )}
         </div>
@@ -354,7 +377,9 @@ export default function JobDetailView({
   const coverUrl = job.coverImageUrl ?? job.site.coverImageUrl
   const siteImages = React.useMemo(() => {
     const all = rawImages.slice(0, 10)
-    if (!coverUrl || all[0] === coverUrl) return all
+    if (!coverUrl || all[0] === coverUrl) {
+      return all.length > 0 ? all : DUMMY_CONSTRUCTION_IMAGES
+    }
     const idx = all.indexOf(coverUrl)
     if (idx > 0) { const r = [...all]; r.splice(idx, 1); r.unshift(coverUrl); return r }
     return [coverUrl, ...all].slice(0, 10)

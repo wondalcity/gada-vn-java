@@ -85,7 +85,7 @@ export default function AttendanceWorkerRow({
           <div className="flex items-center gap-1.5">
             <p className="font-medium text-[#25282A] text-sm truncate">{draft.workerName}</p>
             {draft.isDirty && (
-              <span className="w-2 h-2 rounded-full bg-orange-400 flex-shrink-0" title="미저장 변경사항" />
+              <span className="w-2 h-2 rounded-full bg-[#FFC72C] flex-shrink-0" title="미저장 변경사항" />
             )}
           </div>
           <p className="text-xs text-[#98A2B2] truncate">

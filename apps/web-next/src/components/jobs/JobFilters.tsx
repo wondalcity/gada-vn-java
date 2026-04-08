@@ -187,7 +187,7 @@ export function JobFilters({
                   : 'bg-white border-[#EFF1F5] text-[#25282A] hover:border-[#0669F7] hover:text-[#0669F7]'
               }`}
             >
-              <span className={} />
+              <span className={`w-2 h-2 rounded-full shrink-0 ${opt.dotColor}`} />
               <span>{t(opt.key as any)}</span>
             </button>
           ))}

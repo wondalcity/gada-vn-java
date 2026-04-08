@@ -279,8 +279,8 @@ export default function AttendanceManagerClient({ jobId, locale }: Props) {
               {isSavingAll ? t('manager_attendance.saving') : t('manager_attendance.save_all')}
             </button>
             {dirtyCount > 0 && (
-              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-orange-50 text-orange-600 border border-orange-200">
-                <span className="w-1.5 h-1.5 rounded-full bg-orange-400" />
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-[#FFF8E6] text-[#856404] border border-[#F5D87D]">
+                <span className="w-1.5 h-1.5 rounded-full bg-[#FFC72C]" />
                 {t('manager_attendance.unsaved_count', { count: dirtyCount })}
               </span>
             )}
