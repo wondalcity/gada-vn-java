@@ -3,8 +3,8 @@
 // Client-side: must use NEXT_PUBLIC_API_BASE_URL (baked at build time).
 const API_BASE =
   typeof window === 'undefined'
-    ? (process.env.INTERNAL_API_URL ?? process.env.NEXT_PUBLIC_API_BASE_URL ?? 'https://api.gada.vn/api/v1')
-    : (process.env.NEXT_PUBLIC_API_BASE_URL ?? 'https://api.gada.vn/api/v1')
+    ? (process.env.INTERNAL_API_URL || process.env.NEXT_PUBLIC_API_BASE_URL || 'https://api.gada.vn/api/v1')
+    : (process.env.NEXT_PUBLIC_API_BASE_URL || 'https://api.gada.vn/api/v1')
 
 export class ApiError extends Error {
   constructor(

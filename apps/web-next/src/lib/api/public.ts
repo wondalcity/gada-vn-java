@@ -1,4 +1,4 @@
-const BASE = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'https://api.gada.vn/api/v1'
+const BASE = process.env.NEXT_PUBLIC_API_BASE_URL || 'https://api.gada.vn/api/v1'
 
 // Cache tags for ISR revalidation
 export const CACHE_TAGS = {
