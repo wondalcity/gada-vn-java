@@ -239,7 +239,7 @@ export function WorkerJobsClient({
               </div>
 
               <div className="px-3 md:px-0 pt-4 md:pt-0 pb-6">
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3">
                   {jobs.length === 0 ? (
                     <div className="col-span-full flex flex-col items-center justify-center py-20 text-center">
                       <svg className="w-12 h-12 text-[#DDDDDD] mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
