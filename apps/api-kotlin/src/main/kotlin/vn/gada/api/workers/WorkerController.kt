@@ -62,6 +62,34 @@ class WorkerController(private val workerService: WorkerService) {
         return ok(workerService.getAttendance(u.id, jobId))
     }
 
+    /** GET /workers/saved-locations */
+    @GetMapping("/saved-locations")
+    fun getSavedLocations(@AuthenticationPrincipal user: AuthUser?): ResponseEntity<Map<String, Any?>> {
+        val u = requireWorker(user)
+        return ok(workerService.getSavedLocations(u.id))
+    }
+
+    /** POST /workers/saved-locations */
+    @PostMapping("/saved-locations")
+    fun createSavedLocation(
+        @AuthenticationPrincipal user: AuthUser?,
+        @RequestBody body: Map<String, Any?>
+    ): ResponseEntity<Map<String, Any?>> {
+        val u = requireWorker(user)
+        return ok(workerService.createSavedLocation(u.id, body))
+    }
+
+    /** DELETE /workers/saved-locations/{id} */
+    @DeleteMapping("/saved-locations/{id}")
+    fun deleteSavedLocation(
+        @AuthenticationPrincipal user: AuthUser?,
+        @PathVariable id: String
+    ): ResponseEntity<Map<String, Any?>> {
+        val u = requireWorker(user)
+        workerService.deleteSavedLocation(id, u.id)
+        return ok(mapOf("deleted" to true))
+    }
+
     private fun requireWorker(user: AuthUser?): AuthUser {
         if (user == null) throw UnauthorizedException("Unauthorized")
         if (user.role != "WORKER" && user.role != "MANAGER" && user.role != "ADMIN") throw ForbiddenException("WORKER role required")

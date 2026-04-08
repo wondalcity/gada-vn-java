@@ -191,4 +191,45 @@ class WorkerRepository(
         )
         return findByUserId(userId)
     }
+
+    // ── Saved Locations ───────────────────────────────────────────────────────
+
+    fun findSavedLocationsByUserId(userId: String): List<Map<String, Any?>> {
+        return db.queryForList(
+            """SELECT id, worker_id, label, address, lat, lng, is_default, created_at
+               FROM app.worker_saved_locations
+               WHERE worker_id = (SELECT id FROM app.worker_profiles WHERE user_id = ?)
+               ORDER BY is_default DESC, created_at ASC""",
+            userId
+        )
+    }
+
+    fun createSavedLocation(userId: String, label: String, address: String?, lat: Double?, lng: Double?, isDefault: Boolean): Map<String, Any?> {
+        if (isDefault) {
+            // Clear existing default
+            db.updateRaw(
+                """UPDATE app.worker_saved_locations SET is_default = FALSE
+                   WHERE worker_id = (SELECT id FROM app.worker_profiles WHERE user_id = ?)""",
+                userId
+            )
+        }
+        val rows = db.queryForList(
+            """INSERT INTO app.worker_saved_locations (worker_id, label, address, lat, lng, is_default)
+               SELECT wp.id, ?, ?, ?, ?, ?
+               FROM app.worker_profiles wp WHERE wp.user_id = ?
+               RETURNING id, worker_id, label, address, lat, lng, is_default, created_at""",
+            label, address, lat, lng, isDefault, userId
+        )
+        return rows.first()
+    }
+
+    fun deleteSavedLocation(id: String, userId: String): Boolean {
+        val count = db.updateRaw(
+            """DELETE FROM app.worker_saved_locations
+               WHERE id = ?::uuid
+                 AND worker_id = (SELECT id FROM app.worker_profiles WHERE user_id = ?)""",
+            id, userId
+        )
+        return count > 0
+    }
 }

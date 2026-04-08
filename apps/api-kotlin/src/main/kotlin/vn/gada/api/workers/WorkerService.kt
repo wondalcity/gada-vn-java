@@ -31,4 +31,21 @@ class WorkerService(private val repo: WorkerRepository) {
         val skills = body["skills"] as? List<Map<String, Any?>> ?: emptyList()
         return repo.updateTradeSkillsByUserId(userId, skills)
     }
+
+    fun getSavedLocations(userId: String): List<Map<String, Any?>> {
+        return repo.findSavedLocationsByUserId(userId)
+    }
+
+    fun createSavedLocation(userId: String, body: Map<String, Any?>): Map<String, Any?> {
+        val label = body["label"] as? String ?: "주소"
+        val address = body["address"] as? String
+        val lat = (body["lat"] as? Number)?.toDouble()
+        val lng = (body["lng"] as? Number)?.toDouble()
+        val isDefault = body["isDefault"] as? Boolean ?: false
+        return repo.createSavedLocation(userId, label, address, lat, lng, isDefault)
+    }
+
+    fun deleteSavedLocation(id: String, userId: String): Boolean {
+        return repo.deleteSavedLocation(id, userId)
+    }
 }
