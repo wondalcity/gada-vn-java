@@ -14,6 +14,7 @@ import { useTranslations } from 'next-intl'
 import { PhoneInput, validatePhone } from './PhoneInput'
 import { OtpInput } from './OtpInput'
 import { setSessionCookie } from '../../lib/auth/session'
+import { LocaleSwitcher } from '../public/LocaleSwitcher'
 
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'https://api.gada.vn/api/v1'
 
@@ -187,7 +188,10 @@ export function RegisterForm({ locale }: RegisterFormProps) {
       )}
 
       {/* Header */}
-      <div className="bg-white px-6 pt-12 pb-6 text-center border-b border-[#EEEEEE]">
+      <div className="bg-white px-6 pt-12 pb-6 text-center border-b border-[#EEEEEE] relative">
+        <div className="absolute top-4 right-4">
+          <LocaleSwitcher />
+        </div>
         <h1 className="text-[28px] font-bold leading-[35px] text-[#25282A]">{t('register.title')}</h1>
         <p className="mt-2 text-[15px] text-[#98A2B2]">{t('register.subtitle_phone')}</p>
       </div>
