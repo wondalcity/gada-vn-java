@@ -6,6 +6,7 @@ import { useRouter, usePathname } from '@/i18n/navigation'
 import { getSessionCookie, clearSessionCookie } from '@/lib/auth/session'
 import { getGoogleMapsLoader } from '@/lib/maps/loader'
 import { PhoneInput, validatePhone } from '@/components/auth/PhoneInput'
+import { DatePicker } from '@/components/ui/DatePicker'
 
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'https://api.gada.vn/api/v1'
 const CDN_DOMAIN = process.env.NEXT_PUBLIC_CDN_DOMAIN ?? ''
@@ -381,23 +382,36 @@ function BasicTab({ profile, onSaved }: { profile: WorkerProfile; onSaved: (p: P
 
   async function save() {
     if (!fullName.trim()) { setError(t('profile_tabs.basic.error_name')); return }
-    if (!dob) { setError(t('profile_tabs.basic.error_dob')); return }
-    if (!gender) { setError(t('profile_tabs.basic.error_gender')); return }
     if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
       setEmailError(t('profile_tabs.basic.error_email')); return
     }
+    const tok = getSessionCookie()
+    if (!tok) { setError(t('profile_tabs.basic.save_fail')); return }
     setError(''); setEmailError(''); setSaving(true)
     try {
-      const [profileOk, emailRes] = await Promise.all([
-        saveProfile(token!, { fullName: fullName.trim(), dateOfBirth: dob, gender, bio: bio.trim() || null }),
-        fetch(`${API_BASE}/auth/me`, {
+      const profileOk = await saveProfile(tok, {
+        fullName: fullName.trim(),
+        dateOfBirth: dob || null,
+        gender: gender || null,
+        bio: bio.trim() || null,
+      })
+      // Update email separately — only if user has changed it
+      let emailOk = true
+      const trimmedEmail = email.trim() || null
+      try {
+        const emailRes = await fetch(`${API_BASE}/auth/me`, {
           method: 'PATCH',
-          headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email: email.trim() || null }),
-        }),
-      ])
-      if (profileOk && emailRes.ok) {
-        onSaved({ full_name: fullName.trim(), date_of_birth: dob, gender: gender as 'MALE'|'FEMALE'|'OTHER', bio: bio.trim() || null, email: email.trim() || null })
+          headers: { Authorization: `Bearer ${tok}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: trimmedEmail }),
+        })
+        emailOk = emailRes.ok
+      } catch { /* network error — non-critical, profile was already saved */ }
+
+      if (profileOk) {
+        onSaved({ full_name: fullName.trim(), date_of_birth: dob || undefined, gender: gender as 'MALE'|'FEMALE'|'OTHER'|null, bio: bio.trim() || null, email: trimmedEmail })
+        if (!emailOk) {
+          setEmailError(t('profile_tabs.basic.save_fail'))
+        }
       } else {
         setError(t('profile_tabs.basic.save_fail'))
       }
@@ -451,7 +465,7 @@ function BasicTab({ profile, onSaved }: { profile: WorkerProfile; onSaved: (p: P
           placeholder={t('profile_tabs.basic.name_placeholder')} className={inputCls} />
       </Field>
       <Field label={t('profile_tabs.basic.dob')}>
-        <input type="date" value={dob} max={maxDate} onChange={e => setDob(e.target.value)} className={inputCls} />
+        <DatePicker value={dob} max={maxDate} onChange={setDob} placeholder="생년월일 선택" />
       </Field>
       <Field label={t('profile_tabs.basic.gender')}>
         <div className="flex gap-2">

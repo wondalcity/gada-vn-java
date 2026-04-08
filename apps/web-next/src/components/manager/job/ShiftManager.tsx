@@ -2,6 +2,7 @@
 
 import * as React from 'react'
 import { apiClient } from '@/lib/api/client'
+import { DatePicker } from '@/components/ui/DatePicker'
 import type { JobShift } from '@/types/manager-site-job'
 import StatusBadge from '@/components/manager/StatusBadge'
 import ConfirmModal from '@/components/manager/ConfirmModal'
@@ -196,12 +197,11 @@ export default function ShiftManager({ jobId, initialShifts, idToken }: ShiftMan
         <div className="mb-4 p-3 bg-[#F2F4F5] rounded-2xl border border-[#EFF1F5] flex items-end gap-2">
           <div className="flex-1">
             <label className="block text-xs font-medium text-[#25282A] mb-1">날짜 선택</label>
-            <input
-              type="date"
+            <DatePicker
               value={singleDate}
-              onChange={(e) => setSingleDate(e.target.value)}
+              onChange={setSingleDate}
               min={today}
-              className="w-full px-3 py-2 rounded-2xl border border-[#EFF1F5] focus:outline-none focus:border-[#0669F7] text-sm text-[#25282A] bg-white"
+              placeholder="날짜 선택"
             />
           </div>
           <button
@@ -229,23 +229,21 @@ export default function ShiftManager({ jobId, initialShifts, idToken }: ShiftMan
           <div className="flex items-end gap-2">
             <div className="flex-1">
               <label className="block text-xs font-medium text-[#25282A] mb-1">시작일</label>
-              <input
-                type="date"
+              <DatePicker
                 value={rangeFrom}
-                onChange={(e) => setRangeFrom(e.target.value)}
+                onChange={setRangeFrom}
                 min={today}
-                className="w-full px-3 py-2 rounded-2xl border border-[#EFF1F5] focus:outline-none focus:border-[#0669F7] text-sm bg-white"
+                placeholder="시작일"
               />
             </div>
             <span className="text-[#98A2B2] text-sm pb-2">~</span>
             <div className="flex-1">
               <label className="block text-xs font-medium text-[#25282A] mb-1">종료일</label>
-              <input
-                type="date"
+              <DatePicker
                 value={rangeTo}
-                onChange={(e) => setRangeTo(e.target.value)}
+                onChange={setRangeTo}
                 min={rangeFrom || today}
-                className="w-full px-3 py-2 rounded-2xl border border-[#EFF1F5] focus:outline-none focus:border-[#0669F7] text-sm bg-white"
+                placeholder="종료일"
               />
             </div>
           </div>

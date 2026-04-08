@@ -4,6 +4,7 @@ import * as React from 'react'
 import { Link } from '@/i18n/navigation'
 import { useTranslations } from 'next-intl'
 import { getSessionCookie } from '@/lib/auth/session'
+import { DatePicker } from '@/components/ui/DatePicker'
 import { apiClient, ApiError } from '@/lib/api/client'
 import type { Trade } from '@/lib/api/public'
 
@@ -275,16 +276,13 @@ export default function WorkerProfileForm({ locale }: { locale: string }) {
 
               {/* Date of birth */}
               <div>
-                <label htmlFor="dateOfBirth" className="block text-sm font-medium text-[#25282A] mb-1">
+                <label className="block text-sm font-medium text-[#25282A] mb-1">
                   {t('worker_profile_form.field_dob')}
                 </label>
-                <input
-                  id="dateOfBirth"
-                  name="dateOfBirth"
-                  type="date"
+                <DatePicker
                   value={profile.dateOfBirth}
-                  onChange={handleChange}
-                  className="w-full px-3 py-2 rounded-2xl border border-[#EFF1F5] focus:outline-none focus:border-[#0669F7] text-sm text-[#25282A]"
+                  onChange={v => setProfile(p => ({ ...p, dateOfBirth: v }))}
+                  placeholder="생년월일 선택"
                 />
               </div>
 

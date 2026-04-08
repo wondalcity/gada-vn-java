@@ -2,6 +2,7 @@
 
 import * as React from 'react'
 import { ProfileDraft } from '@/types/worker-profile'
+import { DatePicker } from '@/components/ui/DatePicker'
 
 interface BasicInfoStepProps {
   draft: ProfileDraft
@@ -63,16 +64,14 @@ export default function BasicInfoStep({ draft, onChange, onNext, isSaving }: Bas
 
       {/* Date of birth */}
       <div>
-        <label htmlFor="dateOfBirth" className="block text-sm font-medium text-[#25282A] mb-1">
+        <label className="block text-sm font-medium text-[#25282A] mb-1">
           생년월일 <span className="text-[#ED1C24]">*</span>
         </label>
-        <input
-          id="dateOfBirth"
-          type="date"
+        <DatePicker
           value={draft.dateOfBirth}
           max={maxDate}
-          onChange={(e) => onChange({ dateOfBirth: e.target.value })}
-          className="w-full px-3 py-3 rounded-2xl border border-[#EFF1F5] focus:outline-none focus:border-[#0669F7] text-sm text-[#25282A] min-h-[44px]"
+          onChange={v => onChange({ dateOfBirth: v })}
+          placeholder="생년월일 선택"
         />
       </div>
 

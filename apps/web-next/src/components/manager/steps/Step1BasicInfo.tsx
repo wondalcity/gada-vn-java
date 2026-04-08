@@ -2,6 +2,7 @@
 
 import * as React from 'react'
 import { ManagerDraft } from '@/types/manager-application'
+import { DatePicker } from '@/components/ui/DatePicker'
 
 interface Props {
   draft: ManagerDraft
@@ -129,15 +130,13 @@ export default function Step1BasicInfo({ draft, onChange, onNext }: Props) {
 
       {/* ── Representative DOB ─────────────────────────── */}
       <div>
-        <label htmlFor="representativeDob" className={labelClass}>
+        <label className={labelClass}>
           생년월일 <span className="text-[#ED1C24]">*</span>
         </label>
-        <input
-          id="representativeDob"
-          type="date"
+        <DatePicker
           value={draft.representativeDob}
-          onChange={(e) => onChange({ representativeDob: e.target.value })}
-          className={inputClass}
+          onChange={v => onChange({ representativeDob: v })}
+          placeholder="생년월일 선택"
         />
       </div>
 

@@ -3,6 +3,7 @@
 import * as React from 'react'
 import { useRouter } from '@/i18n/navigation'
 import { apiClient } from '@/lib/api/client'
+import { DatePicker } from '@/components/ui/DatePicker'
 import { siteStore } from '@/lib/demo/siteStore'
 import type { Job, JobStatus } from '@/types/manager-site-job'
 
@@ -294,24 +295,22 @@ export default function JobForm({
             <label className={labelClass}>
               작업일 <span className="text-[#ED1C24]">*</span>
             </label>
-            <input
-              type="date"
+            <DatePicker
               value={workDate}
-              onChange={(e) => setWorkDate(e.target.value)}
+              onChange={setWorkDate}
               min={today}
-              className={inputClass}
+              placeholder="작업일 선택"
             />
           </div>
 
           {/* Expires at */}
           <div>
             <label className={labelClass}>모집 마감일</label>
-            <input
-              type="date"
+            <DatePicker
               value={expiresAt}
-              onChange={(e) => setExpiresAt(e.target.value)}
+              onChange={setExpiresAt}
               max={workDate || undefined}
-              className={inputClass}
+              placeholder="마감일 선택"
             />
             <p className="mt-1 text-xs text-[#98A2B2]">이 날짜 이후 지원이 불가합니다</p>
           </div>

@@ -2,6 +2,7 @@
 
 import * as React from 'react'
 import { ManagerDraft } from '@/types/manager-application'
+import { DatePicker } from '@/components/ui/DatePicker'
 
 interface Props {
   draft: ManagerDraft
@@ -50,17 +51,15 @@ export default function RepresentativeInfoStep({ draft, onChange, onNext, onBack
 
       {/* Date of birth */}
       <div>
-        <label htmlFor="representativeDob" className="block text-sm font-medium text-[#25282A] mb-1.5">
+        <label className="block text-sm font-medium text-[#25282A] mb-1.5">
           생년월일
           <span className="ml-1 text-xs text-[#98A2B2] font-normal">(선택)</span>
         </label>
-        <input
-          id="representativeDob"
-          type="date"
+        <DatePicker
           value={draft.representativeDob}
           max={today}
-          onChange={(e) => onChange({ representativeDob: e.target.value })}
-          className="w-full px-3 py-2.5 rounded-2xl border border-[#EFF1F5] focus:outline-none focus:border-[#0669F7] text-sm text-[#25282A]"
+          onChange={v => onChange({ representativeDob: v })}
+          placeholder="생년월일 선택"
         />
       </div>
 
