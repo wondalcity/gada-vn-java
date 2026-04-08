@@ -577,9 +577,10 @@ function ExperienceTab({ profile, onSaved }: { profile: WorkerProfile; onSaved: 
   const token = getSessionCookie()
 
   React.useEffect(() => {
+    const t = getSessionCookie()
     Promise.all([
       fetch(`${API_BASE}/public/trades`).then(r => r.json()).then(b => b.data ?? b),
-      fetch(`${API_BASE}/workers/me/trade-skills`, { headers: { Authorization: `Bearer ${token}` } })
+      fetch(`${API_BASE}/workers/me/trade-skills`, { headers: { Authorization: `Bearer ${t}` } })
         .then(r => r.ok ? r.json() : { data: [] }).then(b => b.data ?? []),
     ]).then(([tradesData, skillsData]) => {
       setTrades(tradesData)
@@ -713,8 +714,8 @@ interface SavedLocation {
   id: string
   label: string
   address: string | null
-  lat: number
-  lng: number
+  lat: number | null
+  lng: number | null
   is_default: boolean
 }
 
