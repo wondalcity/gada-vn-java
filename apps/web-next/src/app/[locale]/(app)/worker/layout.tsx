@@ -18,7 +18,7 @@ export default async function WorkerLayout({ children, params }: Props) {
 
   return (
     <WorkerProviders locale={locale}>
-      <div className="min-h-dvh bg-[#e5e7eb]">
+      <div className="min-h-dvh bg-[#F8F8FA]">
         {/* Sticky app bar */}
         <WorkerAppBar locale={locale} user={user} provinces={provinces} />
 

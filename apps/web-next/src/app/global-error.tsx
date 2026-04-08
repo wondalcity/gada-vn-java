@@ -10,7 +10,7 @@ export default function GlobalError({ reset }: { reset: () => void }) {
           flexDirection: 'column',
           alignItems: 'center',
           justifyContent: 'center',
-          background: '#e5e7eb',
+          background: '#F8F8FA',
           padding: '24px',
           textAlign: 'center',
           fontFamily: 'system-ui, sans-serif',

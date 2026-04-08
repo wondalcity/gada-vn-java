@@ -16,7 +16,7 @@ export default async function PublicLayout({ children, params }: Props) {
   ])
   return (
     // Override --tab-bar-height: public pages have no bottom nav bar
-    <div className="min-h-screen flex flex-col bg-[#e5e7eb]" style={{ ['--tab-bar-height' as string]: '0px' }}>
+    <div className="min-h-screen flex flex-col bg-[#F8F8FA]" style={{ ['--tab-bar-height' as string]: '0px' }}>
       <PublicHeader locale={locale} user={user} provinces={provinces} />
       <main className="flex-1">{children}</main>
       <PublicFooter locale={locale} />
