@@ -153,7 +153,7 @@ export default function WorkerProfileForm({ locale }: { locale: string }) {
           bio: profile.bio || null,
           bankName: profile.bankName || null,
           bankAccountNumber: profile.bankAccountNumber || null,
-          primaryTradeId: profile.primaryTradeId || null,
+          primaryTradeId: profile.primaryTradeId ? Number(profile.primaryTradeId) : null,
           province: profile.province || null,
         }),
       })
@@ -276,13 +276,12 @@ export default function WorkerProfileForm({ locale }: { locale: string }) {
               {/* Date of birth */}
               <div>
                 <label htmlFor="dateOfBirth" className="block text-sm font-medium text-[#25282A] mb-1">
-                  {t('worker_profile_form.field_dob')} <span className="text-[#ED1C24]">*</span>
+                  {t('worker_profile_form.field_dob')}
                 </label>
                 <input
                   id="dateOfBirth"
                   name="dateOfBirth"
                   type="date"
-                  required
                   value={profile.dateOfBirth}
                   onChange={handleChange}
                   className="w-full px-3 py-2 rounded-2xl border border-[#EFF1F5] focus:outline-none focus:border-[#0669F7] text-sm text-[#25282A]"
@@ -292,12 +291,11 @@ export default function WorkerProfileForm({ locale }: { locale: string }) {
               {/* Gender */}
               <div>
                 <label htmlFor="gender" className="block text-sm font-medium text-[#25282A] mb-1">
-                  {t('worker_profile_form.field_gender')} <span className="text-[#ED1C24]">*</span>
+                  {t('worker_profile_form.field_gender')}
                 </label>
                 <select
                   id="gender"
                   name="gender"
-                  required
                   value={profile.gender}
                   onChange={handleChange}
                   className="w-full px-3 py-2 rounded-2xl border border-[#EFF1F5] focus:outline-none focus:border-[#0669F7] text-sm text-[#25282A] bg-white"

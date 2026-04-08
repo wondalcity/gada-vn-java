@@ -87,9 +87,11 @@ const DOC_WIDTH = 680
 interface Props {
   contract: Contract
   documentRef?: React.RefObject<HTMLDivElement>
+  previewWorkerSigUrl?: string | null
+  previewManagerSigUrl?: string | null
 }
 
-export function ContractDocument({ contract, documentRef }: Props) {
+export function ContractDocument({ contract, documentRef, previewWorkerSigUrl, previewManagerSigUrl }: Props) {
   const contractNo = contract.id.slice(0, 8).toUpperCase()
   const issuedDate = fmtShortDate(contract.createdAt)
 
@@ -298,10 +300,10 @@ export function ContractDocument({ contract, documentRef }: Props) {
                   position: 'relative',
                 }}
               >
-                {contract.workerSigUrl ? (
+                {(previewWorkerSigUrl ?? contract.workerSigUrl) ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
-                    src={contract.workerSigUrl}
+                    src={(previewWorkerSigUrl ?? contract.workerSigUrl)!}
                     alt="근로자 서명"
                     style={{ maxHeight: '64px', maxWidth: '100%', objectFit: 'contain' }}
                     crossOrigin="anonymous"
@@ -361,10 +363,10 @@ export function ContractDocument({ contract, documentRef }: Props) {
                   minHeight: '70px',
                 }}
               >
-                {(contract.companySigUrl || contract.managerSigUrl) ? (
+                {(previewManagerSigUrl ?? contract.companySigUrl ?? contract.managerSigUrl) ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
-                    src={(contract.companySigUrl ?? contract.managerSigUrl)!}
+                    src={(previewManagerSigUrl ?? contract.companySigUrl ?? contract.managerSigUrl)!}
                     alt="사업주 서명"
                     style={{ maxHeight: '64px', maxWidth: '100%', objectFit: 'contain' }}
                     crossOrigin="anonymous"

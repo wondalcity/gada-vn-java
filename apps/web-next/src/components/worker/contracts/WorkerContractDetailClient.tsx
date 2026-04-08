@@ -25,20 +25,15 @@ function formatDate(d: string): string {
 }
 
 function SignaturePad({
-  contractId,
-  token,
   savedSigUrl,
-  onSuccess,
+  onPreview,
 }: {
-  contractId: string
-  token: string
   savedSigUrl?: string | null
-  onSuccess: () => void
+  onPreview: (dataUrl: string) => void
 }) {
   const { canvasRef, hasDrawn, startDrawing, draw, stopDrawing, clear, getDataUrl, checkIsEmpty } =
     useSignatureCanvas()
   const t = useTranslations('common')
-  const [isSigning, setIsSigning] = React.useState(false)
   const [error, setError] = React.useState<string | null>(null)
   const [useSaved, setUseSaved] = React.useState(false)
 
@@ -63,30 +58,13 @@ function SignaturePad({
     }
   }, [startDrawing, draw, stopDrawing, canvasRef])
 
-  async function handleSign() {
-    setIsSigning(true)
+  function handlePreview() {
     setError(null)
-    try {
-      let signatureData: string
-      if (useSaved && savedSigUrl) {
-        signatureData = savedSigUrl
-      } else {
-        if (checkIsEmpty()) { setError(t('worker_contracts.sign_error_empty')); setIsSigning(false); return }
-        signatureData = getDataUrl()
-      }
-      // Demo contracts: skip the real API call
-      if (!contractId.startsWith('demo-')) {
-        await apiClient(`/contracts/${contractId}/sign`, {
-          method: 'POST',
-          token,
-          body: JSON.stringify({ signatureData }),
-        })
-      }
-      onSuccess()
-    } catch (err) {
-      setError(err instanceof Error ? err.message : t('worker_contracts.sign_error_generic'))
-    } finally {
-      setIsSigning(false)
+    if (useSaved && savedSigUrl) {
+      onPreview(savedSigUrl)
+    } else {
+      if (checkIsEmpty()) { setError(t('worker_contracts.sign_error_empty')); return }
+      onPreview(getDataUrl())
     }
   }
 
@@ -160,11 +138,11 @@ function SignaturePad({
         )}
         <button
           type="button"
-          onClick={handleSign}
-          disabled={isSigning || (!useSaved && !hasDrawn)}
+          onClick={handlePreview}
+          disabled={!useSaved && !hasDrawn}
           className="flex-1 py-3 rounded-full bg-[#0669F7] text-white font-semibold text-sm disabled:opacity-40 hover:bg-[#0557D4] transition-colors"
         >
-          {isSigning ? t('worker_contracts.sign_signing') : t('worker_contracts.sign_complete')}
+          서명 미리보기
         </button>
       </div>
     </div>
@@ -440,6 +418,9 @@ export default function WorkerContractDetailClient({ contractId }: Props) {
   const [successMessage, setSuccessMessage] = React.useState<string | null>(null)
   const [showSignModal, setShowSignModal] = React.useState(false)
   const [profileSigUrl, setProfileSigUrl] = React.useState<string | null>(null)
+  const [pendingSigDataUrl, setPendingSigDataUrl] = React.useState<string | null>(null)
+  const [isConfirming, setIsConfirming] = React.useState(false)
+  const [confirmError, setConfirmError] = React.useState<string | null>(null)
 
   React.useEffect(() => {
     if (!idToken) return
@@ -461,10 +442,32 @@ export default function WorkerContractDetailClient({ contractId }: Props) {
 
   React.useEffect(() => { load() }, [load])
 
-  function handleSignSuccess() {
+  function handleSignPreview(dataUrl: string) {
     setShowSignModal(false)
-    setSuccessMessage(t('worker_contracts.sign_success'))
-    if (!isDemo) load()
+    setPendingSigDataUrl(dataUrl)
+    setConfirmError(null)
+  }
+
+  async function handleConfirmSign() {
+    if (!pendingSigDataUrl) return
+    setIsConfirming(true)
+    setConfirmError(null)
+    try {
+      if (!isDemo && idToken) {
+        await apiClient(`/contracts/${contractId}/sign`, {
+          method: 'POST',
+          token: idToken,
+          body: JSON.stringify({ signatureData: pendingSigDataUrl }),
+        })
+      }
+      setPendingSigDataUrl(null)
+      setSuccessMessage(t('worker_contracts.sign_success'))
+      if (!isDemo) load()
+    } catch (err) {
+      setConfirmError(err instanceof Error ? err.message : t('worker_contracts.sign_error_generic'))
+    } finally {
+      setIsConfirming(false)
+    }
   }
 
   if (isLoading) {
@@ -522,7 +525,7 @@ export default function WorkerContractDetailClient({ contractId }: Props) {
               </button>
             </div>
             <div className="px-5 pb-8 sm:pb-5">
-              <SignaturePad contractId={contractId} token={idToken} savedSigUrl={profileSigUrl} onSuccess={handleSignSuccess} />
+              <SignaturePad savedSigUrl={profileSigUrl} onPreview={handleSignPreview} />
             </div>
           </div>
         </div>
@@ -579,9 +582,41 @@ export default function WorkerContractDetailClient({ contractId }: Props) {
           <ContractDownloadButton documentRef={documentRef} contractId={contract.id} />
         </div>
         <div className="overflow-x-auto">
-          <ContractDocument contract={contract} documentRef={documentRef} />
+          <ContractDocument contract={contract} documentRef={documentRef} previewWorkerSigUrl={pendingSigDataUrl} />
         </div>
       </div>
+
+      {/* Signature confirmation banner */}
+      {pendingSigDataUrl && !contract.workerSignedAt && (
+        <div className="bg-white rounded-2xl border-2 border-[#0669F7] p-4 space-y-3 shadow-sm">
+          <p className="text-sm font-semibold text-[#25282A]">서명 확인</p>
+          <div className="rounded-xl bg-[#FAFCFF] border border-[#C8D8FF] p-3 flex items-center justify-center min-h-[80px]">
+            <img src={pendingSigDataUrl} alt="서명 미리보기" className="max-h-16 object-contain" />
+          </div>
+          <p className="text-xs text-[#98A2B2]">위 서명이 계약서 근로자 서명란에 등록됩니다. 확정 후에는 수정이 불가합니다.</p>
+          {confirmError && (
+            <div className="p-3 bg-[#FDE8EE] border border-[#F4A8B8] rounded-xl text-sm text-[#ED1C24]">{confirmError}</div>
+          )}
+          <div className="flex gap-3">
+            <button
+              type="button"
+              onClick={() => { setPendingSigDataUrl(null); setShowSignModal(true) }}
+              disabled={isConfirming}
+              className="flex-1 py-3 rounded-full border border-[#DDDDDD] text-[#25282A] font-medium text-sm hover:border-[#0669F7] hover:text-[#0669F7] transition-colors disabled:opacity-40"
+            >
+              다시 서명
+            </button>
+            <button
+              type="button"
+              onClick={handleConfirmSign}
+              disabled={isConfirming}
+              className="flex-1 py-3 rounded-full bg-[#0669F7] text-white font-semibold text-sm disabled:opacity-40 hover:bg-[#0557D4] transition-colors"
+            >
+              {isConfirming ? '서명 확정 중...' : '서명 확정'}
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Contract info card */}
       <div className="bg-white rounded-2xl shadow-sm border border-[#EFF1F5] p-4 space-y-3">
