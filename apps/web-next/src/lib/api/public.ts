@@ -122,7 +122,10 @@ export async function fetchPublicJobs(params: {
     ? { cache: 'no-store' as const }  // geo/search results skip CDN cache
     : { next: { revalidate: 60, tags: ['JOBS_LISTING'] as string[] } }
   try {
-    const res = await fetch(`${BASE}/public/jobs?${qs}`, cacheOptions)
+    const res = await fetch(`${BASE}/public/jobs?${qs}`, {
+      ...cacheOptions,
+      signal: AbortSignal.timeout(8000),
+    })
     if (!res.ok) return { jobs: [], total: 0, page: 1, totalPages: 0 }
     const json = await res.json()
     return json.data
@@ -161,6 +164,7 @@ export async function fetchProvinces(locale = 'ko'): Promise<Province[]> {
   try {
     const res = await fetch(`${BASE}/public/provinces?locale=${locale}`, {
       next: { revalidate: 86400, tags: ['PROVINCES'] },
+      signal: AbortSignal.timeout(8000),
     })
     if (!res.ok) return []
     const json = await res.json()
@@ -174,6 +178,7 @@ export async function fetchTrades(locale = 'ko'): Promise<Trade[]> {
   try {
     const res = await fetch(`${BASE}/public/trades?locale=${locale}`, {
       next: { revalidate: 86400, tags: ['TRADES'] },
+      signal: AbortSignal.timeout(8000),
     })
     if (!res.ok) return []
     const json = await res.json()

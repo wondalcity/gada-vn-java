@@ -41,9 +41,9 @@ export default async function LandingPage({ params }: Props) {
   const t = await getTranslations({ locale, namespace: 'landing' })
 
   const [jobsResult, provinces, trades] = await Promise.all([
-    fetchPublicJobs({ page: 1, locale }),
-    fetchProvinces(locale),
-    fetchTrades(locale),
+    fetchPublicJobs({ page: 1, locale }).catch(() => ({ jobs: [], total: 0 })),
+    fetchProvinces(locale).catch(() => []),
+    fetchTrades(locale).catch(() => []),
   ])
 
   const latestJobs = jobsResult.jobs.slice(0, 6)
