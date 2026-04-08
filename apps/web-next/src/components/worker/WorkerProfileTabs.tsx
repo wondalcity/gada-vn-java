@@ -739,8 +739,8 @@ function AddressTab({ profile, onSaved }: { profile: WorkerProfile; onSaved: (p:
   const t = useTranslations('worker')
   const MAX_LOCATIONS = 3
   const [savedLocations, setSavedLocations] = React.useState<SavedLocation[]>([])
-  const [activeIdx, setActiveIdx] = React.useState<number | 'new'>(0)
-  const [editingLabel, setEditingLabel] = React.useState('')
+  const [loadingLocs, setLoadingLocs] = React.useState(true)
+  const [showAddForm, setShowAddForm] = React.useState(false)
   const [saving, setSaving] = React.useState(false)
 
   // ── Add form state ────────────────────────────────────────────────────────
@@ -760,7 +760,7 @@ function AddressTab({ profile, onSaved }: { profile: WorkerProfile; onSaved: (p:
     getGoogleMapsLoader().load().then(() => setMapsLoaded(true)).catch(() => setMapsError(true))
   }, [])
 
-  // Initialize Autocomplete whenever the add-form input becomes visible
+  // Initialize Autocomplete when add form becomes visible
   const initAutocomplete = React.useCallback(() => {
     if (!mapsLoaded || !addInputRef.current || addAcRef.current) return
     const ac = new window.google.maps.places.Autocomplete(addInputRef.current, {
@@ -783,66 +783,32 @@ function AddressTab({ profile, onSaved }: { profile: WorkerProfile; onSaved: (p:
     })
   }, [mapsLoaded])
 
-  // Re-init when tab switches to 'new' and input is rendered
   React.useEffect(() => {
-    if (activeIdx !== 'new') { addAcRef.current = null; return }
-    // Input may not be in DOM yet — defer one frame
+    if (!showAddForm) { addAcRef.current = null; return }
     const id = requestAnimationFrame(() => initAutocomplete())
     return () => cancelAnimationFrame(id)
-  }, [activeIdx, initAutocomplete])
+  }, [showAddForm, initAutocomplete])
 
   // Load saved locations
   React.useEffect(() => {
     const token = getSessionCookie()
-    if (!token) return
+    if (!token) { setLoadingLocs(false); return }
     fetch(`${API_BASE}/workers/saved-locations`, { headers: { Authorization: `Bearer ${token}` } })
       .then(r => r.ok ? r.json() : null)
       .then(res => {
-        if (res?.data) {
-          setSavedLocations(res.data)
-          setActiveIdx(res.data.length > 0 ? 0 : 'new')
-        } else {
-          setActiveIdx('new')
-        }
+        if (res?.data) setSavedLocations(res.data)
       })
-      .catch(() => { setActiveIdx('new') })
+      .catch(() => undefined)
+      .finally(() => setLoadingLocs(false))
   }, [])
-
-  // Sync editingLabel when active tab changes
-  React.useEffect(() => {
-    if (typeof activeIdx === 'number' && savedLocations[activeIdx]) {
-      setEditingLabel(savedLocations[activeIdx].label)
-    }
-  }, [activeIdx, savedLocations])
 
   const token = getSessionCookie()
 
-  async function handleSaveLabel(loc: SavedLocation) {
-    if (!token || !editingLabel.trim()) return
-    setSaving(true)
-    try {
-      // Delete old entry, re-add with new label (no PUT endpoint)
-      await fetch(`${API_BASE}/workers/saved-locations/${loc.id}`, {
-        method: 'DELETE', headers: { Authorization: `Bearer ${token}` },
-      })
-      const res = await fetch(`${API_BASE}/workers/saved-locations`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-        body: JSON.stringify({
-          label: editingLabel.trim(),
-          address: loc.address,
-          lat: loc.lat,
-          lng: loc.lng,
-          isDefault: loc.is_default,
-        }),
-      })
-      if (res.ok) {
-        const json = await res.json()
-        const updated: SavedLocation = json.data
-        setSavedLocations(prev => prev.map(l => l.id === loc.id ? updated : l))
-      }
-    } catch { /* ignore */ }
-    finally { setSaving(false) }
+  function resetAddForm() {
+    setAddLabel(''); setAddAddress(''); setAddLat(null); setAddLng(null)
+    setAddProvince(''); setAddDistrict(''); setAddError('')
+    if (addInputRef.current) addInputRef.current.value = ''
+    addAcRef.current = null
   }
 
   async function handleDelete(loc: SavedLocation) {
@@ -850,18 +816,14 @@ function AddressTab({ profile, onSaved }: { profile: WorkerProfile; onSaved: (p:
     await fetch(`${API_BASE}/workers/saved-locations/${loc.id}`, {
       method: 'DELETE', headers: { Authorization: `Bearer ${token}` },
     }).catch(() => undefined)
-    const newLocs = savedLocations.filter(l => l.id !== loc.id)
-    setSavedLocations(newLocs)
-    setActiveIdx(newLocs.length > 0 ? 0 : 'new')
+    setSavedLocations(prev => prev.filter(l => l.id !== loc.id))
   }
 
   async function handleAdd() {
     if (!token) return
     if (!addLabel.trim()) { setAddError('주소 명칭을 입력해주세요.'); return }
-    const finalLat = addLat
-    const finalLng = addLng
     const finalAddress = addAddress || addProvince || null
-    if (!finalAddress) { setAddError('주소를 입력해주세요.'); return }
+    if (!finalAddress) { setAddError('주소를 검색하고 목록에서 선택해주세요.'); return }
     setAddError('')
     setSaving(true)
     try {
@@ -871,105 +833,84 @@ function AddressTab({ profile, onSaved }: { profile: WorkerProfile; onSaved: (p:
         body: JSON.stringify({
           label: addLabel.trim(),
           address: finalAddress,
-          lat: finalLat,
-          lng: finalLng,
+          lat: addLat,
+          lng: addLng,
           isDefault: savedLocations.length === 0,
         }),
       })
-      if (res.ok) {
-        const json = await res.json()
-        const loc: SavedLocation = json.data
-        const newLocs = [...savedLocations, loc]
-        setSavedLocations(newLocs)
-        setActiveIdx(newLocs.length - 1)
-        setAddLabel(''); setAddAddress(''); setAddLat(null); setAddLng(null); setAddProvince(''); setAddDistrict('')
-        if (addInputRef.current) addInputRef.current.value = ''
-        addAcRef.current = null
+      const json = await res.json()
+      if (!res.ok) {
+        setAddError(json?.message ?? '저장 중 오류가 발생했습니다.')
+        return
       }
-    } catch { setAddError('저장 중 오류가 발생했습니다.') }
-    finally { setSaving(false) }
+      const loc: SavedLocation = json.data
+      setSavedLocations(prev => [...prev, loc])
+      resetAddForm()
+      setShowAddForm(false)
+    } catch {
+      setAddError('저장 중 오류가 발생했습니다.')
+    } finally {
+      setSaving(false)
+    }
   }
 
   const canAdd = savedLocations.length < MAX_LOCATIONS
 
-  return (
-    <div className="space-y-4">
-      {/* Address slot tabs */}
-      <div className="flex border-b border-[#EFF1F5] gap-0">
-        {savedLocations.map((loc, i) => (
-          <button
-            key={loc.id}
-            type="button"
-            onClick={() => setActiveIdx(i)}
-            className={`px-4 py-2.5 text-sm font-medium border-b-2 transition-colors whitespace-nowrap -mb-px ${
-              activeIdx === i
-                ? 'border-[#0669F7] text-[#0669F7]'
-                : 'border-transparent text-[#98A2B2] hover:text-[#25282A]'
-            }`}
-          >
-            {loc.label}
-          </button>
-        ))}
-        {canAdd && (
-          <button
-            type="button"
-            onClick={() => setActiveIdx('new')}
-            className={`px-3 py-2.5 text-sm font-medium border-b-2 transition-colors -mb-px ${
-              activeIdx === 'new'
-                ? 'border-[#0669F7] text-[#0669F7]'
-                : 'border-transparent text-[#98A2B2] hover:text-[#25282A]'
-            }`}
-          >
-            + 추가
-          </button>
-        )}
-      </div>
+  if (loadingLocs) {
+    return <div className="py-6"><Skeleton /></div>
+  }
 
-      {/* Existing location detail */}
-      {typeof activeIdx === 'number' && savedLocations[activeIdx] && (() => {
-        const loc = savedLocations[activeIdx]
-        return (
-          <div className="space-y-3">
-            <Field label="주소 명칭">
-              <input
-                type="text"
-                value={editingLabel}
-                onChange={e => setEditingLabel(e.target.value)}
-                placeholder="예: 집, 회사"
-                className={inputCls}
-              />
-            </Field>
-            <div className="p-3 bg-[#F2F4F5] rounded-lg border border-[#EFF1F5]">
-              <p className="text-sm font-medium text-[#25282A]">{loc.address ?? loc.label}</p>
-              {loc.lat != null && (
-                <p className="text-xs text-[#98A2B2] mt-0.5">{Number(loc.lat).toFixed(5)}, {Number(loc.lng).toFixed(5)}</p>
-              )}
-            </div>
-            <div className="flex gap-3 pt-1">
+  return (
+    <div className="space-y-3">
+      {/* Saved location cards */}
+      {savedLocations.length > 0 && (
+        <div className="space-y-2">
+          {savedLocations.map((loc) => (
+            <div
+              key={loc.id}
+              className="flex items-start gap-3 p-4 bg-[#F8F8FA] rounded-xl border border-[#EFF1F5]"
+            >
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 mb-0.5">
+                  <span className="text-sm font-semibold text-[#25282A]">{loc.label}</span>
+                  {loc.is_default && (
+                    <span className="text-[10px] font-bold text-[#0669F7] bg-[#E6F0FE] px-1.5 py-0.5 rounded-full">기본</span>
+                  )}
+                </div>
+                <p className="text-sm text-[#98A2B2] leading-snug truncate">{loc.address ?? '-'}</p>
+              </div>
               <button
                 type="button"
                 onClick={() => handleDelete(loc)}
-                disabled={saving}
-                className="flex-1 py-2.5 rounded-full border border-[#ED1C24] text-[#ED1C24] font-medium text-sm hover:bg-[#FDE8EE] disabled:opacity-40 transition-colors"
+                className="shrink-0 w-8 h-8 flex items-center justify-center rounded-full hover:bg-[#FFECEC] text-[#98A2B2] hover:text-[#ED1C24] transition-colors"
+                aria-label="삭제"
               >
-                삭제
-              </button>
-              <button
-                type="button"
-                onClick={() => handleSaveLabel(loc)}
-                disabled={saving || !editingLabel.trim() || editingLabel === loc.label}
-                className="flex-1 py-2.5 rounded-full bg-[#0669F7] text-white font-medium text-sm disabled:opacity-40 hover:bg-[#0557D4] transition-colors"
-              >
-                {saving ? '저장 중...' : '저장'}
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
               </button>
             </div>
-          </div>
-        )
-      })()}
+          ))}
+        </div>
+      )}
 
-      {/* Add new location form */}
-      {activeIdx === 'new' && (
-        <div className="space-y-3">
+      {/* Empty state */}
+      {savedLocations.length === 0 && !showAddForm && (
+        <div className="py-8 text-center">
+          <div className="w-12 h-12 bg-[#F2F4F5] rounded-full flex items-center justify-center mx-auto mb-3">
+            <svg className="w-6 h-6 text-[#98A2B2]" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" />
+              <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z" />
+            </svg>
+          </div>
+          <p className="text-sm text-[#98A2B2] mb-3">저장된 주소가 없습니다.</p>
+        </div>
+      )}
+
+      {/* Add form */}
+      {showAddForm && (
+        <div className="border border-[#EFF1F5] rounded-xl p-4 space-y-3 bg-white">
+          <p className="text-sm font-semibold text-[#25282A]">새 주소 추가</p>
           <Field label="주소 명칭">
             <input
               type="text"
@@ -984,8 +925,9 @@ function AddressTab({ profile, onSaved }: { profile: WorkerProfile; onSaved: (p:
               <input
                 ref={addInputRef}
                 type="text"
-                placeholder={mapsLoaded ? '주소를 검색하세요' : '지도 로딩 중...'}
+                placeholder={mapsLoaded ? '주소를 검색하고 목록에서 선택하세요' : '지도 로딩 중...'}
                 disabled={!mapsLoaded}
+                onChange={() => { setAddAddress(''); setAddLat(null); setAddLng(null) }}
                 className={`${inputCls} disabled:bg-[#F2F4F5]`}
               />
             ) : (
@@ -998,34 +940,52 @@ function AddressTab({ profile, onSaved }: { profile: WorkerProfile; onSaved: (p:
             )}
           </Field>
           {addAddress && (
-            <div className="p-3 bg-[#F2F4F5] rounded-lg border border-[#EFF1F5] text-sm text-[#25282A]">
-              {addAddress}
+            <div className="flex items-start gap-2 p-3 bg-[#E6F0FE] rounded-lg border border-[#C3D9FF]">
+              <svg className="w-4 h-4 text-[#0669F7] shrink-0 mt-0.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" />
+                <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z" />
+              </svg>
+              <p className="text-sm text-[#0669F7] font-medium leading-snug">{addAddress}</p>
             </div>
           )}
           {addError && <p className="text-xs text-[#ED1C24]">{addError}</p>}
-          <button
-            type="button"
-            onClick={handleAdd}
-            disabled={saving}
-            className="w-full py-3 rounded-full bg-[#0669F7] text-white font-medium text-sm disabled:opacity-40 hover:bg-[#0557D4] transition-colors"
-          >
-            {saving ? '저장 중...' : '주소 추가'}
-          </button>
+          <div className="flex gap-2 pt-1">
+            <button
+              type="button"
+              onClick={() => { resetAddForm(); setShowAddForm(false) }}
+              disabled={saving}
+              className="flex-1 h-11 rounded-full border border-[#EFF1F5] text-[#98A2B2] font-medium text-sm hover:bg-[#F2F4F5] disabled:opacity-40 transition-colors"
+            >
+              취소
+            </button>
+            <button
+              type="button"
+              onClick={handleAdd}
+              disabled={saving}
+              className="flex-1 h-11 rounded-full bg-[#0669F7] text-white font-semibold text-sm disabled:opacity-40 hover:bg-[#0557D4] transition-colors"
+            >
+              {saving ? '저장 중...' : '저장'}
+            </button>
+          </div>
         </div>
       )}
 
-      {/* Empty state */}
-      {savedLocations.length === 0 && activeIdx !== 'new' && (
-        <div className="py-8 text-center">
-          <p className="text-sm text-[#98A2B2]">저장된 주소가 없습니다.</p>
-          <button type="button" onClick={() => setActiveIdx('new')} className="mt-2 text-sm text-[#0669F7] font-medium">
-            주소 추가하기
-          </button>
-        </div>
+      {/* Add button */}
+      {canAdd && !showAddForm && (
+        <button
+          type="button"
+          onClick={() => setShowAddForm(true)}
+          className="w-full h-11 flex items-center justify-center gap-1.5 rounded-full border-2 border-dashed border-[#C3D9FF] text-[#0669F7] font-medium text-sm hover:bg-[#E6F0FE] hover:border-[#0669F7] transition-colors"
+        >
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+          </svg>
+          주소 추가
+        </button>
       )}
 
       {savedLocations.length > 0 && (
-        <p className="text-xs text-[#98A2B2]">저장된 주소는 일자리 목록에서 주변 공고 검색에 사용됩니다. (최대 {MAX_LOCATIONS}개)</p>
+        <p className="text-xs text-[#98A2B2] pt-1">저장된 주소는 일자리 목록에서 주변 공고 검색에 사용됩니다. (최대 {MAX_LOCATIONS}개)</p>
       )}
     </div>
   )
