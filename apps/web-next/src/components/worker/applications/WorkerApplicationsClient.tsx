@@ -279,7 +279,7 @@ export default function WorkerApplicationsClient({ locale }: { locale?: string }
                   {app.status === 'PENDING' && (
                     <button
                       type="button"
-                      onClick={() => setConfirmWithdrawId(app.id)}
+                      onClick={(e) => { e.preventDefault(); e.stopPropagation(); setConfirmWithdrawId(app.id) }}
                       disabled={withdrawingId === app.id}
                       className="px-5 py-2 rounded-full border border-[#DDDDDD] text-[#25282A] font-medium text-sm disabled:opacity-40 hover:border-[#0669F7] hover:text-[#0669F7] transition-colors"
                     >
