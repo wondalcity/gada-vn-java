@@ -5,6 +5,7 @@ import { Link, useRouter } from '@/i18n/navigation'
 import { useTranslations } from 'next-intl'
 import { getSessionCookie } from '@/lib/auth/session'
 import ConfirmModal from '@/components/manager/ConfirmModal'
+import { useAlert } from '@/context/alert'
 
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'https://api.gada.vn/api/v1'
 
@@ -51,13 +52,13 @@ export default function ApplyButton({
   // Actual token is read inside event handlers where document is available.
   const t = useTranslations('jobs')
   const router = useRouter()
+  const { showAlert } = useAlert()
 
   const [phase, setPhase] = React.useState<Phase>(initialApplicationId ? 'applied' : 'idle')
   const [appId, setAppId] = React.useState(initialApplicationId)
   const [appStatus, setAppStatus] = React.useState(initialApplicationStatus ?? '')
   const [note, setNote] = React.useState(initialNotes ?? '')
   const [draftNote, setDraftNote] = React.useState(initialNotes ?? '')
-  const [errorMsg, setErrorMsg] = React.useState('')
   const [showWithdrawConfirm, setShowWithdrawConfirm] = React.useState(false)
 
   const isExpired = expiresAt ? new Date(expiresAt) < new Date() : false
@@ -74,7 +75,6 @@ export default function ApplyButton({
       return
     }
     setPhase('applying')
-    setErrorMsg('')
     try {
       const res = await fetch(`${API_BASE}/jobs/${jobId}/apply`, {
         method: 'POST',
@@ -94,11 +94,12 @@ export default function ApplyButton({
         : code === 'JOB_FULL' ? 'apply_btn.error.job_full'
         : code === 'JOB_NOT_OPEN' ? 'apply_btn.error.job_not_open'
         : null
-      setErrorMsg(errorKey ? t(errorKey as any) : (body.message ?? t('apply_btn.error.apply_generic')))
-      setPhase('error')
+      const msg = errorKey ? t(errorKey as any) : (body.message ?? t('apply_btn.error.apply_generic'))
+      showAlert(msg)
+      setPhase('idle')
     } catch {
-      setErrorMsg(t('apply_btn.error.apply_generic'))
-      setPhase('error')
+      showAlert(t('apply_btn.error.apply_generic'))
+      setPhase('idle')
     }
   }
 
@@ -144,10 +145,10 @@ export default function ApplyButton({
         return
       }
       const body = await res.json().catch(() => ({}))
-      setErrorMsg(body.message ?? t('apply_btn.error.cancel_generic'))
+      showAlert(body.message ?? t('apply_btn.error.cancel_generic'))
       setPhase('applied')
     } catch {
-      setErrorMsg(t('apply_btn.error.cancel_generic'))
+      showAlert(t('apply_btn.error.cancel_generic'))
       setPhase('applied')
     }
   }
@@ -276,7 +277,6 @@ export default function ApplyButton({
           )}
         </div>
 
-        {errorMsg && <p className="text-xs text-[#ED1C24] mt-3 text-center">{errorMsg}</p>}
       </div>
     )
   }
@@ -335,7 +335,6 @@ export default function ApplyButton({
           )}
           {t('apply_btn.apply')}
         </button>
-        {phase === 'error' && <p className={`text-sm text-[#ED1C24] ${sticky ? 'text-center mt-2' : ''}`}>{errorMsg}</p>}
       </div>
     )
   }
@@ -443,7 +442,6 @@ export default function ApplyButton({
             </div>
           </div>
         )}
-        {phase === 'error' && <p className="text-sm text-[#ED1C24] text-center mt-2">{errorMsg}</p>}
       </>
     )
   }

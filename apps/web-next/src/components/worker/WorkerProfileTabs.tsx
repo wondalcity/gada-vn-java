@@ -7,6 +7,7 @@ import { getSessionCookie, clearSessionCookie } from '@/lib/auth/session'
 import { getGoogleMapsLoader } from '@/lib/maps/loader'
 import { PhoneInput, validatePhone } from '@/components/auth/PhoneInput'
 import { DatePicker } from '@/components/ui/DatePicker'
+import { useAlert } from '@/context/alert'
 
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'https://api.gada.vn/api/v1'
 const CDN_DOMAIN = process.env.NEXT_PUBLIC_CDN_DOMAIN ?? ''
@@ -233,11 +234,18 @@ function UploadZone({
       <p className="text-xs font-medium text-[#98A2B2] mb-1">{label}</p>
       <button
         type="button"
-        onClick={() => !url && ref.current?.click()}
-        className={`relative w-full h-36 rounded-lg border-2 border-dashed flex items-center justify-center overflow-hidden transition-colors bg-[#F2F4F5] ${url ? 'border-[#0669F7] cursor-default' : 'border-[#EFF1F5] hover:border-[#0669F7] cursor-pointer'}`}
+        onClick={() => ref.current?.click()}
+        className={`relative w-full h-36 rounded-lg border-2 border-dashed flex items-center justify-center overflow-hidden transition-colors bg-[#F2F4F5] cursor-pointer ${url ? 'border-[#0669F7]' : 'border-[#EFF1F5] hover:border-[#0669F7]'}`}
       >
         {url ? (
-          <img src={url} alt={label} className="w-full h-full object-contain p-1" />
+          <div className="relative w-full h-full group/img">
+            <img src={url} alt={label} className="w-full h-full object-contain p-1" />
+            <div className="absolute inset-0 bg-black/0 group-hover/img:bg-black/30 transition-colors flex items-center justify-center">
+              <span className="opacity-0 group-hover/img:opacity-100 text-white text-xs font-semibold bg-black/40 px-2 py-1 rounded-full">
+                {t('profile_tabs.id.photo_select')}
+              </span>
+            </div>
+          </div>
         ) : (
           <div className="text-center px-3">
             <svg className="w-6 h-6 text-[#98A2B2] mx-auto mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -255,13 +263,6 @@ function UploadZone({
             className="flex-1 text-xs py-1.5 rounded-lg border border-[#EFF1F5] bg-white text-[#25282A] hover:border-[#0669F7] hover:text-[#0669F7] transition-colors"
           >
             전체보기
-          </button>
-          <button
-            type="button"
-            onClick={() => ref.current?.click()}
-            className="flex-1 text-xs py-1.5 rounded-lg border border-[#EFF1F5] bg-white text-[#25282A] hover:border-[#0669F7] hover:text-[#0669F7] transition-colors"
-          >
-            변경
           </button>
           {onDelete && (
             <button
@@ -284,6 +285,7 @@ function UploadZone({
 
 function BasicTab({ profile, onSaved }: { profile: WorkerProfile; onSaved: (p: Partial<WorkerProfile>) => void }) {
   const t = useTranslations('worker')
+  const { showAlert } = useAlert()
   const [fullName, setFullName] = React.useState(profile.full_name ?? '')
   const [dob, setDob] = React.useState(profile.date_of_birth?.split('T')[0] ?? '')
   const [gender, setGender] = React.useState<'MALE' | 'FEMALE' | 'OTHER' | ''>(profile.gender ?? '')
@@ -413,9 +415,9 @@ function BasicTab({ profile, onSaved }: { profile: WorkerProfile; onSaved: (p: P
           setEmailError(t('profile_tabs.basic.save_fail'))
         }
       } else {
-        setError(t('profile_tabs.basic.save_fail'))
+        showAlert(t('profile_tabs.basic.save_fail'))
       }
-    } catch { setError(t('profile_tabs.basic.save_error')) }
+    } catch { showAlert(t('profile_tabs.basic.save_error')) }
     finally { setSaving(false) }
   }
 
@@ -1033,6 +1035,7 @@ function AddressTab({ profile, onSaved }: { profile: WorkerProfile; onSaved: (p:
 
 function BankTab({ profile, onSaved }: { profile: WorkerProfile; onSaved: (p: Partial<WorkerProfile>) => void }) {
   const t = useTranslations('worker')
+  const { showAlert } = useAlert()
   const [bankName, setBankName] = React.useState(profile.bank_name ?? '')
   const [accountNumber, setAccountNumber] = React.useState(profile.bank_account_number ?? '')
   const [bankBookUrl, setBankBookUrl] = React.useState<string | null>(toCdnUrl(profile.bank_book_url))
@@ -1052,29 +1055,28 @@ function BankTab({ profile, onSaved }: { profile: WorkerProfile; onSaved: (p: Pa
         setBankBookUrl(previewUrl)
         onSaved({ bank_book_url: previewUrl })
       } else {
-        setError(t('profile_tabs.bank.upload_fail'))
+        showAlert(t('profile_tabs.bank.upload_fail'))
       }
     } catch (e) {
-      setError(e instanceof Error ? e.message : t('profile_tabs.bank.upload_fail'))
+      showAlert(e instanceof Error ? e.message : t('profile_tabs.bank.upload_fail'))
     } finally { setUploading(false) }
   }
 
   async function handleBankBookDelete() {
-    setError('')
     try {
       const ok = await saveProfile(token!, { bankBookS3Key: null })
       if (ok) { setBankBookUrl(null); onSaved({ bank_book_url: null }) }
-      else setError(t('profile_tabs.bank.upload_fail'))
-    } catch { setError(t('profile_tabs.bank.upload_fail')) }
+      else showAlert(t('profile_tabs.bank.upload_fail'))
+    } catch { showAlert(t('profile_tabs.bank.upload_fail')) }
   }
 
   async function save() {
-    setSaving(true); setError('')
+    setSaving(true)
     try {
       const ok = await saveProfile(token!, { bankName: bankName.trim() || null, bankAccountNumber: accountNumber.trim() || null })
       if (ok) onSaved({ bank_name: bankName.trim() || null, bank_account_number: accountNumber.trim() || null })
-      else setError(t('profile_tabs.bank.save_fail'))
-    } catch { setError(t('profile_tabs.bank.save_error')) }
+      else showAlert(t('profile_tabs.bank.save_fail'))
+    } catch { showAlert(t('profile_tabs.bank.save_error')) }
     finally { setSaving(false) }
   }
 
@@ -1122,6 +1124,7 @@ function StatusBadge({ verified, hasDoc }: { verified: boolean; hasDoc: boolean 
 
 function IdTab({ profile, onSaved }: { profile: WorkerProfile; onSaved: (p: Partial<WorkerProfile>) => void }) {
   const t = useTranslations('worker')
+  const { showAlert } = useAlert()
   const [idNumber, setIdNumber] = React.useState(profile.id_number ?? '')
   const [frontUrl, setFrontUrl] = React.useState<string | null>(toCdnUrl(profile.id_front_url))
   const [backUrl, setBackUrl] = React.useState<string | null>(toCdnUrl(profile.id_back_url))
@@ -1143,14 +1146,14 @@ function IdTab({ profile, onSaved }: { profile: WorkerProfile; onSaved: (p: Part
         const url = URL.createObjectURL(file)
         setFrontUrl(url); onSaved({ id_front_url: url })
         setSuccess(t('profile_tabs.id.front_saved'))
-      } else setError(t('profile_tabs.id.front_fail'))
-    } catch (e) { setError(e instanceof Error ? e.message : t('profile_tabs.id.upload_fail')) }
+      } else showAlert(t('profile_tabs.id.front_fail'))
+    } catch (e) { showAlert(e instanceof Error ? e.message : t('profile_tabs.id.upload_fail')) }
     finally { setUploading(null) }
   }
 
   async function handleBack(file: File) {
     if (uploading) return
-    setError(''); setUploading('back')
+    setUploading('back')
     try {
       const key = await uploadFile(token!, file, 'worker-id-docs')
       const ok = await saveProfile(token!, { idBackS3Key: key })
@@ -1158,8 +1161,8 @@ function IdTab({ profile, onSaved }: { profile: WorkerProfile; onSaved: (p: Part
         const url = URL.createObjectURL(file)
         setBackUrl(url); onSaved({ id_back_url: url })
         setSuccess(t('profile_tabs.id.back_saved'))
-      } else setError(t('profile_tabs.id.back_fail'))
-    } catch (e) { setError(e instanceof Error ? e.message : t('profile_tabs.id.upload_fail')) }
+      } else showAlert(t('profile_tabs.id.back_fail'))
+    } catch (e) { showAlert(e instanceof Error ? e.message : t('profile_tabs.id.upload_fail')) }
     finally { setUploading(null) }
   }
 
@@ -1178,12 +1181,12 @@ function IdTab({ profile, onSaved }: { profile: WorkerProfile; onSaved: (p: Part
   }
 
   async function save() {
-    setSaving(true); setError(''); setSuccess('')
+    setSaving(true); setSuccess('')
     try {
       const ok = await saveProfile(token!, { idNumber: idNumber.trim() || null })
       if (ok) { onSaved({ id_number: idNumber.trim() || null }); setSuccess(t('profile_tabs.id.number_saved')) }
-      else setError(t('profile_tabs.id.save_fail'))
-    } catch { setError(t('profile_tabs.id.save_error')) }
+      else showAlert(t('profile_tabs.id.save_fail'))
+    } catch { showAlert(t('profile_tabs.id.save_error')) }
     finally { setSaving(false) }
   }
 
@@ -1294,6 +1297,7 @@ function useSignaturePad(canvasRef: React.RefObject<HTMLCanvasElement | null>) {
 
 function SignatureTab({ profile, onSaved }: { profile: WorkerProfile; onSaved: (p: Partial<WorkerProfile>) => void }) {
   const t = useTranslations('worker')
+  const { showAlert } = useAlert()
   const canvasRef = React.useRef<HTMLCanvasElement>(null)
   const { initCanvas, startDrawing, draw, stopDrawing, clear, getBlob, checkIsEmpty } = useSignaturePad(canvasRef)
   const [existingUrl, setExistingUrl] = React.useState<string | null>(toCdnUrl(profile.signature_url))
@@ -1330,10 +1334,10 @@ function SignatureTab({ profile, onSaved }: { profile: WorkerProfile; onSaved: (
   }, [startDrawing, draw, stopDrawing])
 
   async function handleSave() {
-    if (checkIsEmpty()) { setError(t('profile_tabs.signature.error_empty')); return }
+    if (checkIsEmpty()) { showAlert(t('profile_tabs.signature.error_empty')); return }
     const tok = getSessionCookie()
-    if (!tok) { setError(t('profile_tabs.signature.save_fail')); return }
-    setSaving(true); setError(''); setSuccess('')
+    if (!tok) { showAlert(t('profile_tabs.signature.save_fail')); return }
+    setSaving(true); setSuccess('')
     try {
       const blob = await getBlob()
       if (!blob) throw new Error(t('profile_tabs.signature.save_fail'))
@@ -1346,17 +1350,17 @@ function SignatureTab({ profile, onSaved }: { profile: WorkerProfile; onSaved: (
         setSuccess(t('profile_tabs.signature.saved'))
         clear()
       } else {
-        setError(t('profile_tabs.signature.save_fail'))
+        showAlert(t('profile_tabs.signature.save_fail'))
       }
     } catch (e) {
-      setError(e instanceof Error ? e.message : t('profile_tabs.signature.save_error'))
+      showAlert(e instanceof Error ? e.message : t('profile_tabs.signature.save_error'))
     } finally { setSaving(false) }
   }
 
   async function handleSignatureDelete() {
     const tok = getSessionCookie()
     if (!tok) return
-    setSaving(true); setError(''); setSuccess('')
+    setSaving(true); setSuccess('')
     try {
       const ok = await saveProfile(tok, { signatureS3Key: null })
       if (ok) {
@@ -1364,10 +1368,10 @@ function SignatureTab({ profile, onSaved }: { profile: WorkerProfile; onSaved: (
         onSaved({ signature_url: null })
         clear()
       } else {
-        setError(t('profile_tabs.signature.save_fail'))
+        showAlert(t('profile_tabs.signature.save_fail'))
       }
     } catch {
-      setError(t('profile_tabs.signature.save_error'))
+      showAlert(t('profile_tabs.signature.save_error'))
     } finally {
       setSaving(false)
     }

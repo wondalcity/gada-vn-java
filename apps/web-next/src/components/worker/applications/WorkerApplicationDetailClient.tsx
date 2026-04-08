@@ -136,8 +136,8 @@ export default function WorkerApplicationDetailClient({ id, locale }: { id: stri
 
   return (
     <div className="pb-8">
-      {/* Header */}
-      <div className="flex items-center gap-3 py-5">
+      {/* Header — desktop only; mobile uses WorkerAppBar back button */}
+      <div className="hidden md:flex items-center gap-3 py-5">
         <button
           type="button"
           onClick={() => router.back()}
@@ -146,6 +146,15 @@ export default function WorkerApplicationDetailClient({ id, locale }: { id: stri
           <ChevronLeftIcon />
         </button>
         <h1 className="text-xl font-bold text-[#25282A] flex-1">{t('worker_applications.detail_title')}</h1>
+        <span
+          className="inline-flex px-3 py-1 rounded-full text-xs font-semibold"
+          style={{ background: status.bg, color: status.text }}
+        >
+          {status.label}
+        </span>
+      </div>
+      {/* Status badge — mobile only */}
+      <div className="md:hidden flex justify-end pt-3 pb-1">
         <span
           className="inline-flex px-3 py-1 rounded-full text-xs font-semibold"
           style={{ background: status.bg, color: status.text }}

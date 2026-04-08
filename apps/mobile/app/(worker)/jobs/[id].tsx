@@ -1,7 +1,7 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import {
   View, Text, ScrollView, TouchableOpacity,
-  StyleSheet, Alert, ActivityIndicator, Modal, Platform,
+  StyleSheet, Alert, ActivityIndicator, Modal, Platform, Dimensions,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Image } from 'expo-image';
@@ -11,6 +11,65 @@ import type { JobWithSite } from '@gada-vn/core';
 import { api, ApiError } from '../../../lib/api-client';
 
 const CDN = process.env.EXPO_PUBLIC_CDN_URL ?? '';
+const SCREEN_WIDTH = Dimensions.get('window').width;
+
+function ImageCarousel({ imageKeys, coverIdx = 0 }: { imageKeys: string[]; coverIdx?: number }) {
+  const scrollRef = useRef<ScrollView>(null);
+  const [activeIdx, setActiveIdx] = useState(coverIdx);
+
+  // Scroll to cover image on mount
+  useEffect(() => {
+    if (coverIdx > 0) {
+      setTimeout(() => {
+        scrollRef.current?.scrollTo({ x: coverIdx * SCREEN_WIDTH, animated: false });
+      }, 100);
+    }
+  }, [coverIdx]);
+
+  if (imageKeys.length === 0) {
+    return (
+      <View style={[styles.cover, styles.coverPlaceholder]}>
+        <Text style={styles.coverPlaceholderText}>🏗️</Text>
+      </View>
+    );
+  }
+
+  return (
+    <View>
+      <ScrollView
+        ref={scrollRef}
+        horizontal
+        pagingEnabled
+        showsHorizontalScrollIndicator={false}
+        onMomentumScrollEnd={e => {
+          const idx = Math.round(e.nativeEvent.contentOffset.x / SCREEN_WIDTH);
+          setActiveIdx(idx);
+        }}
+        style={{ width: SCREEN_WIDTH, height: 220 }}
+      >
+        {imageKeys.map((key, i) => (
+          <Image
+            key={i}
+            source={{ uri: `${CDN}/${key}` }}
+            style={{ width: SCREEN_WIDTH, height: 220 }}
+            contentFit="cover"
+            transition={250}
+          />
+        ))}
+      </ScrollView>
+      {imageKeys.length > 1 && (
+        <View style={styles.dotRow}>
+          {imageKeys.map((_, i) => (
+            <View
+              key={i}
+              style={[styles.dot, i === activeIdx && styles.dotActive]}
+            />
+          ))}
+        </View>
+      )}
+    </View>
+  );
+}
 
 function BenefitTag({ label }: { label: string }) {
   return (
@@ -87,7 +146,6 @@ export default function JobDetailScreen() {
   if (!job) return null;
 
   const isFull = job.slotsFilled >= job.slotsTotal;
-  const coverKey = job.imageS3Keys?.[job.coverImageIdx ?? 0];
   const workDateLabel = new Date(job.workDate).toLocaleDateString('ko-KR', {
     year: 'numeric', month: 'long', day: 'numeric', weekday: 'short',
   });
@@ -103,19 +161,11 @@ export default function JobDetailScreen() {
         style={styles.container}
         contentContainerStyle={[styles.content, { paddingBottom: bottomBarHeight + 16 }]}
       >
-        {/* Cover image */}
-        {coverKey ? (
-          <Image
-            source={{ uri: `${CDN}/${coverKey}` }}
-            style={styles.cover}
-            contentFit="cover"
-            transition={250}
-          />
-        ) : (
-          <View style={[styles.cover, styles.coverPlaceholder]}>
-            <Text style={styles.coverPlaceholderText}>🏗️</Text>
-          </View>
-        )}
+        {/* Image carousel */}
+        <ImageCarousel
+          imageKeys={job.imageS3Keys ?? []}
+          coverIdx={job.coverImageIdx ?? 0}
+        />
 
         {/* Header */}
         <View style={styles.header}>
@@ -217,6 +267,9 @@ const styles = StyleSheet.create({
   cover: { width: '100%', height: 220 },
   coverPlaceholder: { backgroundColor: '#E8E8E8', justifyContent: 'center', alignItems: 'center' },
   coverPlaceholderText: { fontSize: 64 },
+  dotRow: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: 6, paddingVertical: 8, backgroundColor: '#fff' },
+  dot: { width: 6, height: 6, borderRadius: 3, backgroundColor: '#D0D4DB' },
+  dotActive: { width: 18, backgroundColor: '#FF6B2C' },
 
   header: { backgroundColor: '#fff', padding: 20, marginBottom: 8 },
   siteName: { fontSize: 22, fontWeight: '800', color: '#1A1A1A', marginBottom: 4 },

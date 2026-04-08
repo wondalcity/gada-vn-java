@@ -1,9 +1,10 @@
 import { useEffect, useState, useCallback } from 'react';
 import {
   View, FlatList, Text, StyleSheet,
-  ScrollView, TouchableOpacity, RefreshControl,
+  ScrollView, TouchableOpacity, RefreshControl, Alert,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
+import { ApiError } from '../../lib/api-client';
 import { useJobStore } from '../../store/job.store';
 import { api } from '../../lib/api-client';
 import type { JobWithSite } from '@gada-vn/core';
@@ -35,8 +36,12 @@ export default function WorkerJobFeed() {
     try {
       const data = await api.get<JobWithSite[]>('/jobs/date/' + selectedDate, { limit: 20 });
       setJobs(data);
-    } catch {
+    } catch (e) {
       setJobs([]);
+      if (!refreshing) {
+        const msg = e instanceof ApiError ? e.message : t('jobs.load_fail');
+        Alert.alert(t('common.error'), msg, [{ text: t('common.confirm') }]);
+      }
     } finally {
       setLoading(false);
     }
