@@ -17,8 +17,40 @@ class ApplicationRepository(private val db: DatabaseService) {
 
     fun findById(id: String): Map<String, Any?>? {
         return db.queryForList(
-            "SELECT * FROM app.job_applications WHERE id = ?",
+            "SELECT * FROM app.job_applications WHERE id = ?::uuid",
             id
+        ).firstOrNull()
+    }
+
+    fun findByIdAndWorker(id: String, userId: String): Map<String, Any?>? {
+        return db.queryForList(
+            """SELECT
+                 a.id, a.job_id AS "jobId", j.title AS "jobTitle",
+                 s.id AS "siteId", s.name AS "siteName", s.address AS "siteAddress",
+                 j.work_date AS "workDate", j.start_time AS "startTime", j.end_time AS "endTime",
+                 j.daily_wage AS "dailyWage",
+                 a.status, a.applied_at AS "appliedAt", a.reviewed_at AS "reviewedAt",
+                 a.notes
+               FROM app.job_applications a
+               JOIN app.worker_profiles wp ON a.worker_id = wp.id
+               JOIN app.jobs j ON a.job_id = j.id
+               JOIN app.construction_sites s ON j.site_id = s.id
+               WHERE a.id = ?::uuid AND wp.user_id = ?""",
+            id, userId
+        ).firstOrNull()
+    }
+
+    fun withdrawByWorker(id: String, userId: String): Map<String, Any?>? {
+        return db.queryForList(
+            """UPDATE app.job_applications a
+               SET status = 'WITHDRAWN', updated_at = NOW()
+               FROM app.worker_profiles wp
+               WHERE a.id = ?::uuid
+                 AND a.worker_id = wp.id
+                 AND wp.user_id = ?
+                 AND a.status = 'PENDING'
+               RETURNING a.*""",
+            id, userId
         ).firstOrNull()
     }
 

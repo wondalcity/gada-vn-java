@@ -11,6 +11,16 @@ class ApplicationService(
     private val notifications: NotificationService
 ) {
 
+    fun findOneByWorker(id: String, userId: String): Map<String, Any?> {
+        return repo.findByIdAndWorker(id, userId)
+            ?: throw NotFoundException("Application $id not found")
+    }
+
+    fun withdraw(id: String, userId: String): Map<String, Any?> {
+        return repo.withdrawByWorker(id, userId)
+            ?: throw NotFoundException("Application $id not found or cannot be withdrawn")
+    }
+
     fun apply(userId: String, jobId: String): Map<String, Any?>? {
         val existing = repo.findByWorkerAndJob(userId, jobId)
         if (existing != null) throw ConflictException("Already applied to this job")

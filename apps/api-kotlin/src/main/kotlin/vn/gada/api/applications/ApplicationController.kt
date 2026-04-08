@@ -6,6 +6,7 @@ import org.springframework.web.bind.annotation.*
 import vn.gada.api.common.exception.ForbiddenException
 import vn.gada.api.common.exception.UnauthorizedException
 import vn.gada.api.common.security.AuthUser
+import org.springframework.http.HttpStatus
 
 @RestController
 class ApplicationController(private val applicationService: ApplicationService) {
@@ -50,6 +51,26 @@ class ApplicationController(private val applicationService: ApplicationService) 
     ): ResponseEntity<Map<String, Any?>> {
         val u = requireManager(user)
         return ok(applicationService.findByJob(jobId, u.id))
+    }
+
+    /** GET /applications/:id/detail — Worker fetches a single application detail */
+    @GetMapping("/applications/{id}/detail")
+    fun getApplicationDetail(
+        @PathVariable id: String,
+        @AuthenticationPrincipal user: AuthUser?
+    ): ResponseEntity<Map<String, Any?>> {
+        val u = requireWorker(user)
+        return ok(applicationService.findOneByWorker(id, u.id))
+    }
+
+    /** DELETE /applications/:id — Worker withdraws a PENDING application */
+    @DeleteMapping("/applications/{id}")
+    fun withdrawApplication(
+        @PathVariable id: String,
+        @AuthenticationPrincipal user: AuthUser?
+    ): ResponseEntity<Map<String, Any?>> {
+        val u = requireWorker(user)
+        return ok(applicationService.withdraw(id, u.id))
     }
 
     /** PUT /applications/:id/status — Manager updates application status */

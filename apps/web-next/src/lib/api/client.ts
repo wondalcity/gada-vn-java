@@ -34,12 +34,26 @@ export async function apiClient<T>(
     ...(fetchOptions.headers ?? {}),
   }
 
-  const res = await fetch(`${API_BASE}${path}`, { ...fetchOptions, headers })
-  const body = await res.json()
-
-  if (!res.ok) {
-    throw new ApiError(res.status, body.message ?? 'API error', body.errors)
+  // Show global loading bar (client-side only, lazy import to avoid SSR issues)
+  let dec: (() => void) | null = null
+  if (typeof window !== 'undefined') {
+    const { incrementLoading, decrementLoading } = await import(
+      '@/components/ui/GlobalLoadingBar'
+    )
+    incrementLoading()
+    dec = decrementLoading
   }
 
-  return body as ApiResponse<T>
+  try {
+    const res = await fetch(`${API_BASE}${path}`, { ...fetchOptions, headers })
+    const body = await res.json()
+
+    if (!res.ok) {
+      throw new ApiError(res.status, body.message ?? 'API error', body.errors)
+    }
+
+    return body as ApiResponse<T>
+  } finally {
+    dec?.()
+  }
 }

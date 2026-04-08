@@ -1,6 +1,7 @@
 'use client'
 
 import { AuthProvider } from '@/hooks/useAuth'
+import { GlobalLoadingBar } from '@/components/ui/GlobalLoadingBar'
 
 interface Props {
   children: React.ReactNode
@@ -8,5 +9,10 @@ interface Props {
 }
 
 export default function WorkerProviders({ children, locale }: Props) {
-  return <AuthProvider locale={locale}>{children}</AuthProvider>
+  return (
+    <AuthProvider locale={locale}>
+      <GlobalLoadingBar />
+      {children}
+    </AuthProvider>
+  )
 }
