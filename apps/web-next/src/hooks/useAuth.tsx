@@ -22,7 +22,7 @@ import {
   signOutFirebase,
   subscribeToTokenRefresh,
 } from '../lib/firebase/auth'
-import { setSessionCookie, clearSessionCookie, getSessionCookie } from '../lib/auth/session'
+import { setSessionCookie, clearSessionCookie, getSessionCookie, getRememberMe } from '../lib/auth/session'
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -102,7 +102,7 @@ function useAuthProvider(locale: string) {
   React.useEffect(() => {
     const unsubscribe = subscribeToTokenRefresh((newToken) => {
       if (newToken) {
-        setSessionCookie(newToken)
+        setSessionCookie(newToken, getRememberMe())
         setState((s) => ({ ...s, idToken: newToken }))
       } else {
         // devToken (dev_* prefix) is not a Firebase token — Firebase has no
@@ -246,6 +246,43 @@ function useAuthProvider(locale: string) {
     setState({ user: null, idToken: null, isLoading: false })
     router.push('/login')
   }
+
+  // ── Inactivity auto-logout (1 hour) ──────────────────────────────────────
+  // Keep a stable ref to logout so the timer callback always calls the latest version.
+  const logoutRef = React.useRef(logout)
+  React.useLayoutEffect(() => { logoutRef.current = logout })
+
+  const isLoggedIn = !!state.user
+  React.useEffect(() => {
+    if (!isLoggedIn) return
+
+    const INACTIVITY_MS = 60 * 60 * 1000 // 1 hour
+    let timer: ReturnType<typeof setTimeout>
+
+    function resetTimer() {
+      clearTimeout(timer)
+      timer = setTimeout(() => { logoutRef.current() }, INACTIVITY_MS)
+    }
+
+    const ACTIVITY_EVENTS = [
+      'mousedown', 'mousemove', 'keydown',
+      'touchstart', 'scroll', 'click', 'focus',
+    ] as const
+
+    ACTIVITY_EVENTS.forEach((e) =>
+      window.addEventListener(e, resetTimer, { passive: true }),
+    )
+    // Also reset when user returns to the tab (handles mobile background suspension)
+    document.addEventListener('visibilitychange', resetTimer)
+
+    resetTimer() // start the timer on mount
+
+    return () => {
+      clearTimeout(timer)
+      ACTIVITY_EVENTS.forEach((e) => window.removeEventListener(e, resetTimer))
+      document.removeEventListener('visibilitychange', resetTimer)
+    }
+  }, [isLoggedIn])
 
   return {
     user:      state.user,

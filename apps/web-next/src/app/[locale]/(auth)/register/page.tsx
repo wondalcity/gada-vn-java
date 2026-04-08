@@ -1,12 +1,3 @@
-/**
- * Registration page — Screen A-05
- *
- * Server component shell that renders the client RegisterForm.
- * The user is already authenticated when they land here (isNewUser=true
- * after OTP verify). The form calls POST /auth/register with the
- * gada_session cookie to complete the user profile.
- */
-
 import type { Metadata } from 'next'
 import { getTranslations } from 'next-intl/server'
 import { RegisterForm } from '../../../../components/auth/RegisterForm'

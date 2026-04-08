@@ -271,16 +271,20 @@ function LoginFormInner({ locale, redirectTo }: LoginFormInnerProps) {
   // Facebook phone collection screens
   if (step === 'fb_phone' || step === 'fb_otp') {
     return (
-      <div className="min-h-screen bg-[#F8F8FA] flex flex-col">
+      <div className="min-h-dvh bg-[#F8F8FA] flex flex-col">
         <div id="recaptcha-container-fb" />
-        <div className="bg-white px-6 pt-12 pb-6 text-center border-b border-[#EFF1F5]">
+        <div className="bg-white px-6 pb-6 text-center border-b border-[#EFF1F5]"
+          style={{ paddingTop: 'calc(env(safe-area-inset-top, 0px) + 48px)' }}
+        >
           <h1 className="text-[24px] font-bold text-[#25282A]">{t('login.fb_phone_title')}</h1>
           <p className="mt-2 text-[14px] text-[#98A2B2]">
             {t('login.fb_phone_subtitle')}
           </p>
         </div>
 
-        <div className="flex-1 px-6 py-8 max-w-[480px] mx-auto w-full flex flex-col gap-6">
+        <div className="flex-1 overflow-y-auto px-6 py-8 max-w-[480px] mx-auto w-full flex flex-col gap-6"
+          style={{ paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 32px)' }}
+        >
           {step === 'fb_phone' && (
             <form onSubmit={handleFbSendOtp} noValidate className="flex flex-col gap-4">
               <div className="flex flex-col gap-2">
@@ -346,19 +350,23 @@ function LoginFormInner({ locale, redirectTo }: LoginFormInnerProps) {
   }
 
   return (
-    <div className="min-h-screen bg-[#F8F8FA] flex flex-col">
+    <div className="min-h-dvh bg-[#F8F8FA] flex flex-col">
       {/* Invisible reCAPTCHA container */}
       <div id="recaptcha-container" />
 
       {/* Header */}
-      <div className="bg-white px-6 pt-12 pb-8 text-center flex flex-col items-center">
+      <div className="bg-white px-6 pb-8 text-center flex flex-col items-center"
+        style={{ paddingTop: 'calc(env(safe-area-inset-top, 0px) + 48px)' }}
+      >
         <img src="/logo.png" alt="GADA VN" className="h-12 w-auto mb-3" />
         <p className="text-[16px] leading-[24px] text-[#98A2B2]">
           {t('login.subtitle')}
         </p>
       </div>
 
-      <div className="flex-1 px-6 py-6 max-w-[480px] mx-auto w-full flex flex-col gap-5">
+      <div className="flex-1 overflow-y-auto px-6 py-6 max-w-[480px] mx-auto w-full flex flex-col gap-5"
+        style={{ paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 24px)' }}
+      >
 
         {/* ── 전화번호 입력 ────────────────────────── */}
         {step === 'input' && (

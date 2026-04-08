@@ -164,7 +164,7 @@ export function RegisterForm({ locale }: RegisterFormProps) {
   }
 
   return (
-    <div className="min-h-screen bg-[#F8F8FA] flex flex-col">
+    <div className="min-h-dvh bg-[#F8F8FA] flex flex-col">
       {/* Invisible reCAPTCHA container */}
       <div id="recaptcha-container-register" />
 
@@ -187,13 +187,17 @@ export function RegisterForm({ locale }: RegisterFormProps) {
       )}
 
       {/* Header */}
-      <div className="bg-white px-6 pt-12 pb-6 text-center border-b border-[#EEEEEE] flex flex-col items-center">
+      <div className="bg-white px-6 pb-6 text-center border-b border-[#EEEEEE] flex flex-col items-center"
+        style={{ paddingTop: 'calc(env(safe-area-inset-top, 0px) + 48px)' }}
+      >
         <img src="/logo.png" alt="GADA VN" className="h-12 w-auto mb-3" />
         <h1 className="text-[22px] font-bold text-[#25282A]">{t('register.title')}</h1>
         <p className="mt-2 text-[15px] text-[#98A2B2]">{t('register.subtitle_phone')}</p>
       </div>
 
-      <div className="flex-1 px-6 py-8 max-w-[480px] mx-auto w-full flex flex-col gap-6">
+      <div className="flex-1 overflow-y-auto px-6 py-8 max-w-[480px] mx-auto w-full flex flex-col gap-6"
+        style={{ paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 32px)' }}
+      >
 
         {/* ── 이름 */}
         <div className="flex flex-col gap-2">
@@ -206,7 +210,12 @@ export function RegisterForm({ locale }: RegisterFormProps) {
             onChange={e => setName(e.target.value)}
             disabled={isLoading}
             placeholder={t('register.name_placeholder')}
-            className="h-14 px-4 border border-[#EFF1F5] rounded-2xl text-sm focus:outline-none focus:ring-2 focus:ring-[#0669F7] disabled:opacity-50"
+            autoComplete="name"
+            autoCapitalize="words"
+            autoCorrect="off"
+            spellCheck={false}
+            enterKeyHint="next"
+            className="h-14 px-4 border border-[#EFF1F5] rounded-2xl text-[16px] focus:outline-none focus:ring-2 focus:ring-[#0669F7] disabled:opacity-50"
           />
         </div>
 

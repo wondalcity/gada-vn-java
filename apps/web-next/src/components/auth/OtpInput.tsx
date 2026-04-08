@@ -94,6 +94,8 @@ export function OtpInput({
           onPaste={handlePaste}
           onFocus={(e) => e.target.select()}
           disabled={disabled}
+          autoComplete={i === 0 ? 'one-time-code' : 'off'}
+          enterKeyHint={i === length - 1 ? 'done' : 'next'}
           aria-label={`Digit ${i + 1}`}
           className={cn(
             'w-12 h-14 text-center rounded-2xl border',

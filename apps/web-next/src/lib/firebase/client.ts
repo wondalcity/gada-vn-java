@@ -12,7 +12,13 @@
  */
 
 import { initializeApp, getApps, type FirebaseApp } from 'firebase/app'
-import { getAuth, type Auth } from 'firebase/auth'
+import {
+  getAuth,
+  setPersistence,
+  browserLocalPersistence,
+  browserSessionPersistence,
+  type Auth,
+} from 'firebase/auth'
 
 const firebaseConfig = {
   apiKey:            process.env.NEXT_PUBLIC_FIREBASE_API_KEY!,
@@ -42,4 +48,16 @@ export function getFirebaseAuth(): Auth {
     auth = getAuth(getFirebaseApp())
   }
   return auth
+}
+
+/**
+ * Switch Firebase Auth persistence.
+ * 'local'   → browserLocalPersistence (survives browser restart; default)
+ * 'session' → browserSessionPersistence (cleared when browser tab closes)
+ *
+ * Must be called BEFORE any sign-in operation to take effect.
+ */
+export async function setFirebasePersistence(type: 'local' | 'session'): Promise<void> {
+  const persistence = type === 'session' ? browserSessionPersistence : browserLocalPersistence
+  await setPersistence(getFirebaseAuth(), persistence)
 }

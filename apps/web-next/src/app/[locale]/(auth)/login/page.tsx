@@ -1,11 +1,3 @@
-/**
- * Login page — Screen A-01, A-02, A-03, A-04
- *
- * Server component shell that renders the client LoginForm.
- * Handles generateMetadata and reads the `redirect` search param
- * to pass downstream for post-login navigation.
- */
-
 import type { Metadata } from 'next'
 import { getTranslations } from 'next-intl/server'
 import { LoginForm } from '../../../../components/auth/LoginForm'
