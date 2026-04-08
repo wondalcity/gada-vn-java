@@ -14,7 +14,7 @@ import * as React from 'react'
 import { useTranslations } from 'next-intl'
 import { PhoneInput, validatePhone } from './PhoneInput'
 import { OtpInput } from './OtpInput'
-import { setSessionCookie } from '../../lib/auth/session'
+import { setSessionCookie, setRememberMe } from '../../lib/auth/session'
 
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'https://api.gada.vn/api/v1'
 
@@ -59,6 +59,7 @@ function LoginFormInner({ locale, redirectTo }: LoginFormInnerProps) {
   const [fbOtpError,   setFbOtpError]   = React.useState(false)
   const [fbCountdown,  setFbCountdown]  = React.useState(0)
 
+  const [rememberMe,  setRememberMeState] = React.useState(true)
   const [isLoading, setIsLoading] = React.useState(false)
   const [error,     setError]     = React.useState<string | null>(null)
   const [isTestFlow, setIsTestFlow] = React.useState(false)
@@ -132,6 +133,8 @@ function LoginFormInner({ locale, redirectTo }: LoginFormInnerProps) {
       }
       // Normal phone: confirm Firebase OTP
       const { confirmFirebaseOtp } = await import('../../lib/firebase/auth')
+      const { setFirebasePersistence } = await import('../../lib/firebase/client')
+      await setFirebasePersistence(rememberMe ? 'local' : 'session')
       const idToken = await confirmFirebaseOtp(otp.replace(/\s/g, ''))
 
       await apiFetch<{ statusCode: number; data: { isNew: boolean } }>(
@@ -139,7 +142,8 @@ function LoginFormInner({ locale, redirectTo }: LoginFormInnerProps) {
         { method: 'POST', body: JSON.stringify({ idToken }) },
       )
 
-      setSessionCookie(idToken)
+      setRememberMe(rememberMe)
+      setSessionCookie(idToken, rememberMe)
       window.location.href = redirectTo ?? `/${locale}/worker`
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : String(err)
@@ -158,14 +162,17 @@ function LoginFormInner({ locale, redirectTo }: LoginFormInnerProps) {
     setIsLoading(true)
     try {
       const { signInWithGoogle } = await import('../../lib/firebase/auth')
+      const { setFirebasePersistence } = await import('../../lib/firebase/client')
+      await setFirebasePersistence(rememberMe ? 'local' : 'session')
       const { idToken } = await signInWithGoogle()
 
-      const res = await apiFetch<{ statusCode: number; data: { isNew: boolean } }>(
+      await apiFetch<{ statusCode: number; data: { isNew: boolean } }>(
         '/auth/verify-token',
         { method: 'POST', body: JSON.stringify({ idToken }) },
       )
 
-      setSessionCookie(idToken)
+      setRememberMe(rememberMe)
+      setSessionCookie(idToken, rememberMe)
       window.location.href = redirectTo ?? `/${locale}/worker`
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : String(err)
@@ -182,6 +189,8 @@ function LoginFormInner({ locale, redirectTo }: LoginFormInnerProps) {
     setError(null)
     setIsLoading(true)
     try {
+      const { setFirebasePersistence } = await import('../../lib/firebase/client')
+      await setFirebasePersistence(rememberMe ? 'local' : 'session')
       const { idToken } = await (await import('../../lib/firebase/auth')).signInWithFacebook()
 
       const { data } = await apiFetch<{
@@ -195,7 +204,8 @@ function LoginFormInner({ locale, redirectTo }: LoginFormInnerProps) {
         setFbToken(sessionToken)
         setStep('fb_phone')
       } else {
-        setSessionCookie(sessionToken)
+        setRememberMe(rememberMe)
+        setSessionCookie(sessionToken, rememberMe)
         window.location.href = redirectTo ?? `/${locale}/worker`
       }
     } catch (err: unknown) {
@@ -243,7 +253,8 @@ function LoginFormInner({ locale, redirectTo }: LoginFormInnerProps) {
         token: fbToken ?? '',
         body: JSON.stringify({ phoneIdToken }),
       })
-      setSessionCookie(fbToken ?? '')
+      setRememberMe(rememberMe)
+      setSessionCookie(fbToken ?? '', rememberMe)
       window.location.href = redirectTo ?? `/${locale}/worker`
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : String(err)
@@ -340,9 +351,9 @@ function LoginFormInner({ locale, redirectTo }: LoginFormInnerProps) {
       <div id="recaptcha-container" />
 
       {/* Header */}
-      <div className="bg-white px-6 pt-12 pb-8 text-center">
-        <h1 className="text-[28px] font-bold leading-[35px] text-[#25282A]">GADA VN</h1>
-        <p className="mt-2 text-[16px] leading-[24px] text-[#98A2B2]">
+      <div className="bg-white px-6 pt-12 pb-8 text-center flex flex-col items-center">
+        <img src="/logo.png" alt="GADA VN" className="h-12 w-auto mb-3" />
+        <p className="text-[16px] leading-[24px] text-[#98A2B2]">
           {t('login.subtitle')}
         </p>
       </div>
@@ -360,6 +371,18 @@ function LoginFormInner({ locale, redirectTo }: LoginFormInnerProps) {
               disabled={isLoading}
             />
             {error && <p className="text-[13px] text-[#ED1C24]">{error}</p>}
+
+            {/* 자동 로그인 */}
+            <label className="flex items-center gap-2.5 cursor-pointer select-none">
+              <input
+                type="checkbox"
+                checked={rememberMe}
+                onChange={(e) => setRememberMeState(e.target.checked)}
+                className="w-5 h-5 rounded accent-[#0669F7] cursor-pointer"
+              />
+              <span className="text-[14px] text-[#25282A]">{t('login.remember_me')}</span>
+            </label>
+
             <button
               type="submit"
               disabled={isLoading || !phone || phone === '+84'}
