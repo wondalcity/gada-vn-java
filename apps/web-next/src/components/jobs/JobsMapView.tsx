@@ -542,7 +542,7 @@ export default function JobsMapView({
     // Bottom padding leaves room for the popup card without hiding the marker.
     const padding = fromMobile
       ? { top: 40, right: 40, bottom: 200, left: 40 }
-      : { top: 40, right: 60, bottom: 380, left: 60 }
+      : { top: 60, right: 60, bottom: 300, left: 60 }
 
     mapRef.current.fitBounds(bounds, padding)
     setIsZoomedIn(true)

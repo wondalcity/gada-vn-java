@@ -237,7 +237,7 @@ function UploadZone({
         className={`relative w-full h-36 rounded-lg border-2 border-dashed flex items-center justify-center overflow-hidden transition-colors bg-[#F2F4F5] ${url ? 'border-[#0669F7] cursor-default' : 'border-[#EFF1F5] hover:border-[#0669F7] cursor-pointer'}`}
       >
         {url ? (
-          <img src={url} alt={label} className="w-full h-full object-cover" />
+          <img src={url} alt={label} className="w-full h-full object-contain p-1" />
         ) : (
           <div className="text-center px-3">
             <svg className="w-6 h-6 text-[#98A2B2] mx-auto mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -758,7 +758,8 @@ function AddressTab({ profile, onSaved }: { profile: WorkerProfile; onSaved: (p:
     getGoogleMapsLoader().load().then(() => setMapsLoaded(true)).catch(() => setMapsError(true))
   }, [])
 
-  React.useEffect(() => {
+  // Initialize Autocomplete whenever the add-form input becomes visible
+  const initAutocomplete = React.useCallback(() => {
     if (!mapsLoaded || !addInputRef.current || addAcRef.current) return
     const ac = new window.google.maps.places.Autocomplete(addInputRef.current, {
       componentRestrictions: { country: 'vn' },
@@ -779,6 +780,14 @@ function AddressTab({ profile, onSaved }: { profile: WorkerProfile; onSaved: (p:
       setAddLng(place.geometry.location.lng())
     })
   }, [mapsLoaded])
+
+  // Re-init when tab switches to 'new' and input is rendered
+  React.useEffect(() => {
+    if (activeIdx !== 'new') { addAcRef.current = null; return }
+    // Input may not be in DOM yet — defer one frame
+    const id = requestAnimationFrame(() => initAutocomplete())
+    return () => cancelAnimationFrame(id)
+  }, [activeIdx, initAutocomplete])
 
   // Load saved locations
   React.useEffect(() => {
@@ -1322,13 +1331,15 @@ function SignatureTab({ profile, onSaved }: { profile: WorkerProfile; onSaved: (
 
   async function handleSave() {
     if (checkIsEmpty()) { setError(t('profile_tabs.signature.error_empty')); return }
+    const tok = getSessionCookie()
+    if (!tok) { setError(t('profile_tabs.signature.save_fail')); return }
     setSaving(true); setError(''); setSuccess('')
     try {
       const blob = await getBlob()
       if (!blob) throw new Error(t('profile_tabs.signature.save_fail'))
       const file = new File([blob], 'signature.png', { type: 'image/png' })
-      const key = await uploadFile(token!, file, 'worker-signatures')
-      const ok = await saveProfile(token!, { signatureS3Key: key })
+      const key = await uploadFile(tok, file, 'worker-signatures')
+      const ok = await saveProfile(tok, { signatureS3Key: key })
       if (ok) {
         const url = toCdnUrl(key) ?? URL.createObjectURL(blob)
         setExistingUrl(url); onSaved({ signature_url: url })
@@ -1343,10 +1354,23 @@ function SignatureTab({ profile, onSaved }: { profile: WorkerProfile; onSaved: (
   }
 
   async function handleSignatureDelete() {
+    const tok = getSessionCookie()
+    if (!tok) return
+    setSaving(true); setError(''); setSuccess('')
     try {
-      const ok = await saveProfile(token!, { signatureS3Key: null })
-      if (ok) { setExistingUrl(null); onSaved({ signature_url: null }) }
-    } catch { /* ignore */ }
+      const ok = await saveProfile(tok, { signatureS3Key: null })
+      if (ok) {
+        setExistingUrl(null)
+        onSaved({ signature_url: null })
+        clear()
+      } else {
+        setError(t('profile_tabs.signature.save_fail'))
+      }
+    } catch {
+      setError(t('profile_tabs.signature.save_error'))
+    } finally {
+      setSaving(false)
+    }
   }
 
   return (
@@ -1369,9 +1393,10 @@ function SignatureTab({ profile, onSaved }: { profile: WorkerProfile; onSaved: (
             <button
               type="button"
               onClick={handleSignatureDelete}
-              className="flex-1 text-xs py-1.5 rounded-lg border border-[#EFF1F5] bg-white text-[#ED1C24] hover:border-[#ED1C24] transition-colors"
+              disabled={saving}
+              className="flex-1 text-xs py-1.5 rounded-lg border border-[#EFF1F5] bg-white text-[#ED1C24] hover:border-[#ED1C24] transition-colors disabled:opacity-40"
             >
-              삭제
+              {saving ? '삭제 중...' : '삭제'}
             </button>
           </div>
           <p className="text-xs text-[#98A2B2] mt-1">{t('profile_tabs.signature.overwrite_hint')}</p>
