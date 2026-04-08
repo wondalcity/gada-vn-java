@@ -16,9 +16,9 @@ import * as React from 'react'
 import { cn } from '@gada/ui'
 
 const COUNTRY_CODES = [
-  { code: 'VN', dial: '+84', name: 'VN' },
-  { code: 'KR', dial: '+82', name: 'KR' },
-  { code: 'US', dial: '+1',  name: 'US' },
+  { code: 'VN', dial: '+84', name: 'VN', flag: '🇻🇳' },
+  { code: 'KR', dial: '+82', name: 'KR', flag: '🇰🇷' },
+  { code: 'US', dial: '+1',  name: 'US', flag: '🇺🇸' },
 ] as const
 
 /** Per-country digit count rules for the local part (after dial code, no leading zero). */
@@ -136,7 +136,7 @@ export function PhoneInput({
         >
           {COUNTRY_CODES.map((c) => (
             <option key={c.code} value={c.dial}>
-              {c.name} {c.dial}
+              {c.flag} {c.dial}
             </option>
           ))}
         </select>

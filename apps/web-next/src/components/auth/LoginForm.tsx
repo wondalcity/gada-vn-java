@@ -15,7 +15,6 @@ import { useTranslations } from 'next-intl'
 import { PhoneInput, validatePhone } from './PhoneInput'
 import { OtpInput } from './OtpInput'
 import { setSessionCookie } from '../../lib/auth/session'
-import { LocaleSwitcher } from '../public/LocaleSwitcher'
 
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'https://api.gada.vn/api/v1'
 
@@ -341,10 +340,7 @@ function LoginFormInner({ locale, redirectTo }: LoginFormInnerProps) {
       <div id="recaptcha-container" />
 
       {/* Header */}
-      <div className="bg-white px-6 pt-12 pb-8 text-center relative">
-        <div className="absolute top-4 right-4">
-          <LocaleSwitcher />
-        </div>
+      <div className="bg-white px-6 pt-12 pb-8 text-center">
         <h1 className="text-[28px] font-bold leading-[35px] text-[#25282A]">GADA VN</h1>
         <p className="mt-2 text-[16px] leading-[24px] text-[#98A2B2]">
           {t('login.subtitle')}
