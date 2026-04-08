@@ -187,18 +187,53 @@ function SaveButton({ saving, onClick, label }: { saving: boolean; onClick: () =
   )
 }
 
+// ── Image Full Modal ─────────────────────────────────────────────────────────
+
+function ImageFullModal({ url, onClose }: { url: string; onClose: () => void }) {
+  return (
+    <div
+      className="fixed inset-0 z-[100] flex items-center justify-center bg-black/85 backdrop-blur-sm p-4"
+      onClick={onClose}
+    >
+      <div className="relative max-w-2xl w-full" onClick={e => e.stopPropagation()}>
+        <button
+          type="button"
+          onClick={onClose}
+          className="absolute -top-9 right-0 text-white text-3xl font-light leading-none hover:text-[#DDDDDD]"
+          aria-label="닫기"
+        >
+          ×
+        </button>
+        <img src={url} alt="" className="w-full rounded-xl object-contain max-h-[80vh] shadow-2xl" />
+      </div>
+    </div>
+  )
+}
+
 // ── Upload Zone ──────────────────────────────────────────────────────────────
 
-function UploadZone({ label, url, onChange }: { label: string; url: string | null; onChange: (file: File) => void }) {
+function UploadZone({
+  label,
+  url,
+  onChange,
+  onDelete,
+}: {
+  label: string
+  url: string | null
+  onChange: (file: File) => void
+  onDelete?: () => void
+}) {
   const t = useTranslations('worker')
   const ref = React.useRef<HTMLInputElement>(null)
+  const [viewingFull, setViewingFull] = React.useState(false)
   return (
     <div className="flex-1">
+      {viewingFull && url && <ImageFullModal url={url} onClose={() => setViewingFull(false)} />}
       <p className="text-xs font-medium text-[#98A2B2] mb-1">{label}</p>
       <button
         type="button"
-        onClick={() => ref.current?.click()}
-        className={`relative w-full h-36 rounded-lg border-2 border-dashed flex items-center justify-center overflow-hidden transition-colors bg-[#F2F4F5] ${url ? 'border-[#0669F7]' : 'border-[#EFF1F5] hover:border-[#0669F7]'}`}
+        onClick={() => !url && ref.current?.click()}
+        className={`relative w-full h-36 rounded-lg border-2 border-dashed flex items-center justify-center overflow-hidden transition-colors bg-[#F2F4F5] ${url ? 'border-[#0669F7] cursor-default' : 'border-[#EFF1F5] hover:border-[#0669F7] cursor-pointer'}`}
       >
         {url ? (
           <img src={url} alt={label} className="w-full h-full object-cover" />
@@ -211,8 +246,35 @@ function UploadZone({ label, url, onChange }: { label: string; url: string | nul
           </div>
         )}
       </button>
+      {url ? (
+        <div className="flex gap-1 mt-1.5">
+          <button
+            type="button"
+            onClick={() => setViewingFull(true)}
+            className="flex-1 text-xs py-1.5 rounded-lg border border-[#EFF1F5] bg-white text-[#25282A] hover:border-[#0669F7] hover:text-[#0669F7] transition-colors"
+          >
+            전체보기
+          </button>
+          <button
+            type="button"
+            onClick={() => ref.current?.click()}
+            className="flex-1 text-xs py-1.5 rounded-lg border border-[#EFF1F5] bg-white text-[#25282A] hover:border-[#0669F7] hover:text-[#0669F7] transition-colors"
+          >
+            변경
+          </button>
+          {onDelete && (
+            <button
+              type="button"
+              onClick={onDelete}
+              className="flex-1 text-xs py-1.5 rounded-lg border border-[#EFF1F5] bg-white text-[#ED1C24] hover:border-[#ED1C24] transition-colors"
+            >
+              삭제
+            </button>
+          )}
+        </div>
+      ) : null}
       <input ref={ref} type="file" accept="image/jpeg,image/png,image/webp" className="hidden"
-        onChange={e => { const f = e.target.files?.[0]; if (f) onChange(f) }} />
+        onChange={e => { const f = e.target.files?.[0]; if (f) onChange(f); e.target.value = '' }} />
     </div>
   )
 }
@@ -658,32 +720,36 @@ interface SavedLocation {
 
 function AddressTab({ profile, onSaved }: { profile: WorkerProfile; onSaved: (p: Partial<WorkerProfile>) => void }) {
   const t = useTranslations('worker')
-  const inputRef = React.useRef<HTMLInputElement>(null)
-  const acRef = React.useRef<google.maps.places.Autocomplete | null>(null)
+  const MAX_LOCATIONS = 3
+  const [savedLocations, setSavedLocations] = React.useState<SavedLocation[]>([])
+  const [activeIdx, setActiveIdx] = React.useState<number | 'new'>(0)
+  const [editingLabel, setEditingLabel] = React.useState('')
+  const [saving, setSaving] = React.useState(false)
+
+  // ── Add form state ────────────────────────────────────────────────────────
+  const addInputRef = React.useRef<HTMLInputElement>(null)
+  const addAcRef = React.useRef<google.maps.places.Autocomplete | null>(null)
   const [mapsLoaded, setMapsLoaded] = React.useState(false)
   const [mapsError, setMapsError] = React.useState(false)
-  const [province, setProvince] = React.useState(profile.current_province ?? '')
-  const [district, setDistrict] = React.useState(profile.current_district ?? '')
-  const [addressLabel, setAddressLabel] = React.useState('')
-  const [lat, setLat] = React.useState<number | null>(profile.lat ? Number(profile.lat) : null)
-  const [lng, setLng] = React.useState<number | null>(profile.lng ? Number(profile.lng) : null)
-  const [saving, setSaving] = React.useState(false)
-  const [savedLocations, setSavedLocations] = React.useState<SavedLocation[]>([])
-  const [savingLocation, setSavingLocation] = React.useState(false)
-  const [locationLabel, setLocationLabel] = React.useState(t('profile_tabs.address.default_location_label'))
-  const [locationSaved, setLocationSaved] = React.useState(false)
+  const [addLabel, setAddLabel] = React.useState('')
+  const [addAddress, setAddAddress] = React.useState('')
+  const [addLat, setAddLat] = React.useState<number | null>(null)
+  const [addLng, setAddLng] = React.useState<number | null>(null)
+  const [addProvince, setAddProvince] = React.useState('')
+  const [addDistrict, setAddDistrict] = React.useState('')
+  const [addError, setAddError] = React.useState('')
 
   React.useEffect(() => {
     getGoogleMapsLoader().load().then(() => setMapsLoaded(true)).catch(() => setMapsError(true))
   }, [])
 
   React.useEffect(() => {
-    if (!mapsLoaded || !inputRef.current || acRef.current) return
-    const ac = new window.google.maps.places.Autocomplete(inputRef.current, {
+    if (!mapsLoaded || !addInputRef.current || addAcRef.current) return
+    const ac = new window.google.maps.places.Autocomplete(addInputRef.current, {
       componentRestrictions: { country: 'vn' },
       fields: ['address_components', 'formatted_address', 'geometry'],
     })
-    acRef.current = ac
+    addAcRef.current = ac
     ac.addListener('place_changed', () => {
       const place = ac.getPlace()
       if (!place.geometry?.location) return
@@ -692,153 +758,249 @@ function AddressTab({ profile, onSaved }: { profile: WorkerProfile; onSaved: (p:
         if (c.types.includes('administrative_area_level_1')) prov = c.long_name
         if (c.types.includes('administrative_area_level_2')) dist = c.long_name
       }
-      setProvince(prov); setDistrict(dist)
-      setAddressLabel(place.formatted_address ?? '')
-      setLat(place.geometry.location.lat()); setLng(place.geometry.location.lng())
-      setLocationSaved(false)
+      setAddProvince(prov); setAddDistrict(dist)
+      setAddAddress(place.formatted_address ?? '')
+      setAddLat(place.geometry.location.lat())
+      setAddLng(place.geometry.location.lng())
     })
   }, [mapsLoaded])
 
+  // Load saved locations
   React.useEffect(() => {
     const token = getSessionCookie()
     if (!token) return
     fetch(`${API_BASE}/workers/saved-locations`, { headers: { Authorization: `Bearer ${token}` } })
       .then(r => r.ok ? r.json() : null)
-      .then(res => { if (res?.data) setSavedLocations(res.data) })
-      .catch(() => undefined)
+      .then(res => {
+        if (res?.data) {
+          setSavedLocations(res.data)
+          setActiveIdx(res.data.length > 0 ? 0 : 'new')
+        } else {
+          setActiveIdx('new')
+        }
+      })
+      .catch(() => { setActiveIdx('new') })
   }, [])
 
-  async function save() {
+  // Sync editingLabel when active tab changes
+  React.useEffect(() => {
+    if (typeof activeIdx === 'number' && savedLocations[activeIdx]) {
+      setEditingLabel(savedLocations[activeIdx].label)
+    }
+  }, [activeIdx, savedLocations])
+
+  const token = getSessionCookie()
+
+  async function handleSaveLabel(loc: SavedLocation) {
+    if (!token || !editingLabel.trim()) return
     setSaving(true)
-    const token = getSessionCookie()
     try {
-      const ok = await saveProfile(token!, { currentProvince: province || null, currentDistrict: district || null, lat, lng })
-      if (ok) onSaved({ current_province: province || null, current_district: district || null, lat: lat?.toString() ?? null, lng: lng?.toString() ?? null })
+      // Delete old entry, re-add with new label (no PUT endpoint)
+      await fetch(`${API_BASE}/workers/saved-locations/${loc.id}`, {
+        method: 'DELETE', headers: { Authorization: `Bearer ${token}` },
+      })
+      const res = await fetch(`${API_BASE}/workers/saved-locations`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({
+          label: editingLabel.trim(),
+          address: loc.address,
+          lat: loc.lat,
+          lng: loc.lng,
+          isDefault: loc.is_default,
+        }),
+      })
+      if (res.ok) {
+        const json = await res.json()
+        const updated: SavedLocation = json.data
+        setSavedLocations(prev => prev.map(l => l.id === loc.id ? updated : l))
+      }
     } catch { /* ignore */ }
     finally { setSaving(false) }
   }
 
-  async function saveAsSearchLocation() {
-    if (lat == null || lng == null) return
-    const token = getSessionCookie()
+  async function handleDelete(loc: SavedLocation) {
     if (!token) return
-    setSavingLocation(true)
+    await fetch(`${API_BASE}/workers/saved-locations/${loc.id}`, {
+      method: 'DELETE', headers: { Authorization: `Bearer ${token}` },
+    }).catch(() => undefined)
+    const newLocs = savedLocations.filter(l => l.id !== loc.id)
+    setSavedLocations(newLocs)
+    setActiveIdx(newLocs.length > 0 ? 0 : 'new')
+  }
+
+  async function handleAdd() {
+    if (!token) return
+    if (!addLabel.trim()) { setAddError('주소 명칭을 입력해주세요.'); return }
+    const finalLat = addLat
+    const finalLng = addLng
+    const finalAddress = addAddress || addProvince || null
+    if (!finalAddress) { setAddError('주소를 입력해주세요.'); return }
+    setAddError('')
+    setSaving(true)
     try {
       const res = await fetch(`${API_BASE}/workers/saved-locations`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify({
-          label: locationLabel || t('profile_tabs.address.default_location_label'),
-          address: addressLabel || province || null,
-          lat, lng,
+          label: addLabel.trim(),
+          address: finalAddress,
+          lat: finalLat,
+          lng: finalLng,
           isDefault: savedLocations.length === 0,
         }),
       })
       if (res.ok) {
         const json = await res.json()
         const loc: SavedLocation = json.data
-        setSavedLocations(prev => {
-          const filtered = prev.filter(l => l.label !== loc.label)
-          return loc.is_default
-            ? [loc, ...filtered.map(l => ({ ...l, is_default: false }))]
-            : [...filtered, loc]
-        })
-        setLocationSaved(true)
+        const newLocs = [...savedLocations, loc]
+        setSavedLocations(newLocs)
+        setActiveIdx(newLocs.length - 1)
+        setAddLabel(''); setAddAddress(''); setAddLat(null); setAddLng(null); setAddProvince(''); setAddDistrict('')
+        if (addInputRef.current) addInputRef.current.value = ''
+        addAcRef.current = null
       }
-    } catch { /* ignore */ }
-    finally { setSavingLocation(false) }
+    } catch { setAddError('저장 중 오류가 발생했습니다.') }
+    finally { setSaving(false) }
   }
 
-  async function deleteLocation(id: string) {
-    const token = getSessionCookie()
-    if (!token) return
-    await fetch(`${API_BASE}/workers/saved-locations/${id}`, {
-      method: 'DELETE',
-      headers: { Authorization: `Bearer ${token}` },
-    }).catch(() => undefined)
-    setSavedLocations(prev => prev.filter(l => l.id !== id))
-  }
-
-  const canSaveLocation = lat != null && lng != null
+  const canAdd = savedLocations.length < MAX_LOCATIONS
 
   return (
     <div className="space-y-4">
-      {!mapsError ? (
-        <Field label={t('profile_tabs.address.search_label')}>
-          <input ref={inputRef} type="text" defaultValue={profile.current_province ?? ''}
-            placeholder={mapsLoaded ? t('profile_tabs.address.search_placeholder') : t('profile_tabs.address.maps_loading')}
-            disabled={!mapsLoaded}
-            className={`${inputCls} disabled:bg-[#F2F4F5]`} />
-        </Field>
-      ) : (
-        <>
-          <Field label={t('profile_tabs.address.province_label')}>
-            <input type="text" value={province} onChange={e => setProvince(e.target.value)}
-              placeholder={t('profile_tabs.address.province_placeholder')} className={inputCls} />
-          </Field>
-          <Field label={t('profile_tabs.address.district_label')}>
-            <input type="text" value={district} onChange={e => setDistrict(e.target.value)}
-              placeholder={t('profile_tabs.address.district_placeholder')} className={inputCls} />
-          </Field>
-        </>
-      )}
+      {/* Address slot tabs */}
+      <div className="flex border-b border-[#EFF1F5] gap-0">
+        {savedLocations.map((loc, i) => (
+          <button
+            key={loc.id}
+            type="button"
+            onClick={() => setActiveIdx(i)}
+            className={`px-4 py-2.5 text-sm font-medium border-b-2 transition-colors whitespace-nowrap -mb-px ${
+              activeIdx === i
+                ? 'border-[#0669F7] text-[#0669F7]'
+                : 'border-transparent text-[#98A2B2] hover:text-[#25282A]'
+            }`}
+          >
+            {loc.label}
+          </button>
+        ))}
+        {canAdd && (
+          <button
+            type="button"
+            onClick={() => setActiveIdx('new')}
+            className={`px-3 py-2.5 text-sm font-medium border-b-2 transition-colors -mb-px ${
+              activeIdx === 'new'
+                ? 'border-[#0669F7] text-[#0669F7]'
+                : 'border-transparent text-[#98A2B2] hover:text-[#25282A]'
+            }`}
+          >
+            + 추가
+          </button>
+        )}
+      </div>
 
-      {(addressLabel || province) && (
-        <div className="p-3 bg-[#F2F4F5] rounded-lg border border-[#EFF1F5] text-sm">
-          <p className="font-medium text-[#25282A]">{addressLabel || province}</p>
-          {district && <p className="text-xs text-[#98A2B2] mt-0.5">{district}</p>}
-          {lat != null && <p className="text-xs text-[#98A2B2] mt-0.5">{lat.toFixed(5)}, {lng?.toFixed(5)}</p>}
-        </div>
-      )}
+      {/* Existing location detail */}
+      {typeof activeIdx === 'number' && savedLocations[activeIdx] && (() => {
+        const loc = savedLocations[activeIdx]
+        return (
+          <div className="space-y-3">
+            <Field label="주소 명칭">
+              <input
+                type="text"
+                value={editingLabel}
+                onChange={e => setEditingLabel(e.target.value)}
+                placeholder="예: 집, 회사"
+                className={inputCls}
+              />
+            </Field>
+            <div className="p-3 bg-[#F2F4F5] rounded-lg border border-[#EFF1F5]">
+              <p className="text-sm font-medium text-[#25282A]">{loc.address ?? loc.label}</p>
+              {loc.lat != null && (
+                <p className="text-xs text-[#98A2B2] mt-0.5">{Number(loc.lat).toFixed(5)}, {Number(loc.lng).toFixed(5)}</p>
+              )}
+            </div>
+            <div className="flex gap-3 pt-1">
+              <button
+                type="button"
+                onClick={() => handleDelete(loc)}
+                disabled={saving}
+                className="flex-1 py-2.5 rounded-full border border-[#ED1C24] text-[#ED1C24] font-medium text-sm hover:bg-[#FDE8EE] disabled:opacity-40 transition-colors"
+              >
+                삭제
+              </button>
+              <button
+                type="button"
+                onClick={() => handleSaveLabel(loc)}
+                disabled={saving || !editingLabel.trim() || editingLabel === loc.label}
+                className="flex-1 py-2.5 rounded-full bg-[#0669F7] text-white font-medium text-sm disabled:opacity-40 hover:bg-[#0557D4] transition-colors"
+              >
+                {saving ? '저장 중...' : '저장'}
+              </button>
+            </div>
+          </div>
+        )
+      })()}
 
-      {canSaveLocation && !locationSaved && (
-        <div className="p-3 bg-[#E6F0FE] rounded-lg border border-[#0669F7]">
-          <p className="text-xs font-medium text-[#0669F7] mb-2">{t('profile_tabs.address.save_location_title')}</p>
-          <div className="flex gap-2">
+      {/* Add new location form */}
+      {activeIdx === 'new' && (
+        <div className="space-y-3">
+          <Field label="주소 명칭">
             <input
               type="text"
-              value={locationLabel}
-              onChange={e => setLocationLabel(e.target.value)}
-              placeholder={t('profile_tabs.address.location_label_placeholder')}
-              className="flex-1 px-3 py-1.5 text-sm border border-[#0669F7] rounded-lg bg-white outline-none focus:ring-1 focus:ring-[#0669F7]"
+              value={addLabel}
+              onChange={e => setAddLabel(e.target.value)}
+              placeholder="예: 집, 회사, 현장"
+              className={inputCls}
             />
-            <button
-              type="button"
-              onClick={saveAsSearchLocation}
-              disabled={savingLocation || !locationLabel.trim()}
-              className="px-4 py-1.5 text-sm font-medium bg-[#0669F7] text-white rounded-lg hover:bg-[#0557D4] disabled:opacity-50 whitespace-nowrap"
-            >
-              {savingLocation ? t('profile_tabs.address.location_saving') : t('profile_tabs.address.location_save')}
-            </button>
-          </div>
+          </Field>
+          <Field label={mapsLoaded ? '주소 검색' : '주소'}>
+            {!mapsError ? (
+              <input
+                ref={addInputRef}
+                type="text"
+                placeholder={mapsLoaded ? '주소를 검색하세요' : '지도 로딩 중...'}
+                disabled={!mapsLoaded}
+                className={`${inputCls} disabled:bg-[#F2F4F5]`}
+              />
+            ) : (
+              <div className="space-y-2">
+                <input type="text" value={addProvince} onChange={e => setAddProvince(e.target.value)}
+                  placeholder="시/도 (예: Hà Nội)" className={inputCls} />
+                <input type="text" value={addDistrict} onChange={e => setAddDistrict(e.target.value)}
+                  placeholder="구/군 (예: Ba Đình)" className={inputCls} />
+              </div>
+            )}
+          </Field>
+          {addAddress && (
+            <div className="p-3 bg-[#F2F4F5] rounded-lg border border-[#EFF1F5] text-sm text-[#25282A]">
+              {addAddress}
+            </div>
+          )}
+          {addError && <p className="text-xs text-[#ED1C24]">{addError}</p>}
+          <button
+            type="button"
+            onClick={handleAdd}
+            disabled={saving}
+            className="w-full py-3 rounded-full bg-[#0669F7] text-white font-medium text-sm disabled:opacity-40 hover:bg-[#0557D4] transition-colors"
+          >
+            {saving ? '저장 중...' : '주소 추가'}
+          </button>
         </div>
       )}
 
-      {locationSaved && (
-        <p className="text-xs text-[#0669F7] font-medium">{t('profile_tabs.address.location_saved')}</p>
+      {/* Empty state */}
+      {savedLocations.length === 0 && activeIdx !== 'new' && (
+        <div className="py-8 text-center">
+          <p className="text-sm text-[#98A2B2]">저장된 주소가 없습니다.</p>
+          <button type="button" onClick={() => setActiveIdx('new')} className="mt-2 text-sm text-[#0669F7] font-medium">
+            주소 추가하기
+          </button>
+        </div>
       )}
 
       {savedLocations.length > 0 && (
-        <div>
-          <p className="text-xs font-medium text-[#98A2B2] mb-2">{t('profile_tabs.address.saved_locations_title')}</p>
-          <div className="flex flex-col gap-1.5">
-            {savedLocations.map(loc => (
-              <div key={loc.id} className="flex items-center gap-2 px-3 py-2 bg-white border border-[#EFF1F5] rounded-lg">
-<span className="w-1.5 h-1.5 rounded-full bg-[#0669F7] shrink-0" />
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-[#25282A] truncate">{loc.label}</p>
-                  {loc.address && <p className="text-xs text-[#98A2B2] truncate">{loc.address}</p>}
-                </div>
-                <button type="button" onClick={() => deleteLocation(loc.id)}
-                  className="text-[#98A2B2] hover:text-[#ED1C24] text-sm font-bold shrink-0"
-                  aria-label="delete">×</button>
-              </div>
-            ))}
-          </div>
-        </div>
+        <p className="text-xs text-[#98A2B2]">저장된 주소는 일자리 목록에서 주변 공고 검색에 사용됩니다. (최대 {MAX_LOCATIONS}개)</p>
       )}
-
-      <SaveButton saving={saving} onClick={save} label={t('profile_tabs.shared_save')} />
     </div>
   )
 }
@@ -873,6 +1035,15 @@ function BankTab({ profile, onSaved }: { profile: WorkerProfile; onSaved: (p: Pa
     } finally { setUploading(false) }
   }
 
+  async function handleBankBookDelete() {
+    setError('')
+    try {
+      const ok = await saveProfile(token!, { bankBookS3Key: null })
+      if (ok) { setBankBookUrl(null); onSaved({ bank_book_url: null }) }
+      else setError(t('profile_tabs.bank.upload_fail'))
+    } catch { setError(t('profile_tabs.bank.upload_fail')) }
+  }
+
   async function save() {
     setSaving(true); setError('')
     try {
@@ -898,7 +1069,7 @@ function BankTab({ profile, onSaved }: { profile: WorkerProfile; onSaved: (p: Pa
         <p className="text-xs font-medium text-[#98A2B2] mb-1">
           {t('profile_tabs.bank.bankbook_label')} {uploading && <span className="text-[#0669F7]">{t('profile_tabs.bank.bankbook_uploading')}</span>}
         </p>
-        <UploadZone label="" url={bankBookUrl} onChange={handleBankBookFile} />
+        <UploadZone label="" url={bankBookUrl} onChange={handleBankBookFile} onDelete={bankBookUrl ? handleBankBookDelete : undefined} />
         <p className="text-xs text-[#98A2B2] mt-1">{t('profile_tabs.bank.bankbook_hint')}</p>
       </div>
 
@@ -968,6 +1139,20 @@ function IdTab({ profile, onSaved }: { profile: WorkerProfile; onSaved: (p: Part
     finally { setUploading(null) }
   }
 
+  async function handleFrontDelete() {
+    try {
+      const ok = await saveProfile(token!, { idFrontS3Key: null })
+      if (ok) { setFrontUrl(null); onSaved({ id_front_url: null }) }
+    } catch { /* ignore */ }
+  }
+
+  async function handleBackDelete() {
+    try {
+      const ok = await saveProfile(token!, { idBackS3Key: null })
+      if (ok) { setBackUrl(null); onSaved({ id_back_url: null }) }
+    } catch { /* ignore */ }
+  }
+
   async function save() {
     setSaving(true); setError(''); setSuccess('')
     try {
@@ -986,8 +1171,8 @@ function IdTab({ profile, onSaved }: { profile: WorkerProfile; onSaved: (p: Part
       </div>
 
       <div className="flex gap-3">
-        <UploadZone label={uploading === 'front' ? t('profile_tabs.id.front_uploading') : t('profile_tabs.id.front')} url={frontUrl} onChange={handleFront} />
-        <UploadZone label={uploading === 'back' ? t('profile_tabs.id.back_uploading') : t('profile_tabs.id.back')} url={backUrl} onChange={handleBack} />
+        <UploadZone label={uploading === 'front' ? t('profile_tabs.id.front_uploading') : t('profile_tabs.id.front')} url={frontUrl} onChange={handleFront} onDelete={frontUrl ? handleFrontDelete : undefined} />
+        <UploadZone label={uploading === 'back' ? t('profile_tabs.id.back_uploading') : t('profile_tabs.id.back')} url={backUrl} onChange={handleBack} onDelete={backUrl ? handleBackDelete : undefined} />
       </div>
 
       {uploading && (
@@ -1091,6 +1276,7 @@ function SignatureTab({ profile, onSaved }: { profile: WorkerProfile; onSaved: (
   const [saving, setSaving] = React.useState(false)
   const [error, setError] = React.useState('')
   const [success, setSuccess] = React.useState('')
+  const [viewingFull, setViewingFull] = React.useState(false)
 
   const token = getSessionCookie()
 
@@ -1141,13 +1327,37 @@ function SignatureTab({ profile, onSaved }: { profile: WorkerProfile; onSaved: (
     } finally { setSaving(false) }
   }
 
+  async function handleSignatureDelete() {
+    try {
+      const ok = await saveProfile(token!, { signatureS3Key: null })
+      if (ok) { setExistingUrl(null); onSaved({ signature_url: null }) }
+    } catch { /* ignore */ }
+  }
+
   return (
     <div className="space-y-4">
+      {viewingFull && existingUrl && <ImageFullModal url={existingUrl} onClose={() => setViewingFull(false)} />}
       {existingUrl && (
         <div>
           <p className="text-xs font-medium text-[#98A2B2] mb-1">{t('profile_tabs.signature.current_label')}</p>
           <div className="border border-[#EFF1F5] rounded-lg p-3 bg-[#F2F4F5]">
             <img src={existingUrl} alt={t('profile_tabs.signature.current_label')} className="max-h-20 object-contain mx-auto" />
+          </div>
+          <div className="flex gap-1.5 mt-1.5">
+            <button
+              type="button"
+              onClick={() => setViewingFull(true)}
+              className="flex-1 text-xs py-1.5 rounded-lg border border-[#EFF1F5] bg-white text-[#25282A] hover:border-[#0669F7] hover:text-[#0669F7] transition-colors"
+            >
+              전체보기
+            </button>
+            <button
+              type="button"
+              onClick={handleSignatureDelete}
+              className="flex-1 text-xs py-1.5 rounded-lg border border-[#EFF1F5] bg-white text-[#ED1C24] hover:border-[#ED1C24] transition-colors"
+            >
+              삭제
+            </button>
           </div>
           <p className="text-xs text-[#98A2B2] mt-1">{t('profile_tabs.signature.overwrite_hint')}</p>
         </div>
