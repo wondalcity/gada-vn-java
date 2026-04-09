@@ -251,10 +251,10 @@ class AuthRepository(private val db: DatabaseService) {
         }
         if (name != null) {
             db.updateRaw(
-                """INSERT INTO app.worker_profiles (user_id, full_name, date_of_birth, experience_months)
-                   VALUES (?, ?, '1990-01-01', 0)
+                """INSERT INTO app.worker_profiles (user_id, full_name)
+                   VALUES (?, ?)
                    ON CONFLICT (user_id) DO UPDATE SET full_name = ?, updated_at = NOW()""",
-                userId, name, name  // third ? is the CONFLICT UPDATE full_name = ?
+                userId, name, name
             )
         }
         return getMeProfile(userId)
