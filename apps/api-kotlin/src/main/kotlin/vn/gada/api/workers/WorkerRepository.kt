@@ -122,6 +122,7 @@ class WorkerRepository(
     }
 
     fun updateTradeSkillsByUserId(userId: String, skills: List<Map<String, Any?>>): List<Map<String, Any?>> {
+        ensureProfile(userId)
         val workerId = db.queryForList(
             "SELECT id FROM app.worker_profiles WHERE user_id = ?", userId
         ).firstOrNull()?.get("id") as? String ?: return emptyList()
@@ -185,11 +186,21 @@ class WorkerRepository(
         setClauses.add("updated_at = NOW()")
         params.add(userId)
 
+        ensureProfile(userId)
+
         db.updateRaw(
             "UPDATE app.worker_profiles SET ${setClauses.joinToString(", ")} WHERE user_id = ?",
             *params.toTypedArray()
         )
         return findByUserId(userId)
+    }
+
+    /** Ensure a worker_profiles row exists for the user (idempotent). */
+    private fun ensureProfile(userId: String) {
+        db.updateRaw(
+            "INSERT INTO app.worker_profiles (user_id, full_name) VALUES (?, '') ON CONFLICT (user_id) DO NOTHING",
+            userId
+        )
     }
 
     // ── Saved Locations ───────────────────────────────────────────────────────
@@ -205,6 +216,7 @@ class WorkerRepository(
     }
 
     fun createSavedLocation(userId: String, label: String, address: String?, lat: Double?, lng: Double?, isDefault: Boolean): Map<String, Any?> {
+        ensureProfile(userId)
         if (isDefault) {
             // Clear existing default
             db.updateRaw(

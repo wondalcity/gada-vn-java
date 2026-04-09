@@ -91,11 +91,17 @@ function useAuthProvider(locale: string) {
     // Load user profile
     apiFetch<{ statusCode: number; data: AuthUser }>('/auth/me', { token })
       .then(({ data }) => setState({ user: data, idToken: token, isLoading: false }))
-      .catch(() => {
-        // Token invalid/expired — clear session and redirect to login with notice
-        clearSessionCookie()
-        setState({ user: null, idToken: null, isLoading: false })
-        router.push('/login?expired=1' as any)
+      .catch((err) => {
+        const status = (err as { status?: number }).status
+        if (status === 401) {
+          // Token truly invalid/expired — clear session and redirect
+          clearSessionCookie()
+          setState({ user: null, idToken: null, isLoading: false })
+          router.push('/login?expired=1' as any)
+        } else {
+          // Network error or server error — keep session, let user retry
+          setState((s) => ({ ...s, isLoading: false }))
+        }
       })
   }, [])
 
