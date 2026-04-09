@@ -39,9 +39,10 @@ type LoginStep = 'input' | 'otp' | 'fb_phone' | 'fb_otp'
 interface LoginFormInnerProps {
   locale: string
   redirectTo?: string
+  expired?: boolean
 }
 
-function LoginFormInner({ locale, redirectTo }: LoginFormInnerProps) {
+function LoginFormInner({ locale, redirectTo, expired }: LoginFormInnerProps) {
   const t = useTranslations('auth')
 
   const [step, setStep] = React.useState<LoginStep>('input')
@@ -354,6 +355,13 @@ function LoginFormInner({ locale, redirectTo }: LoginFormInnerProps) {
       {/* Invisible reCAPTCHA container */}
       <div id="recaptcha-container" />
 
+      {/* Session expired banner */}
+      {expired && (
+        <div className="bg-[#FFF3CD] border-b border-[#FFD700] px-6 py-3 text-center">
+          <p className="text-[14px] text-[#856404] font-medium">{t('login.session_expired')}</p>
+        </div>
+      )}
+
       {/* Page header — logo + subtitle */}
       <div className="bg-white px-6 py-8 text-center border-b border-[#EEEEEE] flex flex-col items-center">
         <img src="/logo.png" alt="GADA VN" className="h-12 w-auto mb-3" />
@@ -499,8 +507,9 @@ function LoginFormInner({ locale, redirectTo }: LoginFormInnerProps) {
 export interface LoginFormProps {
   locale: string
   redirectTo?: string
+  expired?: boolean
 }
 
-export function LoginForm({ locale, redirectTo }: LoginFormProps) {
-  return <LoginFormInner locale={locale} redirectTo={redirectTo} />
+export function LoginForm({ locale, redirectTo, expired }: LoginFormProps) {
+  return <LoginFormInner locale={locale} redirectTo={redirectTo} expired={expired} />
 }

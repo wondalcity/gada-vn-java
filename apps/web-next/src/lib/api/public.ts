@@ -1,4 +1,9 @@
-const BASE = process.env.NEXT_PUBLIC_API_BASE_URL || 'https://api.gada.vn/api/v1'
+// Server-side: use INTERNAL_API_URL (runtime env) so the staging URL is never baked-in at build time.
+// Client-side: fall back to NEXT_PUBLIC_API_BASE_URL (baked at build time) or production URL.
+const BASE =
+  process.env.INTERNAL_API_URL ||
+  process.env.NEXT_PUBLIC_API_BASE_URL ||
+  'https://api.gada.vn/api/v1'
 
 // Cache tags for ISR revalidation
 export const CACHE_TAGS = {

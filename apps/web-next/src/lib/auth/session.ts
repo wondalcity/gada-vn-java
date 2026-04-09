@@ -41,13 +41,15 @@ export function getRememberMe(): boolean {
 
 /**
  * Store the Firebase ID Token as the session cookie.
- * rememberMe=true (default): 30-day persistent cookie
+ * rememberMe=true (default): 180-day rolling persistent cookie
+ *   — reset on every page load via onIdTokenChanged so active users
+ *     never see the 180-day limit.
  * rememberMe=false: session cookie — cleared when browser closes
  */
 export function setSessionCookie(idToken: string, rememberMe = true): void {
   const isSecure = typeof window !== 'undefined' && location.protocol === 'https:'
   const parts = [`${SESSION_COOKIE}=${idToken}`, 'path=/', 'SameSite=Strict']
-  if (rememberMe) parts.push('max-age=2592000')
+  if (rememberMe) parts.push('max-age=15552000') // 180 days
   if (isSecure) parts.push('Secure')
   document.cookie = parts.join('; ')
 }

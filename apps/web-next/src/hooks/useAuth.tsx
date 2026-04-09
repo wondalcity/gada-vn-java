@@ -92,9 +92,10 @@ function useAuthProvider(locale: string) {
     apiFetch<{ statusCode: number; data: AuthUser }>('/auth/me', { token })
       .then(({ data }) => setState({ user: data, idToken: token, isLoading: false }))
       .catch(() => {
-        // Token invalid/expired — clear session
+        // Token invalid/expired — clear session and redirect to login with notice
         clearSessionCookie()
         setState({ user: null, idToken: null, isLoading: false })
+        router.push('/login?expired=1' as any)
       })
   }, [])
 
@@ -107,11 +108,14 @@ function useAuthProvider(locale: string) {
       } else {
         // devToken (dev_* prefix) is not a Firebase token — Firebase has no
         // knowledge of it, so onIdTokenChanged always fires null for dev users.
-        // Only clear the session when it is not a dev-mode token.
+        // Only redirect when it is not a dev-mode token and a session exists.
         const current = getSessionCookie()
-        if (current?.startsWith('dev')) return
+        if (!current) return // no session — nothing to do
+        if (current.startsWith('dev')) return // dev token — skip
+        // Firebase session expired — redirect to login with notice
         clearSessionCookie()
         setState({ user: null, idToken: null, isLoading: false })
+        router.push('/login?expired=1' as any)
       }
     })
     return unsubscribe
@@ -246,43 +250,6 @@ function useAuthProvider(locale: string) {
     setState({ user: null, idToken: null, isLoading: false })
     router.push('/login')
   }
-
-  // ── Inactivity auto-logout (1 hour) ──────────────────────────────────────
-  // Keep a stable ref to logout so the timer callback always calls the latest version.
-  const logoutRef = React.useRef(logout)
-  React.useLayoutEffect(() => { logoutRef.current = logout })
-
-  const isLoggedIn = !!state.user
-  React.useEffect(() => {
-    if (!isLoggedIn) return
-
-    const INACTIVITY_MS = 60 * 60 * 1000 // 1 hour
-    let timer: ReturnType<typeof setTimeout>
-
-    function resetTimer() {
-      clearTimeout(timer)
-      timer = setTimeout(() => { logoutRef.current() }, INACTIVITY_MS)
-    }
-
-    const ACTIVITY_EVENTS = [
-      'mousedown', 'mousemove', 'keydown',
-      'touchstart', 'scroll', 'click', 'focus',
-    ] as const
-
-    ACTIVITY_EVENTS.forEach((e) =>
-      window.addEventListener(e, resetTimer, { passive: true }),
-    )
-    // Also reset when user returns to the tab (handles mobile background suspension)
-    document.addEventListener('visibilitychange', resetTimer)
-
-    resetTimer() // start the timer on mount
-
-    return () => {
-      clearTimeout(timer)
-      ACTIVITY_EVENTS.forEach((e) => window.removeEventListener(e, resetTimer))
-      document.removeEventListener('visibilitychange', resetTimer)
-    }
-  }, [isLoggedIn])
 
   return {
     user:      state.user,

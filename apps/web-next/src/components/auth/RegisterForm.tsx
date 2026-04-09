@@ -29,9 +29,10 @@ async function apiFetch<T>(path: string, options: RequestInit = {}): Promise<T> 
 
 interface RegisterFormProps {
   locale: string
+  expired?: boolean
 }
 
-export function RegisterForm({ locale }: RegisterFormProps) {
+export function RegisterForm({ locale, expired }: RegisterFormProps) {
   const t = useTranslations('auth')
   const [name,          setName]          = React.useState('')
   const [phone,         setPhone]         = React.useState('+84')
@@ -167,6 +168,13 @@ export function RegisterForm({ locale }: RegisterFormProps) {
     <div className="bg-[#F8F8FA] flex flex-col">
       {/* Invisible reCAPTCHA container */}
       <div id="recaptcha-container-register" />
+
+      {/* Session expired banner */}
+      {expired && (
+        <div className="bg-[#FFF3CD] border-b border-[#FFD700] px-6 py-3 text-center">
+          <p className="text-[14px] text-[#856404] font-medium">{t('login.session_expired')}</p>
+        </div>
+      )}
 
       {/* Already registered modal */}
       {alreadyRegistered && (
