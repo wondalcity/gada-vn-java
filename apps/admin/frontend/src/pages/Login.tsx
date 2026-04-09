@@ -24,13 +24,14 @@ export default function Login() {
         credentials: 'include',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
         body: form,
-        redirect: 'manual',
+        redirect: 'follow',
       })
-      // Spring Security redirects on success
-      if (res.status === 200 || res.status === 302 || res.type === 'opaqueredirect') {
-        navigate('/')
-      } else {
+      // Spring Security redirects: success → /, failure → /login?error
+      // Check final URL to distinguish the two cases
+      if (res.url.includes('error')) {
         navigate('/login?error')
+      } else {
+        navigate('/')
       }
     } catch {
       navigate('/login?error')
