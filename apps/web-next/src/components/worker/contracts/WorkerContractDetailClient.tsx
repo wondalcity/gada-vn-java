@@ -30,14 +30,17 @@ function SignaturePad({
   isSubmitting,
 }: {
   savedSigUrl?: string | null
-  onUse: (dataUrl: string) => void
+  onUse: (dataUrl: string, saveToProfile: boolean) => void
   isSubmitting?: boolean
 }) {
   const { canvasRef, hasDrawn, startDrawing, draw, stopDrawing, clear, getDataUrl, checkIsEmpty } =
     useSignatureCanvas()
   const t = useTranslations('common')
   const [error, setError] = React.useState<string | null>(null)
-  const [useSaved, setUseSaved] = React.useState(false)
+  // Default: use saved tab if profile sig exists, otherwise draw
+  const [useSaved, setUseSaved] = React.useState(!!savedSigUrl)
+  // Offer to save drawn sig to profile only when there's no existing one
+  const [saveToProfile, setSaveToProfile] = React.useState(!savedSigUrl)
 
   React.useEffect(() => {
     const canvas = canvasRef.current
@@ -63,10 +66,10 @@ function SignaturePad({
   function handleUse() {
     setError(null)
     if (useSaved && savedSigUrl) {
-      onUse(savedSigUrl)
+      onUse(savedSigUrl, false)
     } else {
       if (checkIsEmpty()) { setError(t('worker_contracts.sign_error_empty')); return }
-      onUse(getDataUrl())
+      onUse(getDataUrl(), saveToProfile)
     }
   }
 
@@ -78,14 +81,14 @@ function SignaturePad({
           <button
             type="button"
             onClick={() => setUseSaved(false)}
-            className={`flex-1 py-2 text-xs font-medium hover:bg-[#0557D4] transition-colors ${!useSaved ? 'bg-[#0669F7] text-white' : 'bg-white text-[#98A2B2] hover:text-[#25282A]'}`}
+            className={`flex-1 py-2 text-xs font-medium transition-colors ${!useSaved ? 'bg-[#0669F7] text-white' : 'bg-white text-[#98A2B2] hover:bg-[#F8F8FA] hover:text-[#25282A]'}`}
           >
             직접 서명
           </button>
           <button
             type="button"
             onClick={() => setUseSaved(true)}
-            className={`flex-1 py-2 text-xs font-medium hover:bg-[#0557D4] transition-colors ${useSaved ? 'bg-[#0669F7] text-white' : 'bg-white text-[#98A2B2] hover:text-[#25282A]'}`}
+            className={`flex-1 py-2 text-xs font-medium transition-colors ${useSaved ? 'bg-[#0669F7] text-white' : 'bg-white text-[#98A2B2] hover:bg-[#F8F8FA] hover:text-[#25282A]'}`}
           >
             저장된 서명 사용
           </button>
@@ -94,7 +97,7 @@ function SignaturePad({
 
       {useSaved && savedSigUrl ? (
         <div>
-          <p className="text-sm font-semibold text-[#25282A] mb-2">프로필에 저장된 서명</p>
+          <p className="text-xs font-medium text-[#98A2B2] mb-2">프로필에 저장된 서명</p>
           <div className="border-2 border-[#C8D8FF] rounded-xl bg-[#FAFCFF] p-4 flex items-center justify-center min-h-[120px]">
             <img src={savedSigUrl} alt="저장된 서명" className="max-h-24 object-contain" />
           </div>
@@ -120,6 +123,18 @@ function SignaturePad({
             )}
           </div>
           <p className="text-xs text-[#98A2B2]">{t('worker_contracts.sign_hint')}</p>
+          {/* Offer to save to profile when no saved signature exists */}
+          {!savedSigUrl && (
+            <label className="flex items-center gap-2 cursor-pointer select-none">
+              <input
+                type="checkbox"
+                checked={saveToProfile}
+                onChange={e => setSaveToProfile(e.target.checked)}
+                className="w-4 h-4 rounded accent-[#0669F7]"
+              />
+              <span className="text-xs text-[#25282A]">이 서명을 프로필에 저장</span>
+            </label>
+          )}
         </>
       )}
 
@@ -423,6 +438,7 @@ export default function WorkerContractDetailClient({ contractId }: Props) {
   const [profileSigUrl, setProfileSigUrl] = React.useState<string | null>(null)
   const [isConfirming, setIsConfirming] = React.useState(false)
   const [confirmError, setConfirmError] = React.useState<string | null>(null)
+  const [previewWorkerSigUrl, setPreviewWorkerSigUrl] = React.useState<string | null>(null)
 
   React.useEffect(() => {
     if (!idToken) return
@@ -444,7 +460,7 @@ export default function WorkerContractDetailClient({ contractId }: Props) {
 
   React.useEffect(() => { load() }, [load])
 
-  async function handleDirectSign(dataUrl: string) {
+  async function handleDirectSign(dataUrl: string, saveToProfile: boolean) {
     setIsConfirming(true)
     setConfirmError(null)
     try {
@@ -454,10 +470,26 @@ export default function WorkerContractDetailClient({ contractId }: Props) {
           token: idToken,
           body: JSON.stringify({ signatureData: dataUrl }),
         })
+        // Show signature on contract document immediately
+        setPreviewWorkerSigUrl(dataUrl)
+        // Optionally save to profile
+        if (saveToProfile) {
+          await apiClient('/workers/me', {
+            method: 'PUT',
+            token: idToken,
+            body: JSON.stringify({ signatureS3Key: dataUrl }),
+          }).catch(() => {})
+          setProfileSigUrl(dataUrl)
+        }
       }
       setShowSignModal(false)
       setSuccessMessage(t('worker_contracts.sign_success'))
-      if (!isDemo) load()
+      if (!isDemo && idToken) {
+        // Background refresh without skeleton to update contract status
+        apiClient<Contract>(`/contracts/${contractId}`, { token: idToken })
+          .then(({ data }) => setContract(data))
+          .catch(() => {})
+      }
     } catch (err) {
       setConfirmError(err instanceof Error ? err.message : t('worker_contracts.sign_error_generic'))
     } finally {
@@ -581,7 +613,7 @@ export default function WorkerContractDetailClient({ contractId }: Props) {
           <ContractDownloadButton documentRef={documentRef} contractId={contract.id} />
         </div>
         <div className="overflow-x-auto">
-          <ContractDocument contract={contract} documentRef={documentRef} />
+          <ContractDocument contract={contract} documentRef={documentRef} previewWorkerSigUrl={previewWorkerSigUrl} />
         </div>
       </div>
 
