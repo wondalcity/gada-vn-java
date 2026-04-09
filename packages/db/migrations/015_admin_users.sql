@@ -36,7 +36,7 @@ INSERT INTO ops.admin_users (email, name, password_hash, role, status, permissio
 VALUES (
   'admin@gada.vn',
   'Super Admin',
-  '$2a$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewdBPj7oJBWQcUq6',
+  '$2a$12$f/COCg.OyJ6wSqwjJrJP.ON8w0FY4Ydd/P4DY36oQ2cjd4HBEQklK',
   'SUPER_ADMIN',
   'ACTIVE',
   '{"dashboard":true,"managers":true,"workers":true,"jobs":true,"sites":true,"notifications":true,"admin_users":true}'::jsonb
