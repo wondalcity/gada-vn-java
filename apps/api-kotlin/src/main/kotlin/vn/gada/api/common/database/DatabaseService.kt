@@ -38,14 +38,14 @@ class DatabaseService(dataSource: DataSource) {
     }
 
     fun queryForList(sql: String, vararg params: Any?): List<Map<String, Any?>> {
-        val args = params.filterNotNull().map { coerce(it) }.toTypedArray()
+        val args = params.map { coerce(it) }.toTypedArray()
         val raw = if (args.isEmpty()) jdbc.queryForList(sql) else jdbc.queryForList(sql, *args)
         return raw.map { row -> row.mapValues { (_, v) -> coerceValue(v) } }
     }
 
     fun queryForMap(sql: String, vararg params: Any?): Map<String, Any?>? {
         return try {
-            val args = params.filterNotNull().map { coerce(it) }.toTypedArray()
+            val args = params.map { coerce(it) }.toTypedArray()
             val result = if (args.isEmpty()) jdbc.queryForList(sql) else jdbc.queryForList(sql, *args)
             result.firstOrNull()?.mapValues { (_, v) -> coerceValue(v) }
         } catch (e: Exception) {
@@ -54,19 +54,17 @@ class DatabaseService(dataSource: DataSource) {
     }
 
     fun update(sql: String, vararg params: Any?): Int {
-        val args = params.filterNotNull().map { coerce(it) }.toTypedArray()
+        val args = params.map { coerce(it) }.toTypedArray()
         return if (args.isEmpty()) jdbc.update(sql) else jdbc.update(sql, *args)
     }
 
+    // updateRaw kept for backward compatibility — now identical to update
     fun updateRaw(sql: String, vararg params: Any?): Int {
-        // Allows null params — coerce non-nulls for UUID safety
         val args = params.map { coerce(it) }.toTypedArray()
         return jdbc.update(sql, *args)
     }
 
-    /**
-     * Like queryForList but preserves null params (for COALESCE(?, col) patterns).
-     */
+    // queryForListRaw kept for backward compatibility — now identical to queryForList
     fun queryForListRaw(sql: String, vararg params: Any?): List<Map<String, Any?>> {
         val args = params.map { coerce(it) }.toTypedArray()
         return jdbc.queryForList(sql, *args).map { row -> row.mapValues { (_, v) -> coerceValue(v) } }

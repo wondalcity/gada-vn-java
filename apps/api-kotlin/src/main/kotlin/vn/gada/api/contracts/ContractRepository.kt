@@ -64,6 +64,30 @@ class ContractRepository(
         )
     }
 
+    fun findByManagerUserId(managerUserId: String): List<Map<String, Any?>> {
+        return db.queryForList(
+            """SELECT c.id, c.status,
+                      j.title          AS job_title,
+                      j.work_date,
+                      j.daily_wage,
+                      s.name           AS site_name,
+                      wp.full_name     AS worker_name,
+                      uw.phone         AS worker_phone,
+                      c.worker_signed_at,
+                      c.manager_signed_at,
+                      c.created_at
+               FROM app.contracts c
+               JOIN app.jobs j ON c.job_id = j.id
+               JOIN app.construction_sites s ON j.site_id = s.id
+               JOIN app.worker_profiles wp ON c.worker_id = wp.id
+               JOIN auth.users uw ON wp.user_id = uw.id
+               JOIN app.manager_profiles mp ON c.manager_id = mp.id
+               WHERE mp.user_id = ?
+               ORDER BY c.created_at DESC""",
+            managerUserId
+        )
+    }
+
     fun findByWorkerUserId(workerUserId: String): List<Map<String, Any?>> {
         return db.queryForList(
             """SELECT c.id, c.status,

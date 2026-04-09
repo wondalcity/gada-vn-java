@@ -6,10 +6,14 @@ import org.springframework.web.bind.annotation.*
 import vn.gada.api.common.exception.ForbiddenException
 import vn.gada.api.common.exception.UnauthorizedException
 import vn.gada.api.common.security.AuthUser
+import vn.gada.api.jobs.JobRepository
 
 @RestController
 @RequestMapping("/manager/sites")
-class SiteController(private val siteRepo: SiteRepository) {
+class SiteController(
+    private val siteRepo: SiteRepository,
+    private val jobRepo: JobRepository
+) {
 
     /** GET /manager/sites */
     @GetMapping
@@ -96,6 +100,19 @@ class SiteController(private val siteRepo: SiteRepository) {
     ): ResponseEntity<Map<String, Any?>> {
         val u = requireManager(user)
         return ok(siteRepo.getJobs(id, u.id))
+    }
+
+    /** POST /manager/sites/:id/jobs */
+    @PostMapping("/{id}/jobs")
+    fun createJob(
+        @AuthenticationPrincipal user: AuthUser?,
+        @PathVariable id: String,
+        @RequestBody body: Map<String, Any?>
+    ): ResponseEntity<Map<String, Any?>> {
+        val u = requireManager(user)
+        val managerId = jobRepo.getManagerIdByUserId(u.id)
+        val job = jobRepo.create(managerId, body + mapOf("siteId" to id))
+        return ok(job)
     }
 
     /** POST /manager/sites/:id/images */

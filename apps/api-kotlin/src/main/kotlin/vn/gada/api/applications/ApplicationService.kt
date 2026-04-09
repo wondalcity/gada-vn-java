@@ -35,6 +35,10 @@ class ApplicationService(
         return repo.findByJobId(jobId, managerUserId)
     }
 
+    fun findByManager(managerUserId: String): List<Map<String, Any?>> {
+        return repo.findByManagerUserId(managerUserId)
+    }
+
     fun hire(id: String, managerUserId: String): Map<String, Any?>? {
         return updateStatus(id, managerUserId, "ACCEPTED")
     }

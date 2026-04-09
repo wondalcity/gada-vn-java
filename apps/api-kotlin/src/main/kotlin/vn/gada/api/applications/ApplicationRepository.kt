@@ -114,6 +114,28 @@ class ApplicationRepository(private val db: DatabaseService) {
         ).firstOrNull()?.get("user_id") as? String
     }
 
+    fun findByManagerUserId(managerUserId: String): List<Map<String, Any?>> {
+        return db.queryForList(
+            """SELECT a.id, a.job_id, a.status, a.applied_at, a.reviewed_at,
+                      j.title AS job_title, j.work_date, j.daily_wage,
+                      s.name AS site_name,
+                      wp.full_name AS worker_name,
+                      u.phone AS worker_phone,
+                      c.id AS contract_id, c.status AS contract_status,
+                      c.worker_signed_at, c.manager_signed_at
+               FROM app.job_applications a
+               JOIN app.jobs j ON a.job_id = j.id
+               JOIN app.construction_sites s ON j.site_id = s.id
+               JOIN app.worker_profiles wp ON a.worker_id = wp.id
+               JOIN auth.users u ON wp.user_id = u.id
+               JOIN app.manager_profiles mp ON j.manager_id = mp.id
+               LEFT JOIN app.contracts c ON c.application_id = a.id
+               WHERE mp.user_id = ? AND a.status IN ('ACCEPTED', 'CONTRACTED')
+               ORDER BY a.reviewed_at DESC""",
+            managerUserId
+        )
+    }
+
     fun updateStatus(id: String, managerUserId: String, status: String): Map<String, Any?>? {
         return db.queryForList(
             """UPDATE app.job_applications a

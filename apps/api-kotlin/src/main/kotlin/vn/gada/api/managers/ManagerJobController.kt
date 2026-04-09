@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.*
 import vn.gada.api.applications.ApplicationService
 import vn.gada.api.attendance.AttendanceService
 import vn.gada.api.common.database.DatabaseService
+import vn.gada.api.jobs.JobRepository
 import vn.gada.api.common.exception.ForbiddenException
 import vn.gada.api.common.exception.UnauthorizedException
 import vn.gada.api.common.security.AuthUser
@@ -17,6 +18,7 @@ class ManagerJobController(
     private val db: DatabaseService,
     private val applicationService: ApplicationService,
     private val attendanceService: AttendanceService,
+    private val jobRepo: JobRepository,
     @Value("\${gada.aws.cdn-domain:}") private val cdnDomain: String
 ) {
 
@@ -189,6 +191,18 @@ class ManagerJobController(
                 "rejected" to ((r["rejected_count"] as? Number)?.toInt() ?: 0)
             )
         ))
+    }
+
+    /** PUT /manager/jobs/:id — Edit job fields */
+    @PutMapping("/jobs/{id}")
+    fun updateJob(
+        @PathVariable id: String,
+        @AuthenticationPrincipal user: AuthUser?,
+        @RequestBody body: Map<String, Any?>
+    ): ResponseEntity<Map<String, Any?>> {
+        val u = requireManager(user)
+        val managerId = jobRepo.getManagerIdByUserId(u.id)
+        return ok(jobRepo.update(id, managerId, body))
     }
 
     /** PATCH /manager/jobs/:id/status */

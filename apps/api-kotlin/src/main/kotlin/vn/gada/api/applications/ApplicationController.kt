@@ -22,6 +22,15 @@ class ApplicationController(private val applicationService: ApplicationService) 
         return ok(applicationService.apply(u.id, jobId))
     }
 
+    /** GET /applications/for-manager — Manager fetches accepted/contracted applications with contract info */
+    @GetMapping("/applications/for-manager")
+    fun getApplicationsForManager(
+        @AuthenticationPrincipal user: AuthUser?
+    ): ResponseEntity<Map<String, Any?>> {
+        val u = requireManager(user)
+        return ok(applicationService.findByManager(u.id))
+    }
+
     /** GET /applications/mine — Worker fetches their own applications */
     @GetMapping("/applications/mine")
     fun getMyApplications(

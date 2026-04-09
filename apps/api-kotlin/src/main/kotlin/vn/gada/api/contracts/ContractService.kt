@@ -55,6 +55,10 @@ class ContractService(
         return repo.findByWorkerUserId(workerUserId)
     }
 
+    fun findByManager(managerUserId: String): List<Map<String, Any?>> {
+        return repo.findByManagerUserId(managerUserId)
+    }
+
     fun findById(id: String, userId: String): Map<String, Any?> {
         val contract = repo.findById(id)
             ?: throw NotFoundException("Contract $id not found")
