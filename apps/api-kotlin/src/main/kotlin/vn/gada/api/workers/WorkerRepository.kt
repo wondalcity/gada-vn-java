@@ -160,7 +160,7 @@ class WorkerRepository(
         val params = mutableListOf<Any?>()
 
         data["fullName"]?.let             { setClauses.add("full_name = ?");               params.add(it) }
-        data["dateOfBirth"]?.let          { setClauses.add("date_of_birth = ?");         params.add(it) }
+        data["dateOfBirth"]?.let          { setClauses.add("date_of_birth = ?::date");    params.add(it) }
         data["gender"]?.let               { setClauses.add("gender = ?");                params.add(it) }
         data["bio"]?.let                  { setClauses.add("bio = ?");                   params.add(it) }
         data["experienceMonths"]?.let     { setClauses.add("experience_months = ?");     params.add(it) }
