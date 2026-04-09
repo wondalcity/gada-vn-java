@@ -163,7 +163,7 @@ export function DatePicker({
       {open && (
         <div
           role="dialog"
-          className="absolute z-50 mt-1.5 w-full min-w-[280px] bg-white rounded-2xl shadow-xl border border-[#EFF1F5] overflow-hidden"
+          className="absolute z-50 mt-1.5 w-80 max-w-[calc(100vw-2rem)] bg-white rounded-2xl shadow-xl border border-[#EFF1F5] overflow-hidden"
           style={{ left: 0, top: '100%' }}
         >
           {/* ── Calendar view ── */}
