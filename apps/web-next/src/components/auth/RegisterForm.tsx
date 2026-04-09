@@ -186,6 +186,13 @@ export function RegisterForm({ locale }: RegisterFormProps) {
         </div>
       )}
 
+      {/* Page header — logo + title + subtitle */}
+      <div className="bg-white px-6 py-8 text-center border-b border-[#EEEEEE] flex flex-col items-center">
+        <img src="/logo.png" alt="GADA VN" className="h-12 w-auto mb-3" />
+        <h1 className="text-[22px] font-bold text-[#25282A]">{t('register.title')}</h1>
+        <p className="mt-2 text-[15px] text-[#98A2B2]">{t('register.subtitle_phone')}</p>
+      </div>
+
       <div className="px-6 py-8 max-w-[480px] mx-auto w-full flex flex-col gap-6"
         style={{ paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 32px)' }}
       >

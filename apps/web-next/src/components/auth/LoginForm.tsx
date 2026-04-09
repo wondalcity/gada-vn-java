@@ -354,6 +354,12 @@ function LoginFormInner({ locale, redirectTo }: LoginFormInnerProps) {
       {/* Invisible reCAPTCHA container */}
       <div id="recaptcha-container" />
 
+      {/* Page header — logo + subtitle */}
+      <div className="bg-white px-6 py-8 text-center border-b border-[#EEEEEE] flex flex-col items-center">
+        <img src="/logo.png" alt="GADA VN" className="h-12 w-auto mb-3" />
+        <p className="text-[15px] text-[#98A2B2]">{t('login.subtitle')}</p>
+      </div>
+
       <div className="px-6 py-8 max-w-[480px] mx-auto w-full flex flex-col gap-5"
         style={{ paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 24px)' }}
       >
