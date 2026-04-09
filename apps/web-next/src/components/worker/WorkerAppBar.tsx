@@ -66,7 +66,7 @@ export function WorkerAppBar({ locale, user, provinces = [] }: Props) {
         {/* Mobile: back button on sub-pages, logo on root pages */}
         {isRootPage ? (
           <Link
-            href={'/worker'}
+            href={'/worker/home'}
             className="md:hidden flex items-center shrink-0"
           >
             <img src="/logo.png" alt="GADA VN" className="h-8 w-auto" />
@@ -89,7 +89,7 @@ export function WorkerAppBar({ locale, user, provinces = [] }: Props) {
           </div>
         )}
         <Link
-          href={'/' as never}
+          href={'/worker/home' as never}
           className="hidden md:flex items-center shrink-0"
         >
           <img src="/logo.png" alt="GADA VN" className="h-9 w-auto" />

@@ -91,7 +91,7 @@ export function ManagerAppBar({ locale, user }: Props) {
           </div>
         )}
         <Link
-          href={'/' as never}
+          href={'/manager' as never}
           className="hidden md:flex items-center shrink-0"
         >
           <img src="/logo.png" alt="GADA VN" className="h-9 w-auto" />
