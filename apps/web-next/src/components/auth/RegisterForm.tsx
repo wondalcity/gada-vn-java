@@ -164,7 +164,7 @@ export function RegisterForm({ locale }: RegisterFormProps) {
   }
 
   return (
-    <div className="min-h-dvh bg-[#F8F8FA] flex flex-col">
+    <div className="bg-[#F8F8FA] flex flex-col">
       {/* Invisible reCAPTCHA container */}
       <div id="recaptcha-container-register" />
 
@@ -186,16 +186,7 @@ export function RegisterForm({ locale }: RegisterFormProps) {
         </div>
       )}
 
-      {/* Header */}
-      <div className="bg-white px-6 pb-6 text-center border-b border-[#EEEEEE] flex flex-col items-center"
-        style={{ paddingTop: 'calc(env(safe-area-inset-top, 0px) + 48px)' }}
-      >
-        <img src="/logo.png" alt="GADA VN" className="h-12 w-auto mb-3" />
-        <h1 className="text-[22px] font-bold text-[#25282A]">{t('register.title')}</h1>
-        <p className="mt-2 text-[15px] text-[#98A2B2]">{t('register.subtitle_phone')}</p>
-      </div>
-
-      <div className="flex-1 overflow-y-auto px-6 py-8 max-w-[480px] mx-auto w-full flex flex-col gap-6"
+      <div className="px-6 py-8 max-w-[480px] mx-auto w-full flex flex-col gap-6"
         style={{ paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 32px)' }}
       >
 

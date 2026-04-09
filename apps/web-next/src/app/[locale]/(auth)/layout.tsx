@@ -1,10 +1,22 @@
-/**
- * Auth layout — minimal full-screen layout for login and register pages.
- *
- * Intentionally excludes PublicHeader and PublicFooter.
- * Forms handle their own branding header and use safe-area utilities.
- */
+import { PublicHeader } from '@/components/public/PublicHeader'
+import { getAuthUser } from '@/lib/auth/server'
+import { fetchProvinces } from '@/lib/api/public'
 
-export default function AuthLayout({ children }: { children: React.ReactNode }) {
-  return <>{children}</>
+interface Props {
+  children: React.ReactNode
+  params: Promise<{ locale: string }>
+}
+
+export default async function AuthLayout({ children, params }: Props) {
+  const { locale } = await params
+  const [user, provinces] = await Promise.all([
+    getAuthUser(),
+    fetchProvinces(locale).catch(() => []),
+  ])
+  return (
+    <div className="min-h-screen flex flex-col bg-[#F8F8FA]">
+      <PublicHeader locale={locale} user={user} provinces={provinces} />
+      <main className="flex-1">{children}</main>
+    </div>
+  )
 }
