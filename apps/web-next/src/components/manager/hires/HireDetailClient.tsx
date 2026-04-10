@@ -8,14 +8,6 @@ import { apiClient } from '@/lib/api/client'
 import type { HireWithContract } from '@/types/contract'
 import { CONTRACT_STATUS_LABELS, CONTRACT_STATUS_COLORS } from '@/types/contract'
 
-const DEMO_HIRES: Record<string, HireWithContract> = {
-  'hire-1': { id: 'hire-1', jobId: 'djob-1-1', jobTitle: '철근 조립 — 10~12층 골조', siteName: '하노이 스타레이크 시티 A동 신축', workDate: '2026-04-03', dailyWage: 650000, workerName: 'Nguyễn Văn An', workerPhone: '0901234567', status: 'CONTRACTED', reviewedAt: '2026-03-22T10:00:00Z', contract: { id: 'ctr-1', status: 'FULLY_SIGNED', workerSignedAt: '2026-03-23T14:00:00Z', managerSignedAt: '2026-03-22T10:00:00Z', downloadUrl: null } },
-  'hire-2': { id: 'hire-2', jobId: 'djob-1-1', jobTitle: '철근 조립 — 10~12층 골조', siteName: '하노이 스타레이크 시티 A동 신축', workDate: '2026-04-03', dailyWage: 650000, workerName: 'Trần Thị Bích', workerPhone: '0912345678', status: 'CONTRACTED', reviewedAt: '2026-03-22T11:00:00Z', contract: { id: 'ctr-2', status: 'PENDING_MANAGER_SIGN', workerSignedAt: '2026-03-23T16:00:00Z', managerSignedAt: null, downloadUrl: null } },
-  'hire-3': { id: 'hire-3', jobId: 'djob-3-2', jobTitle: '콘크리트 타설 — 철탑 기초 2차', siteName: '다낭 선월드 케이블카 지지대 기초', workDate: '2026-04-02', dailyWage: 560000, workerName: 'Lê Minh Tuấn', workerPhone: '0923456789', status: 'ACCEPTED', reviewedAt: '2026-03-24T09:00:00Z', contract: null },
-  'hire-4': { id: 'hire-4', jobId: 'djob-3-2', jobTitle: '콘크리트 타설 — 철탑 기초 2차', siteName: '다낭 선월드 케이블카 지지대 기초', workDate: '2026-04-02', dailyWage: 560000, workerName: 'Phạm Thị Hoa', workerPhone: '0934567890', status: 'ACCEPTED', reviewedAt: '2026-03-24T10:00:00Z', contract: null },
-  'hire-5': { id: 'hire-5', jobId: 'djob-1-3', jobTitle: '거푸집 설치 — 기둥 공사', siteName: '하노이 스타레이크 시티 A동 신축', workDate: '2026-04-07', dailyWage: 520000, workerName: 'Võ Văn Hùng', workerPhone: '0945678901', status: 'ACCEPTED', reviewedAt: '2026-03-25T08:00:00Z', contract: null },
-  'hire-6': { id: 'hire-6', jobId: 'djob-1-3', jobTitle: '거푸집 설치 — 기둥 공사', siteName: '하노이 스타레이크 시티 A동 신축', workDate: '2026-04-07', dailyWage: 520000, workerName: 'Đặng Thị Mai', workerPhone: '0956789012', status: 'CONTRACTED', reviewedAt: '2026-03-25T09:00:00Z', contract: { id: 'ctr-3', status: 'PENDING_WORKER_SIGN', workerSignedAt: null, managerSignedAt: null, downloadUrl: null } },
-}
 
 function formatVND(n: number) {
   return new Intl.NumberFormat('ko-KR').format(n) + ' ₫'
@@ -48,7 +40,6 @@ export default function HireDetailClient({ hireId }: Props) {
 
   const [hire, setHire] = React.useState<HireWithContract | null>(null)
   const [isLoading, setIsLoading] = React.useState(true)
-  const [isDemo, setIsDemo] = React.useState(false)
   const [creatingContract, setCreatingContract] = React.useState(false)
   const [toast, setToast] = React.useState<string | null>(null)
 
@@ -58,15 +49,7 @@ export default function HireDetailClient({ hireId }: Props) {
   }
 
   React.useEffect(() => {
-    if (!idToken) {
-      const found = DEMO_HIRES[hireId]
-      if (found) {
-        setHire(found)
-        setIsDemo(true)
-      }
-      setIsLoading(false)
-      return
-    }
+    if (!idToken) { setIsLoading(false); return }
     apiClient<HireWithContract>(`/applications/${hireId}`, { token: idToken })
       .then((res) => setHire(res.data))
       .catch(() => setHire(null))
@@ -125,13 +108,6 @@ export default function HireDetailClient({ hireId }: Props) {
         </svg>
         합격자 목록
       </Link>
-
-      {isDemo && (
-        <div className="mb-4 flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-[#FFF8E6] border border-[#F5D87D] text-sm text-[#856404]">
-          <span className="font-semibold">데모 데이터</span>
-          <span className="text-[#856404]">— API 연결 후 실제 데이터가 표시됩니다</span>
-        </div>
-      )}
 
       {/* Worker card */}
       <div className="bg-white rounded-2xl shadow-sm border border-[#EFF1F5] p-5 mb-4">
@@ -217,7 +193,7 @@ export default function HireDetailClient({ hireId }: Props) {
             <p className="text-sm text-[#98A2B2] mb-3">아직 계약서가 생성되지 않았습니다</p>
             <button
               onClick={handleCreateContract}
-              disabled={creatingContract || isDemo}
+              disabled={creatingContract}
               className="px-5 py-2.5 rounded-2xl bg-[#0669F7] text-white font-medium text-sm hover:bg-[#0557D4] transition-colors disabled:opacity-40"
             >
               {creatingContract ? '생성 중...' : '계약서 생성'}

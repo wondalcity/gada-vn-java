@@ -9,104 +9,6 @@ import { apiClient } from '@/lib/api/client'
 import type { HireWithContract } from '@/types/contract'
 import { CONTRACT_STATUS_LABELS, CONTRACT_STATUS_COLORS } from '@/types/contract'
 
-const DEMO_HIRES: HireWithContract[] = [
-  {
-    id: 'hire-1',
-    jobId: 'djob-1-1',
-    jobTitle: '철근 조립 — 10~12층 골조',
-    siteName: '하노이 스타레이크 시티 A동 신축',
-    workDate: '2026-04-03',
-    dailyWage: 650000,
-    workerName: 'Nguyễn Văn An',
-    workerPhone: '0901234567',
-    status: 'CONTRACTED',
-    reviewedAt: '2026-03-22T10:00:00Z',
-    contract: {
-      id: 'ctr-1',
-      status: 'FULLY_SIGNED',
-      workerSignedAt: '2026-03-23T14:00:00Z',
-      managerSignedAt: '2026-03-22T10:00:00Z',
-      downloadUrl: null,
-    },
-  },
-  {
-    id: 'hire-2',
-    jobId: 'djob-1-1',
-    jobTitle: '철근 조립 — 10~12층 골조',
-    siteName: '하노이 스타레이크 시티 A동 신축',
-    workDate: '2026-04-03',
-    dailyWage: 650000,
-    workerName: 'Trần Thị Bích',
-    workerPhone: '0912345678',
-    status: 'CONTRACTED',
-    reviewedAt: '2026-03-22T11:00:00Z',
-    contract: {
-      id: 'ctr-2',
-      status: 'PENDING_MANAGER_SIGN',
-      workerSignedAt: '2026-03-23T16:00:00Z',
-      managerSignedAt: null,
-      downloadUrl: null,
-    },
-  },
-  {
-    id: 'hire-3',
-    jobId: 'djob-3-2',
-    jobTitle: '콘크리트 타설 — 철탑 기초 2차',
-    siteName: '다낭 선월드 케이블카 지지대 기초',
-    workDate: '2026-04-02',
-    dailyWage: 560000,
-    workerName: 'Lê Minh Tuấn',
-    workerPhone: '0923456789',
-    status: 'ACCEPTED',
-    reviewedAt: '2026-03-24T09:00:00Z',
-    contract: null,
-  },
-  {
-    id: 'hire-4',
-    jobId: 'djob-3-2',
-    jobTitle: '콘크리트 타설 — 철탑 기초 2차',
-    siteName: '다낭 선월드 케이블카 지지대 기초',
-    workDate: '2026-04-02',
-    dailyWage: 560000,
-    workerName: 'Phạm Thị Hoa',
-    workerPhone: '0934567890',
-    status: 'ACCEPTED',
-    reviewedAt: '2026-03-24T10:00:00Z',
-    contract: null,
-  },
-  {
-    id: 'hire-5',
-    jobId: 'djob-1-3',
-    jobTitle: '거푸집 설치 — 기둥 공사',
-    siteName: '하노이 스타레이크 시티 A동 신축',
-    workDate: '2026-04-07',
-    dailyWage: 520000,
-    workerName: 'Võ Văn Hùng',
-    workerPhone: '0945678901',
-    status: 'ACCEPTED',
-    reviewedAt: '2026-03-25T08:00:00Z',
-    contract: null,
-  },
-  {
-    id: 'hire-6',
-    jobId: 'djob-1-3',
-    jobTitle: '거푸집 설치 — 기둥 공사',
-    siteName: '하노이 스타레이크 시티 A동 신축',
-    workDate: '2026-04-07',
-    dailyWage: 520000,
-    workerName: 'Đặng Thị Mai',
-    workerPhone: '0956789012',
-    status: 'CONTRACTED',
-    reviewedAt: '2026-03-25T09:00:00Z',
-    contract: {
-      id: 'ctr-3',
-      status: 'PENDING_WORKER_SIGN',
-      workerSignedAt: null,
-      managerSignedAt: null,
-      downloadUrl: null,
-    },
-  },
-]
 
 function formatVND(n: number): string {
   return new Intl.NumberFormat('ko-KR').format(n) + ' ₫'
@@ -145,13 +47,15 @@ export default function ManagerHiresClient() {
   const locale = (params?.locale as string) ?? 'ko'
   const [hires, setHires] = React.useState<HireWithContract[]>([])
   const [isLoading, setIsLoading] = React.useState(true)
+  const [error, setError] = React.useState<string | null>(null)
   const [searchQuery, setSearchQuery] = React.useState('')
   const [creatingContractFor, setCreatingContractFor] = React.useState<string | null>(null)
   const [toastMessage, setToastMessage] = React.useState<string | null>(null)
 
   const load = React.useCallback(() => {
-    if (!idToken) { setHires(DEMO_HIRES); setIsLoading(false); return }
+    if (!idToken) { setIsLoading(false); return }
     setIsLoading(true)
+    setError(null)
     apiClient<Record<string, any>[]>('/applications/for-manager', { token: idToken })
       .then(({ data }) => {
         const mapped: HireWithContract[] = data
@@ -177,7 +81,7 @@ export default function ManagerHiresClient() {
           }))
         setHires(mapped)
       })
-      .catch(() => setHires(DEMO_HIRES))
+      .catch(() => setError(t('manager_hires.error_load')))
       .finally(() => setIsLoading(false))
   }, [idToken])
 
@@ -209,7 +113,6 @@ export default function ManagerHiresClient() {
     }
   }
 
-  const isDemo = !idToken
   const displayHires = hires
 
   const filteredHires = React.useMemo(() => {
@@ -245,15 +148,26 @@ export default function ManagerHiresClient() {
     )
   }
 
+  if (error) {
+    return (
+      <div className="max-w-[1760px] mx-auto px-4 py-6">
+        <h1 className="text-xl font-bold text-[#25282A] mb-6">{t('manager_hires.title')}</h1>
+        <p className="text-[#ED1C24] text-sm mb-4">{error}</p>
+        <button
+          type="button"
+          onClick={load}
+          className="px-5 py-2.5 rounded-full bg-[#0669F7] text-white font-medium hover:bg-[#0557D4] transition-colors text-sm"
+        >
+          {t('manager_hires.retry')}
+        </button>
+      </div>
+    )
+  }
+
   return (
     <div className="max-w-[1760px] mx-auto px-4 py-6">
       <div className="flex items-center gap-3 mb-2">
         <h1 className="text-xl font-bold text-[#25282A]">{t('manager_hires.title')}</h1>
-        {isDemo && (
-          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-[#FFE9B0] text-[#856404] border border-[#F5D87D]">
-            {t('manager_hires.demo_badge')}
-          </span>
-        )}
       </div>
 
       {/* Summary stats */}

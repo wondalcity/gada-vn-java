@@ -363,7 +363,9 @@
     "contract_create_error": "Lỗi khi tạo hợp đồng.",
     "empty_title": "Chưa có ứng viên đậu.",
     "empty_subtitle": "Khi bạn chấp thuận ứng viên, họ sẽ hiện ở đây.",
-    "no_search_results": "Không tìm thấy kết quả."
+    "no_search_results": "Không tìm thấy kết quả.",
+    "error_load": "Không thể tải danh sách ứng viên đậu.",
+    "retry": "Thử lại"
   },
   "manager_contracts": {
     "title": "Quản lý hợp đồng",

@@ -363,7 +363,9 @@
     "contract_create_error": "Error creating contract.",
     "empty_title": "No accepted applicants.",
     "empty_subtitle": "Accepted applicants will appear here.",
-    "no_search_results": "No results found."
+    "no_search_results": "No results found.",
+    "error_load": "Unable to load accepted applicants.",
+    "retry": "Retry"
   },
   "manager_contracts": {
     "title": "Contract Management",
