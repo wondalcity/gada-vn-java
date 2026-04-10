@@ -340,13 +340,24 @@ export default function ManagerHomePage({ params }: Props) {
           ))}
         </div>
 
-        {/* New site CTA */}
+        {/* New Job CTA — primary repeated action */}
         <Link
-          href={'/manager/sites/new' as never}
-          className="block mt-4 p-4 rounded-2xl border-2 border-dashed border-[#DDDDDD] text-center hover:border-[#0669F7] hover:bg-[#E6F0FE] active:bg-[#E6F0FE] transition-colors"
+          href={'/manager/jobs?new=1' as never}
+          className="flex items-center justify-center gap-3 mt-4 p-4 rounded-2xl bg-[#0669F7] hover:bg-[#0557D4] active:bg-[#0448B0] transition-colors shadow-md"
+          style={{ minHeight: 64 }}
         >
-          <p className="text-sm font-bold text-[#25282A]">+ 새 현장 등록</p>
-          <p className="text-xs text-[#98A2B2] mt-0.5">새로운 건설 현장을 등록하고 공고를 올리세요</p>
+          <span className="w-9 h-9 rounded-full bg-white/20 flex items-center justify-center shrink-0">
+            <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+            </svg>
+          </span>
+          <div className="text-left">
+            <p className="text-sm font-bold text-white">새 공고 등록</p>
+            <p className="text-xs text-white/75 mt-0.5">현장을 선택하고 새 일자리를 올리세요</p>
+          </div>
+          <svg className="w-4 h-4 text-white/60 shrink-0 ml-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+          </svg>
         </Link>
       </div>
     </div>

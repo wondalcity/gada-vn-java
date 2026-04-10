@@ -22,68 +22,6 @@ interface ContractListItem {
   created_at: string
 }
 
-const DEMO_CONTRACTS: ContractListItem[] = [
-  {
-    id: 'ctr-1',
-    status: 'FULLY_SIGNED',
-    job_title: '전기 배선 작업',
-    site_name: '롯데몰 하노이 지하 1층 공사',
-    work_date: '2026-03-28',
-    daily_wage: 700000,
-    worker_name: 'Nguyễn Văn An',
-    worker_phone: '0901234567',
-    worker_signed_at: '2026-03-23T14:00:00Z',
-    created_at: '2026-03-22T10:00:00Z',
-  },
-  {
-    id: 'ctr-2',
-    status: 'PENDING_MANAGER_SIGN',
-    job_title: '전기 배선 작업',
-    site_name: '롯데몰 하노이 지하 1층 공사',
-    work_date: '2026-03-28',
-    daily_wage: 700000,
-    worker_name: 'Trần Thị Bích',
-    worker_phone: '0912345678',
-    worker_signed_at: '2026-03-23T16:00:00Z',
-    created_at: '2026-03-22T11:00:00Z',
-  },
-  {
-    id: 'ctr-3',
-    status: 'PENDING_WORKER_SIGN',
-    job_title: '타일 시공 — 로비 바닥',
-    site_name: '광명역 복합쇼핑몰 신축',
-    work_date: '2026-04-01',
-    daily_wage: 580000,
-    worker_name: 'Đặng Thị Mai',
-    worker_phone: '0956789012',
-    worker_signed_at: null,
-    created_at: '2026-03-25T09:00:00Z',
-  },
-  {
-    id: 'ctr-4',
-    status: 'FULLY_SIGNED',
-    job_title: '잡부 — 자재 운반',
-    site_name: '인천 송도 물류센터',
-    work_date: '2026-03-27',
-    daily_wage: 410000,
-    worker_name: 'Hoàng Văn Đức',
-    worker_phone: '0967890123',
-    worker_signed_at: '2026-03-20T11:00:00Z',
-    created_at: '2026-03-19T10:00:00Z',
-  },
-  {
-    id: 'ctr-5',
-    status: 'PENDING_WORKER_SIGN',
-    job_title: '철근 조립 — 3층 골조',
-    site_name: '광명역 복합쇼핑몰 신축',
-    work_date: '2026-03-25',
-    daily_wage: 620000,
-    worker_name: 'Ngô Thị Lan',
-    worker_phone: '0978901234',
-    worker_signed_at: null,
-    created_at: '2026-03-15T08:00:00Z',
-  },
-]
 
 function formatVND(n: number): string {
   return new Intl.NumberFormat('ko-KR').format(n) + ' ₫'
@@ -175,21 +113,13 @@ export default function ManagerContractsClient() {
     )
   }
 
-  const isDemo = contracts.length === 0
-  const displayContracts = isDemo ? DEMO_CONTRACTS : contracts
-
   return (
     <div className="max-w-[1760px] mx-auto px-4 py-6">
       <div className="flex items-center gap-3 mb-6">
         <h1 className="text-xl font-bold text-[#25282A]">{t('manager_contracts.title')}</h1>
-        {isDemo && (
-          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-[#FFE9B0] text-[#856404] border border-[#F5D87D]">
-            {t('manager_contracts.demo_badge')}
-          </span>
-        )}
       </div>
 
-      {displayContracts.length === 0 ? (
+      {contracts.length === 0 ? (
         <div className="py-16 text-center">
           <DocumentIllustration />
           <p className="text-[#98A2B2] text-sm font-medium">{t('manager_contracts.empty_title')}</p>
@@ -197,7 +127,7 @@ export default function ManagerContractsClient() {
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-          {displayContracts.map((contract) => (
+          {contracts.map((contract) => (
             <div
               key={contract.id}
               className="bg-white rounded-2xl shadow-sm border border-[#EFF1F5] p-4"

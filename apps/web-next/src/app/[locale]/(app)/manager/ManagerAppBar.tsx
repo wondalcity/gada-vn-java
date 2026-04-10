@@ -50,8 +50,15 @@ export function ManagerAppBar({ locale, user }: Props) {
   const isRootPage = MANAGER_ROOT_PATHS(locale).has(pathname)
   const pageTitle = isRootPage ? '' : getManagerPageTitle(pathname, locale, t as TFn)
 
+  // Job-related sub-paths under /manager/sites (e.g. /manager/sites/{id}/jobs/new)
+  const isOnSiteJobPath = pathname.startsWith('/manager/sites/') && pathname.includes('/jobs')
+
   function navClass(href: string, exact = false) {
-    const active = exact ? pathname === href : pathname.startsWith(href)
+    let active = exact ? pathname === href : pathname.startsWith(href)
+    // /manager/sites nav: don't activate for site→job sub-paths (those belong to jobs nav)
+    if (href === '/manager/sites' && isOnSiteJobPath) active = false
+    // /manager/jobs nav: also activate for site→job sub-paths
+    if (href === '/manager/jobs' && isOnSiteJobPath) active = true
     return `hover:text-[#0669F7] transition-colors ${active ? 'text-[#0669F7] font-semibold' : 'text-[#25282A]'}`
   }
 

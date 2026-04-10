@@ -113,13 +113,14 @@ class JobRepository(
             """INSERT INTO app.jobs (
                 site_id, manager_id, title, description, trade_id,
                 work_date, start_time, end_time, daily_wage,
-                benefits, requirements, slots_total, status, slug, published_at
-               ) VALUES (?,?,?,?,?,?,?,?,?,?::jsonb,?::jsonb,?,'OPEN',?,NOW())
+                benefits, requirements, slots_total, expires_at, status, slug, published_at
+               ) VALUES (?,?,?,?,?,CAST(? AS date),CAST(? AS time),CAST(? AS time),?,CAST(? AS jsonb),CAST(? AS jsonb),?,CAST(? AS timestamptz),'OPEN',?,NOW())
                RETURNING *""",
             data["siteId"], managerId, data["title"], data["description"], data["tradeId"],
             data["workDate"], data["startTime"], data["endTime"], data["dailyWage"],
             benefitsJson, requirementsJson,
-            data["slotsTotal"], slug
+            data["slotsTotal"], data["expiresAt"],
+            slug
         )
         return rows.firstOrNull()
     }

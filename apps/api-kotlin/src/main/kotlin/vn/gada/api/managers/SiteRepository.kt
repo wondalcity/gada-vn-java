@@ -17,7 +17,7 @@ class SiteRepository(
 
     private fun toImageUrl(key: String?): String? {
         if (key == null) return null
-        if (key.startsWith("http://") || key.startsWith("https://")) return key
+        if (key.startsWith("http://") || key.startsWith("https://") || key.startsWith("data:")) return key
         if (cdnDomain.isBlank()) return null
         val base = if (cdnDomain.startsWith("http")) cdnDomain else "https://$cdnDomain"
         return "$base/$key"

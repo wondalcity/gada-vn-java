@@ -60,6 +60,8 @@ export default function SiteForm({ mode, initialData, siteId, locale, idToken }:
 
   const addressInputRef = React.useRef<HTMLInputElement>(null)
   const autocompleteRef = React.useRef<google.maps.places.Autocomplete | null>(null)
+  // Set when user picks an address from autocomplete — allows province to be empty
+  const addressPickedFromMapRef = React.useRef(false)
 
   React.useEffect(() => {
     let isMounted = true
@@ -76,76 +78,102 @@ export default function SiteForm({ mode, initialData, siteId, locale, idToken }:
         autocomplete.addListener('place_changed', () => {
           const place = autocomplete.getPlace()
           if (!place.geometry) return
-          setAddress(place.formatted_address ?? '')
+          const formatted = place.formatted_address ?? ''
+          setAddress(formatted)
           const geo = place.geometry.location
           if (geo) { setLat(geo.lat()); setLng(geo.lng()) }
+
           let provinceVal = ''
           let districtVal = ''
           for (const component of place.address_components ?? []) {
             if (component.types.includes('administrative_area_level_1')) provinceVal = component.long_name
             if (component.types.includes('administrative_area_level_2')) districtVal = component.long_name
           }
+          // Fallback 1: try locality if level_1 is missing
+          if (!provinceVal) {
+            for (const component of place.address_components ?? []) {
+              if (component.types.includes('locality')) { provinceVal = component.long_name; break }
+            }
+          }
+          // Fallback 2: extract last non-country part from formatted address
+          if (!provinceVal && formatted) {
+            const parts = formatted.split(',').map((p: string) => p.trim()).filter(Boolean)
+            const filtered = parts.filter((p: string) =>
+              p.toLowerCase() !== 'vietnam' && p.toLowerCase() !== 'việt nam'
+            )
+            if (filtered.length > 0) provinceVal = filtered[filtered.length - 1]
+          }
+
           setProvince(provinceVal)
           setDistrict(districtVal)
+          addressPickedFromMapRef.current = true
         })
       })
       .catch(() => { if (isMounted) setMapsError(true) })
     return () => { isMounted = false }
   }, [])
 
-  // ── Image upload: presigned URL → S3 (or local) → register key ─
-  async function handleImageUpload(file: File) {
+  // ── Upload a single file to S3 (or local) and register with site ─
+  async function uploadOneFile(file: File): Promise<void> {
     if (!siteId) return
+    // 1. Get presigned URL (or local mode token)
+    const presignRes = await fetch(`${API_BASE}/files/presigned-url`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${idToken}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ fileName: file.name, contentType: file.type, folder: 'sites' }),
+    })
+    if (!presignRes.ok) throw new Error('업로드 URL 발급 실패')
+    const { data: presign } = await presignRes.json()
+
+    let imageKey: string
+
+    if (presign.isLocal) {
+      // 2a. Local dev — POST file directly to API
+      const localFd = new FormData()
+      localFd.append('file', file)
+      const uploadRes = await fetch(`${API_BASE}/files/upload-local`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${idToken}` },
+        body: localFd,
+      })
+      if (!uploadRes.ok) throw new Error('로컬 업로드 실패')
+      const { data: localData } = await uploadRes.json()
+      imageKey = localData.key
+    } else {
+      // 2b. Production — PUT directly to S3 presigned URL
+      const uploadRes = await fetch(presign.url, {
+        method: 'PUT',
+        headers: { 'Content-Type': file.type },
+        body: file,
+      })
+      if (!uploadRes.ok) throw new Error('S3 업로드 실패')
+      imageKey = presign.key
+    }
+
+    // 3. Register key with site
+    const res = await fetch(`${API_BASE}/manager/sites/${siteId}/images`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${idToken}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ key: imageKey }),
+    })
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({}))
+      throw new Error(body?.message ?? '이미지 등록 실패')
+    }
+    const { data } = await res.json()
+    setImages(data.imageUrls)
+    setCoverIdx(data.coverImageIdx)
+  }
+
+  // ── Image upload: accepts multiple files, uploads sequentially ─
+  async function handleImageUpload(files: File[]) {
+    if (!siteId || files.length === 0) return
     setIsUploading(true)
     setError(null)
     try {
-      // 1. Get presigned URL (or local mode token)
-      const presignRes = await fetch(`${API_BASE}/files/presigned-url`, {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${idToken}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ fileName: file.name, contentType: file.type, folder: 'sites' }),
-      })
-      if (!presignRes.ok) throw new Error('업로드 URL 발급 실패')
-      const { data: presign } = await presignRes.json()
-
-      let imageKey: string
-
-      if (presign.isLocal) {
-        // 2a. Local dev — POST file directly to API
-        const localFd = new FormData()
-        localFd.append('file', file, presign.key)
-        const uploadRes = await fetch(`${API_BASE}/files/upload-local`, {
-          method: 'POST',
-          headers: { Authorization: `Bearer ${idToken}` },
-          body: localFd,
-        })
-        if (!uploadRes.ok) throw new Error('로컬 업로드 실패')
-        const { data: localData } = await uploadRes.json()
-        imageKey = localData.key  // full URL (http://localhost:...)
-      } else {
-        // 2b. Production — PUT directly to S3 presigned URL
-        const uploadRes = await fetch(presign.url, {
-          method: 'PUT',
-          headers: { 'Content-Type': file.type },
-          body: file,
-        })
-        if (!uploadRes.ok) throw new Error('S3 업로드 실패')
-        imageKey = presign.key
+      for (const file of files) {
+        await uploadOneFile(file)
       }
-
-      // 3. Register key with site
-      const res = await fetch(`${API_BASE}/manager/sites/${siteId}/images`, {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${idToken}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ key: imageKey }),
-      })
-      if (!res.ok) {
-        const body = await res.json().catch(() => ({}))
-        throw new Error(body?.message ?? '이미지 등록 실패')
-      }
-      const { data } = await res.json()
-      setImages(data.imageUrls)
-      setCoverIdx(data.coverImageIdx)
     } catch (e) {
       setError(e instanceof Error ? e.message : '이미지 업로드에 실패했습니다.')
     } finally {
@@ -185,7 +213,8 @@ export default function SiteForm({ mode, initialData, siteId, locale, idToken }:
 
     if (!name.trim()) { setError('현장 이름을 입력해주세요.'); return }
     if (!address.trim()) { setError('주소를 입력해주세요.'); return }
-    if (!province.trim()) { setError('성/시를 입력해주세요.'); return }
+    // Only require province if not auto-filled from Google Maps
+    if (!province.trim() && !addressPickedFromMapRef.current) { setError('성/시를 입력해주세요.'); return }
 
     setIsSaving(true)
     try {

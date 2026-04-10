@@ -27,7 +27,7 @@ export default function ManagerNav({ locale }: Props) {
       key: 'sites',
       href: '/manager/sites',
       label: t('manager_nav.sites'),
-      active: pathname.startsWith('/manager/sites'),
+      active: pathname.startsWith('/manager/sites') && !pathname.includes('/jobs'),
       icon: (active: boolean) => (
         <svg className="w-[22px] h-[22px]" fill={active ? 'currentColor' : 'none'} viewBox="0 0 24 24" stroke="currentColor" strokeWidth={active ? 0 : 1.8}>
           <path strokeLinecap="round" strokeLinejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
@@ -38,7 +38,7 @@ export default function ManagerNav({ locale }: Props) {
       key: 'jobs',
       href: '/manager/jobs',
       label: t('manager_nav.jobs'),
-      active: pathname.startsWith('/manager/jobs'),
+      active: pathname.startsWith('/manager/jobs') || (pathname.startsWith('/manager/sites/') && pathname.includes('/jobs')),
       icon: (active: boolean) => (
         <svg className="w-[22px] h-[22px]" fill={active ? 'currentColor' : 'none'} viewBox="0 0 24 24" stroke="currentColor" strokeWidth={active ? 0 : 1.8}>
           <path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />

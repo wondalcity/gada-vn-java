@@ -222,6 +222,7 @@ export default function AllJobsClient({ locale }: AllJobsClientProps) {
   const qParam = searchParams.get('q') ?? ''
   const siteParam = searchParams.get('site') ?? ''
   const statusParam = searchParams.get('status') ?? ''
+  const newJobParam = searchParams.get('new') === '1'
 
   // Sync status tab from URL param
   React.useEffect(() => {
@@ -229,6 +230,13 @@ export default function AllJobsClient({ locale }: AllJobsClientProps) {
       setActiveTab(statusParam as JobStatus | 'ALL')
     }
   }, [statusParam])
+
+  // Auto-open site picker when ?new=1
+  React.useEffect(() => {
+    if (newJobParam && !isLoading) {
+      setShowSitePicker(true)
+    }
+  }, [newJobParam, isLoading])
 
   React.useEffect(() => {
     if (!idToken) {

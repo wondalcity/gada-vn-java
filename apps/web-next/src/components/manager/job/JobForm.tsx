@@ -4,6 +4,7 @@ import * as React from 'react'
 import { useRouter } from '@/i18n/navigation'
 import { apiClient } from '@/lib/api/client'
 import { DatePicker } from '@/components/ui/DatePicker'
+import { TimePicker } from '@/components/ui/TimePicker'
 import { siteStore } from '@/lib/demo/siteStore'
 import type { Job, JobStatus } from '@/types/manager-site-job'
 
@@ -318,22 +319,22 @@ export default function JobForm({
           {/* Start / End time */}
           <div>
             <label className={labelClass}>근무 시간 (선택)</label>
-            <div className="flex gap-2">
-              <input
-                type="time"
-                value={startTime}
-                onChange={(e) => setStartTime(e.target.value)}
-                className={`${inputClass} flex-1`}
-                placeholder="시작"
-              />
-              <span className="flex items-center text-[#98A2B2] text-sm">~</span>
-              <input
-                type="time"
-                value={endTime}
-                onChange={(e) => setEndTime(e.target.value)}
-                className={`${inputClass} flex-1`}
-                placeholder="종료"
-              />
+            <div className="flex items-center gap-2">
+              <div className="flex-1">
+                <TimePicker
+                  value={startTime}
+                  onChange={setStartTime}
+                  placeholder="시작 시간"
+                />
+              </div>
+              <span className="text-[#98A2B2] text-sm font-medium shrink-0">~</span>
+              <div className="flex-1">
+                <TimePicker
+                  value={endTime}
+                  onChange={setEndTime}
+                  placeholder="종료 시간"
+                />
+              </div>
             </div>
           </div>
         </div>

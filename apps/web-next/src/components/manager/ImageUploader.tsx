@@ -5,7 +5,7 @@ import * as React from 'react'
 interface ImageUploaderProps {
   images: string[]
   coverIdx: number
-  onUpload: (file: File) => Promise<void>
+  onUpload: (files: File[]) => Promise<void>
   onRemove: (idx: number) => Promise<void>
   onSetCover: (idx: number) => Promise<void>
   isUploading: boolean
@@ -26,9 +26,9 @@ export default function ImageUploader({
   const [settingCoverIdx, setSettingCoverIdx] = React.useState<number | null>(null)
 
   function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0]
-    if (!file) return
-    onUpload(file)
+    const files = Array.from(e.target.files ?? [])
+    if (files.length === 0) return
+    onUpload(files)
     e.target.value = ''
   }
 
@@ -164,6 +164,7 @@ export default function ImageUploader({
         ref={inputRef}
         type="file"
         accept="image/jpeg,image/png,image/webp"
+        multiple
         className="hidden"
         onChange={handleFileChange}
       />
