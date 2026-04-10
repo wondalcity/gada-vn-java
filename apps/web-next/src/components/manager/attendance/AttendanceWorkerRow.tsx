@@ -123,8 +123,16 @@ export default function AttendanceWorkerRow({
         </div>
       </button>
 
-      {/* Expanded content */}
-      {isExpanded && (
+      {/* Expanded content — animated */}
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateRows: isExpanded ? '1fr' : '0fr',
+          transition: 'grid-template-rows 0.22s ease',
+        }}
+        aria-hidden={!isExpanded}
+      >
+      <div style={{ overflow: 'hidden' }}>
         <div className="px-4 pb-4 border-t border-[#EFF1F5] space-y-4">
           {/* Status picker */}
           <div className="pt-3">
@@ -213,7 +221,8 @@ export default function AttendanceWorkerRow({
             </div>
           )}
         </div>
-      )}
+      </div>
+      </div>
     </div>
   )
 }

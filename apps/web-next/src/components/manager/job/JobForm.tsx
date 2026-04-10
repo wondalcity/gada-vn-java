@@ -5,6 +5,7 @@ import { useRouter } from '@/i18n/navigation'
 import { apiClient } from '@/lib/api/client'
 import { DatePicker } from '@/components/ui/DatePicker'
 import { TimePicker } from '@/components/ui/TimePicker'
+import { AccordionSection } from '@/components/ui/AccordionSection'
 import { siteStore } from '@/lib/demo/siteStore'
 import type { Job, JobStatus } from '@/types/manager-site-job'
 
@@ -181,280 +182,240 @@ export default function JobForm({
   return (
     <form onSubmit={handleSubmit} className="space-y-4 pb-10">
       {/* 기본 정보 */}
-      <details open className="group">
-        <summary className="flex items-center justify-between cursor-pointer bg-white rounded-2xl shadow-sm border border-[#EFF1F5] px-5 py-4 font-semibold text-[#25282A] text-sm list-none">
-          기본 정보
-          <svg className="w-4 h-4 text-[#98A2B2] group-open:rotate-180 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-          </svg>
-        </summary>
-        <div className="bg-white border border-t-0 border-[#EFF1F5] rounded-b-sm px-5 pb-5 pt-4 space-y-4">
-          {/* Title (Korean) */}
-          <div>
-            <label className={labelClass}>
-              공고 제목 (한국어) <span className="text-[#ED1C24]">*</span>
-            </label>
-            <input
-              type="text"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              placeholder="예: 도장공 모집"
-              className={inputClass}
-            />
-          </div>
-
-          {/* Title (Vietnamese) */}
-          <div>
-            <label className={labelClass}>
-              공고 제목 (베트남어)
-              <span className="ml-1 text-xs font-normal text-[#98A2B2]">근로자에게 표시됩니다</span>
-            </label>
-            <input
-              type="text"
-              value={titleVi}
-              onChange={(e) => setTitleVi(e.target.value)}
-              placeholder="예: Tuyển thợ sơn"
-              className={inputClass}
-            />
-          </div>
-
-          {/* Trade */}
-          <div className="relative">
-            <label className={labelClass}>직종 (공종)</label>
-            <input
-              type="text"
-              value={tradeSearch}
-              onChange={(e) => {
-                setTradeSearch(e.target.value)
-                setShowTradeDropdown(true)
-                if (!e.target.value) setTradeId('')
-              }}
-              onFocus={() => setShowTradeDropdown(true)}
-              placeholder="직종 검색..."
-              className={inputClass}
-            />
-            {showTradeDropdown && filteredTrades.length > 0 && (
-              <div className="absolute z-20 top-full left-0 right-0 bg-white border border-[#EFF1F5] rounded-2xl shadow-lg max-h-48 overflow-y-auto mt-1">
-                {filteredTrades.map((t) => (
-                  <button
-                    key={t.id}
-                    type="button"
-                    onMouseDown={() => selectTrade(t)}
-                    className="w-full text-left px-3 py-2 text-sm text-[#25282A] hover:bg-[#F2F4F5]"
-                  >
-                    {t.nameKo ?? t.name}
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
-
-          {/* Description (Korean) */}
-          <div>
-            <label className={labelClass}>상세 설명 (한국어)</label>
-            <textarea
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              rows={4}
-              maxLength={2000}
-              placeholder="업무 내용, 특이사항 등을 자유롭게 작성해주세요"
-              className={`${inputClass} resize-none`}
-            />
-            <p className="mt-1 text-xs text-[#98A2B2] text-right">{description.length}/2000</p>
-          </div>
-
-          {/* Description (Vietnamese) */}
-          <div>
-            <label className={labelClass}>
-              상세 설명 (베트남어)
-              <span className="ml-1 text-xs font-normal text-[#98A2B2]">근로자에게 표시됩니다</span>
-            </label>
-            <textarea
-              value={descriptionVi}
-              onChange={(e) => setDescriptionVi(e.target.value)}
-              rows={4}
-              maxLength={2000}
-              placeholder="예: Mô tả công việc, yêu cầu đặc biệt..."
-              className={`${inputClass} resize-none`}
-            />
-            <p className="mt-1 text-xs text-[#98A2B2] text-right">{descriptionVi.length}/2000</p>
-          </div>
+      <AccordionSection title="기본 정보">
+        {/* Title (Korean) */}
+        <div>
+          <label className={labelClass}>
+            공고 제목 (한국어) <span className="text-[#ED1C24]">*</span>
+          </label>
+          <input
+            type="text"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            placeholder="예: 도장공 모집"
+            className={inputClass}
+          />
         </div>
-      </details>
+
+        {/* Title (Vietnamese) */}
+        <div>
+          <label className={labelClass}>
+            공고 제목 (베트남어)
+            <span className="ml-1 text-xs font-normal text-[#98A2B2]">근로자에게 표시됩니다</span>
+          </label>
+          <input
+            type="text"
+            value={titleVi}
+            onChange={(e) => setTitleVi(e.target.value)}
+            placeholder="예: Tuyển thợ sơn"
+            className={inputClass}
+          />
+        </div>
+
+        {/* Trade */}
+        <div className="relative">
+          <label className={labelClass}>직종 (공종)</label>
+          <input
+            type="text"
+            value={tradeSearch}
+            onChange={(e) => {
+              setTradeSearch(e.target.value)
+              setShowTradeDropdown(true)
+              if (!e.target.value) setTradeId('')
+            }}
+            onFocus={() => setShowTradeDropdown(true)}
+            placeholder="직종 검색..."
+            className={inputClass}
+          />
+          {showTradeDropdown && filteredTrades.length > 0 && (
+            <div className="absolute z-20 top-full left-0 right-0 bg-white border border-[#EFF1F5] rounded-2xl shadow-lg max-h-48 overflow-y-auto mt-1">
+              {filteredTrades.map((t) => (
+                <button
+                  key={t.id}
+                  type="button"
+                  onMouseDown={() => selectTrade(t)}
+                  className="w-full text-left px-3 py-2 text-sm text-[#25282A] hover:bg-[#F2F4F5]"
+                >
+                  {t.nameKo ?? t.name}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Description (Korean) */}
+        <div>
+          <label className={labelClass}>상세 설명 (한국어)</label>
+          <textarea
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            rows={4}
+            maxLength={2000}
+            placeholder="업무 내용, 특이사항 등을 자유롭게 작성해주세요"
+            className={`${inputClass} resize-none`}
+          />
+          <p className="mt-1 text-xs text-[#98A2B2] text-right">{description.length}/2000</p>
+        </div>
+
+        {/* Description (Vietnamese) */}
+        <div>
+          <label className={labelClass}>
+            상세 설명 (베트남어)
+            <span className="ml-1 text-xs font-normal text-[#98A2B2]">근로자에게 표시됩니다</span>
+          </label>
+          <textarea
+            value={descriptionVi}
+            onChange={(e) => setDescriptionVi(e.target.value)}
+            rows={4}
+            maxLength={2000}
+            placeholder="예: Mô tả công việc, yêu cầu đặc biệt..."
+            className={`${inputClass} resize-none`}
+          />
+          <p className="mt-1 text-xs text-[#98A2B2] text-right">{descriptionVi.length}/2000</p>
+        </div>
+      </AccordionSection>
 
       {/* 일정 */}
-      <details open className="group">
-        <summary className="flex items-center justify-between cursor-pointer bg-white rounded-2xl shadow-sm border border-[#EFF1F5] px-5 py-4 font-semibold text-[#25282A] text-sm list-none">
-          일정
-          <svg className="w-4 h-4 text-[#98A2B2] group-open:rotate-180 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-          </svg>
-        </summary>
-        <div className="bg-white border border-t-0 border-[#EFF1F5] rounded-b-sm px-5 pb-5 pt-4 space-y-4">
-          {/* Work date */}
-          <div>
-            <label className={labelClass}>
-              작업일 <span className="text-[#ED1C24]">*</span>
-            </label>
-            <DatePicker
-              value={workDate}
-              onChange={setWorkDate}
-              min={today}
-              placeholder="작업일 선택"
-            />
-          </div>
+      <AccordionSection title="일정">
+        {/* Work date */}
+        <div>
+          <label className={labelClass}>
+            작업일 <span className="text-[#ED1C24]">*</span>
+          </label>
+          <DatePicker
+            value={workDate}
+            onChange={setWorkDate}
+            min={today}
+            placeholder="작업일 선택"
+          />
+        </div>
 
-          {/* Expires at */}
-          <div>
-            <label className={labelClass}>모집 마감일</label>
-            <DatePicker
-              value={expiresAt}
-              onChange={setExpiresAt}
-              max={workDate || undefined}
-              placeholder="마감일 선택"
-            />
-            <p className="mt-1 text-xs text-[#98A2B2]">이 날짜 이후 지원이 불가합니다</p>
-          </div>
+        {/* Expires at */}
+        <div>
+          <label className={labelClass}>모집 마감일</label>
+          <DatePicker
+            value={expiresAt}
+            onChange={setExpiresAt}
+            max={workDate || undefined}
+            placeholder="마감일 선택"
+          />
+          <p className="mt-1 text-xs text-[#98A2B2]">이 날짜 이후 지원이 불가합니다</p>
+        </div>
 
-          {/* Start / End time */}
-          <div>
-            <label className={labelClass}>근무 시간 (선택)</label>
-            <div className="flex items-center gap-2">
-              <div className="flex-1">
-                <TimePicker
-                  value={startTime}
-                  onChange={setStartTime}
-                  placeholder="시작 시간"
-                />
-              </div>
-              <span className="text-[#98A2B2] text-sm font-medium shrink-0">~</span>
-              <div className="flex-1">
-                <TimePicker
-                  value={endTime}
-                  onChange={setEndTime}
-                  placeholder="종료 시간"
-                />
-              </div>
+        {/* Start / End time */}
+        <div>
+          <label className={labelClass}>근무 시간 (선택)</label>
+          <div className="flex items-center gap-2">
+            <div className="flex-1">
+              <TimePicker
+                value={startTime}
+                onChange={setStartTime}
+                placeholder="시작 시간"
+              />
+            </div>
+            <span className="text-[#98A2B2] text-sm font-medium shrink-0">~</span>
+            <div className="flex-1">
+              <TimePicker
+                value={endTime}
+                onChange={setEndTime}
+                placeholder="종료 시간"
+              />
             </div>
           </div>
         </div>
-      </details>
+      </AccordionSection>
 
       {/* 급여 */}
-      <details open className="group">
-        <summary className="flex items-center justify-between cursor-pointer bg-white rounded-2xl shadow-sm border border-[#EFF1F5] px-5 py-4 font-semibold text-[#25282A] text-sm list-none">
-          급여
-          <svg className="w-4 h-4 text-[#98A2B2] group-open:rotate-180 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-          </svg>
-        </summary>
-        <div className="bg-white border border-t-0 border-[#EFF1F5] rounded-b-sm px-5 pb-5 pt-4 space-y-4">
-          {/* Daily wage */}
-          <div>
-            <label className={labelClass}>
-              일당 (VND) <span className="text-[#ED1C24]">*</span>
-            </label>
-            <input
-              type="number"
-              value={dailyWage}
-              onChange={(e) => setDailyWage(e.target.value === '' ? '' : Number(e.target.value))}
-              placeholder="예: 450000"
-              min={0}
-              className={inputClass}
-            />
-            {dailyWage !== '' && Number(dailyWage) > 0 && (
-              <p className="mt-1.5 text-sm font-medium text-[#0669F7]">
-                {formatVND(Number(dailyWage))}
-              </p>
-            )}
-          </div>
-
-          {/* Slots total */}
-          <div>
-            <label className={labelClass}>
-              채용 인원 수 <span className="text-[#ED1C24]">*</span>
-            </label>
-            <input
-              type="number"
-              value={slotsTotal}
-              onChange={(e) => setSlotsTotal(e.target.value === '' ? '' : Number(e.target.value))}
-              min={1}
-              placeholder="예: 5"
-              className={inputClass}
-            />
-          </div>
+      <AccordionSection title="급여">
+        {/* Daily wage */}
+        <div>
+          <label className={labelClass}>
+            일당 (VND) <span className="text-[#ED1C24]">*</span>
+          </label>
+          <input
+            type="number"
+            value={dailyWage}
+            onChange={(e) => setDailyWage(e.target.value === '' ? '' : Number(e.target.value))}
+            placeholder="예: 450000"
+            min={0}
+            className={inputClass}
+          />
+          {dailyWage !== '' && Number(dailyWage) > 0 && (
+            <p className="mt-1.5 text-sm font-medium text-[#0669F7]">
+              {formatVND(Number(dailyWage))}
+            </p>
+          )}
         </div>
-      </details>
+
+        {/* Slots total */}
+        <div>
+          <label className={labelClass}>
+            채용 인원 수 <span className="text-[#ED1C24]">*</span>
+          </label>
+          <input
+            type="number"
+            value={slotsTotal}
+            onChange={(e) => setSlotsTotal(e.target.value === '' ? '' : Number(e.target.value))}
+            min={1}
+            placeholder="예: 5"
+            className={inputClass}
+          />
+        </div>
+      </AccordionSection>
 
       {/* 복리후생 */}
-      <details open className="group">
-        <summary className="flex items-center justify-between cursor-pointer bg-white rounded-2xl shadow-sm border border-[#EFF1F5] px-5 py-4 font-semibold text-[#25282A] text-sm list-none">
-          복리후생
-          <svg className="w-4 h-4 text-[#98A2B2] group-open:rotate-180 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-          </svg>
-        </summary>
-        <div className="bg-white border border-t-0 border-[#EFF1F5] rounded-b-sm px-5 pb-5 pt-4">
-          <div className="grid grid-cols-2 gap-3">
-            {[
-              { key: 'meals', label: '식사 제공', value: meals, setter: setMeals },
-              { key: 'transport', label: '교통비 지원', value: transport, setter: setTransport },
-              { key: 'accommodation', label: '숙박 제공', value: accommodation, setter: setAccommodation },
-              { key: 'insurance', label: '산재보험', value: insurance, setter: setInsurance },
-            ].map((b) => (
-              <label
-                key={b.key}
-                className={`flex items-center gap-2.5 p-3 rounded-2xl border cursor-pointer transition-colors ${
-                  b.value
-                    ? 'border-[#0669F7] bg-[#E6F0FE]'
-                    : 'border-[#EFF1F5] bg-white'
-                }`}
-              >
-                <input
-                  type="checkbox"
-                  checked={b.value}
-                  onChange={(e) => b.setter(e.target.checked)}
-                  className="sr-only"
-                />
-                <span className="text-sm text-[#25282A] font-medium">{b.label}</span>
-              </label>
-            ))}
-          </div>
+      <AccordionSection title="복리후생" contentClassName="">
+        <div className="grid grid-cols-2 gap-3">
+          {[
+            { key: 'meals', label: '식사 제공', value: meals, setter: setMeals },
+            { key: 'transport', label: '교통비 지원', value: transport, setter: setTransport },
+            { key: 'accommodation', label: '숙박 제공', value: accommodation, setter: setAccommodation },
+            { key: 'insurance', label: '산재보험', value: insurance, setter: setInsurance },
+          ].map((b) => (
+            <label
+              key={b.key}
+              className={`flex items-center gap-2.5 p-3 rounded-2xl border cursor-pointer transition-colors ${
+                b.value
+                  ? 'border-[#0669F7] bg-[#E6F0FE]'
+                  : 'border-[#EFF1F5] bg-white'
+              }`}
+            >
+              <input
+                type="checkbox"
+                checked={b.value}
+                onChange={(e) => b.setter(e.target.checked)}
+                className="sr-only"
+              />
+              <span className="text-sm text-[#25282A] font-medium">{b.label}</span>
+            </label>
+          ))}
         </div>
-      </details>
+      </AccordionSection>
 
       {/* 자격요건 */}
-      <details className="group">
-        <summary className="flex items-center justify-between cursor-pointer bg-white rounded-2xl shadow-sm border border-[#EFF1F5] px-5 py-4 font-semibold text-[#25282A] text-sm list-none">
-          자격요건
-          <svg className="w-4 h-4 text-[#98A2B2] group-open:rotate-180 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-          </svg>
-        </summary>
-        <div className="bg-white border border-t-0 border-[#EFF1F5] rounded-b-sm px-5 pb-5 pt-4 space-y-4">
-          <div>
-            <label className={labelClass}>최소 경력 (개월)</label>
-            <input
-              type="number"
-              value={minExp}
-              onChange={(e) => setMinExp(e.target.value === '' ? '' : Number(e.target.value))}
-              min={0}
-              placeholder="0 = 신입 가능"
-              className={inputClass}
-            />
-          </div>
-          <div>
-            <label className={labelClass}>특이사항 또는 자격요건</label>
-            <textarea
-              value={reqNotes}
-              onChange={(e) => setReqNotes(e.target.value)}
-              rows={3}
-              placeholder="특이사항 또는 자격요건"
-              className={`${inputClass} resize-none`}
-            />
-          </div>
+      <AccordionSection title="자격요건" defaultOpen={false}>
+        <div>
+          <label className={labelClass}>최소 경력 (개월)</label>
+          <input
+            type="number"
+            value={minExp}
+            onChange={(e) => setMinExp(e.target.value === '' ? '' : Number(e.target.value))}
+            min={0}
+            placeholder="0 = 신입 가능"
+            className={inputClass}
+          />
         </div>
-      </details>
+        <div>
+          <label className={labelClass}>특이사항 또는 자격요건</label>
+          <textarea
+            value={reqNotes}
+            onChange={(e) => setReqNotes(e.target.value)}
+            rows={3}
+            placeholder="특이사항 또는 자격요건"
+            className={`${inputClass} resize-none`}
+          />
+        </div>
+      </AccordionSection>
 
       {/* Status (edit only) */}
       {mode === 'edit' && (
