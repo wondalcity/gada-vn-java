@@ -63,6 +63,18 @@ class ContractController(private val contractService: ContractService) {
         return ok(contractService.sign(id, u.id, signatureData))
     }
 
+    /** POST /contracts/:id/manager-sign — Manager countersigns a contract */
+    @PostMapping("/{id}/manager-sign")
+    fun managerSignContract(
+        @PathVariable id: String,
+        @AuthenticationPrincipal user: AuthUser?,
+        @RequestBody(required = false) body: Map<String, Any?>?
+    ): ResponseEntity<Map<String, Any?>> {
+        val u = requireManager(user)
+        val signatureData = body?.get("signatureData") as? String
+        return ok(contractService.managerSign(id, u.id, signatureData))
+    }
+
     private fun requireManager(user: AuthUser?): AuthUser {
         if (user == null) throw UnauthorizedException("Unauthorized")
         if (user.role != "MANAGER" && user.role != "ADMIN") throw ForbiddenException("MANAGER role required")

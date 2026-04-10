@@ -39,6 +39,15 @@ class ApplicationService(
         return repo.findByManagerUserId(managerUserId)
     }
 
+    fun findOneByManager(id: String, managerUserId: String): Map<String, Any?> {
+        return repo.findByIdForManager(id, managerUserId)
+            ?: throw NotFoundException("Application $id not found")
+    }
+
+    fun findByWorkerAndJob(workerUserId: String, jobId: String): Map<String, Any?>? {
+        return repo.findByWorkerAndJobForWorker(workerUserId, jobId)
+    }
+
     fun hire(id: String, managerUserId: String): Map<String, Any?>? {
         return updateStatus(id, managerUserId, "ACCEPTED")
     }

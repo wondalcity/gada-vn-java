@@ -69,6 +69,24 @@ class ContractService(
         return contract
     }
 
+    fun managerSign(id: String, managerUserId: String, signatureData: String?): Map<String, Any?>? {
+        repo.findById(id) ?: throw NotFoundException("Contract $id not found")
+        val signed = repo.managerSign(id, managerUserId, signatureData ?: "")
+        try {
+            val parties = repo.findPartyUserIds(id)
+            parties["workerUserId"]?.let { workerUserId ->
+                notifications.send(
+                    userId = workerUserId,
+                    type = "CONTRACT_FULLY_SIGNED",
+                    title = "계약이 완전히 체결되었습니다 ✅",
+                    body = "관리자가 계약서에 서명했습니다.",
+                    data = mapOf("contractId" to id)
+                )
+            }
+        } catch (e: Exception) { }
+        return signed
+    }
+
     fun sign(id: String, workerUserId: String, signatureData: String?): Map<String, Any?>? {
         repo.findById(id) ?: throw NotFoundException("Contract $id not found")
 

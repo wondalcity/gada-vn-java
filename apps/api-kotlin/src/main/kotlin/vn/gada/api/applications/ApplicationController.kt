@@ -72,6 +72,27 @@ class ApplicationController(private val applicationService: ApplicationService) 
         return ok(applicationService.findOneByWorker(id, u.id))
     }
 
+    /** GET /applications/:id — Manager fetches a single application/hire with contract info */
+    @GetMapping("/applications/{id}")
+    fun getApplicationById(
+        @PathVariable id: String,
+        @AuthenticationPrincipal user: AuthUser?
+    ): ResponseEntity<Map<String, Any?>> {
+        val u = requireManager(user)
+        return ok(applicationService.findOneByManager(id, u.id))
+    }
+
+    /** GET /jobs/:jobId/my-application — Worker checks their application status for a job */
+    @GetMapping("/jobs/{jobId}/my-application")
+    fun getMyApplicationForJob(
+        @PathVariable jobId: String,
+        @AuthenticationPrincipal user: AuthUser?
+    ): ResponseEntity<Map<String, Any?>> {
+        if (user == null) return ok(null)
+        if (user.role != "WORKER" && user.role != "ADMIN") return ok(null)
+        return ok(applicationService.findByWorkerAndJob(user.id, jobId))
+    }
+
     /** DELETE /applications/:id — Worker withdraws a PENDING application */
     @DeleteMapping("/applications/{id}")
     fun withdrawApplication(

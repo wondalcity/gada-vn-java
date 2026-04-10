@@ -164,6 +164,20 @@ class ContractRepository(
         ).firstOrNull()
     }
 
+    fun managerSign(contractId: String, managerUserId: String, signatureS3Key: String): Map<String, Any?>? {
+        return db.queryForListRaw(
+            """UPDATE app.contracts c
+               SET manager_signature_s3_key = ?,
+                   manager_signed_at = NOW(),
+                   status = 'FULLY_SIGNED',
+                   updated_at = NOW()
+               FROM app.manager_profiles mp
+               WHERE c.id = ? AND c.manager_id = mp.id AND mp.user_id = ?
+               RETURNING c.*""",
+            signatureS3Key, contractId, managerUserId
+        ).firstOrNull()
+    }
+
     fun sign(contractId: String, workerUserId: String, signatureS3Key: String): Map<String, Any?>? {
         return db.queryForListRaw(
             """UPDATE app.contracts c

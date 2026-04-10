@@ -162,20 +162,21 @@ function RegistrationForm({ onSuccess, idToken }: RegistrationFormProps) {
     setErrorMessage(null)
 
     try {
-      const formData = new FormData()
-      formData.append('companyNameKo', values.companyNameKo)
-      if (values.companyNameVi) formData.append('companyNameVi', values.companyNameVi)
-      formData.append('businessRegistrationNumber', values.businessRegistrationNumber)
-      formData.append('companyAddress', values.companyAddress)
-      if (values.registrationDoc) {
-        formData.append('registrationDoc', values.registrationDoc)
-      }
-
       const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'https://api.gada.vn/api/v1'
-      const res = await fetch(`${API_BASE}/manager/register`, {
+      const res = await fetch(`${API_BASE}/managers/register`, {
         method: 'POST',
-        headers: { Authorization: `Bearer ${idToken}` },
-        body: formData,
+        headers: {
+          Authorization: `Bearer ${idToken}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          companyName: values.companyNameKo,
+          companyNameKo: values.companyNameKo,
+          companyNameVi: values.companyNameVi || undefined,
+          businessRegistrationNumber: values.businessRegistrationNumber,
+          companyAddress: values.companyAddress,
+          businessType: 'CORPORATE',
+        }),
       })
 
       const body = await res.json()
@@ -342,7 +343,7 @@ export default function ManagerRegistrationForm() {
 
   React.useEffect(() => {
     if (!idToken) return
-    apiClient<RegistrationStatus>('/manager/registration/status', { token: idToken })
+    apiClient<RegistrationStatus>('/managers/registration-status', { token: idToken })
       .then(({ data }) => {
         setStatus(data)
         // Show form immediately if rejected or not yet applied
