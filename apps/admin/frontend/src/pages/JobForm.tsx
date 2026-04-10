@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import { api } from '../lib/api'
+import { GadaSelect, GadaDateInput, GadaTimeInput } from '../components/ui/GadaFormControls'
 
 interface Site { id: string; name: string; province?: string }
 interface Trade { id: number; name_ko: string }
@@ -87,26 +88,26 @@ export default function JobForm() {
 
       <form onSubmit={save} className="bg-white rounded-2xl shadow-sm p-6 space-y-4">
         <F label="현장 *">
-          <select required className={IN} value={form.siteId} onChange={(e) => setForm({ ...form, siteId: e.target.value })}>
+          <GadaSelect required value={form.siteId} onChange={(e) => setForm({ ...form, siteId: e.target.value })}>
             <option value="">선택...</option>
             {sites.map((s) => <option key={s.id} value={s.id}>{s.name} {s.province ? `(${s.province})` : ''}</option>)}
-          </select>
+          </GadaSelect>
         </F>
         <F label="공고 제목 *">
           <input required className={IN} value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} />
         </F>
         <F label="직종">
-          <select className={IN} value={form.tradeId} onChange={(e) => setForm({ ...form, tradeId: e.target.value })}>
+          <GadaSelect value={form.tradeId} onChange={(e) => setForm({ ...form, tradeId: e.target.value })}>
             <option value="">선택 안 함</option>
             {trades.map((t) => <option key={t.id} value={t.id}>{t.name_ko}</option>)}
-          </select>
+          </GadaSelect>
         </F>
         <F label="근무일 *">
-          <input required type="date" className={IN} value={form.workDate} onChange={(e) => setForm({ ...form, workDate: e.target.value })} />
+          <GadaDateInput required value={form.workDate} onChange={(e) => setForm({ ...form, workDate: e.target.value })} />
         </F>
         <div className="grid grid-cols-2 gap-4">
-          <F label="시작 시간"><input type="time" className={IN} value={form.startTime} onChange={(e) => setForm({ ...form, startTime: e.target.value })} /></F>
-          <F label="종료 시간"><input type="time" className={IN} value={form.endTime} onChange={(e) => setForm({ ...form, endTime: e.target.value })} /></F>
+          <F label="시작 시간"><GadaTimeInput value={form.startTime} onChange={(e) => setForm({ ...form, startTime: e.target.value })} /></F>
+          <F label="종료 시간"><GadaTimeInput value={form.endTime} onChange={(e) => setForm({ ...form, endTime: e.target.value })} /></F>
         </div>
         <F label="일 노임 (₫) *">
           <input required type="number" className={IN} value={form.dailyWage} onChange={(e) => setForm({ ...form, dailyWage: e.target.value })} />
@@ -116,11 +117,11 @@ export default function JobForm() {
         </F>
         {isEdit && (
           <F label="상태">
-            <select className={IN} value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value })}>
+            <GadaSelect value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value })}>
               <option value="OPEN">모집 중</option>
               <option value="FILLED">마감</option>
               <option value="CANCELLED">취소됨</option>
-            </select>
+            </GadaSelect>
           </F>
         )}
         <F label="설명">

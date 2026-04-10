@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import { api } from '../lib/api'
 import { useAdminTranslation } from '../context/LanguageContext'
+import { GadaSelect, GadaDateInput } from '../components/ui/GadaFormControls'
 
 function formatPhone(phone: string | null | undefined): string {
   if (!phone) return '-'
@@ -370,10 +371,10 @@ export default function ManagerDetail() {
         {tab === 'basic' && (
           <>
             <Field label={t('manager_detail.field_business_type')}>
-              <select className={INPUT} value={form.business_type ?? ''} onChange={(e) => patch({ business_type: e.target.value })}>
+              <GadaSelect value={form.business_type ?? ''} onChange={(e) => patch({ business_type: e.target.value })}>
                 <option value="INDIVIDUAL">{t('manager_detail.business_type_individual')}</option>
                 <option value="CORPORATE">{t('manager_detail.business_type_corporate')}</option>
-              </select>
+              </GadaSelect>
             </Field>
             {form.business_type === 'CORPORATE' && (
               <Field label={t('manager_detail.field_company_name')}>
@@ -384,15 +385,15 @@ export default function ManagerDetail() {
               <input className={INPUT} value={form.representative_name ?? ''} onChange={(e) => patch({ representative_name: e.target.value })} />
             </Field>
             <Field label={t('manager_detail.field_representative_dob')}>
-              <input type="date" className={INPUT} value={form.representative_dob ?? ''} onChange={(e) => patch({ representative_dob: e.target.value })} />
+              <GadaDateInput value={form.representative_dob ?? ''} onChange={(e) => patch({ representative_dob: e.target.value })} />
             </Field>
             <Field label={t('manager_detail.field_representative_gender')}>
-              <select className={INPUT} value={form.representative_gender ?? ''} onChange={(e) => patch({ representative_gender: e.target.value })}>
+              <GadaSelect value={form.representative_gender ?? ''} onChange={(e) => patch({ representative_gender: e.target.value })}>
                 <option value="">{t('manager_detail.field_gender_none')}</option>
                 <option value="MALE">{t('manager_detail.field_gender_male')}</option>
                 <option value="FEMALE">{t('manager_detail.field_gender_female')}</option>
                 <option value="OTHER">{t('manager_detail.field_gender_other')}</option>
-              </select>
+              </GadaSelect>
             </Field>
             <Field label={t('manager_detail.field_contact_phone')}>
               <input className={INPUT} value={form.contact_phone ?? ''} onChange={(e) => patch({ contact_phone: e.target.value })} />

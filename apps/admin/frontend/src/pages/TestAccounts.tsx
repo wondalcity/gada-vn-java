@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { api } from '../lib/api'
 import { useAdminTranslation } from '../context/LanguageContext'
+import { GadaSelect } from '../components/ui/GadaFormControls'
 
 interface TestAccount {
   id: string
@@ -54,10 +55,10 @@ function AddModal({ onSave, onCancel }: { onSave: () => void; onCancel: () => vo
           </div>
           <div>
             <label className="block text-xs font-medium text-gray-500 mb-1">{t('test_accounts.add_modal.role')}</label>
-            <select className={IN} value={role} onChange={e => setRole(e.target.value)}>
+            <GadaSelect value={role} onChange={e => setRole(e.target.value)}>
               <option value="WORKER">{t('test_accounts.role_worker')}</option>
               <option value="MANAGER">{t('test_accounts.role_manager')}</option>
-            </select>
+            </GadaSelect>
           </div>
           <div className="flex gap-2 pt-1">
             <button type="button" onClick={onCancel}

@@ -2,6 +2,7 @@ import { useState, useCallback } from 'react'
 import { Link } from 'react-router-dom'
 import { api } from '../lib/api'
 import { useAdminTranslation } from '../context/LanguageContext'
+import { GadaSelect, GadaDateInput } from '../components/ui/GadaFormControls'
 
 function formatPhone(phone: string | null | undefined): string {
   if (!phone) return '-'
@@ -247,15 +248,14 @@ export default function PromoteWorker() {
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   {t('promote_worker.field_business_type')} <span className="text-[#D81A48]">*</span>
                 </label>
-                <select
+                <GadaSelect
                   value={businessType}
                   onChange={(e) => setBusinessType(e.target.value)}
-                  className="w-full border border-[#EFF1F5] rounded-2xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0669F7]"
                   required
                 >
                   <option value="INDIVIDUAL">{t('promote_worker.business_individual')}</option>
                   <option value="CORPORATE">{t('promote_worker.business_corporate')}</option>
-                </select>
+                </GadaSelect>
               </div>
 
               {/* Representative Name */}
@@ -288,27 +288,24 @@ export default function PromoteWorker() {
               {/* Date of Birth */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">{t('promote_worker.field_dob')}</label>
-                <input
-                  type="date"
+                <GadaDateInput
                   value={representativeDob}
                   onChange={(e) => setRepresentativeDob(e.target.value)}
-                  className="w-full border border-[#EFF1F5] rounded-2xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0669F7]"
                 />
               </div>
 
               {/* Gender */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">{t('promote_worker.field_gender')}</label>
-                <select
+                <GadaSelect
                   value={representativeGender}
                   onChange={(e) => setRepresentativeGender(e.target.value)}
-                  className="w-full border border-[#EFF1F5] rounded-2xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0669F7]"
                 >
                   <option value="">{t('promote_worker.gender_none')}</option>
                   <option value="MALE">{t('promote_worker.gender_male')}</option>
                   <option value="FEMALE">{t('promote_worker.gender_female')}</option>
                   <option value="OTHER">{t('promote_worker.gender_other')}</option>
-                </select>
+                </GadaSelect>
               </div>
 
               {/* Business Reg Number */}

@@ -9,6 +9,18 @@ const nextConfig: NextConfig = {
   experimental: {
     typedRoutes: true,
   },
+  async headers() {
+    return [
+      {
+        source: '/(.*)',
+        headers: [
+          // Required for Firebase Google/Facebook OAuth popups to communicate
+          // with the opener window. "same-origin" breaks signInWithPopup.
+          { key: 'Cross-Origin-Opener-Policy', value: 'same-origin-allow-popups' },
+        ],
+      },
+    ]
+  },
   images: {
     remotePatterns: [
       {

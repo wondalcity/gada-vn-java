@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { api } from '../lib/api'
 import { DEMO_SITES, DEMO_COMPANIES } from '../lib/demo-data'
 import { useAdminTranslation } from '../context/LanguageContext'
+import { GadaSelect } from '../components/ui/GadaFormControls'
 
 function formatPhone(phone: string | null | undefined): string {
   if (!phone) return '-'
@@ -137,23 +138,23 @@ function SiteFormModal({
         <form onSubmit={handleSubmit} className="space-y-3">
           <div>
             <label className="block text-xs font-medium text-gray-500 mb-1">{t('sites.modal.company')}</label>
-            <select className={IN} value={form.companyId} onChange={e => setForm({ ...form, companyId: e.target.value })}>
+            <GadaSelect value={form.companyId} onChange={e => setForm({ ...form, companyId: e.target.value })}>
               <option value="">{t('sites.modal.company_none')}</option>
               {companies.map(c => (
                 <option key={c.id} value={c.id}>{c.name}</option>
               ))}
-            </select>
+            </GadaSelect>
           </div>
           <div>
             <label className="block text-xs font-medium text-gray-500 mb-1">{t('sites.modal.manager')}</label>
-            <select required className={IN} value={form.managerId} onChange={e => setForm({ ...form, managerId: e.target.value })}>
+            <GadaSelect required value={form.managerId} onChange={e => setForm({ ...form, managerId: e.target.value })}>
               <option value="">{t('sites.modal.manager_placeholder')}</option>
               {managers.map(m => (
                 <option key={m.id} value={m.id}>
                   {m.representative_name}{m.company_name ? ` (${m.company_name})` : ''}
                 </option>
               ))}
-            </select>
+            </GadaSelect>
           </div>
           <div>
             <label className="block text-xs font-medium text-gray-500 mb-1">{t('sites.modal.site_name')}</label>
@@ -178,11 +179,11 @@ function SiteFormModal({
           {isEdit && (
             <div>
               <label className="block text-xs font-medium text-gray-500 mb-1">{t('sites.modal.status')}</label>
-              <select className={IN} value={form.status} onChange={e => setForm({ ...form, status: e.target.value })}>
+              <GadaSelect value={form.status} onChange={e => setForm({ ...form, status: e.target.value })}>
                 <option value="ACTIVE">{t('sites.status_active')}</option>
                 <option value="PAUSED">{t('sites.status_paused')}</option>
                 <option value="COMPLETED">{t('sites.status_completed')}</option>
-              </select>
+              </GadaSelect>
             </div>
           )}
           <div className="flex gap-2 pt-2">

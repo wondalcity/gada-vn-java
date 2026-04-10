@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { api } from '../lib/api'
 import { useAdminTranslation } from '../context/LanguageContext'
+import { GadaSelect } from '../components/ui/GadaFormControls'
 
 interface Schedule {
   id: string
@@ -261,10 +262,10 @@ export default function Notifications() {
               {/* Target: role selector */}
               {targetType === 'role' && (
                 <FN label={t('notifications.field_target_role')}>
-                  <select className={IN} value={targetRole} onChange={e => setTargetRole(e.target.value)}>
+                  <GadaSelect value={targetRole} onChange={e => setTargetRole(e.target.value)}>
                     <option value="WORKER">{t('notifications.role_worker_all')}</option>
                     <option value="MANAGER">{t('notifications.role_manager_all')}</option>
-                  </select>
+                  </GadaSelect>
                 </FN>
               )}
 
@@ -272,12 +273,11 @@ export default function Notifications() {
               {targetType === 'users' && (
                 <FN label={t('notifications.field_user_search')}>
                   <div className="flex gap-2 mb-2">
-                    <select className="border border-[#EFF1F5] rounded-2xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0669F7] bg-white"
-                      value={targetRole} onChange={e => setTargetRole(e.target.value)}>
+                    <GadaSelect value={targetRole} onChange={e => setTargetRole(e.target.value)}>
                       <option value="WORKER">{t('notifications.role_worker')}</option>
                       <option value="MANAGER">{t('notifications.role_manager')}</option>
                       <option value="">{t('notifications.role_all')}</option>
-                    </select>
+                    </GadaSelect>
                     <input type="text" className="flex-1 border border-[#EFF1F5] rounded-2xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0669F7]"
                       value={userSearch} onChange={e => setUserSearch(e.target.value)}
                       placeholder={t('notifications.user_search_placeholder')} />

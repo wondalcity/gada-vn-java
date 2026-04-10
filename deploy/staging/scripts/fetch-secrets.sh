@@ -109,20 +109,31 @@ chmod 600 "$DEPLOY_DIR/.env.admin"
 log ".env.admin written"
 
 # ── .env.web (Next.js) ────────────────────────────────────────────────────────
-EC2_DNS=$(curl -s --max-time 2 \
-  -H "X-aws-ec2-metadata-token: $(curl -s -X PUT \
-    'http://169.254.169.254/latest/api/token' \
-    -H 'X-aws-ec2-metadata-token-ttl-seconds: 60')" \
-  http://169.254.169.254/latest/meta-data/public-hostname \
-  || echo "localhost")
+# Use the custom domain (set by setup-ssl.sh) if available; fall back to EC2 DNS.
+STAGING_DOMAIN_FILE="$DEPLOY_DIR/.staging-domain"
+if [[ -f "$STAGING_DOMAIN_FILE" ]]; then
+    SITE_HOST=$(cat "$STAGING_DOMAIN_FILE")
+    SITE_SCHEME="https"
+    log "Using custom domain: $SITE_HOST (HTTPS)"
+else
+    EC2_DNS=$(curl -s --max-time 2 \
+      -H "X-aws-ec2-metadata-token: $(curl -s -X PUT \
+        'http://169.254.169.254/latest/api/token' \
+        -H 'X-aws-ec2-metadata-token-ttl-seconds: 60')" \
+      http://169.254.169.254/latest/meta-data/public-hostname \
+      || echo "localhost")
+    SITE_HOST="$EC2_DNS"
+    SITE_SCHEME="http"
+    log "No custom domain found; using EC2 DNS: $SITE_HOST (HTTP)"
+fi
 
 cat > "$DEPLOY_DIR/.env.web" << EOF
 PORT=3000
 NODE_ENV=production
 
 INTERNAL_API_URL=http://api:7001/v1
-NEXT_PUBLIC_API_BASE_URL=http://${EC2_DNS}/v1
-NEXT_PUBLIC_SITE_URL=http://${EC2_DNS}
+NEXT_PUBLIC_API_BASE_URL=${SITE_SCHEME}://${SITE_HOST}/v1
+NEXT_PUBLIC_SITE_URL=${SITE_SCHEME}://${SITE_HOST}
 NEXT_PUBLIC_CDN_DOMAIN=
 
 NEXT_PUBLIC_FIREBASE_API_KEY=${FIREBASE_WEB_API_KEY}

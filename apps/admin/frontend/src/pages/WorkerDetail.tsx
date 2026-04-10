@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useParams, Link, useNavigate } from 'react-router-dom'
 import { api } from '../lib/api'
 import { useAdminTranslation } from '../context/LanguageContext'
+import { GadaSelect, GadaDateInput } from '../components/ui/GadaFormControls'
 
 function formatPhone(phone: string | null | undefined): string {
   if (!phone) return '-'
@@ -298,15 +299,15 @@ export default function WorkerDetail() {
               <input className={INPUT} value={form.full_name ?? ''} onChange={(e) => patch({ full_name: e.target.value })} />
             </Field>
             <Field label={t('worker_detail.field_dob')}>
-              <input type="date" className={INPUT} value={form.date_of_birth ?? ''} onChange={(e) => patch({ date_of_birth: e.target.value })} />
+              <GadaDateInput value={form.date_of_birth ?? ''} onChange={(e) => patch({ date_of_birth: e.target.value })} />
             </Field>
             <Field label={t('worker_detail.field_gender')}>
-              <select className={INPUT} value={form.gender ?? ''} onChange={(e) => patch({ gender: e.target.value })}>
+              <GadaSelect value={form.gender ?? ''} onChange={(e) => patch({ gender: e.target.value })}>
                 <option value="">{t('worker_detail.field_gender_none')}</option>
                 <option value="MALE">{t('worker_detail.field_gender_male')}</option>
                 <option value="FEMALE">{t('worker_detail.field_gender_female')}</option>
                 <option value="OTHER">{t('worker_detail.field_gender_other')}</option>
-              </select>
+              </GadaSelect>
             </Field>
             <Field label={t('worker_detail.field_bio')}>
               <textarea className={INPUT + ' resize-none'} rows={3} value={form.bio ?? ''} onChange={(e) => patch({ bio: e.target.value })} />
@@ -397,8 +398,8 @@ export default function WorkerDetail() {
                 <div className="space-y-3">
                   {skillRows.map((row, i) => (
                     <div key={i} className="flex gap-3 items-center">
-                      <select
-                        className={INPUT + ' flex-1'}
+                      <GadaSelect
+                        className="flex-1"
                         value={row.tradeId}
                         onChange={(e) => {
                           const updated = [...skillRows]
@@ -410,7 +411,7 @@ export default function WorkerDetail() {
                         {allTrades.map((tr) => (
                           <option key={tr.id} value={tr.id}>{tr.name_ko} ({tr.code})</option>
                         ))}
-                      </select>
+                      </GadaSelect>
                       <div className="flex items-center gap-1.5 shrink-0">
                         <input
                           type="number"
