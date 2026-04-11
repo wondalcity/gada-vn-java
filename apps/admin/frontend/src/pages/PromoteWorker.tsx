@@ -37,6 +37,7 @@ export default function PromoteWorker() {
   const [searchQuery, setSearchQuery] = useState('')
   const [searchResults, setSearchResults] = useState<Worker[]>([])
   const [searching, setSearching] = useState(false)
+  const [hasSearched, setHasSearched] = useState(false)
   const [selectedWorker, setSelectedWorker] = useState<WorkerDetail | null>(null)
   const [loadingDetail, setLoadingDetail] = useState(false)
   const [submitting, setSubmitting] = useState(false)
@@ -65,6 +66,7 @@ export default function PromoteWorker() {
         `/admin/workers?search=${encodeURIComponent(searchQuery)}&limit=20`
       )
       setSearchResults(res.data ?? [])
+      setHasSearched(true)
     } catch (err: any) {
       setError(err.message ?? t('promote_worker.search_failed'))
     } finally {
@@ -193,6 +195,12 @@ export default function PromoteWorker() {
 
         {loadingDetail && (
           <div className="text-center text-gray-400 text-sm py-4">{t('promote_worker.loading_detail')}</div>
+        )}
+
+        {!loadingDetail && !selectedWorker && searchResults.length === 0 && hasSearched && !searching && (
+          <div className="text-center text-gray-400 text-sm py-4 border border-[#EFF1F5] rounded-2xl">
+            {t('promote_worker.no_results')}
+          </div>
         )}
 
         {searchResults.length > 0 && !selectedWorker && !loadingDetail && (

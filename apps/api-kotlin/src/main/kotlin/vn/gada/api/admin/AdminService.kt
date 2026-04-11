@@ -75,8 +75,16 @@ class AdminService(
     // ── Workers ───────────────────────────────────────────────────────────────
 
     fun searchWorkers(search: String, page: Int, limit: Int): Map<String, Any?> {
-        val data = repo.searchWorkers(search, page, limit)
-        val total = repo.countWorkers(search)
+        // Normalize phone-like search terms so they match the stored E.164 format
+        val normalizedSearch = if (search.isNotBlank()) {
+            val digits = search.replace(Regex("[^\\d+]"), "")
+            if (digits.length >= 7) {
+                // Looks like a phone number — normalize it
+                try { authService.normalizePhone(search) } catch (_: Exception) { search }
+            } else search
+        } else search
+        val data = repo.searchWorkers(normalizedSearch, page, limit)
+        val total = repo.countWorkers(normalizedSearch)
         return mapOf("data" to data, "total" to total, "page" to page, "limit" to limit)
     }
 
