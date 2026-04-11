@@ -89,7 +89,7 @@ class ApplicationController(private val applicationService: ApplicationService) 
         @AuthenticationPrincipal user: AuthUser?
     ): ResponseEntity<Map<String, Any?>> {
         if (user == null) return ok(null)
-        if (user.role != "WORKER" && user.role != "ADMIN") return ok(null)
+        if (user.role != "WORKER" && user.role != "MANAGER" && user.role != "ADMIN") return ok(null)
         return ok(applicationService.findByWorkerAndJob(user.id, jobId))
     }
 
@@ -118,7 +118,7 @@ class ApplicationController(private val applicationService: ApplicationService) 
 
     private fun requireWorker(user: AuthUser?): AuthUser {
         if (user == null) throw UnauthorizedException("Unauthorized")
-        if (user.role != "WORKER" && user.role != "ADMIN") throw ForbiddenException("WORKER role required")
+        if (user.role != "WORKER" && user.role != "MANAGER" && user.role != "ADMIN") throw ForbiddenException("WORKER role required")
         return user
     }
 
