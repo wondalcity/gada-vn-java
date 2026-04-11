@@ -433,8 +433,6 @@ export default function WorkerContractDetailClient({ contractId }: Props) {
           token: idToken,
           body: JSON.stringify({ signatureData: dataUrl }),
         })
-        // Show signature on contract document immediately
-        setPreviewWorkerSigUrl(dataUrl)
         // Optionally save to profile
         if (saveToProfile) {
           await apiClient('/workers/me', {
@@ -445,6 +443,8 @@ export default function WorkerContractDetailClient({ contractId }: Props) {
           setProfileSigUrl(dataUrl)
         }
       }
+      // Show signature immediately (works in demo mode too)
+      setPreviewWorkerSigUrl(dataUrl)
       setShowSignModal(false)
       setSuccessMessage(t('worker_contracts.sign_success'))
       if (!isDemo && idToken) {
