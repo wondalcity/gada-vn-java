@@ -346,10 +346,10 @@ function SignatureStatusCard({ contract, onSignClick }: { contract: Contract; on
             canSign={canWorkerSign}
             onSignClick={canWorkerSign ? onSignClick : undefined}
           />
-          {/* Company seal box — always shown as pre-signed by the construction company */}
-          <div className="rounded-xl border-2 border-[#86D98A] bg-[#E6F9E6] p-3 flex flex-col items-center gap-1 min-h-[100px] justify-center">
-            <p className="text-xs font-medium text-[#1A6B1A]">{t('worker_contracts.sig_company')}</p>
-            {companySigUrl ? (
+          {/* Company seal box — green with image if registered, neutral/empty if not */}
+          {companySigUrl ? (
+            <div className="rounded-xl border-2 border-[#86D98A] bg-[#E6F9E6] p-3 flex flex-col items-center gap-1 min-h-[100px] justify-center">
+              <p className="text-xs font-medium text-[#1A6B1A]">{t('worker_contracts.sig_company')}</p>
               <button
                 type="button"
                 onClick={() => setViewingUrl(companySigUrl)}
@@ -357,13 +357,19 @@ function SignatureStatusCard({ contract, onSignClick }: { contract: Contract; on
               >
                 <img src={companySigUrl} alt="건설사 직인" className="max-h-full max-w-full object-contain p-1" />
               </button>
-            ) : (
-              <div className="w-10 h-10 rounded-full bg-[#D6F0D6] flex items-center justify-center">
-                <svg className="w-6 h-6 text-[#1A6B1A]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
+              <p className="text-xs text-[#1A6B1A] font-medium">{t('worker_contracts.sig_company_done')}</p>
+            </div>
+          ) : (
+            <div className="rounded-xl border-2 border-dashed border-[#EFF1F5] bg-white p-3 flex flex-col items-center gap-2 min-h-[100px] justify-center">
+              <p className="text-xs font-medium text-[#98A2B2]">{t('worker_contracts.sig_company')}</p>
+              <div className="w-10 h-10 rounded-full bg-[#F2F4F5] flex items-center justify-center">
+                <svg className="w-5 h-5 text-[#C8CBD0]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                </svg>
               </div>
-            )}
-            <p className="text-xs text-[#1A6B1A] font-medium">{t('worker_contracts.sig_company_done')}</p>
-          </div>
+              <p className="text-xs text-[#C8CBD0]">{t('worker_contracts.sig_company_no_seal')}</p>
+            </div>
+          )}
         </div>
       </div>
     </>

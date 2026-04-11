@@ -142,13 +142,37 @@ export class ContractsRepository {
     };
   }
 
+  async findCompanySealByJobId(jobId: string): Promise<string | null> {
+    const { rows } = await this.db.query(
+      `SELECT co.signature_s3_key
+       FROM app.jobs j
+       JOIN app.construction_sites s ON j.site_id = s.id
+       JOIN app.construction_companies co ON s.company_id = co.id
+       WHERE j.id = $1`,
+      [jobId],
+    );
+    return (rows[0]?.signature_s3_key as string | null) ?? null;
+  }
+
   async create(data: {
     applicationId: string;
     jobId: string;
     workerId: string;
     managerId: string;
     contractHtml: string;
+    companySealS3Key?: string | null;
   }) {
+    if (data.companySealS3Key) {
+      const { rows } = await this.db.query(
+        `INSERT INTO app.contracts
+           (application_id, job_id, worker_id, manager_id, contract_html, status,
+            manager_signature_s3_key, manager_signed_at)
+         VALUES ($1, $2, $3, $4, $5, 'PENDING_WORKER_SIGN', $6, NOW())
+         RETURNING *`,
+        [data.applicationId, data.jobId, data.workerId, data.managerId, data.contractHtml, data.companySealS3Key],
+      );
+      return rows[0];
+    }
     const { rows } = await this.db.query(
       `INSERT INTO app.contracts
          (application_id, job_id, worker_id, manager_id, contract_html, status)
@@ -160,11 +184,12 @@ export class ContractsRepository {
   }
 
   async sign(contractId: string, workerUserId: string, signatureData: string) {
+    // Company seal is pre-filled at creation time, so worker signing completes the contract.
     const { rows } = await this.db.query(
       `UPDATE app.contracts c
        SET worker_signature_s3_key = $2,
            worker_signed_at = NOW(),
-           status = 'PENDING_MANAGER_SIGN',
+           status = 'FULLY_SIGNED',
            updated_at = NOW()
        FROM app.worker_profiles wp
        WHERE c.id = $1 AND c.worker_id = wp.id AND wp.user_id = $3

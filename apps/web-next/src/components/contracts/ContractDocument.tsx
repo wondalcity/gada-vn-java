@@ -351,7 +351,7 @@ export function ContractDocument({ contract, documentRef, previewWorkerSigUrl, p
                 }
               </div>
 
-              {/* Company seal or manager signature or placeholder */}
+              {/* Company seal — shown only when registered; blank otherwise */}
               <div
                 style={{
                   flex: 1,
@@ -367,25 +367,16 @@ export function ContractDocument({ contract, documentRef, previewWorkerSigUrl, p
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
                     src={(previewManagerSigUrl ?? contract.companySigUrl ?? contract.managerSigUrl)!}
-                    alt="사업주 서명"
+                    alt="건설사 직인"
                     style={{ maxHeight: '64px', maxWidth: '100%', objectFit: 'contain' }}
                     crossOrigin="anonymous"
                   />
-                ) : contract.managerSignedAt ? (
-                  <div style={{ textAlign: 'center' }}>
-                    <svg style={{ width: '22px', height: '22px', color: '#1a4fa0', margin: '0 auto' }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                    <span style={{ fontSize: '10px', color: '#1a4fa0', fontWeight: 700 }}>서명 완료</span>
-                  </div>
-                ) : (
-                  <span style={{ fontSize: '11px', color: '#BBB', fontStyle: 'italic' }}>
-                    서명 대기 중
-                  </span>
-                )}
+                ) : null}
               </div>
 
-              {contract.managerSignedAt && (
+              {contract.managerSignedAt && (previewManagerSigUrl ?? contract.companySigUrl ?? contract.managerSigUrl) && (
                 <div style={{ fontSize: '10px', color: '#888', textAlign: 'center', marginTop: '4px' }}>
-                  서명일: {fmtShortDate(contract.managerSignedAt)}
+                  날인일: {fmtShortDate(contract.managerSignedAt)}
                 </div>
               )}
             </div>

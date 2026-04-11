@@ -179,6 +179,7 @@
     "sig_worker": "Worker Signature",
     "sig_company": "Company Seal",
     "sig_company_done": "Company Sealed",
+    "sig_company_no_seal": "No Seal Registered",
     "sig_sign_now": "Sign Now",
     "sig_pending": "Pending Signature",
     "sig_done": "Signed",

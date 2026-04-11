@@ -179,6 +179,7 @@
     "sig_worker": "근로자 서명",
     "sig_company": "건설사 직인",
     "sig_company_done": "건설사 직인 완료",
+    "sig_company_no_seal": "날인 미등록",
     "sig_sign_now": "서명하기",
     "sig_pending": "서명 대기",
     "sig_done": "서명 완료",

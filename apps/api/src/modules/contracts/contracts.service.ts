@@ -15,6 +15,9 @@ export class ContractsService {
       throw new NotFoundException('Application not found or unauthorized');
     }
 
+    const jobId = application.job_id as string;
+    const companySealS3Key = await this.repo.findCompanySealByJobId(jobId);
+
     const contractHtml = `<html><body>
       <h1>근로계약서</h1>
       <p>일자리: ${application.job_title}</p>
@@ -25,10 +28,11 @@ export class ContractsService {
 
     const contract = await this.repo.create({
       applicationId,
-      jobId: application.job_id as string,
+      jobId,
       workerId: application.worker_id as string,
       managerId: application.manager_profile_id as string,
       contractHtml,
+      companySealS3Key,
     });
 
     // Notify worker that contract is ready to sign

@@ -179,6 +179,7 @@
     "sig_worker": "Chữ ký công nhân",
     "sig_company": "Con dấu công ty",
     "sig_company_done": "Công ty đã đóng dấu",
+    "sig_company_no_seal": "Chưa đăng ký con dấu",
     "sig_sign_now": "Ký ngay",
     "sig_pending": "Chờ ký",
     "sig_done": "Đã ký",
