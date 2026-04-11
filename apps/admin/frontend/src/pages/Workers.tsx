@@ -3,7 +3,7 @@ import { Link, useSearchParams } from 'react-router-dom'
 import { api } from '../lib/api'
 import { DEMO_WORKERS } from '../lib/demo-data'
 import { useAdminTranslation } from '../context/LanguageContext'
-import { fmtDate } from '../lib/dateUtils'
+import { fmtDateTime } from '../lib/dateUtils'
 
 function formatPhone(phone: string | null | undefined): string {
   if (!phone) return '-'
@@ -251,7 +251,7 @@ export default function Workers() {
                         <span className="px-2 py-1 text-xs rounded-full bg-[#EFF1F5] text-[#98A2B2]">{t('workers.role_worker')}</span>
                       )}
                     </td>
-                    <td className="px-6 py-4 text-sm text-gray-400 whitespace-nowrap">{fmtDate(w.created_at, locale)}</td>
+                    <td className="px-6 py-4 text-sm text-gray-400 whitespace-nowrap">{fmtDateTime(w.created_at)}</td>
                     <td className="px-6 py-4 text-right whitespace-nowrap">
                       <div className="flex gap-3 justify-end items-center">
                         <Link to={`/workers/${w.id}`} className="text-[#0669F7] hover:underline text-sm">{t('common.detail_arrow')}</Link>

@@ -3,7 +3,7 @@ import { useParams, Link, useNavigate } from 'react-router-dom'
 import { api } from '../lib/api'
 import { DEMO_JOBS, DEMO_ROSTERS } from '../lib/demo-data'
 import { useAdminTranslation } from '../context/LanguageContext'
-import { fmtDate } from '../lib/dateUtils'
+import { fmtDate, fmtDateTime } from '../lib/dateUtils'
 
 interface Job {
   id: string
@@ -20,6 +20,8 @@ interface Job {
   status: string
   description?: string
   company_name?: string
+  created_at?: string
+  updated_at?: string
 }
 
 interface RosterRow {
@@ -423,6 +425,18 @@ export default function JobDetail() {
             <div>
               <span className="text-[#98A2B2] text-xs">근무시간</span>
               <p className="font-medium text-gray-900 mt-0.5">{job.start_time ?? '-'} ~ {job.end_time ?? '-'}</p>
+            </div>
+          )}
+          {job.created_at && (
+            <div>
+              <span className="text-[#98A2B2] text-xs">생성일</span>
+              <p className="font-medium text-gray-900 mt-0.5">{fmtDateTime(job.created_at)}</p>
+            </div>
+          )}
+          {job.updated_at && (
+            <div>
+              <span className="text-[#98A2B2] text-xs">수정일</span>
+              <p className="font-medium text-gray-900 mt-0.5">{fmtDateTime(job.updated_at)}</p>
             </div>
           )}
         </div>

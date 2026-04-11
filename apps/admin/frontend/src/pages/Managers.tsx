@@ -3,7 +3,7 @@ import { Link, useSearchParams } from 'react-router-dom'
 import { api } from '../lib/api'
 import { DEMO_MANAGERS } from '../lib/demo-data'
 import { useAdminTranslation } from '../context/LanguageContext'
-import { fmtDate } from '../lib/dateUtils'
+import { fmtDateTime } from '../lib/dateUtils'
 
 function formatPhone(phone: string | null | undefined): string {
   if (!phone) return '-'
@@ -39,7 +39,7 @@ const STATUS_BADGE: Record<Status, string> = {
 }
 
 export default function Managers() {
-  const { t, locale } = useAdminTranslation()
+  const { t } = useAdminTranslation()
   const [searchParams, setSearchParams] = useSearchParams()
   const status = (searchParams.get('status') as Status) ?? 'PENDING'
   const page = parseInt(searchParams.get('page') ?? '1')
@@ -173,7 +173,7 @@ export default function Managers() {
                     </span>
                   </td>
                   <td className="px-6 py-4 text-sm text-gray-500 whitespace-nowrap">
-                    {fmtDate(m.created_at, locale)}
+                    {fmtDateTime(m.created_at)}
                   </td>
                   <td className="px-6 py-4 text-right whitespace-nowrap">
                     <div className="flex items-center gap-3 justify-end">

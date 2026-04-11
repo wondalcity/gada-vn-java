@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { useParams, Link, useNavigate } from 'react-router-dom'
 import { api } from '../lib/api'
 import { useAdminTranslation } from '../context/LanguageContext'
-import { fmtDate, tradeName } from '../lib/dateUtils'
+import { fmtDate, fmtDateTime, tradeName } from '../lib/dateUtils'
 import { GadaSelect, GadaDateInput } from '../components/ui/GadaFormControls'
 
 function formatPhone(phone: string | null | undefined): string {
@@ -48,6 +48,7 @@ interface Worker {
   lat: number | null
   lng: number | null
   created_at: string
+  updated_at?: string
   trade_name_ko: string
   is_manager: boolean
   manager_profile_id?: string | null
@@ -599,7 +600,8 @@ export default function WorkerDetail() {
                 <span className="text-sm text-gray-600">{t('worker_detail.privacy_accepted')}</span>
               </label>
             </div>
-            <ReadOnlyField label={t('worker_detail.field_joined')} value={new Date(worker.created_at).toLocaleString('ko-KR')} />
+            <ReadOnlyField label={t('common.created_at')} value={fmtDateTime(worker.created_at)} />
+            {worker.updated_at && <ReadOnlyField label={t('common.updated_at')} value={fmtDateTime(worker.updated_at)} />}
             <SaveButton saving={saving} onClick={saveMisc} label={t('common.save')} savingLabel={t('common.saving')} />
           </>
         )}

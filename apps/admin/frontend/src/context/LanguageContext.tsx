@@ -109,6 +109,8 @@ export const ADMIN_TRANSLATIONS: Record<AdminLocale, Record<string, string>> = {
     'common.save_failed': '저장 실패',
     'common.delete_failed': '삭제 실패',
     'common.none': '-',
+    'common.created_at': '생성일',
+    'common.updated_at': '수정일',
 
     'managers.title': '관리자 승인',
     'managers.tab_pending': '대기 중',
@@ -708,6 +710,8 @@ export const ADMIN_TRANSLATIONS: Record<AdminLocale, Record<string, string>> = {
     'common.save_failed': 'Lưu thất bại',
     'common.delete_failed': 'Xóa thất bại',
     'common.none': '-',
+    'common.created_at': 'Ngày tạo',
+    'common.updated_at': 'Ngày cập nhật',
 
     'managers.title': 'Duyệt quản lý',
     'managers.tab_pending': 'Chờ duyệt',
@@ -1307,6 +1311,8 @@ export const ADMIN_TRANSLATIONS: Record<AdminLocale, Record<string, string>> = {
     'common.save_failed': 'Save failed',
     'common.delete_failed': 'Delete failed',
     'common.none': '-',
+    'common.created_at': 'Created',
+    'common.updated_at': 'Updated',
 
     'managers.title': 'Manager Approval',
     'managers.tab_pending': 'Pending',

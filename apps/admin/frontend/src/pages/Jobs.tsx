@@ -3,6 +3,7 @@ import { Link, useSearchParams } from 'react-router-dom'
 import { api } from '../lib/api'
 import { DEMO_JOBS } from '../lib/demo-data'
 import { useAdminTranslation } from '../context/LanguageContext'
+import { fmtDateTime } from '../lib/dateUtils'
 
 interface Job {
   id: string
@@ -13,6 +14,7 @@ interface Job {
   slots_total: number
   slots_filled?: number
   status: string
+  created_at?: string
 }
 
 const STATUS_BADGE: Record<string, string> = {
@@ -121,7 +123,7 @@ export default function Jobs() {
           <table className="w-full min-w-[700px]">
             <thead className="bg-[#F2F4F5]">
               <tr>
-                {[t('jobs.col_title'), t('jobs.col_site'), t('jobs.col_work_date'), t('jobs.col_wage'), t('jobs.col_slots'), t('jobs.col_status'), ''].map((h) => (
+                {[t('jobs.col_title'), t('jobs.col_site'), t('jobs.col_work_date'), t('jobs.col_wage'), t('jobs.col_slots'), t('jobs.col_status'), t('common.created_at'), ''].map((h) => (
                   <th key={h} className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase whitespace-nowrap">{h}</th>
                 ))}
               </tr>
@@ -141,6 +143,7 @@ export default function Jobs() {
                       {getStatusLabel(j.status)}
                     </span>
                   </td>
+                  <td className="px-6 py-4 text-sm text-gray-500 whitespace-nowrap">{fmtDateTime(j.created_at)}</td>
                   <td className="px-6 py-4 text-right whitespace-nowrap">
                     <div className="flex gap-3 justify-end">
                       <Link to={`/jobs/${j.id}`} className="text-[#0669F7] hover:underline text-sm">{t('common.detail')}</Link>

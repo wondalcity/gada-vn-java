@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import { api } from '../lib/api'
 import { useAdminTranslation } from '../context/LanguageContext'
-import { fmtDate } from '../lib/dateUtils'
+import { fmtDate, fmtDateTime } from '../lib/dateUtils'
 import { GadaSelect, GadaDateInput } from '../components/ui/GadaFormControls'
 
 function formatPhone(phone: string | null | undefined): string {
@@ -40,6 +40,7 @@ interface Manager {
   privacy_accepted: boolean
   phone: string
   created_at: string
+  updated_at?: string
   business_reg_url?: string | null
   signature_url?: string | null
   profile_picture_url?: string | null
@@ -453,7 +454,8 @@ export default function ManagerDetail() {
                 {manager.rejection_reason ?? '-'}
               </p>
             </div>
-            <ReadOnlyField label={t('manager_detail.joined')} value={new Date(manager.created_at).toLocaleString('ko-KR')} />
+            <ReadOnlyField label={t('common.created_at')} value={fmtDateTime(manager.created_at)} />
+            {manager.updated_at && <ReadOnlyField label={t('common.updated_at')} value={fmtDateTime(manager.updated_at)} />}
             <ReadOnlyField label={t('manager_detail.verified_phone')} value={formatPhone(manager.phone)} />
           </>
         )}

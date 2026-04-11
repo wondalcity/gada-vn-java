@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { api } from '../lib/api'
 import { DEMO_COMPANIES } from '../lib/demo-data'
 import { useAdminTranslation } from '../context/LanguageContext'
-import { fmtDate } from '../lib/dateUtils'
+import { fmtDateTime } from '../lib/dateUtils'
 
 function formatPhone(phone: string | null | undefined): string {
   if (!phone) return '-'
@@ -32,6 +32,7 @@ interface Company {
   business_reg_cert_url?: string
   site_count: number
   created_at: string
+  updated_at?: string
 }
 
 
@@ -273,6 +274,16 @@ function CompanyDetailPanel({
               <p className="text-xs text-gray-500 mb-0.5">{t('companies.detail.linked_sites')}</p>
               <p className="text-sm font-bold text-[#0669F7]">{company.site_count}{t('companies.detail.linked_sites_suffix')}</p>
             </div>
+            <div>
+              <p className="text-xs text-gray-500 mb-0.5">{t('common.created_at')}</p>
+              <p className="text-sm font-medium text-gray-900">{fmtDateTime(company.created_at)}</p>
+            </div>
+            {company.updated_at && (
+              <div>
+                <p className="text-xs text-gray-500 mb-0.5">{t('common.updated_at')}</p>
+                <p className="text-sm font-medium text-gray-900">{fmtDateTime(company.updated_at)}</p>
+              </div>
+            )}
           </div>
 
           <div className="space-y-4">
@@ -516,7 +527,7 @@ export default function Companies() {
                       <span className="inline-flex items-center px-2 py-1 rounded-full bg-[#EFF1F5] text-[#98A2B2] text-xs">{t('common.not_registered')}</span>
                     )}
                   </td>
-                  <td className="px-6 py-4 text-sm text-gray-500 whitespace-nowrap">{fmtDate(c.created_at, locale)}</td>
+                  <td className="px-6 py-4 text-sm text-gray-500 whitespace-nowrap">{fmtDateTime(c.created_at)}</td>
                   <td className="px-6 py-4 text-right whitespace-nowrap">
                     <div className="flex gap-3 justify-end items-center">
                       <button onClick={() => navigate(`/companies/${c.id}`)} className="text-[#0669F7] hover:underline text-sm">{t('common.detail')}</button>

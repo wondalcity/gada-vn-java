@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { api } from '../lib/api'
 import { useAuth } from '../context/AuthContext'
 import { useAdminTranslation } from '../context/LanguageContext'
-import { fmtDate } from '../lib/dateUtils'
+import { fmtDate, fmtDateTime } from '../lib/dateUtils'
 
 interface AdminUserItem {
   id: string
@@ -437,7 +437,7 @@ export default function AdminUsers() {
           <table className="w-full min-w-[700px]">
             <thead className="bg-[#F2F4F5]">
               <tr>
-                {[t('admin_users.col_email'), t('admin_users.col_role'), t('admin_users.col_permissions'), t('admin_users.col_status'), t('admin_users.col_last_login'), ''].map((h) => (
+                {[t('admin_users.col_email'), t('admin_users.col_role'), t('admin_users.col_permissions'), t('admin_users.col_status'), t('admin_users.col_last_login'), t('common.created_at'), ''].map((h) => (
                   <th key={h} className="text-left px-5 py-3 text-xs font-medium text-gray-500 uppercase whitespace-nowrap">{h}</th>
                 ))}
               </tr>
@@ -475,6 +475,9 @@ export default function AdminUsers() {
                     </td>
                     <td className="px-5 py-4 text-xs text-gray-400 whitespace-nowrap">
                       {fmtDate(u.last_login_at, locale)}
+                    </td>
+                    <td className="px-5 py-4 text-xs text-gray-400 whitespace-nowrap">
+                      {fmtDateTime(u.created_at)}
                     </td>
                     <td className="px-5 py-4 whitespace-nowrap">
                       {isSuperAdmin && u.id !== me?.id && u.status !== 'DISABLED' && (

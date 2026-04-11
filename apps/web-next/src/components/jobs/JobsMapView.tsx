@@ -5,6 +5,7 @@ import { GoogleMap, useJsApiLoader, OverlayView, Circle, type Libraries } from '
 import type { PublicJob } from '@/lib/api/public'
 import { Link } from '@/components/navigation'
 import { formatDate as fmtDate, formatDateShort as fmtDateShort } from '@/lib/utils/date'
+import { pickTradeImage } from '@/lib/utils/dummyImages'
 
 const GOOGLE_MAPS_API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY ?? ''
 const GOOGLE_MAPS_LIBRARIES: Libraries = []
@@ -158,20 +159,16 @@ function AirbnbJobCard({
       }}
     >
       {/* Cover image */}
-      <div className={`w-[72px] h-[72px] rounded-xl overflow-hidden shrink-0 bg-[#0669F7] transition-all ${
+      <div className={`w-[72px] h-[72px] rounded-xl overflow-hidden shrink-0 bg-[#EFF1F5] transition-all ${
         isSelected ? 'ring-2 ring-[#25282A] ring-offset-1' : ''
       }`}>
-        {job.coverImageUrl ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={job.coverImageUrl} alt={job.titleKo} loading="lazy" className="w-full h-full object-cover" />
-        ) : (
-          <div className="w-full h-full flex items-center justify-center opacity-20">
-            <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1}
-                d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5" />
-            </svg>
-          </div>
-        )}
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={job.coverImageUrl ?? pickTradeImage(job.tradeNameKo, String(job.id))}
+          alt={job.titleKo}
+          loading="lazy"
+          className="w-full h-full object-cover"
+        />
       </div>
 
       {/* Info */}
@@ -234,19 +231,13 @@ function MapPopupCard({
       }}
     >
       {/* Cover */}
-      <div className="relative h-40 overflow-hidden bg-[#0669F7]">
-        {job.coverImageUrl && (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={job.coverImageUrl} alt={job.titleKo} className="w-full h-full object-cover" />
-        )}
-        {!job.coverImageUrl && (
-          <div className="w-full h-full flex items-center justify-center opacity-20">
-            <svg className="w-14 h-14 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1}
-                d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5" />
-            </svg>
-          </div>
-        )}
+      <div className="relative h-40 overflow-hidden bg-[#EFF1F5]">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={job.coverImageUrl ?? pickTradeImage(job.tradeNameKo, String(job.id))}
+          alt={job.titleKo}
+          className="w-full h-full object-cover"
+        />
         {/* Gradient overlay for readability */}
         <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
 
@@ -327,18 +318,13 @@ function MobileJobCard({
     >
       <div className="flex gap-3 p-3.5">
         {/* Image */}
-        <div className="w-[92px] h-[92px] rounded-xl overflow-hidden shrink-0 bg-[#0669F7]">
-          {job.coverImageUrl ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={job.coverImageUrl} alt={job.titleKo} className="w-full h-full object-cover" />
-          ) : (
-            <div className="w-full h-full flex items-center justify-center opacity-20">
-              <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1}
-                  d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5" />
-              </svg>
-            </div>
-          )}
+        <div className="w-[92px] h-[92px] rounded-xl overflow-hidden shrink-0 bg-[#EFF1F5]">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={job.coverImageUrl ?? pickTradeImage(job.tradeNameKo, String(job.id))}
+            alt={job.titleKo}
+            className="w-full h-full object-cover"
+          />
         </div>
 
         {/* Details */}

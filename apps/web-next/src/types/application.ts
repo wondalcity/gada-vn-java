@@ -11,6 +11,8 @@ export interface WorkerApplication {
   status: ApplicationStatus
   appliedAt: string
   notes?: string
+  coverImageUrl?: string
+  tradeNameKo?: string
 }
 
 export interface Hire extends WorkerApplication {

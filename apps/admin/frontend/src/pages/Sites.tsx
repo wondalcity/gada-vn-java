@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { api } from '../lib/api'
 import { DEMO_SITES, DEMO_COMPANIES } from '../lib/demo-data'
 import { useAdminTranslation } from '../context/LanguageContext'
-import { fmtDate } from '../lib/dateUtils'
+import { fmtDate, fmtDateTime } from '../lib/dateUtils'
 import { GadaSelect } from '../components/ui/GadaFormControls'
 
 function formatPhone(phone: string | null | undefined): string {
@@ -29,6 +29,7 @@ interface Site {
   status?: string
   site_type?: string
   created_at: string
+  updated_at?: string
   manager_name?: string
   manager_phone?: string
   manager_profile_id?: string
@@ -436,6 +437,16 @@ function SiteDetailPanel({
             <p className="font-medium text-gray-900 mt-0.5">{site.site_type ?? '-'}</p>
           </div>
           <div>
+            <span className="text-gray-500">{t('common.created_at')}</span>
+            <p className="font-medium text-gray-900 mt-0.5">{fmtDateTime(site.created_at)}</p>
+          </div>
+          {site.updated_at && (
+            <div>
+              <span className="text-gray-500">{t('common.updated_at')}</span>
+              <p className="font-medium text-gray-900 mt-0.5">{fmtDateTime(site.updated_at)}</p>
+            </div>
+          )}
+          <div>
             <span className="text-gray-500">{t('sites.detail.company')}</span>
             {site.company_id ? (
               <button
@@ -722,7 +733,7 @@ export default function Sites() {
                     <span className="text-blue-600 font-medium">{s.open_job_count}</span>
                     <span className="text-gray-400">/{s.job_count}</span>
                   </td>
-                  <td className="px-6 py-4 text-sm text-gray-500 whitespace-nowrap">{fmtDate(s.created_at, locale)}</td>
+                  <td className="px-6 py-4 text-sm text-gray-500 whitespace-nowrap">{fmtDateTime(s.created_at)}</td>
                   <td className="px-6 py-4 text-right whitespace-nowrap">
                     <div className="flex gap-3 justify-end items-center">
                       <button onClick={() => navigate(`/sites/${s.id}`)} className="text-[#0669F7] hover:underline text-sm">{t('common.detail')}</button>

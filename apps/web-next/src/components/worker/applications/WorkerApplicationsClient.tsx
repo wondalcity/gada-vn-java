@@ -7,6 +7,7 @@ import { apiClient } from '@/lib/api/client'
 import type { WorkerApplication, ApplicationStatus } from '@/types/application'
 import ConfirmModal from '@/components/manager/ConfirmModal'
 import { Link } from '@/components/navigation'
+import { pickTradeImage } from '@/lib/utils/dummyImages'
 
 const API_BASE = '/api/v1'
 
@@ -251,58 +252,72 @@ export default function WorkerApplicationsClient({ locale }: { locale?: string }
           </div>
         ) : (
           filtered.map(app => {
+            const coverImg = app.coverImageUrl ?? pickTradeImage(app.tradeNameKo, app.jobId)
             return (
               <Link
                 key={app.id}
                 href={`/worker/applications/${app.id}`}
-                className="block press-effect bg-white rounded-2xl shadow-sm border border-[#EFF1F5] p-4 relative"
+                className="block press-effect bg-white rounded-2xl shadow-sm border border-[#EFF1F5] overflow-hidden"
               >
-                {/* Status badge */}
-                <span className={`absolute top-4 right-4 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${STATUS_CLASS[app.status]}`}>
-                  {STATUS_LABEL[app.status]}
-                </span>
+                <div className="flex gap-3 p-3.5">
+                  {/* Cover image */}
+                  <div className="w-[80px] h-[80px] rounded-xl overflow-hidden shrink-0 bg-[#EFF1F5]">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={coverImg} alt={app.jobTitle} loading="lazy" className="w-full h-full object-cover" />
+                  </div>
 
-                {/* Job title */}
-                <p className="font-semibold text-[#25282A] text-sm pr-24">{app.jobTitle}</p>
+                  {/* Content */}
+                  <div className="flex-1 min-w-0">
+                    {/* Status badge */}
+                    <div className="flex items-start justify-between gap-2 mb-0.5">
+                      <p className="font-semibold text-[#25282A] text-sm line-clamp-2 leading-snug">{app.jobTitle}</p>
+                      <span className={`shrink-0 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium border ${STATUS_CLASS[app.status]}`}>
+                        {STATUS_LABEL[app.status]}
+                      </span>
+                    </div>
 
-                {/* Site & Date */}
-                <p className="text-xs text-[#98A2B2] mt-1">{app.siteName} · {formatDate(app.workDate)}</p>
+                    {/* Site & Date */}
+                    <p className="text-xs text-[#98A2B2]">{app.siteName} · {formatDate(app.workDate)}</p>
 
-                {/* Wage */}
-                <p className="text-sm font-semibold text-[#0669F7] mt-1">{formatVND(app.dailyWage)}</p>
+                    {/* Wage */}
+                    <p className="text-sm font-semibold text-[#0669F7] mt-1">{formatVND(app.dailyWage)}</p>
 
-                {/* Applied date */}
-                <p className="text-xs text-[#98A2B2] mt-2">{t('worker_applications.applied_at', { date: formatDate(app.appliedAt) })}</p>
-
-                {/* Actions */}
-                <div className="mt-3">
-                  {app.status === 'PENDING' && (
-                    <button
-                      type="button"
-                      onClick={(e) => { e.preventDefault(); e.stopPropagation(); setConfirmWithdrawId(app.id) }}
-                      disabled={withdrawingId === app.id}
-                      className="px-5 py-2 rounded-full border border-[#DDDDDD] text-[#25282A] font-medium text-sm disabled:opacity-40 hover:border-[#0669F7] hover:text-[#0669F7] transition-colors"
-                    >
-                      {withdrawingId === app.id ? t('worker_applications.withdrawing') : t('worker_applications.withdraw')}
-                    </button>
-                  )}
-                  {app.status === 'ACCEPTED' && (
-                    <span className="inline-flex items-center gap-1.5 text-sm text-[#0669F7] font-medium">
-                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                      </svg>
-                      {t('worker_applications.accepted_waiting')}
-                    </span>
-                  )}
-                  {app.status === 'CONTRACTED' && (
-                    <span className="inline-flex items-center gap-1.5 text-sm text-[#1A6B1A] font-medium">
-                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                      </svg>
-                      {t('worker_applications.contracted')}
-                    </span>
-                  )}
+                    {/* Applied date */}
+                    <p className="text-xs text-[#98A2B2] mt-1">{t('worker_applications.applied_at', { date: formatDate(app.appliedAt) })}</p>
+                  </div>
                 </div>
+
+                {/* Actions bar */}
+                {(app.status === 'PENDING' || app.status === 'ACCEPTED' || app.status === 'CONTRACTED') && (
+                  <div className="px-3.5 pb-3.5">
+                    {app.status === 'PENDING' && (
+                      <button
+                        type="button"
+                        onClick={(e) => { e.preventDefault(); e.stopPropagation(); setConfirmWithdrawId(app.id) }}
+                        disabled={withdrawingId === app.id}
+                        className="px-5 py-2 rounded-full border border-[#DDDDDD] text-[#25282A] font-medium text-sm disabled:opacity-40 hover:border-[#0669F7] hover:text-[#0669F7] transition-colors"
+                      >
+                        {withdrawingId === app.id ? t('worker_applications.withdrawing') : t('worker_applications.withdraw')}
+                      </button>
+                    )}
+                    {app.status === 'ACCEPTED' && (
+                      <span className="inline-flex items-center gap-1.5 text-sm text-[#0669F7] font-medium">
+                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        {t('worker_applications.accepted_waiting')}
+                      </span>
+                    )}
+                    {app.status === 'CONTRACTED' && (
+                      <span className="inline-flex items-center gap-1.5 text-sm text-[#1A6B1A] font-medium">
+                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        {t('worker_applications.contracted')}
+                      </span>
+                    )}
+                  </div>
+                )}
               </Link>
             )
           })
