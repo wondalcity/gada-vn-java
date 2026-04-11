@@ -10,11 +10,9 @@ import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.web.bind.annotation.*
 import java.util.UUID
 
-/**
- * Handles all /api/admin/admin-users/* endpoints directly in the admin Spring Boot app
- * (DB access via JdbcTemplate + Spring Security session context).
- * These take priority over ProxyController because Spring MVC picks the most-specific mapping.
- */
+// Handles all /api/admin/admin-users/* endpoints directly in the admin Spring Boot app.
+// DB access via JdbcTemplate + Spring Security session context.
+// These take priority over ProxyController because Spring MVC picks the most-specific mapping.
 @RestController
 @RequestMapping("/api/admin/admin-users")
 class AdminUsersController(
