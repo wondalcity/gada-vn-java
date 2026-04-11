@@ -308,11 +308,13 @@ function SignatureBox({
   )
 }
 
-function SignatureStatusCard({ contract, onSignClick }: { contract: Contract; onSignClick?: () => void }) {
+function SignatureStatusCard({ contract, onSignClick, previewWorkerSigUrl }: { contract: Contract; onSignClick?: () => void; previewWorkerSigUrl?: string | null }) {
   const t = useTranslations('common')
   const [viewingUrl, setViewingUrl] = React.useState<string | null>(null)
-  const canWorkerSign = contract.status === 'PENDING_WORKER_SIGN'
+  const canWorkerSign = contract.status === 'PENDING_WORKER_SIGN' && !previewWorkerSigUrl
   const companySigUrl = contract.companySigUrl ?? contract.managerSigUrl
+  const workerSigUrl = previewWorkerSigUrl ?? contract.workerSigUrl
+  const workerSignedAt = previewWorkerSigUrl ? 'preview' : contract.workerSignedAt
   return (
     <>
       {viewingUrl && (
@@ -340,8 +342,8 @@ function SignatureStatusCard({ contract, onSignClick }: { contract: Contract; on
           {/* Worker signature box */}
           <SignatureBox
             label={t('worker_contracts.sig_worker')}
-            signedAt={contract.workerSignedAt}
-            sigUrl={contract.workerSigUrl}
+            signedAt={workerSignedAt}
+            sigUrl={workerSigUrl}
             onView={setViewingUrl}
             canSign={canWorkerSign}
             onSignClick={canWorkerSign ? onSignClick : undefined}
@@ -602,7 +604,7 @@ export default function WorkerContractDetailClient({ contractId }: Props) {
       </div>
 
       {/* Signature status */}
-      <SignatureStatusCard contract={contract} onSignClick={() => setShowSignModal(true)} />
+      <SignatureStatusCard contract={contract} onSignClick={() => setShowSignModal(true)} previewWorkerSigUrl={previewWorkerSigUrl} />
 
     </div>
   )
