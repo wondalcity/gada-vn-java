@@ -13,13 +13,16 @@ import { ContractDocument, ContractDownloadButton } from '@/components/contracts
 function ManagerSignaturePad({
   onUse,
   isSubmitting,
+  savedSealUrl,
 }: {
   onUse: (dataUrl: string) => void
   isSubmitting?: boolean
+  savedSealUrl?: string | null
 }) {
   const { canvasRef, hasDrawn, startDrawing, draw, stopDrawing, clear, getDataUrl, checkIsEmpty } =
     useSignatureCanvas()
   const [error, setError] = React.useState<string | null>(null)
+  const [useSaved, setUseSaved] = React.useState(!!savedSealUrl)
 
   React.useEffect(() => {
     const canvas = canvasRef.current
@@ -43,42 +46,81 @@ function ManagerSignaturePad({
   }, [startDrawing, draw, stopDrawing, canvasRef])
 
   function handleUse() {
-    if (checkIsEmpty()) { setError('서명을 입력해 주세요.'); return }
     setError(null)
+    if (useSaved && savedSealUrl) {
+      onUse(savedSealUrl)
+      return
+    }
+    if (checkIsEmpty()) { setError('서명을 입력해 주세요.'); return }
     onUse(getDataUrl())
   }
 
   return (
     <div className="space-y-3">
-      <p className="text-sm font-semibold text-[#25282A]">사업주 서명 입력</p>
-      <div className="relative border-2 border-dashed border-[#C8D8FF] rounded-xl overflow-hidden bg-[#FAFCFF]">
-        <canvas
-          ref={canvasRef}
-          style={{ width: '100%', height: '160px', touchAction: 'none', display: 'block', cursor: 'crosshair' }}
-        />
-        {!hasDrawn && (
-          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-            <p className="text-sm text-[#B2C4E0]">여기에 서명하세요</p>
+      {/* Tab: Draw vs Use company seal */}
+      {savedSealUrl && (
+        <div className="flex rounded-xl border border-[#EFF1F5] overflow-hidden">
+          <button
+            type="button"
+            onClick={() => setUseSaved(false)}
+            className={`flex-1 py-2 text-xs font-medium transition-colors ${!useSaved ? 'bg-[#0669F7] text-white' : 'bg-white text-[#98A2B2] hover:bg-[#F8F8FA] hover:text-[#25282A]'}`}
+          >
+            직접 서명
+          </button>
+          <button
+            type="button"
+            onClick={() => setUseSaved(true)}
+            className={`flex-1 py-2 text-xs font-medium transition-colors ${useSaved ? 'bg-[#0669F7] text-white' : 'bg-white text-[#98A2B2] hover:bg-[#F8F8FA] hover:text-[#25282A]'}`}
+          >
+            저장된 날인 사용
+          </button>
+        </div>
+      )}
+
+      {useSaved && savedSealUrl ? (
+        <div>
+          <p className="text-xs font-medium text-[#98A2B2] mb-2">등록된 회사 날인</p>
+          <div className="border-2 border-[#C8D8FF] rounded-xl bg-[#FAFCFF] p-4 flex items-center justify-center min-h-[120px]">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={savedSealUrl} alt="회사 날인" className="max-h-24 object-contain" />
           </div>
-        )}
-      </div>
-      <p className="text-xs text-[#98A2B2]">손가락이나 마우스로 서명하세요</p>
+        </div>
+      ) : (
+        <>
+          <p className="text-sm font-semibold text-[#25282A]">사업주 서명 입력</p>
+          <div className="relative border-2 border-dashed border-[#C8D8FF] rounded-xl overflow-hidden bg-[#FAFCFF]">
+            <canvas
+              ref={canvasRef}
+              style={{ width: '100%', height: '160px', touchAction: 'none', display: 'block', cursor: 'crosshair' }}
+            />
+            {!hasDrawn && (
+              <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                <p className="text-sm text-[#B2C4E0]">여기에 서명하세요</p>
+              </div>
+            )}
+          </div>
+          <p className="text-xs text-[#98A2B2]">손가락이나 마우스로 서명하세요</p>
+        </>
+      )}
+
       {error && (
         <div className="p-3 bg-[#FDE8EE] border border-[#F4A8B8] rounded-xl text-sm text-[#ED1C24]">{error}</div>
       )}
       <div className="flex gap-3">
-        <button
-          type="button"
-          onClick={() => { clear(); setError(null) }}
-          disabled={isSubmitting}
-          className="flex-1 py-3 rounded-full border border-[#DDDDDD] text-[#25282A] font-medium text-sm hover:border-[#0669F7] hover:text-[#0669F7] transition-colors disabled:opacity-40"
-        >
-          지우기
-        </button>
+        {!useSaved && (
+          <button
+            type="button"
+            onClick={() => { clear(); setError(null) }}
+            disabled={isSubmitting}
+            className="flex-1 py-3 rounded-full border border-[#DDDDDD] text-[#25282A] font-medium text-sm hover:border-[#0669F7] hover:text-[#0669F7] transition-colors disabled:opacity-40"
+          >
+            지우기
+          </button>
+        )}
         <button
           type="button"
           onClick={handleUse}
-          disabled={!hasDrawn || isSubmitting}
+          disabled={(!useSaved && !hasDrawn) || isSubmitting}
           className="flex-1 py-3 rounded-full bg-[#0669F7] text-white font-semibold text-sm disabled:opacity-40 hover:bg-[#0557D4] transition-colors"
         >
           {isSubmitting ? '처리 중...' : '사용하기'}
@@ -103,6 +145,8 @@ export default function ManagerContractClient({ contractId }: Props) {
   const [showSignModal, setShowSignModal] = React.useState(false)
   const [isConfirming, setIsConfirming] = React.useState(false)
   const [confirmError, setConfirmError] = React.useState<string | null>(null)
+  const [previewManagerSigUrl, setPreviewManagerSigUrl] = React.useState<string | null>(null)
+  const [pendingSignature, setPendingSignature] = React.useState<string | null>(null)
 
   const load = React.useCallback(() => {
     if (!idToken) return
@@ -115,21 +159,30 @@ export default function ManagerContractClient({ contractId }: Props) {
 
   React.useEffect(() => { load() }, [load])
 
-  async function handleDirectSign(dataUrl: string) {
-    if (!idToken) return
+  // Step 1: modal → preview (no API call yet)
+  function handleSelectSignature(dataUrl: string) {
+    setPreviewManagerSigUrl(dataUrl)
+    setPendingSignature(dataUrl)
+    setShowSignModal(false)
+    setConfirmError(null)
+  }
+
+  // Step 2: explicit save → API call
+  async function handleSaveSignature() {
+    if (!idToken || !pendingSignature) return
     setIsConfirming(true)
     setConfirmError(null)
     try {
       await apiClient(`/contracts/${contractId}/manager-sign`, {
         method: 'POST',
         token: idToken,
-        body: JSON.stringify({ signatureData: dataUrl }),
+        body: JSON.stringify({ signatureData: pendingSignature }),
       })
-      setShowSignModal(false)
+      setPendingSignature(null)
       setSuccessMessage('서명이 완료되었습니다! 계약이 확정되었습니다.')
       load()
     } catch (err) {
-      setConfirmError(err instanceof Error ? err.message : '서명 확정 중 오류가 발생했습니다.')
+      setConfirmError(err instanceof Error ? err.message : '서명 저장 중 오류가 발생했습니다.')
     } finally {
       setIsConfirming(false)
     }
@@ -165,28 +218,27 @@ export default function ManagerContractClient({ contractId }: Props) {
       {showSignModal && idToken && (
         <div
           className="fixed inset-0 z-[60] flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm"
-          onClick={() => { if (!isConfirming) setShowSignModal(false) }}
+          onClick={() => setShowSignModal(false)}
         >
           <div
             className="bg-white w-full sm:max-w-md rounded-t-3xl sm:rounded-2xl shadow-2xl overflow-hidden"
             onClick={e => e.stopPropagation()}
           >
             <div className="flex items-center justify-between px-5 pt-5 pb-3">
-              <p className="text-base font-bold text-[#25282A]">사업주 서명</p>
+              <p className="text-base font-bold text-[#25282A]">사업주 서명 · 날인</p>
               <button
                 type="button"
-                onClick={() => { if (!isConfirming) setShowSignModal(false) }}
-                disabled={isConfirming}
-                className="w-8 h-8 rounded-full bg-[#F2F4F5] flex items-center justify-center text-[#98A2B2] hover:bg-[#EFF1F5] transition-colors disabled:opacity-40"
+                onClick={() => setShowSignModal(false)}
+                className="w-8 h-8 rounded-full bg-[#F2F4F5] flex items-center justify-center text-[#98A2B2] hover:bg-[#EFF1F5] transition-colors"
               >
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
               </button>
             </div>
             <div className="px-5 pb-8 sm:pb-5 space-y-3">
-              <ManagerSignaturePad onUse={handleDirectSign} isSubmitting={isConfirming} />
-              {confirmError && (
-                <div className="p-3 bg-[#FDE8EE] border border-[#F4A8B8] rounded-xl text-sm text-[#ED1C24]">{confirmError}</div>
-              )}
+              <ManagerSignaturePad
+                onUse={handleSelectSignature}
+                savedSealUrl={contract?.companySigUrl ?? null}
+              />
             </div>
           </div>
         </div>
@@ -235,9 +287,40 @@ export default function ManagerContractClient({ contractId }: Props) {
         </div>
       )}
 
+      {/* Pending signature save banner */}
+      {pendingSignature && (
+        <div className="p-4 bg-[#E6F0FE] border border-[#B3D9FF] rounded-2xl flex items-center justify-between gap-3">
+          <div className="flex items-center gap-2">
+            <svg className="w-5 h-5 text-[#0669F7] shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
+            <p className="text-sm font-medium text-[#0669F7]">날인이 입력되었습니다. 계약서를 확인하고 저장하세요.</p>
+          </div>
+          <div className="flex items-center gap-2 shrink-0">
+            <button
+              type="button"
+              onClick={() => { setPendingSignature(null); setPreviewManagerSigUrl(null) }}
+              disabled={isConfirming}
+              className="px-3 py-1.5 rounded-full border border-[#B3D9FF] text-[#0669F7] text-xs font-medium hover:bg-white transition-colors disabled:opacity-40"
+            >
+              취소
+            </button>
+            <button
+              type="button"
+              onClick={handleSaveSignature}
+              disabled={isConfirming}
+              className="px-4 py-1.5 rounded-full bg-[#0669F7] text-white text-xs font-bold hover:bg-[#0557D4] transition-colors disabled:opacity-40"
+            >
+              {isConfirming ? '저장 중...' : '저장'}
+            </button>
+          </div>
+        </div>
+      )}
+      {confirmError && (
+        <div className="p-3 bg-[#FDE8EE] border border-[#F4A8B8] rounded-xl text-sm text-[#ED1C24]">{confirmError}</div>
+      )}
+
       {/* Contract document */}
       <div className="overflow-x-auto rounded-2xl border border-[#EFF1F5] shadow-sm">
-        <ContractDocument contract={contract} documentRef={documentRef} />
+        <ContractDocument contract={contract} documentRef={documentRef} previewManagerSigUrl={previewManagerSigUrl} />
       </div>
 
       {/* Signature status */}
@@ -312,7 +395,7 @@ export default function ManagerContractClient({ contractId }: Props) {
           )}
 
           {/* Manager signature — locked until worker signs, then active */}
-          {contract.status === 'PENDING_MANAGER_SIGN' ? (
+          {contract.status === 'PENDING_MANAGER_SIGN' && !pendingSignature ? (
             <button
               type="button"
               onClick={() => setShowSignModal(true)}
@@ -324,6 +407,22 @@ export default function ManagerContractClient({ contractId }: Props) {
               </div>
               <p className="text-xs font-bold text-[#0669F7]">서명하기</p>
             </button>
+          ) : pendingSignature ? (
+            /* Preview state — signature selected, awaiting save */
+            <div className="rounded-xl border-2 border-[#0669F7] bg-[#E6F0FE] p-3 flex flex-col items-center gap-1 min-h-[110px] justify-center">
+              <p className="text-xs font-medium text-[#0669F7]">사업주 서명</p>
+              <div className="w-full h-14 flex items-center justify-center overflow-hidden rounded-lg bg-white border border-[#B3D9FF]">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={pendingSignature} alt="날인 미리보기" className="max-h-full max-w-full object-contain p-1" />
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowSignModal(true)}
+                className="text-[10px] text-[#0669F7] underline underline-offset-1"
+              >
+                다시 입력
+              </button>
+            </div>
           ) : contract.managerSignedAt ? (
             <div className="rounded-xl border-2 border-[#86D98A] bg-[#E6F9E6] p-3 flex flex-col items-center gap-2 min-h-[110px] justify-center">
               <p className="text-xs font-medium text-[#1A6B1A]">사업주 서명</p>
