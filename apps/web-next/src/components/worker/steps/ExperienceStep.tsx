@@ -36,7 +36,7 @@ export default function ExperienceStep({ draft, onChange, onNext, isSaving }: Ex
   const [fetchError, setFetchError] = React.useState<string | null>(null)
 
   React.useEffect(() => {
-    const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'https://api.gada.vn/api/v1'
+    const API_BASE = '/api/v1'
     fetch(`${API_BASE}/public/trades`)
       .then(async (res) => {
         const body = await res.json()

@@ -8,7 +8,7 @@ import { getGoogleMapsLoader } from '@/lib/maps/loader'
 import ImageUploader from '@/components/manager/ImageUploader'
 import type { Site, SiteStatus } from '@/types/manager-site-job'
 
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'https://api.gada.vn/api/v1'
+const API_BASE = '/api/v1'
 
 interface SiteFormProps {
   mode: 'create' | 'edit'

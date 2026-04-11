@@ -9,7 +9,7 @@ import ApplicantCard from './ApplicantCard'
 import WorkerDetailModal from './WorkerDetailModal'
 import HireConfirmationPanel from './HireConfirmationPanel'
 
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'https://api.gada.vn/api/v1'
+const API_BASE = '/api/v1'
 
 const DEMO_APPLICANTS: Record<string, { applicants: Applicant[]; meta: JobSlotMeta & { jobTitle: string } }> = {
   'djob-1': {

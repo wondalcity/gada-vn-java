@@ -1,10 +1,10 @@
 // Server-side: prefer INTERNAL_API_URL (direct container-to-container) to avoid
 // routing through the public load balancer, which can cause loopback issues on EC2.
-// Client-side: must use NEXT_PUBLIC_API_BASE_URL (baked at build time).
+// Client-side: always use the /api/v1 proxy route (same-origin → no CORS issues).
 const API_BASE =
   typeof window === 'undefined'
     ? (process.env.INTERNAL_API_URL || process.env.NEXT_PUBLIC_API_BASE_URL || 'https://api.gada.vn/api/v1')
-    : (process.env.NEXT_PUBLIC_API_BASE_URL || 'https://api.gada.vn/api/v1')
+    : '/api/v1'
 
 export class ApiError extends Error {
   constructor(

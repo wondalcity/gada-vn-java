@@ -4,7 +4,7 @@ import * as React from 'react'
 import { Link, useRouter } from '@/i18n/navigation'
 import { getSessionCookie, clearSessionCookie } from '@/lib/auth/session'
 
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'https://api.gada.vn/api/v1'
+const API_BASE = '/api/v1'
 
 interface Stats {
   activeSites: number

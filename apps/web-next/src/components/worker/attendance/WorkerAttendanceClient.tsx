@@ -7,7 +7,7 @@ import { getSessionCookie } from '@/lib/auth/session'
 import type { WorkerAttendanceRecord, AttendanceStatus } from '@/types/attendance'
 import { STATUS_LABELS, STATUS_COLORS, formatHoursWorked } from '@/lib/attendance'
 
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'https://api.gada.vn/api/v1'
+const API_BASE = '/api/v1'
 
 const DEMO_RECORDS: WorkerAttendanceRecord[] = [
   {

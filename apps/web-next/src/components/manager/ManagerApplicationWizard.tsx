@@ -15,7 +15,7 @@ import ManagerAgreementStep from './steps/ManagerAgreementStep'
 // ─── Constants ────────────────────────────────────────────────────────────────
 
 const STEP_LABELS = ['기본 정보', '현장 및 서명', '동의 및 제출']
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'https://api.gada.vn/api/v1'
+const API_BASE = '/api/v1'
 
 // ─── Progress Bar ─────────────────────────────────────────────────────────────
 

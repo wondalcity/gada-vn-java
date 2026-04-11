@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useRouter } from '@/i18n/navigation';
 import { createPortal } from 'react-dom';
 
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'https://api.gada.vn/api/v1';
+const API_BASE = '/api/v1';
 
 interface Province {
   code: string;
@@ -159,7 +159,7 @@ function SearchSelect({ value, onChange, options, placeholder, title }: SearchSe
   // ── Mobile bottom sheet (portal) ─────────────────────────────────────────────
   const mobileSheet = open && isMobile && mounted
     ? createPortal(
-        <div className="fixed inset-0 z-[200] flex flex-col justify-end">
+        <div className="fixed inset-0 z-[200] flex flex-col justify-end" data-search-select-portal="true">
           <div className="absolute inset-0 bg-black/40 backdrop-blur-[2px]" onClick={handleClose} />
           <div className="relative bg-white rounded-t-3xl shadow-2xl flex flex-col max-h-[75vh]">
             <div className="flex justify-center pt-3 pb-1 shrink-0">
@@ -321,11 +321,14 @@ export default function PublicHeaderSearch({ locale, basePath = '/jobs' }: Publi
       if (e.key === 'Escape') closePanel();
     };
     const handleClickOutside = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      // Don't close if clicking inside a SearchSelect portal (mobile bottom sheet rendered via createPortal)
+      if (target.closest?.('[data-search-select-portal]')) return;
       if (
         panelRef.current &&
-        !panelRef.current.contains(e.target as Node) &&
+        !panelRef.current.contains(target) &&
         buttonRef.current &&
-        !buttonRef.current.contains(e.target as Node)
+        !buttonRef.current.contains(target)
       ) {
         closePanel();
       }

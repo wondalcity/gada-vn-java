@@ -9,7 +9,7 @@ import { JobCard } from './JobCard'
 import { Pagination } from './Pagination'
 import { getSessionCookie } from '@/lib/auth/session'
 
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'https://api.gada.vn/api/v1'
+const API_BASE = '/api/v1'
 
 // Dynamic import for the map view — no SSR (Leaflet requires window)
 const JobsMapView = dynamic(() => import('./JobsMapView'), {

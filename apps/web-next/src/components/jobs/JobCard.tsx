@@ -4,7 +4,7 @@ import { useTranslations } from 'next-intl'
 import { Link } from '@/components/navigation'
 import type { PublicJob } from '@/lib/api/public'
 import { formatDateShort } from '@/lib/utils/date'
-import { pickDummyImage } from '@/lib/utils/dummyImages'
+import { pickTradeImage } from '@/lib/utils/dummyImages'
 
 interface Props {
   job: PublicJob
@@ -55,7 +55,7 @@ export function JobCard({ job, locale, basePath = '/jobs', onWagePress }: Props)
       {/* Cover image — 1:1 */}
       <div className="relative w-full overflow-hidden bg-[#25282A] shrink-0" style={{ aspectRatio: '1/1' }}>
         <img
-          src={job.coverImageUrl ?? pickDummyImage(String(job.id))}
+          src={job.coverImageUrl ?? pickTradeImage(job.tradeNameKo, String(job.id))}
           alt={job.titleKo}
           loading="lazy"
           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"

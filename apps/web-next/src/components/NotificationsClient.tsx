@@ -4,7 +4,7 @@ import * as React from 'react'
 import { useTranslations } from 'next-intl'
 import { getSessionCookie } from '@/lib/auth/session'
 
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'https://api.gada.vn/api/v1'
+const API_BASE = '/api/v1'
 
 interface Notification {
   id: string

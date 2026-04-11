@@ -4,7 +4,7 @@ import * as React from 'react'
 import type { AttendanceAuditEntry } from '@/types/attendance'
 import { STATUS_LABELS } from '@/lib/attendance'
 
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'https://api.gada.vn/api/v1'
+const API_BASE = '/api/v1'
 
 interface Props {
   attendanceId: string

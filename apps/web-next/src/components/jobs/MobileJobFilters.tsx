@@ -6,7 +6,7 @@ import { useSearchParams } from 'next/navigation'
 import { getSessionCookie } from '@/lib/auth/session'
 import type { Province, Trade } from '@/lib/api/public'
 
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'https://api.gada.vn/api/v1'
+const API_BASE = '/api/v1'
 
 interface SavedLocation {
   id: string

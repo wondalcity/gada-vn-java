@@ -106,7 +106,7 @@ export default function ManagerAgreementStep({
       if (draft.firstSiteAddress) payload.firstSiteAddress = draft.firstSiteAddress
       if (draft.signatureDataUrl) payload.signatureDataUrl = draft.signatureDataUrl
 
-      const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'https://api.gada.vn/api/v1'
+      const API_BASE = '/api/v1'
       const res = await fetch(`${API_BASE}/managers/register`, {
         method: 'POST',
         headers: {

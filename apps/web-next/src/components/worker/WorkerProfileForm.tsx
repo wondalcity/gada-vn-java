@@ -8,7 +8,7 @@ import { DatePicker } from '@/components/ui/DatePicker'
 import { apiClient, ApiError } from '@/lib/api/client'
 import type { Trade } from '@/lib/api/public'
 
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'https://api.gada.vn/api/v1'
+const API_BASE = '/api/v1'
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 

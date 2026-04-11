@@ -7,7 +7,7 @@ import type { RosterEntry, AttendanceStatus } from '@/types/attendance'
 import { STATUS_LABELS } from '@/lib/attendance'
 import AttendanceWorkerRow, { type DraftRecord } from './AttendanceWorkerRow'
 
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'https://api.gada.vn/api/v1'
+const API_BASE = '/api/v1'
 
 interface Props {
   jobId: string

@@ -6,7 +6,7 @@ import { useTranslations } from 'next-intl'
 import type { PublicJobDetail } from '@/lib/api/public'
 import ApplyButton from './ApplyButton'
 import { formatDate as fmtDate, formatDateShort as fmtDateShort } from '@/lib/utils/date'
-import { DUMMY_CONSTRUCTION_IMAGES } from '@/lib/utils/dummyImages'
+import { DUMMY_CONSTRUCTION_IMAGES, pickTradeImage } from '@/lib/utils/dummyImages'
 
 interface Props {
   job: PublicJobDetail & {
@@ -378,7 +378,7 @@ export default function JobDetailView({
   const siteImages = React.useMemo(() => {
     const all = rawImages.slice(0, 10)
     if (!coverUrl || all[0] === coverUrl) {
-      return all.length > 0 ? all : DUMMY_CONSTRUCTION_IMAGES
+      return all.length > 0 ? all : [pickTradeImage(job.tradeNameKo, job.id), ...DUMMY_CONSTRUCTION_IMAGES].slice(0, 8)
     }
     const idx = all.indexOf(coverUrl)
     if (idx > 0) { const r = [...all]; r.splice(idx, 1); r.unshift(coverUrl); return r }

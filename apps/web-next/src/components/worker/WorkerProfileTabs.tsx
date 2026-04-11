@@ -9,7 +9,7 @@ import { PhoneInput, validatePhone } from '@/components/auth/PhoneInput'
 import { DatePicker } from '@/components/ui/DatePicker'
 import { useAlert } from '@/context/alert'
 
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'https://api.gada.vn/api/v1'
+const API_BASE = '/api/v1'
 const CDN_DOMAIN = process.env.NEXT_PUBLIC_CDN_DOMAIN ?? ''
 
 function toCdnUrl(urlOrKey: string | null): string | null {

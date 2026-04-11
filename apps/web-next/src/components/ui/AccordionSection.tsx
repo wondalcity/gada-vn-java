@@ -21,7 +21,7 @@ export function AccordionSection({
 
   return (
     <div
-      className={`bg-white rounded-2xl shadow-sm border transition-colors duration-200 overflow-hidden ${
+      className={`bg-white rounded-2xl shadow-sm border transition-colors duration-200 ${
         open ? 'border-[#0669F7]' : 'border-[#EFF1F5] hover:border-[#B3D9FF]'
       } ${className}`}
     >

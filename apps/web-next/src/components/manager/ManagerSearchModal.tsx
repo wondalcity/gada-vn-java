@@ -50,8 +50,7 @@ interface StatusPill {
 // Constants
 // ---------------------------------------------------------------------------
 
-const API_BASE =
-  process.env.NEXT_PUBLIC_API_BASE_URL ?? 'https://api.gada.vn/api/v1'
+const API_BASE = '/api/v1'
 
 const HISTORY_KEY = 'gada_manager_search_history'
 const HISTORY_MAX = 5

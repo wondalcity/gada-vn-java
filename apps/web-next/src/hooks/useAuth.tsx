@@ -49,7 +49,7 @@ interface AuthState {
 
 // ─── API helpers ────────────────────────────────────────────────────────────
 
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'https://api.gada.vn/api/v1'
+const API_BASE = '/api/v1'
 
 async function apiFetch<T>(
   path: string,

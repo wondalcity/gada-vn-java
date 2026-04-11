@@ -16,7 +16,7 @@ import { PhoneInput, validatePhone } from './PhoneInput'
 import { OtpInput } from './OtpInput'
 import { setSessionCookie, setRememberMe } from '../../lib/auth/session'
 
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'https://api.gada.vn/api/v1'
+const API_BASE = '/api/v1'
 
 async function apiFetch<T>(path: string, options: RequestInit & { token?: string } = {}): Promise<T> {
   const { token, ...init } = options
