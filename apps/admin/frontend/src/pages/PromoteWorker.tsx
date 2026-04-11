@@ -106,7 +106,7 @@ export default function PromoteWorker() {
     setError('')
     try {
       await api.post('/admin/managers/promote-worker', {
-        userId: selectedWorker.user_id,
+        workerId: selectedWorker.id,
         businessType,
         representativeName: representativeName.trim(),
         companyName: companyName.trim() || undefined,

@@ -71,7 +71,19 @@ interface Trade {
   name_vi: string
 }
 
-type TabKey = 'basic' | 'docs' | 'bank' | 'trades' | 'manager' | 'misc'
+interface Contract {
+  id: string
+  status: 'PENDING_WORKER_SIGN' | 'PENDING_MANAGER_SIGN' | 'FULLY_SIGNED' | 'VOID'
+  job_title: string
+  site_name: string
+  work_date: string
+  daily_wage: number
+  worker_signed_at: string | null
+  manager_signed_at: string | null
+  created_at: string
+}
+
+type TabKey = 'basic' | 'docs' | 'bank' | 'trades' | 'manager' | 'contracts' | 'misc'
 
 export default function WorkerDetail() {
   const { t } = useAdminTranslation()
@@ -92,12 +104,17 @@ export default function WorkerDetail() {
   const [savingSkills, setSavingSkills] = useState(false)
   const [tradesLoading, setTradesLoading] = useState(false)
 
+  const [contracts, setContracts] = useState<Contract[]>([])
+  const [contractsLoading, setContractsLoading] = useState(false)
+  const [contractsError, setContractsError] = useState<string | null>(null)
+
   const TABS: { key: TabKey; label: string }[] = [
     { key: 'basic', label: t('worker_detail.tab_basic') },
     { key: 'docs', label: t('worker_detail.tab_docs') },
     { key: 'bank', label: t('worker_detail.tab_bank') },
     { key: 'trades', label: t('worker_detail.tab_trades') },
     { key: 'manager', label: t('worker_detail.tab_manager') },
+    { key: 'contracts', label: t('worker_detail.tab_contracts') },
     { key: 'misc', label: t('worker_detail.tab_misc') },
   ]
 
@@ -122,6 +139,17 @@ export default function WorkerDetail() {
         })
         .catch(console.error)
         .finally(() => setTradesLoading(false))
+    }
+  }, [tab, id])
+
+  useEffect(() => {
+    if (tab === 'contracts') {
+      setContractsLoading(true)
+      setContractsError(null)
+      api.get<Contract[]>(`/admin/workers/${id}/contracts`)
+        .then((data) => setContracts(data))
+        .catch(() => setContractsError(t('worker_detail.contracts_error')))
+        .finally(() => setContractsLoading(false))
     }
   }, [tab, id])
 
@@ -493,6 +521,53 @@ export default function WorkerDetail() {
                 >
                   {t('worker_detail.promote_link')}
                 </a>
+              </div>
+            )}
+          </>
+        )}
+
+        {/* Contracts */}
+        {tab === 'contracts' && (
+          <>
+            {contractsLoading ? (
+              <div className="py-8 text-center text-gray-400 text-sm">{t('worker_detail.contracts_loading')}</div>
+            ) : contractsError ? (
+              <div className="py-8 text-center text-[#D81A48] text-sm">{contractsError}</div>
+            ) : contracts.length === 0 ? (
+              <div className="py-8 text-center text-gray-400 text-sm">{t('worker_detail.contracts_empty')}</div>
+            ) : (
+              <div className="space-y-3">
+                {contracts.map((c) => {
+                  const statusLabel: Record<string, string> = {
+                    PENDING_WORKER_SIGN: t('worker_detail.contract_status_pending_worker_sign'),
+                    PENDING_MANAGER_SIGN: t('worker_detail.contract_status_pending_manager_sign'),
+                    FULLY_SIGNED: t('worker_detail.contract_status_fully_signed'),
+                    VOID: t('worker_detail.contract_status_void'),
+                  }
+                  const statusColor: Record<string, string> = {
+                    PENDING_WORKER_SIGN: 'bg-[#FFF8E6] text-[#856404] border-[#F5D87D]',
+                    PENDING_MANAGER_SIGN: 'bg-[#E6F0FE] text-[#0669F7] border-[#B3D9FF]',
+                    FULLY_SIGNED: 'bg-[#E6F9E6] text-[#1A6B1A] border-[#86D98A]',
+                    VOID: 'bg-[#EFF1F5] text-[#7A7B7A] border-[#DDDDDD]',
+                  }
+                  return (
+                    <div key={c.id} className="border border-[#EFF1F5] rounded-2xl p-4 text-sm">
+                      <div className="flex items-start justify-between gap-2 mb-2">
+                        <p className="font-semibold text-gray-900 truncate">{c.job_title}</p>
+                        <span className={`shrink-0 px-2 py-0.5 rounded-full text-xs font-semibold border ${statusColor[c.status] ?? statusColor.VOID}`}>
+                          {statusLabel[c.status] ?? c.status}
+                        </span>
+                      </div>
+                      <p className="text-xs text-gray-500 mb-1">{c.site_name}</p>
+                      <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-gray-500 mt-2">
+                        <span>{t('worker_detail.contract_work_date')}: {c.work_date ? new Date(c.work_date).toLocaleDateString('ko-KR') : '-'}</span>
+                        <span>{t('worker_detail.contract_daily_wage')}: {c.daily_wage ? new Intl.NumberFormat('ko-KR').format(c.daily_wage) + ' ₫' : '-'}</span>
+                        <span>{t('worker_detail.contract_worker_signed')}: {c.worker_signed_at ? new Date(c.worker_signed_at).toLocaleDateString('ko-KR') : '-'}</span>
+                        <span>{t('worker_detail.contract_created_at')}: {new Date(c.created_at).toLocaleDateString('ko-KR')}</span>
+                      </div>
+                    </div>
+                  )
+                })}
               </div>
             )}
           </>

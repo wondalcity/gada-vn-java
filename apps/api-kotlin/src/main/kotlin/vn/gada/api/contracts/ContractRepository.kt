@@ -46,10 +46,15 @@ class ContractRepository(
                       uw.phone                  AS "workerPhone",
                       mp.representative_name    AS "managerName",
                       um.phone                  AS "managerPhone",
-                      mp.company_name           AS "companyName"
+                      mp.company_name           AS "companyName",
+                      co.name                   AS "companyFullName",
+                      co.contact_name           AS "companyContactName",
+                      co.contact_phone          AS "companyContactPhone",
+                      co.signature_s3_key       AS "companySealRaw"
                FROM app.contracts c
                JOIN app.jobs j ON c.job_id = j.id
                JOIN app.construction_sites s ON j.site_id = s.id
+               LEFT JOIN app.construction_companies co ON s.company_id = co.id
                JOIN app.worker_profiles wp ON c.worker_id = wp.id
                JOIN app.manager_profiles mp ON c.manager_id = mp.id
                JOIN auth.users uw ON wp.user_id = uw.id
@@ -57,10 +62,13 @@ class ContractRepository(
                WHERE c.id = ?""",
             id
         ).firstOrNull() ?: return null
+        val companySealUrl = fileService.toPublicUrl(row["companySealRaw"] as? String)
         return row + mapOf(
-            "workerSigUrl"  to fileService.toPublicUrl(row["workerSigRaw"] as? String),
-            "managerSigUrl" to fileService.toPublicUrl(row["managerSigRaw"] as? String),
-            "downloadUrl"   to null,
+            "workerSigUrl"        to fileService.toPublicUrl(row["workerSigRaw"] as? String),
+            "managerSigUrl"       to fileService.toPublicUrl(row["managerSigRaw"] as? String),
+            "companySigUrl"       to companySealUrl,
+            "companyName"         to (row["companyFullName"] ?: row["companyName"]),
+            "downloadUrl"         to null,
         )
     }
 
@@ -148,20 +156,58 @@ class ContractRepository(
         )
     }
 
+    fun findApplicationData(applicationId: String): Map<String, Any?>? {
+        return db.queryForList(
+            """SELECT a.*, j.id as job_id, j.title as job_title, j.work_date,
+                      j.daily_wage, j.start_time, j.end_time,
+                      mp.id as manager_profile_id,
+                      wp.id as worker_profile_id, wp.full_name as worker_name
+               FROM app.job_applications a
+               JOIN app.jobs j ON a.job_id = j.id
+               JOIN app.manager_profiles mp ON j.manager_id = mp.id
+               JOIN app.worker_profiles wp ON a.worker_id = wp.id
+               WHERE a.id = ?""",
+            applicationId
+        ).firstOrNull()
+    }
+
+    fun findCompanySealByJobId(jobId: String): String? {
+        return db.queryForList(
+            """SELECT co.signature_s3_key
+               FROM app.jobs j
+               JOIN app.construction_sites s ON j.site_id = s.id
+               JOIN app.construction_companies co ON s.company_id = co.id
+               WHERE j.id = ?""",
+            jobId
+        ).firstOrNull()?.get("signature_s3_key") as? String
+    }
+
     fun create(
         applicationId: String,
         jobId: String,
         workerId: String,
         managerId: String,
-        contractHtml: String
+        contractHtml: String,
+        companySealS3Key: String? = null
     ): Map<String, Any?>? {
-        return db.queryForList(
-            """INSERT INTO app.contracts
-                 (application_id, job_id, worker_id, manager_id, contract_html, status)
-               VALUES (?, ?, ?, ?, ?, 'PENDING_WORKER_SIGN')
-               RETURNING *""",
-            applicationId, jobId, workerId, managerId, contractHtml
-        ).firstOrNull()
+        return if (companySealS3Key != null) {
+            db.queryForList(
+                """INSERT INTO app.contracts
+                     (application_id, job_id, worker_id, manager_id, contract_html, status,
+                      manager_signature_s3_key, manager_signed_at)
+                   VALUES (?, ?, ?, ?, ?, 'PENDING_WORKER_SIGN', ?, NOW())
+                   RETURNING *""",
+                applicationId, jobId, workerId, managerId, contractHtml, companySealS3Key
+            ).firstOrNull()
+        } else {
+            db.queryForList(
+                """INSERT INTO app.contracts
+                     (application_id, job_id, worker_id, manager_id, contract_html, status)
+                   VALUES (?, ?, ?, ?, ?, 'PENDING_WORKER_SIGN')
+                   RETURNING *""",
+                applicationId, jobId, workerId, managerId, contractHtml
+            ).firstOrNull()
+        }
     }
 
     fun managerSign(contractId: String, managerUserId: String, signatureS3Key: String): Map<String, Any?>? {

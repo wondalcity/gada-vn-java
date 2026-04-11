@@ -22,4 +22,4 @@ spring:
 gada:
   admin:
     api-base-url: ${API_BASE_URL:http://localhost:7001/v1}
-    api-admin-key: ${ADMIN_SERVICE_KEY:}
+    api-admin-key: ${ADMIN_SERVICE_KEY:local-dev-admin-service-key-000000000000}

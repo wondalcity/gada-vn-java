@@ -7,6 +7,7 @@ import vn.gada.api.auth.AuthRepository
 import vn.gada.api.auth.AuthService
 import vn.gada.api.common.exception.BadRequestException
 import vn.gada.api.common.exception.NotFoundException
+import vn.gada.api.contracts.ContractService
 import vn.gada.api.notifications.NotificationService
 
 @Service
@@ -15,6 +16,7 @@ class AdminService(
     private val authRepo: AuthRepository,
     private val authService: AuthService,
     private val notifications: NotificationService,
+    private val contractService: ContractService,
     @Value("\${spring.profiles.active:default}") private val activeProfile: String
 ) {
     private val log = LoggerFactory.getLogger(AdminService::class.java)
@@ -119,6 +121,10 @@ class AdminService(
         return mapOf("data" to data, "total" to total, "page" to page, "limit" to limit)
     }
 
+    fun getJob(jobId: String): Map<String, Any?> {
+        return repo.findJobById(jobId) ?: throw NotFoundException("Job $jobId not found")
+    }
+
     fun getJobWithRoster(jobId: String): Map<String, Any?> {
         val job = repo.findJobById(jobId) ?: throw NotFoundException("Job $jobId not found")
         val roster = repo.findJobRoster(jobId)
@@ -139,8 +145,19 @@ class AdminService(
     }
 
     fun acceptApplication(applicationId: String): Map<String, Any?>? {
-        return repo.updateApplicationStatus(applicationId, "ACCEPTED")
+        val app = repo.updateApplicationStatus(applicationId, "ACCEPTED")
             ?: throw NotFoundException("Application $applicationId not found")
+        // Auto-generate contract with company seal pre-populated
+        try {
+            contractService.adminGenerate(applicationId)
+        } catch (e: Exception) {
+            log.warn("Contract auto-generate failed for application {}: {}", applicationId, e.message)
+        }
+        return app
+    }
+
+    fun getWorkerContracts(workerProfileId: String): List<Map<String, Any?>> {
+        return repo.findContractsByWorkerProfileId(workerProfileId)
     }
 
     fun rejectApplication(applicationId: String): Map<String, Any?>? {

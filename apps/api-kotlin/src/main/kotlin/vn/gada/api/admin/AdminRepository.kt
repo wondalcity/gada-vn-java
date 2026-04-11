@@ -496,6 +496,20 @@ class AdminRepository(
         ).firstOrNull()
     }
 
+    fun findContractsByWorkerProfileId(workerProfileId: String): List<Map<String, Any?>> {
+        return db.queryForList(
+            """SELECT c.id, c.status, c.created_at, c.worker_signed_at, c.manager_signed_at,
+                      j.title AS job_title, j.work_date, j.daily_wage,
+                      s.name  AS site_name
+               FROM app.contracts c
+               JOIN app.jobs j ON c.job_id = j.id
+               JOIN app.construction_sites s ON j.site_id = s.id
+               WHERE c.worker_id = ?
+               ORDER BY c.created_at DESC""",
+            workerProfileId
+        )
+    }
+
     // ── Sites ─────────────────────────────────────────────────────────────────
 
     fun findAllSites(): List<Map<String, Any?>> {

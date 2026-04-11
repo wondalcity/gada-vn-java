@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider
+import software.amazon.awssdk.core.sync.RequestBody
 import software.amazon.awssdk.regions.Region
 import software.amazon.awssdk.services.s3.S3Client
 import software.amazon.awssdk.services.s3.model.GetObjectRequest
@@ -25,6 +26,30 @@ class FileService(
     @Value("\${gada.aws.access-key-id:}") private val accessKeyId: String,
     @Value("\${gada.aws.secret-access-key:}") private val secretAccessKey: String
 ) {
+
+    private val s3Client: S3Client? by lazy {
+        try {
+            if (accessKeyId.isNotBlank() && secretAccessKey.isNotBlank()) {
+                S3Client.builder()
+                    .region(Region.of(region))
+                    .credentialsProvider(StaticCredentialsProvider.create(
+                        AwsBasicCredentials.create(accessKeyId, secretAccessKey)
+                    ))
+                    .build()
+            } else {
+                S3Client.builder().region(Region.of(region)).build()
+            }
+        } catch (e: Exception) { null }
+    }
+
+    fun uploadBytes(key: String, bytes: ByteArray, contentType: String) {
+        val client = s3Client ?: throw IllegalStateException("S3 not configured")
+        client.putObject(
+            PutObjectRequest.builder()
+                .bucket(bucket).key(key).contentType(contentType).build(),
+            RequestBody.fromBytes(bytes)
+        )
+    }
 
     private val presigner: S3Presigner? by lazy {
         try {

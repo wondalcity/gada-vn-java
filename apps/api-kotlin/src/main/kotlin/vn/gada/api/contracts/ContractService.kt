@@ -15,23 +15,56 @@ class ContractService(
         val application = repo.findAcceptedApplication(applicationId, managerUserId)
             ?: throw NotFoundException("Application not found or unauthorized")
 
-        val contractHtml = """<html><body>
+        val jobId = application["job_id"] as String
+        val companySealS3Key = repo.findCompanySealByJobId(jobId)
+
+        val contractHtml = buildContractHtml(application)
+
+        val contract = repo.create(
+            applicationId = applicationId,
+            jobId = jobId,
+            workerId = application["worker_profile_id"] as String,
+            managerId = application["manager_profile_id"] as String,
+            contractHtml = contractHtml,
+            companySealS3Key = companySealS3Key
+        ) ?: return null
+
+        notifyWorkerContractReady(contract)
+        return contract
+    }
+
+    fun adminGenerate(applicationId: String): Map<String, Any?>? {
+        val application = repo.findApplicationData(applicationId) ?: return null
+
+        val jobId = application["job_id"] as String
+        val companySealS3Key = repo.findCompanySealByJobId(jobId)
+
+        val contractHtml = buildContractHtml(application)
+
+        val contract = repo.create(
+            applicationId = applicationId,
+            jobId = jobId,
+            workerId = application["worker_profile_id"] as String,
+            managerId = application["manager_profile_id"] as String,
+            contractHtml = contractHtml,
+            companySealS3Key = companySealS3Key
+        ) ?: return null
+
+        notifyWorkerContractReady(contract)
+        return contract
+    }
+
+    private fun buildContractHtml(application: Map<String, Any?>): String {
+        return """<html><body>
       <h1>근로계약서</h1>
       <p>일자리: ${application["job_title"]}</p>
       <p>근무일: ${application["work_date"]}</p>
       <p>일당: ${application["daily_wage"]} VND</p>
       <p>근로자: ${application["worker_name"]}</p>
     </body></html>"""
+    }
 
-        val contract = repo.create(
-            applicationId = applicationId,
-            jobId = application["job_id"] as String,
-            workerId = application["worker_profile_id"] as String,
-            managerId = application["manager_profile_id"] as String,
-            contractHtml = contractHtml
-        ) ?: return null
-
-        // Notify worker — fire-and-forget
+    private fun notifyWorkerContractReady(contract: Map<String, Any?>) {
         try {
             val contractId = contract["id"] as String
             val parties = repo.findPartyUserIds(contractId)
@@ -47,8 +80,6 @@ class ContractService(
         } catch (e: Exception) {
             // Ignore notification errors
         }
-
-        return contract
     }
 
     fun findByWorker(workerUserId: String): List<Map<String, Any?>> {

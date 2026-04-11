@@ -190,6 +190,16 @@ class AdminController(
         return ok(adminService.deleteWorker(id))
     }
 
+    /** GET /admin/workers/:id/contracts */
+    @GetMapping("/workers/{id}/contracts")
+    fun getWorkerContracts(
+        request: HttpServletRequest,
+        @PathVariable id: String
+    ): ResponseEntity<Map<String, Any?>> {
+        checkAdminKey(request)
+        return ok(adminService.getWorkerContracts(id))
+    }
+
     /** GET /admin/workers/:id/trade-skills */
     @GetMapping("/workers/{id}/trade-skills")
     fun getWorkerTradeSkills(
@@ -223,6 +233,16 @@ class AdminController(
     ): ResponseEntity<Map<String, Any?>> {
         checkAdminKey(request)
         return ok(adminService.listJobs(status, page, limit))
+    }
+
+    /** GET /admin/jobs/:id */
+    @GetMapping("/jobs/{id}")
+    fun getJob(
+        request: HttpServletRequest,
+        @PathVariable id: String
+    ): ResponseEntity<Map<String, Any?>> {
+        checkAdminKey(request)
+        return ok(adminService.getJob(id))
     }
 
     /** GET /admin/jobs/:id/roster — returns { job, roster } */
@@ -408,6 +428,25 @@ class AdminController(
         val contentType = body["contentType"] as? String ?: throw BadRequestException("contentType is required")
         val result = fileService.generatePresignedUrl(id, fileName, contentType, "company-seals")
         return ok(result)
+    }
+
+    /** POST /admin/companies/:id/seal — Upload seal image (base64 JSON, server-proxied) */
+    @PostMapping("/companies/{id}/seal")
+    fun uploadCompanySeal(
+        request: HttpServletRequest,
+        @PathVariable id: String,
+        @RequestBody body: Map<String, Any?>
+    ): ResponseEntity<Map<String, Any?>> {
+        checkAdminKey(request)
+        val fileData = body["fileData"] as? String
+            ?: throw BadRequestException("fileData required")
+        val contentType = body["contentType"] as? String ?: "image/png"
+        val fileName = body["fileName"] as? String ?: "seal.png"
+        val ext = fileName.substringAfterLast('.', "png")
+        val key = "company-seals/$id/${java.util.UUID.randomUUID()}.$ext"
+        val bytes = java.util.Base64.getDecoder().decode(fileData)
+        fileService.uploadBytes(key, bytes, contentType)
+        return ok(adminService.updateCompany(id, mapOf("signatureS3Key" to key)))
     }
 
     /** DELETE /admin/companies/:id/seal — Remove company seal */
