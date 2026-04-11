@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useTranslations } from 'next-intl'
 import dynamic from 'next/dynamic'
 import type { PublicJob, Province, Trade } from '@/lib/api/public'
 import { MobileJobFilters } from './MobileJobFilters'
@@ -81,6 +82,7 @@ export function WorkerJobsClient({
   basePath = '/worker/jobs',
   fetchSavedLocation = true,
 }: Props) {
+  const t = useTranslations('jobs')
   const [viewMode, setViewMode] = useState<ViewMode>(initialView as ViewMode)
   const [mapCenter, setMapCenter] = useState<{ lat: number; lng: number } | undefined>(undefined)
   const [focusJobId, setFocusJobId] = useState<string | null>(null)
@@ -122,7 +124,7 @@ export function WorkerJobsClient({
         <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 10h16M4 14h16M4 18h16" />
         </svg>
-        리스트
+        {t('listing.view_list')}
       </button>
       <button
         type="button"
@@ -137,7 +139,7 @@ export function WorkerJobsClient({
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
             d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6-3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
         </svg>
-        지도
+        {t('listing.view_map')}
       </button>
     </div>
   )
@@ -211,7 +213,7 @@ export function WorkerJobsClient({
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
                           d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2a1 1 0 01-.293.707L13 13.414V19a1 1 0 01-.553.894l-4 2A1 1 0 017 21v-7.586L3.293 6.707A1 1 0 013 6V4z" />
                       </svg>
-                      <span className="text-sm font-bold text-[#25282A]">필터</span>
+                      <span className="text-sm font-bold text-[#25282A]">{t('listing.filter_title')}</span>
                     </div>
                     {activeFilterCount > 0 && (
                       <span className="flex items-center justify-center w-5 h-5 rounded-full bg-[#0669F7] text-white text-[10px] font-bold">
@@ -233,9 +235,9 @@ export function WorkerJobsClient({
                   {q && (
                     <span className="font-semibold text-[#25282A]">"{q}" </span>
                   )}
-                  총 <span className="font-semibold text-[#25282A]">{total.toLocaleString()}</span>개 공고
+                  {t('listing.total_count', { n: total.toLocaleString() })}
                   {geoActive && (
-                    <span className="ml-2 text-[#0669F7] font-medium">· 반경 {selectedRadius}km 내</span>
+                    <span className="ml-2 text-[#0669F7] font-medium">{t('listing.within_radius', { n: selectedRadius })}</span>
                   )}
                 </p>
                 {viewToggle}

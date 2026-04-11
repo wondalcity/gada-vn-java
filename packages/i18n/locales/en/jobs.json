@@ -46,7 +46,15 @@
     "empty": "No jobs match your search criteria.",
     "empty_search": "No results found for \"{q}\".",
     "empty_geo": "No matching jobs nearby. Try expanding the radius.",
-    "count": "{count} jobs"
+    "count": "{count} jobs",
+    "view_list": "List",
+    "view_map": "Map",
+    "filter_title": "Filter",
+    "total_count": "Total {n} jobs",
+    "within_radius": "· Within {n}km",
+    "search_radius": "Search radius",
+    "filter_applied": "Filter applied ({n})",
+    "close": "Close"
   },
   "card": {
     "status": {

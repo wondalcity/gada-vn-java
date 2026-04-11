@@ -19,6 +19,7 @@ export interface Trade {
   code: string
   nameKo: string
   nameVi: string
+  nameEn?: string
 }
 
 export interface Province {
@@ -35,6 +36,7 @@ export interface PublicJob {
   titleVi: string
   tradeNameKo: string
   tradeNameVi: string
+  tradeNameEn?: string
   provinceNameVi: string
   provinceSlug: string
   siteSlug: string

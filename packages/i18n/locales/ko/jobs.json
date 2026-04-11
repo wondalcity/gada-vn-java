@@ -46,7 +46,15 @@
     "empty": "조건에 맞는 일자리가 없습니다.",
     "empty_search": "\"{q}\" 검색 결과가 없습니다.",
     "empty_geo": "주변에 조건에 맞는 공고가 없습니다. 반경을 넓혀보세요.",
-    "count": "{count}개의 일자리"
+    "count": "{count}개의 일자리",
+    "view_list": "리스트",
+    "view_map": "지도",
+    "filter_title": "필터",
+    "total_count": "총 {n}개 공고",
+    "within_radius": "· 반경 {n}km 내",
+    "search_radius": "검색 반경",
+    "filter_applied": "필터 적용 ({n})",
+    "close": "닫기"
   },
   "card": {
     "status": {

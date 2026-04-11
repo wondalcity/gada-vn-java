@@ -122,6 +122,7 @@ export class PublicService {
         t.code AS trade_code,
         t.name_ko AS trade_name_ko,
         t.name_vi AS trade_name_vi,
+        t.name_en AS trade_name_en,
         p.name_vi AS province_name_vi,
         p.name_en AS province_name_en,
         ${distanceExpr}
@@ -173,6 +174,7 @@ export class PublicService {
         t.code AS trade_code,
         t.name_ko AS trade_name_ko,
         t.name_vi AS trade_name_vi,
+        t.name_en AS trade_name_en,
         p.name_vi AS province_name_vi,
         p.name_en AS province_name_en
       FROM app.jobs j
@@ -199,6 +201,7 @@ export class PublicService {
         t.code AS trade_code,
         t.name_ko AS trade_name_ko,
         t.name_vi AS trade_name_vi,
+        t.name_en AS trade_name_en,
         p.name_vi AS province_name_vi,
         p.name_en AS province_name_en
       FROM app.jobs j
@@ -307,13 +310,14 @@ export class PublicService {
 
   async getTrades() {
     const { rows } = await this.db.query(
-      `SELECT id, code, name_ko, name_vi FROM ref.construction_trades ORDER BY id`,
+      `SELECT id, code, name_ko, name_vi, name_en FROM ref.construction_trades ORDER BY id`,
     );
     return rows.map((r) => ({
       id: r.id,
       code: r.code,
       nameKo: r.name_ko,
       nameVi: r.name_vi,
+      nameEn: r.name_en,
     }));
   }
 
@@ -328,6 +332,7 @@ export class PublicService {
       titleVi: r.title,
       tradeNameKo: r.trade_name_ko ?? '',
       tradeNameVi: r.trade_name_vi ?? '',
+      tradeNameEn: (r.trade_name_en as string) ?? '',
       provinceNameVi: (r.province_name_vi as string) ?? (r.province as string) ?? '',
       provinceSlug: toProvinceSlug((r.province as string) ?? ''),
       siteSlug: r.site_id,

@@ -1,6 +1,7 @@
 'use client'
 
 import * as React from 'react'
+import { useTranslations, useLocale } from 'next-intl'
 import { useRouter, usePathname } from '@/i18n/navigation'
 import { useSearchParams } from 'next/navigation'
 import { getSessionCookie } from '@/lib/auth/session'
@@ -29,22 +30,22 @@ interface Props {
   viewToggle?: React.ReactNode
 }
 
-const STATUS_OPTIONS = [
-  { value: '',             label: '모집중',   dotColor: 'bg-[#00C800]' },
-  { value: 'ALMOST_FULL',  label: '마감임박',  dotColor: 'bg-[#FFC72C]' },
-  { value: 'FILLED',       label: '마감',     dotColor: 'bg-[#7A7B7A]' },
-] as const
+const STATUS_DOT_COLORS = {
+  '':           'bg-[#00C800]',
+  'ALMOST_FULL': 'bg-[#FFC72C]',
+  'FILLED':     'bg-[#7A7B7A]',
+} as const
 
 const RADIUS_OPTIONS = [10, 30, 50, 100]
 
-function FilterChip({ label, onRemove }: { label: string; onRemove: () => void }) {
+function FilterChip({ label, onRemove, removeLabel = 'Remove' }: { label: string; onRemove: () => void; removeLabel?: string }) {
   return (
     <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-[#EEF4FF] border border-[#0669F7] text-xs font-medium text-[#0669F7] shrink-0 whitespace-nowrap">
       {label}
       <button
         type="button"
         onClick={(e) => { e.stopPropagation(); onRemove() }}
-        aria-label="필터 제거"
+        aria-label={removeLabel}
         className="ml-0.5 w-3.5 h-3.5 flex items-center justify-center rounded-full hover:bg-[#B3D9FF] transition-colors"
       >
         <svg className="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -67,6 +68,13 @@ export function MobileJobFilters({
   totalJobs,
   viewToggle,
 }: Props) {
+  const t = useTranslations('jobs')
+  const locale = useLocale()
+  const statusOptions = [
+    { value: '',             label: t('listing.filter.status_open'),         dotColor: STATUS_DOT_COLORS[''] },
+    { value: 'ALMOST_FULL',  label: t('listing.filter.status_closing_soon'),  dotColor: STATUS_DOT_COLORS['ALMOST_FULL'] },
+    { value: 'FILLED',       label: t('listing.filter.status_closed'),        dotColor: STATUS_DOT_COLORS['FILLED'] },
+  ]
   const router = useRouter()
   const pathname = usePathname()
   const searchParams = useSearchParams()
@@ -74,7 +82,7 @@ export function MobileJobFilters({
   const [geoLoading, setGeoLoading] = React.useState(false)
   const [geoError, setGeoError] = React.useState('')
   const [activeLabel, setActiveLabel] = React.useState(() =>
-    selectedLat != null ? '현재 위치' : ''
+    selectedLat != null ? t('listing.filter.use_location') : ''
   )
   const [savedLocations, setSavedLocations] = React.useState<SavedLocation[]>([])
 
@@ -147,19 +155,19 @@ export function MobileJobFilters({
   }
 
   function useGPS() {
-    if (!navigator.geolocation) { setGeoError('이 브라우저는 위치 기능을 지원하지 않습니다.'); return }
-    if (!window.isSecureContext) { setGeoError('위치 서비스는 보안 연결(HTTPS)에서만 사용할 수 있습니다.'); return }
+    if (!navigator.geolocation) { setGeoError(t('listing.filter.geo_error_unsupported')); return }
+    if (!window.isSecureContext) { setGeoError(t('listing.filter.geo_error_https')); return }
     setGeoLoading(true); setGeoError('')
     navigator.geolocation.getCurrentPosition(
       pos => {
-        activateGeo(pos.coords.latitude, pos.coords.longitude, '현재 위치')
+        activateGeo(pos.coords.latitude, pos.coords.longitude, t('listing.filter.my_location'))
         setGeoLoading(false)
       },
       (err) => {
         if (err.code === 2) {
-          setGeoError('현재 위치를 확인할 수 없습니다. 잠시 후 다시 시도해주세요.')
+          setGeoError(t('listing.filter.geo_error_unavailable'))
         } else {
-          setGeoError('위치 권한이 거부되었습니다. 브라우저 설정에서 허용해주세요.')
+          setGeoError(t('listing.filter.geo_error_denied'))
         }
         setGeoLoading(false)
       },
@@ -168,7 +176,10 @@ export function MobileJobFilters({
   }
 
   const selectedProvinceName = provinces.find(p => p.slug === selectedProvince)?.nameVi
-  const selectedTradeName = trades.find(t => t.id === selectedTrade)?.nameKo
+  const selectedTradeObj = trades.find(tr => tr.id === selectedTrade)
+  const selectedTradeName = selectedTradeObj
+    ? (locale === 'vi' ? selectedTradeObj.nameVi : locale === 'en' ? (selectedTradeObj.nameEn || selectedTradeObj.nameKo) : selectedTradeObj.nameKo)
+    : undefined
 
   return (
     <>
@@ -182,7 +193,7 @@ export function MobileJobFilters({
           {/* Left: job count + filter button */}
           <div className="flex items-center gap-2 min-w-0">
             <p className="text-sm font-medium text-[#25282A] whitespace-nowrap shrink-0">
-              총 <span className="font-bold">{totalJobs.toLocaleString()}</span>개 공고
+              {t('listing.total_count', { n: totalJobs.toLocaleString() })}
               {geoActive && (
                 <span className="ml-1.5 text-xs text-[#0669F7] font-medium">· {selectedRadius}km</span>
               )}
@@ -196,7 +207,7 @@ export function MobileJobFilters({
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
                   d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2a1 1 0 01-.293.707L13 13.414V19a1 1 0 01-.553.894l-4 2A1 1 0 017 21v-7.586L3.293 6.707A1 1 0 013 6V4z" />
               </svg>
-              필터
+              {t('listing.filter_title')}
               {activeFilterCount > 0 && (
                 <span className="absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full bg-[#0669F7] text-white text-[9px] font-bold flex items-center justify-center">
                   {activeFilterCount}
@@ -228,13 +239,13 @@ export function MobileJobFilters({
             )}
             {geoActive && (
               <FilterChip
-                label={activeLabel || '내 위치'}
+                label={activeLabel || t('listing.filter.my_location')}
                 onRemove={clearGeo}
               />
             )}
             {selectedStatus && (
               <FilterChip
-                label={STATUS_OPTIONS.find(s => s.value === selectedStatus)?.label ?? selectedStatus}
+                label={statusOptions.find(s => s.value === selectedStatus)?.label ?? selectedStatus}
                 onRemove={() => updateParam('status', undefined)}
               />
             )}
@@ -243,7 +254,7 @@ export function MobileJobFilters({
               onClick={clearAll}
               className="text-xs text-[#7A7B7A] whitespace-nowrap shrink-0 px-1"
             >
-              초기화
+              {t('listing.filter.reset')}
             </button>
           </div>
         )}
@@ -267,7 +278,7 @@ export function MobileJobFilters({
             <div className="shrink-0 pt-3 pb-3 px-5 border-b border-[#F5F7FA]">
               <div className="w-8 h-1 rounded-full bg-[#DDDDDD] mx-auto mb-3" />
               <div className="flex items-center justify-between">
-                <p className="text-base font-bold text-[#25282A]">필터</p>
+                <p className="text-base font-bold text-[#25282A]">{t('listing.filter_title')}</p>
                 <button
                   type="button"
                   onClick={() => setDrawerOpen(false)}
@@ -285,13 +296,13 @@ export function MobileJobFilters({
 
               {/* Province */}
               <div>
-                <label className="block text-sm font-semibold text-[#25282A] mb-2">지역</label>
+                <label className="block text-sm font-semibold text-[#25282A] mb-2">{t('listing.filter.province')}</label>
                 <select
                   value={selectedProvince ?? ''}
                   onChange={e => updateParam('province', e.target.value || undefined)}
                   className="w-full px-3 py-2.5 text-sm border border-[#DDDDDD] rounded-xl bg-white focus:outline-none focus:border-[#0669F7] appearance-none"
                 >
-                  <option value="">전체 지역</option>
+                  <option value="">{t('listing.filter.all_provinces')}</option>
                   {provinces.map(p => (
                     <option key={p.slug} value={p.slug}>{p.nameVi}</option>
                   ))}
@@ -300,24 +311,26 @@ export function MobileJobFilters({
 
               {/* Trade */}
               <div>
-                <label className="block text-sm font-semibold text-[#25282A] mb-2">직종</label>
+                <label className="block text-sm font-semibold text-[#25282A] mb-2">{t('listing.filter.trade')}</label>
                 <select
                   value={selectedTrade ?? ''}
                   onChange={e => updateParam('trade', e.target.value || undefined)}
                   className="w-full px-3 py-2.5 text-sm border border-[#DDDDDD] rounded-xl bg-white focus:outline-none focus:border-[#0669F7] appearance-none"
                 >
-                  <option value="">전체 직종</option>
-                  {trades.map(t => (
-                    <option key={t.id} value={String(t.id)}>{t.nameKo}</option>
+                  <option value="">{t('listing.filter.all_trades')}</option>
+                  {trades.map(tr => (
+                    <option key={tr.id} value={String(tr.id)}>
+                      {locale === 'vi' ? tr.nameVi : locale === 'en' ? (tr.nameEn || tr.nameKo) : tr.nameKo}
+                    </option>
                   ))}
                 </select>
               </div>
 
               {/* Status */}
               <div>
-                <label className="block text-sm font-semibold text-[#25282A] mb-2">모집 상태</label>
+                <label className="block text-sm font-semibold text-[#25282A] mb-2">{t('listing.filter.status')}</label>
                 <div className="flex gap-2">
-                  {STATUS_OPTIONS.map(opt => (
+                  {statusOptions.map(opt => (
                     <button
                       key={opt.value}
                       type="button"
@@ -337,13 +350,13 @@ export function MobileJobFilters({
 
               {/* Location */}
               <div>
-                <label className="block text-sm font-semibold text-[#25282A] mb-2">내 위치</label>
+                <label className="block text-sm font-semibold text-[#25282A] mb-2">{t('listing.filter.my_location')}</label>
 
                 {geoActive ? (
                   <div className="flex items-center gap-2 px-3 py-3 bg-[#EEF4FF] border border-[#0669F7] rounded-xl">
                     <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.8}><path strokeLinecap="round" strokeLinejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path strokeLinecap="round" strokeLinejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
                     <span className="flex-1 text-sm font-medium text-[#0669F7] truncate">
-                      {activeLabel || '위치 필터 적용됨'}
+                      {activeLabel || t('listing.filter.active_location')}
                     </span>
                     <button
                       type="button"
@@ -366,7 +379,7 @@ export function MobileJobFilters({
                       ? <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>
                       : <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.8}><path strokeLinecap="round" strokeLinejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path strokeLinecap="round" strokeLinejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
                     }
-                    <span>{geoLoading ? '위치 찾는 중...' : '현재 위치 사용'}</span>
+                    <span>{geoLoading ? t('listing.filter.finding_location') : t('listing.filter.use_location')}</span>
                   </button>
                 )}
 
@@ -390,7 +403,7 @@ export function MobileJobFilters({
 
                 {geoActive && (
                   <div className="mt-3">
-                    <p className="text-xs font-medium text-[#7A7B7A] mb-2">검색 반경</p>
+                    <p className="text-xs font-medium text-[#7A7B7A] mb-2">{t('listing.search_radius')}</p>
                     <div className="flex gap-2">
                       {RADIUS_OPTIONS.map(r => (
                         <button
@@ -419,7 +432,7 @@ export function MobileJobFilters({
                 onClick={() => setDrawerOpen(false)}
                 className="w-full py-3.5 rounded-full bg-[#0669F7] text-white font-semibold hover:bg-[#0557D4] transition-colors text-sm"
               >
-                {activeFilterCount > 0 ? `필터 적용 (${activeFilterCount})` : '닫기'}
+                {activeFilterCount > 0 ? t('listing.filter_applied', { n: activeFilterCount }) : t('listing.close')}
               </button>
             </div>
           </div>

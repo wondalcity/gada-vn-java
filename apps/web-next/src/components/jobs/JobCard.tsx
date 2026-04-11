@@ -87,7 +87,7 @@ export function JobCard({ job, locale, basePath = '/jobs', onWagePress }: Props)
           className="inline-block self-start text-xs font-bold px-2.5 py-1 rounded-full mb-2.5"
           style={{ background: '#EFF1F5', color: '#98A2B2' }}
         >
-          {(locale === 'vi' ? job.tradeNameVi : job.tradeNameKo) || t('card.other')}
+          {(locale === 'vi' ? job.tradeNameVi : locale === 'en' ? (job.tradeNameEn || job.tradeNameKo) : job.tradeNameKo) || t('card.other')}
         </span>
 
         {/* Title */}

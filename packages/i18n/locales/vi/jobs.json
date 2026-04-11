@@ -46,7 +46,15 @@
     "empty": "Không có việc làm phù hợp với điều kiện tìm kiếm.",
     "empty_search": "Không có kết quả cho \"{q}\".",
     "empty_geo": "Không có tin tuyển dụng phù hợp gần bạn. Hãy thử mở rộng bán kính.",
-    "count": "{count} việc làm"
+    "count": "{count} việc làm",
+    "view_list": "Danh sách",
+    "view_map": "Bản đồ",
+    "filter_title": "Bộ lọc",
+    "total_count": "Tổng {n} việc làm",
+    "within_radius": "· Trong vòng {n}km",
+    "search_radius": "Bán kính tìm kiếm",
+    "filter_applied": "Đã lọc ({n})",
+    "close": "Đóng"
   },
   "card": {
     "status": {
