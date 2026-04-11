@@ -109,7 +109,7 @@ export function WorkerAppBar({ locale, user, provinces = [] }: Props) {
         {/* Right actions */}
         <div className="flex items-center gap-1">
           <LocaleSwitcher />
-          <PublicHeaderSearch locale={locale} />
+          <PublicHeaderSearch locale={locale} basePath="/worker/jobs" />
           <Link
             href={'/worker/notifications'}
             className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-[#EFF1F5] transition-colors"

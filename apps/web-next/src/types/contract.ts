@@ -50,7 +50,7 @@ export interface HireWithContract {
 
 export const CONTRACT_STATUS_LABELS: Record<ContractStatus, string> = {
   PENDING_WORKER_SIGN:   '근로자 서명 대기',
-  PENDING_MANAGER_SIGN:  '사업주 서명 대기',
+  PENDING_MANAGER_SIGN:  '건설사 서명 대기',
   FULLY_SIGNED:          '계약 완료',
   VOID:                  '계약 무효',
 }

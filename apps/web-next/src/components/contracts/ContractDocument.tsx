@@ -170,7 +170,7 @@ export function ContractDocument({ contract, documentRef, previewWorkerSigUrl, p
 
       {/* ── Intro text ── */}
       <p style={{ fontSize: '12px', lineHeight: '1.8', color: '#444', marginBottom: '20px', textAlign: 'justify' }}>
-        근로자(이하 "갑")와 사업주(이하 "을")는 아래와 같이 근로계약을 체결하고 이를 성실히 이행할 것을 확약합니다.
+        근로자(이하 "갑")와 건설사(이하 "을")는 아래와 같이 근로계약을 체결하고 이를 성실히 이행할 것을 확약합니다.
       </p>
 
       {/* ── Detail table ── */}
@@ -214,8 +214,8 @@ export function ContractDocument({ contract, documentRef, previewWorkerSigUrl, p
           <Row label="성명" value={contract.workerName ?? '-'} />
           {contract.workerPhone && <Row label="연락처" value={contract.workerPhone} />}
 
-          {/* 사업주 정보 — 건설사 또는 담당 관리자 */}
-          <SectionHeader>■ 사업주 정보 (을)</SectionHeader>
+          {/* 건설사 정보 */}
+          <SectionHeader>■ 건설사 정보 (을)</SectionHeader>
           {contract.companyName ? (
             <>
               <Row label="건설사명" value={contract.companyName} />
@@ -246,9 +246,9 @@ export function ContractDocument({ contract, documentRef, previewWorkerSigUrl, p
         </p>
         <ol style={{ margin: 0, paddingLeft: '16px', fontSize: '11px', lineHeight: '2', color: '#555' }}>
           <li>근로자는 지정된 근무 시간에 현장에 출근하여 성실하게 근무하여야 합니다.</li>
-          <li>사업주는 근로기준법에 따라 안전한 근무 환경을 제공하여야 합니다.</li>
+          <li>건설사는 근로기준법에 따라 안전한 근무 환경을 제공하여야 합니다.</li>
           <li>합의된 일당은 근로 완료 확인 후 지체 없이 지급합니다.</li>
-          <li>근로자 또는 사업주의 귀책 사유로 인한 계약 불이행 시 GADA 플랫폼 운영 정책에 따릅니다.</li>
+          <li>근로자 또는 건설사의 귀책 사유로 인한 계약 불이행 시 GADA 플랫폼 운영 정책에 따릅니다.</li>
           <li>본 계약에 명시되지 않은 사항은 근로기준법 및 관련 법령에 따릅니다.</li>
         </ol>
       </div>
@@ -342,12 +342,12 @@ export function ContractDocument({ contract, documentRef, previewWorkerSigUrl, p
               }}
             >
               <div style={{ fontSize: '11px', fontWeight: 700, color: '#444', marginBottom: '4px' }}>
-                을 (사업주)
+                을 (건설사)
               </div>
               <div style={{ fontSize: '11px', color: '#666', marginBottom: '8px' }}>
                 {contract.companyName
                   ? `건설사: ${contract.companyName}`
-                  : `성명: ${contract.managerName ?? '_________________'}`
+                  : `담당관리자: ${contract.managerName ?? '_________________'}`
                 }
               </div>
 

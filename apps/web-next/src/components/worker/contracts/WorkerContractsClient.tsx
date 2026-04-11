@@ -20,7 +20,7 @@ interface ContractListItem {
 
 const STATUS_CONFIG = {
   PENDING_WORKER_SIGN:  { label: '서명 필요',       bg: 'bg-[#FFF8E6] text-[#856404] border-[#F5D87D]',  dot: '#F59E0B' },
-  PENDING_MANAGER_SIGN: { label: '사업주 서명 대기', bg: 'bg-[#E6F0FE] text-[#0669F7] border-[#B3D9FF]',     dot: '#0669F7' },
+  PENDING_MANAGER_SIGN: { label: '건설사 서명 대기', bg: 'bg-[#E6F0FE] text-[#0669F7] border-[#B3D9FF]',     dot: '#0669F7' },
   FULLY_SIGNED:         { label: '계약 완료',        bg: 'bg-[#E6F9E6] text-[#1A6B1A] border-[#86D98A]',  dot: '#16A34A' },
   VOID:                 { label: '계약 무효',        bg: 'bg-[#EFF1F5] text-[#7A7B7A] border-[#DDDDDD]',    dot: '#9CA3AF' },
 } as const

@@ -174,10 +174,11 @@
     "info_site": "Site",
     "info_work_date": "Work Date",
     "info_daily_wage": "Daily Wage",
-    "info_manager": "Manager",
+    "info_manager": "Construction Company",
     "signature_title": "Signature Status",
     "sig_worker": "Worker Signature",
-    "sig_manager": "Manager Signature",
+    "sig_company": "Company Seal",
+    "sig_company_done": "Company Sealed",
     "sig_sign_now": "Sign Now",
     "sig_pending": "Pending Signature",
     "sig_done": "Signed",
@@ -192,10 +193,9 @@
     "sign_complete": "Complete",
     "sign_error_empty": "Please provide a signature.",
     "sign_error_generic": "An error occurred while signing.",
-    "sign_success": "Signed successfully! Waiting for manager signature.",
+    "sign_success": "Signed successfully! Contract is complete.",
     "banner_need_sign": "Signature required. Please review the contract and sign below.",
-    "banner_waiting_manager": "Worker has signed. Waiting for manager signature.",
-    "banner_fully_signed": "Contract complete. Both parties have signed."
+    "banner_fully_signed": "Contract complete."
   },
   "worker_id_upload": {
     "back_to_profile": "Back to Profile",

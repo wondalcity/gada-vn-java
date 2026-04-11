@@ -174,10 +174,11 @@
     "info_site": "현장",
     "info_work_date": "근무일",
     "info_daily_wage": "일당",
-    "info_manager": "담당 사업주",
+    "info_manager": "담당 건설사",
     "signature_title": "서명 현황",
     "sig_worker": "근로자 서명",
-    "sig_manager": "사업주 서명",
+    "sig_company": "건설사 직인",
+    "sig_company_done": "건설사 직인 완료",
     "sig_sign_now": "서명하기",
     "sig_pending": "서명 대기",
     "sig_done": "서명 완료",
@@ -192,10 +193,9 @@
     "sign_complete": "서명 완료",
     "sign_error_empty": "서명을 입력해 주세요.",
     "sign_error_generic": "서명 중 오류가 발생했습니다.",
-    "sign_success": "서명이 완료되었습니다! 사업주 서명을 기다리고 있습니다.",
+    "sign_success": "서명이 완료되었습니다! 계약이 완료되었습니다.",
     "banner_need_sign": "서명이 필요합니다. 계약 내용을 확인한 후 하단 서명란에 서명해 주세요.",
-    "banner_waiting_manager": "근로자 서명이 완료되었습니다. 사업주 서명을 기다리고 있습니다.",
-    "banner_fully_signed": "계약이 완료되었습니다. 양측이 모두 서명하였습니다."
+    "banner_fully_signed": "계약이 완료되었습니다."
   },
   "worker_id_upload": {
     "back_to_profile": "프로필로 돌아가기",

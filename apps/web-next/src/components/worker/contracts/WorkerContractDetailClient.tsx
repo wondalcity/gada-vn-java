@@ -312,6 +312,7 @@ function SignatureStatusCard({ contract, onSignClick }: { contract: Contract; on
   const t = useTranslations('common')
   const [viewingUrl, setViewingUrl] = React.useState<string | null>(null)
   const canWorkerSign = contract.status === 'PENDING_WORKER_SIGN'
+  const companySigUrl = contract.companySigUrl ?? contract.managerSigUrl
   return (
     <>
       {viewingUrl && (
@@ -335,45 +336,8 @@ function SignatureStatusCard({ contract, onSignClick }: { contract: Contract; on
       <div className="bg-white rounded-2xl shadow-sm border border-[#EFF1F5] p-4 space-y-4">
         <p className="text-sm font-semibold text-[#25282A]">{t('worker_contracts.signature_title')}</p>
 
-        {/* Signing step flow indicator */}
-        <div className="flex items-center gap-2">
-          <div className="flex items-center gap-1.5 flex-1">
-            <div className={`w-6 h-6 rounded-full flex items-center justify-center shrink-0 text-[10px] font-bold ${
-              contract.workerSignedAt ? 'bg-[#00C800] text-white' : 'bg-[#0669F7] text-white'
-            }`}>
-              {contract.workerSignedAt
-                ? <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
-                : '1'}
-            </div>
-            <span className={`text-xs font-medium ${contract.workerSignedAt ? 'text-[#1A6B1A]' : 'text-[#0669F7]'}`}>
-              {t('worker_contracts.sig_worker')}
-            </span>
-          </div>
-          <svg className="w-4 h-4 shrink-0 text-[#DDDDDD]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-          </svg>
-          <div className="flex items-center gap-1.5 flex-1 justify-end">
-            <div className={`w-6 h-6 rounded-full flex items-center justify-center shrink-0 text-[10px] font-bold ${
-              contract.managerSignedAt ? 'bg-[#00C800] text-white'
-              : contract.status === 'PENDING_MANAGER_SIGN' ? 'bg-[#FFC72C] text-[#3C2C02]'
-              : 'bg-[#EFF1F5] text-[#98A2B2]'
-            }`}>
-              {contract.managerSignedAt
-                ? <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
-                : contract.status === 'PENDING_MANAGER_SIGN' ? '2'
-                : <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>}
-            </div>
-            <span className={`text-xs font-medium ${
-              contract.managerSignedAt ? 'text-[#1A6B1A]'
-              : contract.status === 'PENDING_MANAGER_SIGN' ? 'text-[#856404]'
-              : 'text-[#98A2B2]'
-            }`}>
-              {t('worker_contracts.sig_manager')}
-            </span>
-          </div>
-        </div>
-
         <div className="grid grid-cols-2 gap-3">
+          {/* Worker signature box */}
           <SignatureBox
             label={t('worker_contracts.sig_worker')}
             signedAt={contract.workerSignedAt}
@@ -382,33 +346,24 @@ function SignatureStatusCard({ contract, onSignClick }: { contract: Contract; on
             canSign={canWorkerSign}
             onSignClick={canWorkerSign ? onSignClick : undefined}
           />
-          {/* Manager box — locked until worker signs */}
-          {contract.managerSignedAt ? (
-            <SignatureBox
-              label={t('worker_contracts.sig_manager')}
-              signedAt={contract.managerSignedAt}
-              sigUrl={contract.companySigUrl ?? contract.managerSigUrl}
-              onView={setViewingUrl}
-            />
-          ) : contract.status === 'PENDING_MANAGER_SIGN' ? (
-            <div className="rounded-xl border-2 border-dashed border-[#F5D87D] bg-[#FFFDF0] p-3 flex flex-col items-center gap-2 min-h-[100px] justify-center">
-              <p className="text-xs font-medium text-[#856404]">{t('worker_contracts.sig_manager')}</p>
-              <div className="w-10 h-10 rounded-full bg-[#FFF8E6] flex items-center justify-center">
-                <svg className="w-5 h-5 text-[#FFC72C]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}><path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+          {/* Company seal box — always shown as pre-signed by the construction company */}
+          <div className="rounded-xl border-2 border-[#86D98A] bg-[#E6F9E6] p-3 flex flex-col items-center gap-1 min-h-[100px] justify-center">
+            <p className="text-xs font-medium text-[#1A6B1A]">{t('worker_contracts.sig_company')}</p>
+            {companySigUrl ? (
+              <button
+                type="button"
+                onClick={() => setViewingUrl(companySigUrl)}
+                className="w-full h-14 flex items-center justify-center overflow-hidden rounded-lg bg-white border border-[#86D98A] hover:border-[#00C800] transition-colors"
+              >
+                <img src={companySigUrl} alt="건설사 직인" className="max-h-full max-w-full object-contain p-1" />
+              </button>
+            ) : (
+              <div className="w-10 h-10 rounded-full bg-[#D6F0D6] flex items-center justify-center">
+                <svg className="w-6 h-6 text-[#1A6B1A]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
               </div>
-              <p className="text-xs text-[#856404] font-medium">서명 대기중</p>
-            </div>
-          ) : (
-            <div className="rounded-xl border-2 border-dashed border-[#EFF1F5] bg-[#F9FAFB] p-3 flex flex-col items-center gap-2 min-h-[100px] justify-center">
-              <p className="text-xs font-medium text-[#98A2B2]">{t('worker_contracts.sig_manager')}</p>
-              <div className="w-10 h-10 rounded-full bg-[#EFF1F5] flex items-center justify-center">
-                <svg className="w-5 h-5 text-[#C8CBD0]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                </svg>
-              </div>
-              <p className="text-xs text-[#C8CBD0] text-center leading-relaxed">근로자 서명 후<br/>활성화</p>
-            </div>
-          )}
+            )}
+            <p className="text-xs text-[#1A6B1A] font-medium">{t('worker_contracts.sig_company_done')}</p>
+          </div>
         </div>
       </div>
     </>
@@ -586,12 +541,6 @@ export default function WorkerContractDetailClient({ contractId }: Props) {
         <div className="p-4 bg-[#FFF8E6] border border-[#F5D87D] rounded-xl flex items-start gap-3">
           <svg className="w-5 h-5 text-[#FFC72C] shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
           <p className="text-sm font-medium text-[#856404]">{t('worker_contracts.banner_need_sign')}</p>
-        </div>
-      )}
-      {contract.status === 'PENDING_MANAGER_SIGN' && (
-        <div className="p-4 bg-[#E6F0FE] border border-[#B3D9FF] rounded-xl flex items-start gap-3">
-          <svg className="w-5 h-5 text-[#0669F7] shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-          <p className="text-sm font-medium text-[#0669F7]">{t('worker_contracts.banner_waiting_manager')}</p>
         </div>
       )}
       {contract.status === 'FULLY_SIGNED' && (

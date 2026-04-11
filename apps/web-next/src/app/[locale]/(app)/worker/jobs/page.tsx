@@ -5,6 +5,7 @@ import { WorkerJobsClient } from '@/components/jobs/WorkerJobsClient'
 interface Props {
   params: Promise<{ locale: string }>
   searchParams: Promise<{
+    q?: string
     province?: string
     trade?: string
     page?: string
@@ -16,11 +17,11 @@ interface Props {
   }>
 }
 
-export const revalidate = 60
+export const dynamic = 'force-dynamic'
 
 export default async function WorkerJobsPage({ params, searchParams }: Props) {
   const { locale } = await params
-  const { province, trade, page: pageStr, lat, lng, radius, status, view } = await searchParams
+  const { q, province, trade, page: pageStr, lat, lng, radius, status, view } = await searchParams
 
   const page = Math.max(1, Number(pageStr ?? 1))
   const tradeId = trade ? Number(trade) : undefined
@@ -30,6 +31,7 @@ export default async function WorkerJobsPage({ params, searchParams }: Props) {
 
   const [result, provinces, trades] = await Promise.all([
     fetchPublicJobs({
+      q: q?.trim() || undefined,
       provinceSlug: province,
       tradeId,
       page,
@@ -46,6 +48,7 @@ export default async function WorkerJobsPage({ params, searchParams }: Props) {
   const { jobs, total, totalPages } = result
 
   const paginationParams: Record<string, string> = {}
+  if (q)        paginationParams.q = q
   if (province) paginationParams.province = province
   if (trade)    paginationParams.trade = trade
   if (lat)      paginationParams.lat = lat
@@ -55,11 +58,13 @@ export default async function WorkerJobsPage({ params, searchParams }: Props) {
 
   const geoActive = selectedLat != null && selectedLng != null
 
-  const emptyMessage = geoActive
+  const emptyMessage = q
+    ? `"${q}" 검색 결과가 없습니다.`
+    : geoActive
     ? '주변에 조건에 맞는 공고가 없습니다. 반경을 넓혀보세요.'
     : '조건에 맞는 공고가 없습니다.'
 
-  const activeFilterCount = [province, trade, geoActive ? 'geo' : null, status].filter(Boolean).length
+  const activeFilterCount = [q, province, trade, geoActive ? 'geo' : null, status].filter(Boolean).length
 
   return (
     <div className="max-w-[1760px] mx-auto">
@@ -72,6 +77,7 @@ export default async function WorkerJobsPage({ params, searchParams }: Props) {
           provinces={provinces}
           trades={trades}
           locale={locale}
+          q={q}
           province={province}
           tradeId={tradeId}
           selectedLat={selectedLat}

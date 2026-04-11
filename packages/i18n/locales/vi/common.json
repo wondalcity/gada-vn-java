@@ -174,10 +174,11 @@
     "info_site": "Công trường",
     "info_work_date": "Ngày làm việc",
     "info_daily_wage": "Lương ngày",
-    "info_manager": "Chủ quản lý",
+    "info_manager": "Công ty xây dựng",
     "signature_title": "Tình trạng chữ ký",
     "sig_worker": "Chữ ký công nhân",
-    "sig_manager": "Chữ ký chủ",
+    "sig_company": "Con dấu công ty",
+    "sig_company_done": "Công ty đã đóng dấu",
     "sig_sign_now": "Ký ngay",
     "sig_pending": "Chờ ký",
     "sig_done": "Đã ký",
@@ -192,10 +193,9 @@
     "sign_complete": "Hoàn tất ký",
     "sign_error_empty": "Vui lòng nhập chữ ký.",
     "sign_error_generic": "Đã xảy ra lỗi khi ký.",
-    "sign_success": "Đã ký thành công! Đang chờ chữ ký của chủ.",
+    "sign_success": "Đã ký thành công! Hợp đồng đã hoàn tất.",
     "banner_need_sign": "Cần chữ ký. Vui lòng xem nội dung hợp đồng và ký vào ô bên dưới.",
-    "banner_waiting_manager": "Công nhân đã ký. Đang chờ chữ ký của chủ.",
-    "banner_fully_signed": "Hợp đồng hoàn tất. Cả hai bên đã ký."
+    "banner_fully_signed": "Hợp đồng hoàn tất."
   },
   "worker_id_upload": {
     "back_to_profile": "Quay lại hồ sơ",

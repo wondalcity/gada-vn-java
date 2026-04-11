@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Outlet, NavLink, useNavigate } from 'react-router-dom'
+import { Outlet, NavLink, Navigate, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { useAdminTranslation } from '../context/LanguageContext'
 import { api } from '../lib/api'
@@ -112,6 +112,11 @@ export default function Layout() {
   const { user, can, loading } = useAuth()
   const { t } = useAdminTranslation()
   const [showChangePw, setShowChangePw] = useState(false)
+
+  // Redirect to login when session has expired
+  if (!loading && !user) {
+    return <Navigate to="/login" replace />
+  }
 
   async function handleLogout() {
     await fetch('/logout', { method: 'POST', credentials: 'include' })
