@@ -356,7 +356,7 @@ class AdminRepository(
 
     // ── Jobs ──────────────────────────────────────────────────────────────────
 
-    fun findJobsPaginated(status: String?, page: Int, limit: Int): List<Map<String, Any?>> {
+    fun findJobsPaginated(status: String?, search: String, page: Int, limit: Int): List<Map<String, Any?>> {
         val offset = (page - 1) * limit
         val baseQuery = """SELECT j.*, t.name_ko as trade_name_ko, t.name_vi as trade_name_vi,
                       cs.name as site_name, cs.address, cs.province,
@@ -365,24 +365,43 @@ class AdminRepository(
                LEFT JOIN ref.construction_trades t ON j.trade_id = t.id
                LEFT JOIN app.construction_sites cs ON j.site_id = cs.id
                LEFT JOIN app.construction_companies cc ON cs.company_id = cc.id"""
-        return if (status.isNullOrBlank()) {
-            sanitizeList(db.queryForList(
-                "$baseQuery ORDER BY j.created_at DESC LIMIT ? OFFSET ?",
-                limit, offset
-            ))
-        } else {
-            sanitizeList(db.queryForList(
+        val hasStatus = !status.isNullOrBlank()
+        val hasSearch = search.isNotBlank()
+        val like = "%$search%"
+        return when {
+            !hasStatus && !hasSearch -> sanitizeList(db.queryForList(
+                "$baseQuery ORDER BY j.created_at DESC LIMIT ? OFFSET ?", limit, offset))
+            hasStatus && !hasSearch -> sanitizeList(db.queryForList(
                 "$baseQuery WHERE j.status = ? ORDER BY j.created_at DESC LIMIT ? OFFSET ?",
-                status, limit, offset
-            ))
+                status, limit, offset))
+            !hasStatus && hasSearch -> sanitizeList(db.queryForList(
+                "$baseQuery WHERE (j.title ILIKE ? OR cs.name ILIKE ? OR cc.name ILIKE ?) ORDER BY j.created_at DESC LIMIT ? OFFSET ?",
+                like, like, like, limit, offset))
+            else -> sanitizeList(db.queryForList(
+                "$baseQuery WHERE j.status = ? AND (j.title ILIKE ? OR cs.name ILIKE ? OR cc.name ILIKE ?) ORDER BY j.created_at DESC LIMIT ? OFFSET ?",
+                status, like, like, like, limit, offset))
         }
     }
 
-    fun countJobs(status: String?): Int {
-        val rows = if (status.isNullOrBlank()) {
-            db.queryForList("SELECT COUNT(*) as count FROM app.jobs")
-        } else {
-            db.queryForList("SELECT COUNT(*) as count FROM app.jobs WHERE status = ?", status)
+    fun countJobs(status: String?, search: String): Int {
+        val hasStatus = !status.isNullOrBlank()
+        val hasSearch = search.isNotBlank()
+        val like = "%$search%"
+        val rows = when {
+            !hasStatus && !hasSearch -> db.queryForList("SELECT COUNT(*) as count FROM app.jobs")
+            hasStatus && !hasSearch -> db.queryForList(
+                "SELECT COUNT(*) as count FROM app.jobs WHERE status = ?", status)
+            !hasStatus && hasSearch -> db.queryForList(
+                """SELECT COUNT(*) as count FROM app.jobs j
+                   LEFT JOIN app.construction_sites cs ON j.site_id = cs.id
+                   LEFT JOIN app.construction_companies cc ON cs.company_id = cc.id
+                   WHERE (j.title ILIKE ? OR cs.name ILIKE ? OR cc.name ILIKE ?)""", like, like, like)
+            else -> db.queryForList(
+                """SELECT COUNT(*) as count FROM app.jobs j
+                   LEFT JOIN app.construction_sites cs ON j.site_id = cs.id
+                   LEFT JOIN app.construction_companies cc ON cs.company_id = cc.id
+                   WHERE j.status = ? AND (j.title ILIKE ? OR cs.name ILIKE ? OR cc.name ILIKE ?)""",
+                status, like, like, like)
         }
         return (rows.firstOrNull()?.get("count") as? Number)?.toInt() ?: 0
     }
@@ -534,6 +553,41 @@ class AdminRepository(
         )
     }
 
+    fun searchSitesPaginated(search: String, page: Int, limit: Int): List<Map<String, Any?>> {
+        val offset = (page - 1) * limit
+        val base = """SELECT cs.id, cs.manager_id, cs.company_id, cs.name, cs.address, cs.province,
+                      cs.district, cs.lat, cs.lng, cs.site_type, cs.status, cs.created_at, cs.updated_at,
+                      cc.name    AS company_name,
+                      mp.representative_name AS manager_name,
+                      mp.contact_phone       AS manager_phone,
+                      mp.id                  AS manager_profile_id,
+                      COUNT(j.id)                                           AS job_count,
+                      COUNT(j.id) FILTER (WHERE j.status = 'OPEN')         AS open_job_count
+               FROM app.construction_sites cs
+               LEFT JOIN app.construction_companies cc ON cs.company_id = cc.id
+               LEFT JOIN app.manager_profiles mp ON cs.manager_id = mp.id
+               LEFT JOIN app.jobs j ON j.site_id = cs.id"""
+        return if (search.isBlank()) {
+            db.queryForList("$base GROUP BY cs.id, cc.name, mp.representative_name, mp.contact_phone, mp.id ORDER BY cs.created_at DESC LIMIT ? OFFSET ?", limit, offset)
+        } else {
+            val like = "%$search%"
+            db.queryForList("$base WHERE cs.name ILIKE ? OR cs.address ILIKE ? OR cs.province ILIKE ? OR cc.name ILIKE ? GROUP BY cs.id, cc.name, mp.representative_name, mp.contact_phone, mp.id ORDER BY cs.created_at DESC LIMIT ? OFFSET ?",
+                like, like, like, like, limit, offset)
+        }
+    }
+
+    fun countSites(search: String): Int {
+        val base = """SELECT COUNT(DISTINCT cs.id) as count FROM app.construction_sites cs
+               LEFT JOIN app.construction_companies cc ON cs.company_id = cc.id"""
+        val rows = if (search.isBlank()) {
+            db.queryForList(base)
+        } else {
+            val like = "%$search%"
+            db.queryForList("$base WHERE cs.name ILIKE ? OR cs.address ILIKE ? OR cs.province ILIKE ? OR cc.name ILIKE ?", like, like, like, like)
+        }
+        return (rows.firstOrNull()?.get("count") as? Number)?.toInt() ?: 0
+    }
+
     fun findSiteById(id: String): Map<String, Any?>? {
         val site = db.queryForList(
             """SELECT cs.id, cs.manager_id, cs.company_id, cs.name, cs.address, cs.province,
@@ -622,6 +676,34 @@ class AdminRepository(
                GROUP BY cc.id
                ORDER BY cc.name"""
         )
+    }
+
+    fun searchCompaniesPaginated(search: String, page: Int, limit: Int): List<Map<String, Any?>> {
+        val offset = (page - 1) * limit
+        val base = """SELECT cc.*, COUNT(cs.id) AS site_count
+               FROM app.construction_companies cc
+               LEFT JOIN app.construction_sites cs ON cs.company_id = cc.id"""
+        val rows = if (search.isBlank()) {
+            db.queryForList("$base GROUP BY cc.id ORDER BY cc.created_at DESC LIMIT ? OFFSET ?", limit, offset)
+        } else {
+            val like = "%$search%"
+            db.queryForList(
+                "$base WHERE (cc.name ILIKE ? OR cc.business_reg_no ILIKE ? OR cc.contact_name ILIKE ?) GROUP BY cc.id ORDER BY cc.created_at DESC LIMIT ? OFFSET ?",
+                like, like, like, limit, offset)
+        }
+        return rows.map { row -> row + mapOf("signature_url" to toUrl(row["signature_s3_key"] as? String)) }
+    }
+
+    fun countCompanies(search: String): Int {
+        val rows = if (search.isBlank()) {
+            db.queryForList("SELECT COUNT(*) as count FROM app.construction_companies")
+        } else {
+            val like = "%$search%"
+            db.queryForList(
+                "SELECT COUNT(*) as count FROM app.construction_companies WHERE name ILIKE ? OR business_reg_no ILIKE ? OR contact_name ILIKE ?",
+                like, like, like)
+        }
+        return (rows.firstOrNull()?.get("count") as? Number)?.toInt() ?: 0
     }
 
     fun findCompanyById(id: String): Map<String, Any?>? {

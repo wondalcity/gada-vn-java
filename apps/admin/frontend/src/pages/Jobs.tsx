@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { api } from '../lib/api'
 import { DEMO_JOBS } from '../lib/demo-data'
@@ -24,11 +24,16 @@ const STATUS_BADGE: Record<string, string> = {
   COMPLETED: 'bg-purple-100 text-purple-700',
 }
 
+const LIMIT_OPTIONS = [10, 30, 50]
+
 export default function Jobs() {
   const { t } = useAdminTranslation()
   const [searchParams, setSearchParams] = useSearchParams()
   const status = searchParams.get('status') ?? ''
   const page = parseInt(searchParams.get('page') ?? '1')
+  const limit = parseInt(searchParams.get('limit') ?? '20')
+  const search = searchParams.get('search') ?? ''
+  const [query, setQuery] = useState(search)
   const [jobs, setJobs] = useState<Job[]>([])
   const [total, setTotal] = useState(0)
   const [loading, setLoading] = useState(true)
@@ -42,13 +47,13 @@ export default function Jobs() {
     { key: 'CANCELLED', label: t('jobs.tab_cancelled') },
   ]
 
-  useEffect(() => {
+  const load = useCallback((s: string, q: string, p: number, l: number) => {
     setLoading(true)
-    api.get<{ data: Job[]; total: number }>(`/admin/jobs?status=${status}&page=${page}&limit=20`)
+    api.get<{ data: Job[]; total: number }>(`/admin/jobs?status=${s}&search=${encodeURIComponent(q)}&page=${p}&limit=${l}`)
       .then((res) => {
         const data = res.data ?? []
-        if (data.length === 0) {
-          const demo = (status ? DEMO_JOBS.filter((j) => j.status === status) : DEMO_JOBS) as unknown as Job[]
+        if (data.length === 0 && !q) {
+          const demo = (s ? DEMO_JOBS.filter((j) => j.status === s) : DEMO_JOBS) as unknown as Job[]
           setJobs(demo)
           setTotal(demo.length)
           setIsDemo(true)
@@ -59,13 +64,24 @@ export default function Jobs() {
         }
       })
       .catch(() => {
-        const demo = (status ? DEMO_JOBS.filter((j) => j.status === status) : DEMO_JOBS) as unknown as Job[]
+        const demo = (s ? DEMO_JOBS.filter((j) => j.status === s) : DEMO_JOBS) as unknown as Job[]
         setJobs(demo)
         setTotal(demo.length)
         setIsDemo(true)
       })
       .finally(() => setLoading(false))
-  }, [status, page])
+  }, [])
+
+  useEffect(() => { load(status, search, page, limit) }, [status, search, page, limit, load])
+
+  function handleSearch(e: React.FormEvent) {
+    e.preventDefault()
+    setSearchParams({ status, search: query, page: '1', limit: String(limit) })
+  }
+
+  function goToPage(p: number) {
+    setSearchParams({ status, search, page: String(p), limit: String(limit) })
+  }
 
   async function deleteJob(id: string) {
     if (!confirm(t('jobs.confirm_cancel'))) return
@@ -100,14 +116,32 @@ export default function Jobs() {
       {flash === 'updated' && <div className="bg-green-50 border border-green-200 text-green-700 rounded-2xl p-3 mb-4 text-sm">{t('jobs.flash_updated')}</div>}
       {flash === 'deleted' && <div className="bg-[#F2F4F5] border border-[#EFF1F5] text-gray-600 rounded-2xl p-3 mb-4 text-sm">{t('jobs.flash_deleted')}</div>}
 
-      <div className="flex gap-2 mb-6">
+      <div className="flex flex-wrap gap-2 mb-4">
         {STATUS_TABS.map((tab) => (
-          <button key={tab.key} onClick={() => setSearchParams({ status: tab.key, page: '1' })}
+          <button key={tab.key} onClick={() => setSearchParams({ status: tab.key, search, page: '1', limit: String(limit) })}
             className={`px-4 py-2 rounded-2xl text-sm font-medium transition-colors ${status === tab.key ? 'bg-[#0669F7] text-white' : 'bg-white text-gray-600 hover:bg-[#F2F4F5] border border-[#EFF1F5]'}`}>
             {tab.label}
           </button>
         ))}
       </div>
+
+      <form onSubmit={handleSearch} className="flex gap-2 mb-6">
+        <input
+          type="text"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder={t('jobs.search_placeholder')}
+          className="flex-1 border border-[#EFF1F5] rounded-2xl px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0669F7]"
+        />
+        <button type="submit" className="bg-[#0669F7] text-white px-4 py-2 rounded-2xl text-sm font-medium">{t('common.search')}</button>
+        <select
+          value={limit}
+          onChange={(e) => setSearchParams({ status, search, page: '1', limit: e.target.value })}
+          className="border border-[#EFF1F5] rounded-2xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0669F7] bg-white"
+        >
+          {LIMIT_OPTIONS.map(n => <option key={n} value={n}>{n}{t('common.per_page')}</option>)}
+        </select>
+      </form>
 
       <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
         {loading ? (
@@ -158,6 +192,33 @@ export default function Jobs() {
           </div>
         )}
       </div>
+
+      {/* Pagination */}
+      {!isDemo && total > limit && (
+        <div className="mt-4 flex items-center justify-center gap-1">
+          <button onClick={() => goToPage(page - 1)} disabled={page <= 1}
+            className="px-3 py-1.5 rounded-xl text-sm border border-[#EFF1F5] text-gray-600 hover:bg-[#F2F4F5] disabled:opacity-40">‹</button>
+          {Array.from({ length: Math.ceil(total / limit) }, (_, i) => i + 1)
+            .filter(p => p === 1 || p === Math.ceil(total / limit) || Math.abs(p - page) <= 2)
+            .reduce<(number | '...')[]>((acc, p, idx, arr) => {
+              if (idx > 0 && (p as number) - (arr[idx - 1] as number) > 1) acc.push('...')
+              acc.push(p)
+              return acc
+            }, [])
+            .map((p, i) =>
+              p === '...' ? (
+                <span key={`e${i}`} className="px-2 text-gray-400 text-sm">…</span>
+              ) : (
+                <button key={p} onClick={() => goToPage(p as number)}
+                  className={`px-3 py-1.5 rounded-xl text-sm border transition-colors ${p === page ? 'bg-[#0669F7] text-white border-[#0669F7] font-semibold' : 'border-[#EFF1F5] text-gray-600 hover:bg-[#F2F4F5]'}`}>
+                  {p}
+                </button>
+              )
+            )}
+          <button onClick={() => goToPage(page + 1)} disabled={page >= Math.ceil(total / limit)}
+            className="px-3 py-1.5 rounded-xl text-sm border border-[#EFF1F5] text-gray-600 hover:bg-[#F2F4F5] disabled:opacity-40">›</button>
+        </div>
+      )}
 
       <div className="mt-4 text-xs text-gray-400 text-right">{t('jobs.total').replace('{n}', String(total))}</div>
     </div>

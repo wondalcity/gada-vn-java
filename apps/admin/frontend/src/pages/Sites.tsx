@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from 'react'
-import { useParams, useNavigate } from 'react-router-dom'
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom'
 import { api } from '../lib/api'
 import { DEMO_SITES, DEMO_COMPANIES } from '../lib/demo-data'
 import { useAdminTranslation } from '../context/LanguageContext'
@@ -69,6 +69,8 @@ interface Company {
   id: string
   name: string
 }
+
+const LIMIT_OPTIONS = [10, 30, 50]
 
 const SITE_STATUS_BADGE: Record<string, string> = {
   ACTIVE: 'bg-green-100 text-green-700',
@@ -547,7 +549,13 @@ export default function Sites() {
   const { t, locale } = useAdminTranslation()
   const { id } = useParams<{ id?: string }>()
   const navigate = useNavigate()
+  const [searchParams, setSearchParams] = useSearchParams()
+  const search = searchParams.get('search') ?? ''
+  const page = parseInt(searchParams.get('page') ?? '1', 10)
+  const limit = parseInt(searchParams.get('limit') ?? '20', 10)
+  const [query, setQuery] = useState(search)
   const [sites, setSites] = useState<Site[]>([])
+  const [total, setTotal] = useState(0)
   const [managers, setManagers] = useState<Manager[]>([])
   const [companies, setCompanies] = useState<Company[]>([])
   const [loading, setLoading] = useState(true)
@@ -567,50 +575,62 @@ export default function Sites() {
 
   const loadCompanies = useCallback(async () => {
     try {
-      const data = await api.get<Company[]>('/admin/companies')
-      setCompanies(Array.isArray(data) ? data : [])
+      const res = await api.get<{ data: Company[] }>('/admin/companies?limit=500')
+      setCompanies(res.data ?? [])
     } catch {
       // non-fatal
     }
   }, [])
 
-  const load = useCallback(() => {
+  const load = useCallback((q: string, p: number, l: number) => {
     if (id) return
     setLoading(true)
-    api.get<Site[]>('/admin/sites')
-      .then((data) => {
-        const arr = Array.isArray(data) ? data : []
-        if (arr.length === 0) {
+    api.get<{ data: Site[]; total: number }>(`/admin/sites?search=${encodeURIComponent(q)}&page=${p}&limit=${l}`)
+      .then((res) => {
+        const arr = res.data ?? []
+        if (arr.length === 0 && !q) {
           setSites(DEMO_SITES as unknown as Site[])
+          setTotal(DEMO_SITES.length)
           setIsDemo(true)
         } else {
           setSites(arr)
+          setTotal(res.total ?? arr.length)
           setIsDemo(false)
         }
       })
       .catch(() => {
         setSites(DEMO_SITES as unknown as Site[])
+        setTotal(DEMO_SITES.length)
         setIsDemo(true)
       })
       .finally(() => setLoading(false))
   }, [id])
 
   useEffect(() => {
-    load()
+    load(search, page, limit)
     loadManagers()
     loadCompanies()
-  }, [load, loadManagers, loadCompanies])
+  }, [search, page, limit, load, loadManagers, loadCompanies])
 
   function showMsg(msg: string) {
     setToast(msg)
     setTimeout(() => setToast(null), 3000)
   }
 
+  function handleSearch(e: React.FormEvent) {
+    e.preventDefault()
+    setSearchParams({ search: query, page: '1', limit: String(limit) })
+  }
+
+  function goToPage(p: number) {
+    setSearchParams({ search, page: String(p), limit: String(limit) })
+  }
+
   async function handleCreate(data: Record<string, string>) {
     await api.post('/admin/sites', data)
     setShowCreate(false)
     showMsg(t('sites.registered'))
-    load()
+    load(search, page, limit)
   }
 
   async function handleEdit(data: Record<string, string>) {
@@ -618,7 +638,7 @@ export default function Sites() {
     await api.put(`/admin/sites/${editSite.id}`, data)
     setEditSite(null)
     showMsg(t('common.saved'))
-    load()
+    load(search, page, limit)
   }
 
   async function handleDelete(site: Site) {
@@ -626,6 +646,7 @@ export default function Sites() {
     try {
       await api.delete(`/admin/sites/${site.id}`)
       setSites(prev => prev.filter(s => s.id !== site.id))
+      setTotal(prev => prev - 1)
       showMsg(t('common.deleted'))
     } catch (err: unknown) {
       showMsg(err instanceof Error ? err.message : t('common.delete_failed'))
@@ -687,6 +708,24 @@ export default function Sites() {
           <span className="text-amber-600">{t('common.demo_suffix')}</span>
         </div>
       )}
+
+      <form onSubmit={handleSearch} className="flex gap-2 mb-6">
+        <input
+          type="text"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder={t('sites.search_placeholder')}
+          className="flex-1 border border-[#EFF1F5] rounded-2xl px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0669F7]"
+        />
+        <button type="submit" className="bg-[#0669F7] text-white px-4 py-2 rounded-2xl text-sm font-medium">{t('common.search')}</button>
+        <select
+          value={limit}
+          onChange={(e) => setSearchParams({ search, page: '1', limit: e.target.value })}
+          className="border border-[#EFF1F5] rounded-2xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0669F7] bg-white"
+        >
+          {LIMIT_OPTIONS.map(n => <option key={n} value={n}>{n}{t('common.per_page')}</option>)}
+        </select>
+      </form>
 
       <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
         {loading ? (
@@ -753,7 +792,34 @@ export default function Sites() {
         )}
       </div>
 
-      <div className="mt-4 text-xs text-gray-400 text-right">{t('sites.total').replace('{n}', String(sites.length))}</div>
+      {/* Pagination */}
+      {!isDemo && total > limit && (
+        <div className="mt-4 flex items-center justify-center gap-1">
+          <button onClick={() => goToPage(page - 1)} disabled={page <= 1}
+            className="px-3 py-1.5 rounded-xl text-sm border border-[#EFF1F5] text-gray-600 hover:bg-[#F2F4F5] disabled:opacity-40">‹</button>
+          {Array.from({ length: Math.ceil(total / limit) }, (_, i) => i + 1)
+            .filter(p => p === 1 || p === Math.ceil(total / limit) || Math.abs(p - page) <= 2)
+            .reduce<(number | '...')[]>((acc, p, idx, arr) => {
+              if (idx > 0 && (p as number) - (arr[idx - 1] as number) > 1) acc.push('...')
+              acc.push(p)
+              return acc
+            }, [])
+            .map((p, i) =>
+              p === '...' ? (
+                <span key={`e${i}`} className="px-2 text-gray-400 text-sm">…</span>
+              ) : (
+                <button key={p} onClick={() => goToPage(p as number)}
+                  className={`px-3 py-1.5 rounded-xl text-sm border transition-colors ${p === page ? 'bg-[#0669F7] text-white border-[#0669F7] font-semibold' : 'border-[#EFF1F5] text-gray-600 hover:bg-[#F2F4F5]'}`}>
+                  {p}
+                </button>
+              )
+            )}
+          <button onClick={() => goToPage(page + 1)} disabled={page >= Math.ceil(total / limit)}
+            className="px-3 py-1.5 rounded-xl text-sm border border-[#EFF1F5] text-gray-600 hover:bg-[#F2F4F5] disabled:opacity-40">›</button>
+        </div>
+      )}
+
+      <div className="mt-4 text-xs text-gray-400 text-right">{t('sites.total').replace('{n}', String(total))}</div>
     </div>
   )
 }

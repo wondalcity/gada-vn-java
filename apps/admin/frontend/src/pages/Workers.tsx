@@ -106,13 +106,14 @@ function CreateWorkerModal({ onSave, onCancel }: { onSave: (phone: string, fullN
   )
 }
 
-const PAGE_SIZE = 20
+const LIMIT_OPTIONS = [10, 30, 50]
 
 export default function Workers() {
   const { t, locale } = useAdminTranslation()
   const [searchParams, setSearchParams] = useSearchParams()
   const search = searchParams.get('search') ?? ''
   const page = parseInt(searchParams.get('page') ?? '1', 10)
+  const limit = parseInt(searchParams.get('limit') ?? '20', 10)
   const [query, setQuery] = useState(search)
   const [workers, setWorkers] = useState<Worker[]>([])
   const [total, setTotal] = useState(0)
@@ -121,9 +122,9 @@ export default function Workers() {
   const [showCreate, setShowCreate] = useState(false)
   const [toast, setToast] = useState<string | null>(null)
 
-  const load = useCallback((q: string, p: number) => {
+  const load = useCallback((q: string, p: number, l: number) => {
     setLoading(true)
-    api.get<{ data: Worker[]; total: number }>(`/admin/workers?search=${encodeURIComponent(q)}&page=${p}&limit=${PAGE_SIZE}`)
+    api.get<{ data: Worker[]; total: number }>(`/admin/workers?search=${encodeURIComponent(q)}&page=${p}&limit=${l}`)
       .then((res) => {
         const data = res.data ?? []
         setWorkers(data)
@@ -138,15 +139,15 @@ export default function Workers() {
       .finally(() => setLoading(false))
   }, [])
 
-  useEffect(() => { load(search, page) }, [search, page, load])
+  useEffect(() => { load(search, page, limit) }, [search, page, limit, load])
 
   function handleSearch(e: React.FormEvent) {
     e.preventDefault()
-    setSearchParams({ search: query, page: '1' })
+    setSearchParams({ search: query, page: '1', limit: String(limit) })
   }
 
   function goToPage(p: number) {
-    setSearchParams({ search, page: String(p) })
+    setSearchParams({ search, page: String(p), limit: String(limit) })
   }
 
   function showMsg(msg: string) {
@@ -158,7 +159,7 @@ export default function Workers() {
     await api.post('/admin/workers', { phone, fullName })
     setShowCreate(false)
     showMsg(t('workers.registered'))
-    load(search, page)
+    load(search, page, limit)
   }
 
   async function handleDelete(worker: Worker) {
@@ -213,6 +214,13 @@ export default function Workers() {
           className="flex-1 border border-[#EFF1F5] rounded-2xl px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0669F7]"
         />
         <button type="submit" className="bg-[#0669F7] text-white px-4 py-2 rounded-2xl text-sm font-medium">{t('common.search')}</button>
+        <select
+          value={limit}
+          onChange={(e) => setSearchParams({ search, page: '1', limit: e.target.value })}
+          className="border border-[#EFF1F5] rounded-2xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0669F7] bg-white"
+        >
+          {LIMIT_OPTIONS.map(n => <option key={n} value={n}>{n}{t('common.per_page')}</option>)}
+        </select>
       </form>
 
       <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
@@ -269,7 +277,7 @@ export default function Workers() {
       </div>
 
       {/* Pagination */}
-      {!isDemo && total > PAGE_SIZE && (
+      {!isDemo && total > limit && (
         <div className="mt-4 flex items-center justify-center gap-1">
           <button
             onClick={() => goToPage(page - 1)}
@@ -278,8 +286,8 @@ export default function Workers() {
           >
             ‹
           </button>
-          {Array.from({ length: Math.ceil(total / PAGE_SIZE) }, (_, i) => i + 1)
-            .filter(p => p === 1 || p === Math.ceil(total / PAGE_SIZE) || Math.abs(p - page) <= 2)
+          {Array.from({ length: Math.ceil(total / limit) }, (_, i) => i + 1)
+            .filter(p => p === 1 || p === Math.ceil(total / limit) || Math.abs(p - page) <= 2)
             .reduce<(number | '...')[]>((acc, p, idx, arr) => {
               if (idx > 0 && (p as number) - (arr[idx - 1] as number) > 1) acc.push('...')
               acc.push(p)
@@ -304,7 +312,7 @@ export default function Workers() {
             )}
           <button
             onClick={() => goToPage(page + 1)}
-            disabled={page >= Math.ceil(total / PAGE_SIZE)}
+            disabled={page >= Math.ceil(total / limit)}
             className="px-3 py-1.5 rounded-xl text-sm border border-[#EFF1F5] text-gray-600 hover:bg-[#F2F4F5] disabled:opacity-40"
           >
             ›

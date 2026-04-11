@@ -229,11 +229,12 @@ class AdminController(
     fun listJobs(
         request: HttpServletRequest,
         @RequestParam(required = false) status: String?,
+        @RequestParam(defaultValue = "") search: String,
         @RequestParam(defaultValue = "1") page: Int,
         @RequestParam(defaultValue = "20") limit: Int
     ): ResponseEntity<Map<String, Any?>> {
         checkAdminKey(request)
-        return ok(adminService.listJobs(status, page, limit))
+        return ok(adminService.listJobs(status, search, page, limit))
     }
 
     /** GET /admin/jobs/:id */
@@ -321,9 +322,14 @@ class AdminController(
 
     /** GET /admin/sites */
     @GetMapping("/sites")
-    fun listSites(request: HttpServletRequest): ResponseEntity<Map<String, Any?>> {
+    fun listSites(
+        request: HttpServletRequest,
+        @RequestParam(defaultValue = "") search: String,
+        @RequestParam(defaultValue = "1") page: Int,
+        @RequestParam(defaultValue = "20") limit: Int
+    ): ResponseEntity<Map<String, Any?>> {
         checkAdminKey(request)
-        return ok(adminService.listSites())
+        return ok(adminService.listSites(search, page, limit))
     }
 
     /** GET /admin/sites/:id */
@@ -371,9 +377,14 @@ class AdminController(
 
     /** GET /admin/companies */
     @GetMapping("/companies")
-    fun listCompanies(request: HttpServletRequest): ResponseEntity<Map<String, Any?>> {
+    fun listCompanies(
+        request: HttpServletRequest,
+        @RequestParam(defaultValue = "") search: String,
+        @RequestParam(defaultValue = "1") page: Int,
+        @RequestParam(defaultValue = "20") limit: Int
+    ): ResponseEntity<Map<String, Any?>> {
         checkAdminKey(request)
-        return ok(adminService.listCompanies())
+        return ok(adminService.listCompanies(search, page, limit))
     }
 
     /** GET /admin/companies/:id */

@@ -124,9 +124,9 @@ class AdminService(
 
     // ── Jobs ──────────────────────────────────────────────────────────────────
 
-    fun listJobs(status: String?, page: Int, limit: Int): Map<String, Any?> {
-        val data = repo.findJobsPaginated(status, page, limit)
-        val total = repo.countJobs(status)
+    fun listJobs(status: String?, search: String, page: Int, limit: Int): Map<String, Any?> {
+        val data = repo.findJobsPaginated(status, search, page, limit)
+        val total = repo.countJobs(status, search)
         return mapOf("data" to data, "total" to total, "page" to page, "limit" to limit)
     }
 
@@ -181,8 +181,10 @@ class AdminService(
 
     // ── Sites ─────────────────────────────────────────────────────────────────
 
-    fun listSites(): List<Map<String, Any?>> {
-        return repo.findAllSites()
+    fun listSites(search: String, page: Int, limit: Int): Map<String, Any?> {
+        val data = repo.searchSitesPaginated(search, page, limit)
+        val total = repo.countSites(search)
+        return mapOf("data" to data, "total" to total, "page" to page, "limit" to limit)
     }
 
     fun getSite(id: String): Map<String, Any?> {
@@ -206,8 +208,10 @@ class AdminService(
 
     // ── Companies ─────────────────────────────────────────────────────────────
 
-    fun listCompanies(): List<Map<String, Any?>> {
-        return repo.findAllCompanies()
+    fun listCompanies(search: String, page: Int, limit: Int): Map<String, Any?> {
+        val data = repo.searchCompaniesPaginated(search, page, limit)
+        val total = repo.countCompanies(search)
+        return mapOf("data" to data, "total" to total, "page" to page, "limit" to limit)
     }
 
     fun getCompany(id: String): Map<String, Any?> {

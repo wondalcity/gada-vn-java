@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback, useRef } from 'react'
-import { useParams, useNavigate } from 'react-router-dom'
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom'
 import { api } from '../lib/api'
 import { DEMO_COMPANIES } from '../lib/demo-data'
 import { useAdminTranslation } from '../context/LanguageContext'
@@ -37,6 +37,7 @@ interface Company {
 
 
 const IN = 'w-full border border-[#EFF1F5] rounded-2xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#0669F7]'
+const LIMIT_OPTIONS = [10, 30, 50]
 
 // ── Company Form Modal ──────────────────────────────────────────────────────
 function CompanyFormModal({
@@ -381,46 +382,64 @@ export default function Companies() {
   const { t, locale } = useAdminTranslation()
   const { id } = useParams<{ id?: string }>()
   const navigate = useNavigate()
+  const [searchParams, setSearchParams] = useSearchParams()
+  const search = searchParams.get('search') ?? ''
+  const page = parseInt(searchParams.get('page') ?? '1', 10)
+  const limit = parseInt(searchParams.get('limit') ?? '20', 10)
+  const [query, setQuery] = useState(search)
   const [companies, setCompanies] = useState<Company[]>([])
+  const [total, setTotal] = useState(0)
   const [loading, setLoading] = useState(true)
   const [isDemo, setIsDemo] = useState(false)
   const [showCreate, setShowCreate] = useState(false)
   const [editCompany, setEditCompany] = useState<Company | null>(null)
   const [toast, setToast] = useState<string | null>(null)
 
-  const load = useCallback(() => {
+  const load = useCallback((q: string, p: number, l: number) => {
     if (id) return
     setLoading(true)
-    api.get<Company[]>('/admin/companies')
-      .then(data => {
-        const arr = Array.isArray(data) ? data : []
-        if (arr.length === 0) {
+    api.get<{ data: Company[]; total: number }>(`/admin/companies?search=${encodeURIComponent(q)}&page=${p}&limit=${l}`)
+      .then(res => {
+        const arr = res.data ?? []
+        if (arr.length === 0 && !q) {
           setCompanies(DEMO_COMPANIES as unknown as Company[])
+          setTotal(DEMO_COMPANIES.length)
           setIsDemo(true)
         } else {
           setCompanies(arr)
+          setTotal(res.total ?? arr.length)
           setIsDemo(false)
         }
       })
       .catch(() => {
         setCompanies(DEMO_COMPANIES as unknown as Company[])
+        setTotal(DEMO_COMPANIES.length)
         setIsDemo(true)
       })
       .finally(() => setLoading(false))
   }, [id])
 
-  useEffect(() => { load() }, [load])
+  useEffect(() => { load(search, page, limit) }, [search, page, limit, load])
 
   function showMsg(msg: string) {
     setToast(msg)
     setTimeout(() => setToast(null), 3000)
   }
 
+  function handleSearch(e: React.FormEvent) {
+    e.preventDefault()
+    setSearchParams({ search: query, page: '1', limit: String(limit) })
+  }
+
+  function goToPage(p: number) {
+    setSearchParams({ search, page: String(p), limit: String(limit) })
+  }
+
   async function handleCreate(data: Record<string, string>) {
     await api.post('/admin/companies', data)
     setShowCreate(false)
     showMsg(t('companies.registered'))
-    load()
+    load(search, page, limit)
   }
 
   async function handleEdit(data: Record<string, string>) {
@@ -428,7 +447,7 @@ export default function Companies() {
     await api.put(`/admin/companies/${editCompany.id}`, data)
     setEditCompany(null)
     showMsg(t('common.saved'))
-    load()
+    load(search, page, limit)
   }
 
   async function handleDelete(company: Company) {
@@ -436,6 +455,7 @@ export default function Companies() {
     try {
       await api.delete(`/admin/companies/${company.id}`)
       setCompanies(prev => prev.filter(c => c.id !== company.id))
+      setTotal(prev => prev - 1)
       showMsg(t('common.deleted'))
     } catch (err: unknown) {
       showMsg(err instanceof Error ? err.message : t('common.delete_failed'))
@@ -487,6 +507,24 @@ export default function Companies() {
           <span className="text-amber-600">{t('common.demo_suffix')}</span>
         </div>
       )}
+
+      <form onSubmit={handleSearch} className="flex gap-2 mb-6">
+        <input
+          type="text"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder={t('companies.search_placeholder')}
+          className="flex-1 border border-[#EFF1F5] rounded-2xl px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0669F7]"
+        />
+        <button type="submit" className="bg-[#0669F7] text-white px-4 py-2 rounded-2xl text-sm font-medium">{t('common.search')}</button>
+        <select
+          value={limit}
+          onChange={(e) => setSearchParams({ search, page: '1', limit: e.target.value })}
+          className="border border-[#EFF1F5] rounded-2xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0669F7] bg-white"
+        >
+          {LIMIT_OPTIONS.map(n => <option key={n} value={n}>{n}{t('common.per_page')}</option>)}
+        </select>
+      </form>
 
       <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
         {loading ? (
@@ -547,7 +585,34 @@ export default function Companies() {
         )}
       </div>
 
-      <div className="mt-4 text-xs text-gray-400 text-right">{t('companies.total').replace('{n}', String(companies.length))}</div>
+      {/* Pagination */}
+      {!isDemo && total > limit && (
+        <div className="mt-4 flex items-center justify-center gap-1">
+          <button onClick={() => goToPage(page - 1)} disabled={page <= 1}
+            className="px-3 py-1.5 rounded-xl text-sm border border-[#EFF1F5] text-gray-600 hover:bg-[#F2F4F5] disabled:opacity-40">‹</button>
+          {Array.from({ length: Math.ceil(total / limit) }, (_, i) => i + 1)
+            .filter(p => p === 1 || p === Math.ceil(total / limit) || Math.abs(p - page) <= 2)
+            .reduce<(number | '...')[]>((acc, p, idx, arr) => {
+              if (idx > 0 && (p as number) - (arr[idx - 1] as number) > 1) acc.push('...')
+              acc.push(p)
+              return acc
+            }, [])
+            .map((p, i) =>
+              p === '...' ? (
+                <span key={`e${i}`} className="px-2 text-gray-400 text-sm">…</span>
+              ) : (
+                <button key={p} onClick={() => goToPage(p as number)}
+                  className={`px-3 py-1.5 rounded-xl text-sm border transition-colors ${p === page ? 'bg-[#0669F7] text-white border-[#0669F7] font-semibold' : 'border-[#EFF1F5] text-gray-600 hover:bg-[#F2F4F5]'}`}>
+                  {p}
+                </button>
+              )
+            )}
+          <button onClick={() => goToPage(page + 1)} disabled={page >= Math.ceil(total / limit)}
+            className="px-3 py-1.5 rounded-xl text-sm border border-[#EFF1F5] text-gray-600 hover:bg-[#F2F4F5] disabled:opacity-40">›</button>
+        </div>
+      )}
+
+      <div className="mt-4 text-xs text-gray-400 text-right">{t('companies.total').replace('{n}', String(total))}</div>
     </div>
   )
 }
