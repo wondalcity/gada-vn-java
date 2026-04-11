@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { api } from '../lib/api'
 import { DEMO_PENDING_MANAGERS, DEMO_WORKERS, DEMO_SITES, DEMO_JOBS } from '../lib/demo-data'
 import { useAdminTranslation } from '../context/LanguageContext'
+import { fmtDate } from '../lib/dateUtils'
 
 interface Manager {
   id: string
@@ -18,7 +19,7 @@ interface Result {
 }
 
 export default function Dashboard() {
-  const { t } = useAdminTranslation()
+  const { t, locale } = useAdminTranslation()
   const [pending, setPending] = useState<Manager[]>([])
   const [total, setTotal] = useState(0)
   const [loading, setLoading] = useState(true)
@@ -106,7 +107,7 @@ export default function Dashboard() {
                   </td>
                   <td className="px-6 py-4 text-sm text-gray-600 whitespace-nowrap">{m.phone ?? '-'}</td>
                   <td className="px-6 py-4 text-sm text-gray-400 whitespace-nowrap">
-                    {new Date(m.created_at).toLocaleDateString('ko-KR')}
+                    {fmtDate(m.created_at, locale)}
                   </td>
                   <td className="px-6 py-4 text-right whitespace-nowrap">
                     <Link to={`/managers/${m.id}`} className="text-[#0669F7] hover:underline text-sm">{t('dashboard.detail_arrow')}</Link>

@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { api } from '../lib/api'
 import { DEMO_SITES, DEMO_COMPANIES } from '../lib/demo-data'
 import { useAdminTranslation } from '../context/LanguageContext'
+import { fmtDate } from '../lib/dateUtils'
 import { GadaSelect } from '../components/ui/GadaFormControls'
 
 function formatPhone(phone: string | null | undefined): string {
@@ -81,10 +82,6 @@ const JOB_STATUS_BADGE: Record<string, string> = {
   CANCELLED: 'bg-[#FDE8EE] text-[#D81A48]',
 }
 
-function formatDate(dateStr?: string) {
-  if (!dateStr) return '-'
-  return new Date(dateStr).toLocaleDateString('ko-KR')
-}
 
 const IN = 'w-full border border-[#EFF1F5] rounded-2xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#0669F7]'
 
@@ -437,7 +434,7 @@ function SiteDetailPanel({
                       {getJobStatusLabel(j.status)}
                     </span>
                   </td>
-                  <td className="px-6 py-4 text-sm text-gray-600">{j.work_date ? formatDate(j.work_date) : '-'}</td>
+                  <td className="px-6 py-4 text-sm text-gray-600">{fmtDate(j.work_date, locale)}</td>
                   <td className="px-6 py-4 text-sm text-[#0669F7] font-medium">
                     {j.daily_wage ? `₫${Number(j.daily_wage).toLocaleString('ko-KR')}` : '-'}
                   </td>
@@ -456,7 +453,7 @@ function SiteDetailPanel({
 
 // ── Main Sites page ────────────────────────────────────────────────────────
 export default function Sites() {
-  const { t } = useAdminTranslation()
+  const { t, locale } = useAdminTranslation()
   const { id } = useParams<{ id?: string }>()
   const navigate = useNavigate()
   const [sites, setSites] = useState<Site[]>([])
@@ -645,7 +642,7 @@ export default function Sites() {
                     <span className="text-blue-600 font-medium">{s.open_job_count}</span>
                     <span className="text-gray-400">/{s.job_count}</span>
                   </td>
-                  <td className="px-6 py-4 text-sm text-gray-500 whitespace-nowrap">{formatDate(s.created_at)}</td>
+                  <td className="px-6 py-4 text-sm text-gray-500 whitespace-nowrap">{fmtDate(s.created_at, locale)}</td>
                   <td className="px-6 py-4 text-right whitespace-nowrap">
                     <div className="flex gap-3 justify-end items-center">
                       <button onClick={() => navigate(`/sites/${s.id}`)} className="text-[#0669F7] hover:underline text-sm">{t('common.detail')}</button>

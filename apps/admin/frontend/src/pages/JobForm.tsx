@@ -3,12 +3,13 @@ import { useParams, useNavigate, Link } from 'react-router-dom'
 import { api } from '../lib/api'
 import { GadaSelect, GadaDateInput, GadaTimeInput } from '../components/ui/GadaFormControls'
 import { useAdminTranslation } from '../context/LanguageContext'
+import { tradeName as trdName } from '../lib/dateUtils'
 
 interface Site { id: string; name: string; province?: string }
-interface Trade { id: number; name_ko: string }
+interface Trade { id: number; name_ko: string; name_vi?: string }
 
 export default function JobForm() {
-  const { t } = useAdminTranslation()
+  const { t, locale } = useAdminTranslation()
   const { id } = useParams<{ id?: string }>()
   const isEdit = Boolean(id)
   const navigate = useNavigate()
@@ -102,7 +103,7 @@ export default function JobForm() {
         <F label={t('jobs.form.field_trade')}>
           <GadaSelect value={form.tradeId} onChange={(e) => setForm({ ...form, tradeId: e.target.value })}>
             <option value="">{t('jobs.form.trade_none')}</option>
-            {trades.map((tr) => <option key={tr.id} value={tr.id}>{tr.name_ko}</option>)}
+            {trades.map((tr) => <option key={tr.id} value={tr.id}>{trdName(tr.name_ko, tr.name_vi, locale)}</option>)}
           </GadaSelect>
         </F>
         <F label={t('jobs.form.field_work_date')}>

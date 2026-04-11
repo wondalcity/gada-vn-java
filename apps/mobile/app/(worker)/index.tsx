@@ -23,7 +23,7 @@ function getDatesAround(centerDate: string, count = 7): string[] {
 }
 
 export default function WorkerJobFeed() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { selectedDate, setSelectedDate, jobs, setJobs } = useJobStore();
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
@@ -52,12 +52,18 @@ export default function WorkerJobFeed() {
   function formatDateLabel(dateStr: string): string {
     const date = new Date(dateStr);
     const today = new Date().toISOString().split('T')[0];
-    const days = ['일', '월', '화', '수', '목', '금', '토'];
-    const dayLabel = days[date.getDay()];
-    if (dateStr === today) return `${t('jobs.today')}(${dayLabel})`;
+    const { language } = i18n;
+    if (dateStr === today) {
+      return t('jobs.today');
+    }
     const month = date.getMonth() + 1;
     const day = date.getDate();
-    return `${month}/${day}(${dayLabel})`;
+    if (language === 'ko') {
+      const days = ['일', '월', '화', '수', '목', '금', '토'];
+      return `${month}월 ${day}일(${days[date.getDay()]})`;
+    }
+    const MONTHS = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
+    return `${String(day).padStart(2,'0')}.${MONTHS[date.getMonth()]}`;
   }
 
   return (

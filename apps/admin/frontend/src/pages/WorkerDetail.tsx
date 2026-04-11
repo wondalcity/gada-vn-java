@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useParams, Link, useNavigate } from 'react-router-dom'
 import { api } from '../lib/api'
 import { useAdminTranslation } from '../context/LanguageContext'
+import { fmtDate, tradeName } from '../lib/dateUtils'
 import { GadaSelect, GadaDateInput } from '../components/ui/GadaFormControls'
 
 function formatPhone(phone: string | null | undefined): string {
@@ -86,7 +87,7 @@ interface Contract {
 type TabKey = 'basic' | 'docs' | 'bank' | 'trades' | 'manager' | 'contracts' | 'misc'
 
 export default function WorkerDetail() {
-  const { t } = useAdminTranslation()
+  const { t, locale } = useAdminTranslation()
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
   const [worker, setWorker] = useState<Worker | null>(null)
@@ -437,7 +438,7 @@ export default function WorkerDetail() {
                       >
                         <option value="">{t('worker_detail.trade_select')}</option>
                         {allTrades.map((tr) => (
-                          <option key={tr.id} value={tr.id}>{tr.name_ko} ({tr.code})</option>
+                          <option key={tr.id} value={tr.id}>{tradeName(tr.name_ko, tr.name_vi, locale)} ({tr.code})</option>
                         ))}
                       </GadaSelect>
                       <div className="flex items-center gap-1.5 shrink-0">
@@ -492,7 +493,7 @@ export default function WorkerDetail() {
                 <div className="flex items-center gap-2 mb-2">
                   <span className="px-3 py-1 rounded-full text-sm font-semibold bg-[#FDBC08]/20 text-yellow-700">{t('worker_detail.manager_active')}</span>
                   {worker.manager_approved_at && (
-                    <span className="text-xs text-gray-400">({new Date(worker.manager_approved_at).toLocaleDateString('ko-KR')} {t('worker_detail.approved_suffix')})</span>
+                    <span className="text-xs text-gray-400">({fmtDate(worker.manager_approved_at, locale)} {t('worker_detail.approved_suffix')})</span>
                   )}
                 </div>
                 {worker.manager_company_name && (
@@ -560,10 +561,10 @@ export default function WorkerDetail() {
                       </div>
                       <p className="text-xs text-gray-500 mb-1">{c.site_name}</p>
                       <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-gray-500 mt-2">
-                        <span>{t('worker_detail.contract_work_date')}: {c.work_date ? new Date(c.work_date).toLocaleDateString('ko-KR') : '-'}</span>
+                        <span>{t('worker_detail.contract_work_date')}: {fmtDate(c.work_date, locale)}</span>
                         <span>{t('worker_detail.contract_daily_wage')}: {c.daily_wage ? new Intl.NumberFormat('ko-KR').format(c.daily_wage) + ' ₫' : '-'}</span>
-                        <span>{t('worker_detail.contract_worker_signed')}: {c.worker_signed_at ? new Date(c.worker_signed_at).toLocaleDateString('ko-KR') : '-'}</span>
-                        <span>{t('worker_detail.contract_created_at')}: {new Date(c.created_at).toLocaleDateString('ko-KR')}</span>
+                        <span>{t('worker_detail.contract_worker_signed')}: {fmtDate(c.worker_signed_at, locale)}</span>
+                        <span>{t('worker_detail.contract_created_at')}: {fmtDate(c.created_at, locale)}</span>
                       </div>
                     </div>
                   )

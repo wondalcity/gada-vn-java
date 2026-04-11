@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import { api } from '../lib/api'
 import { useAdminTranslation } from '../context/LanguageContext'
+import { fmtDate } from '../lib/dateUtils'
 import { GadaSelect, GadaDateInput } from '../components/ui/GadaFormControls'
 
 function formatPhone(phone: string | null | undefined): string {
@@ -66,7 +67,7 @@ interface SiteOption {
 type TabKey = 'basic' | 'site' | 'docs' | 'approval' | 'sites'
 
 export default function ManagerDetail() {
-  const { t } = useAdminTranslation()
+  const { t, locale } = useAdminTranslation()
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
   const [manager, setManager] = useState<Manager | null>(null)
@@ -549,7 +550,7 @@ function SiteAssignmentTab({
                   </div>
                   <p className="text-xs text-[#98A2B2] mt-0.5 truncate">{s.address}</p>
                   <p className="text-xs text-[#98A2B2]">
-                    {t('manager_detail.assigned_date')}{new Date(s.assigned_at).toLocaleDateString('ko-KR')}
+                    {t('manager_detail.assigned_date')}{fmtDate(s.assigned_at, locale)}
                   </p>
                 </div>
                 <button

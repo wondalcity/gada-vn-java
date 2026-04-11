@@ -412,9 +412,9 @@ export default function JobDetailView({
           <p className="text-[15px] text-[#717171] mt-1">
             {siteName} · {job.provinceNameVi}
           </p>
-          {job.tradeNameKo && (
+          {(job.tradeNameKo || job.tradeNameVi) && (
             <span className="inline-flex items-center gap-1.5 mt-3 px-3 py-1 rounded-full bg-[#F7F7F7] text-[#717171] text-xs font-semibold border border-[#DDDDDD]">
-              {job.tradeNameKo}
+              {locale === 'vi' ? (job.tradeNameVi || job.tradeNameKo) : job.tradeNameKo}
             </span>
           )}
         </div>

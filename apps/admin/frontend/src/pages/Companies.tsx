@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { api } from '../lib/api'
 import { DEMO_COMPANIES } from '../lib/demo-data'
 import { useAdminTranslation } from '../context/LanguageContext'
+import { fmtDate } from '../lib/dateUtils'
 
 function formatPhone(phone: string | null | undefined): string {
   if (!phone) return '-'
@@ -33,10 +34,6 @@ interface Company {
   created_at: string
 }
 
-function formatDate(d?: string) {
-  if (!d) return '-'
-  return new Date(d).toLocaleDateString('ko-KR')
-}
 
 const IN = 'w-full border border-[#EFF1F5] rounded-2xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#0669F7]'
 
@@ -370,7 +367,7 @@ function CompanyDetailPanel({
 
 // ── Main Companies page ─────────────────────────────────────────────────────
 export default function Companies() {
-  const { t } = useAdminTranslation()
+  const { t, locale } = useAdminTranslation()
   const { id } = useParams<{ id?: string }>()
   const navigate = useNavigate()
   const [companies, setCompanies] = useState<Company[]>([])
@@ -519,7 +516,7 @@ export default function Companies() {
                       <span className="inline-flex items-center px-2 py-1 rounded-full bg-[#EFF1F5] text-[#98A2B2] text-xs">{t('common.not_registered')}</span>
                     )}
                   </td>
-                  <td className="px-6 py-4 text-sm text-gray-500 whitespace-nowrap">{formatDate(c.created_at)}</td>
+                  <td className="px-6 py-4 text-sm text-gray-500 whitespace-nowrap">{fmtDate(c.created_at, locale)}</td>
                   <td className="px-6 py-4 text-right whitespace-nowrap">
                     <div className="flex gap-3 justify-end items-center">
                       <button onClick={() => navigate(`/companies/${c.id}`)} className="text-[#0669F7] hover:underline text-sm">{t('common.detail')}</button>

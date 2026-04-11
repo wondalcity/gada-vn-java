@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { api } from '../lib/api'
 import { useAdminTranslation } from '../context/LanguageContext'
+import { fmtDate } from '../lib/dateUtils'
 import { GadaSelect } from '../components/ui/GadaFormControls'
 
 interface TestAccount {
@@ -77,7 +78,7 @@ function AddModal({ onSave, onCancel }: { onSave: () => void; onCancel: () => vo
 }
 
 export default function TestAccounts() {
-  const { t } = useAdminTranslation()
+  const { t, locale } = useAdminTranslation()
   const [accounts, setAccounts] = useState<TestAccount[]>([])
   const [loading, setLoading] = useState(true)
   const [showAdd, setShowAdd] = useState(false)
@@ -188,7 +189,7 @@ export default function TestAccounts() {
                       </span>
                     </td>
                     <td className="px-4 py-3 text-sm text-gray-400 whitespace-nowrap">
-                      {new Date(acc.created_at).toLocaleDateString()}
+                      {fmtDate(acc.created_at, locale)}
                     </td>
                     <td className="px-4 py-3 text-right whitespace-nowrap">
                       <button

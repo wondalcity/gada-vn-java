@@ -93,7 +93,7 @@ function InfoRow({ icon, label, value }: { icon: string; label: string; value: s
 
 export default function JobDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const [job, setJob] = useState<JobWithSite | null>(null);
@@ -146,9 +146,14 @@ export default function JobDetailScreen() {
   if (!job) return null;
 
   const isFull = job.slotsFilled >= job.slotsTotal;
-  const workDateLabel = new Date(job.workDate).toLocaleDateString('ko-KR', {
-    year: 'numeric', month: 'long', day: 'numeric', weekday: 'short',
-  });
+  const workDateLabel = (() => {
+    const d = new Date(job.workDate);
+    if (i18n.language === 'ko') {
+      return `${d.getMonth() + 1}월 ${d.getDate()}일`;
+    }
+    const MONTHS = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
+    return `${String(d.getDate()).padStart(2,'0')}.${MONTHS[d.getMonth()]}.${d.getFullYear()}`;
+  })();
   const timeLabel =
     job.startTime && job.endTime ? `${job.startTime} ~ ${job.endTime}` : t('jobs.time_tbd');
 

@@ -1844,5 +1844,5 @@ export const ADMIN_TRANSLATIONS: Record<AdminLocale, Record<string, string>> = {
 export function useAdminTranslation() {
   const { locale } = useLanguage()
   const t = (key: string) => ADMIN_TRANSLATIONS[locale]?.[key] ?? key
-  return { t }
+  return { t, locale }
 }

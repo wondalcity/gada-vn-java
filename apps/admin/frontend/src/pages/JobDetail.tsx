@@ -2,6 +2,8 @@ import { useEffect, useState, useRef } from 'react'
 import { useParams, Link, useNavigate } from 'react-router-dom'
 import { api } from '../lib/api'
 import { DEMO_JOBS, DEMO_ROSTERS } from '../lib/demo-data'
+import { useAdminTranslation } from '../context/LanguageContext'
+import { fmtDate } from '../lib/dateUtils'
 
 interface Job {
   id: string
@@ -96,10 +98,6 @@ const JOB_STATUS_LABEL: Record<string, string> = {
   CANCELLED: '취소됨',
 }
 
-function fmtDate(d?: string | null) {
-  if (!d) return '-'
-  return new Date(d).toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'short' })
-}
 
 // ── Reject notes modal ────────────────────────────────────────────────────
 function RejectModal({
@@ -226,6 +224,7 @@ function ApplicationActions({
 
 // ── Main page ─────────────────────────────────────────────────────────────
 export default function JobDetail() {
+  const { locale } = useAdminTranslation()
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
   const [job, setJob] = useState<Job | null>(null)
@@ -410,7 +409,7 @@ export default function JobDetail() {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
           <div>
             <span className="text-[#98A2B2] text-xs">근무일</span>
-            <p className="font-medium text-gray-900 mt-0.5">{fmtDate(job.work_date)}</p>
+            <p className="font-medium text-gray-900 mt-0.5">{fmtDate(job.work_date, locale)}</p>
           </div>
           <div>
             <span className="text-[#98A2B2] text-xs">일 노임</span>

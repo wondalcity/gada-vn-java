@@ -86,12 +86,12 @@ export function JobCard({ job, locale, basePath = '/jobs' }: Props) {
           className="inline-block self-start text-xs font-bold px-2.5 py-1 rounded-full mb-2.5"
           style={{ background: '#EFF1F5', color: '#98A2B2' }}
         >
-          {job.tradeNameKo || t('card.other')}
+          {(locale === 'vi' ? job.tradeNameVi : job.tradeNameKo) || t('card.other')}
         </span>
 
         {/* Title */}
         <h3 className="text-sm font-bold text-[#25282A] line-clamp-2 leading-snug mb-3 group-hover:text-[#0669F7] transition-colors">
-          {job.titleKo}
+          {locale === 'vi' ? (job.titleVi || job.titleKo) : job.titleKo}
         </h3>
 
         {/* Location */}

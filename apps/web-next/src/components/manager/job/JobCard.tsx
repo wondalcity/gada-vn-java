@@ -11,13 +11,12 @@ interface JobCardProps {
   showSite?: boolean
 }
 
-function formatDate(dateStr: string) {
-  return new Intl.DateTimeFormat('ko-KR', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-    weekday: 'short',
-  }).format(new Date(dateStr))
+const MONTHS = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC']
+function formatDate(dateStr: string, locale: string) {
+  const d = new Date(dateStr)
+  if (isNaN(d.getTime())) return dateStr
+  if (locale === 'ko') return `${d.getMonth() + 1}월 ${d.getDate()}일`
+  return `${String(d.getDate()).padStart(2, '0')}.${MONTHS[d.getMonth()]}.${d.getFullYear()}`
 }
 
 function formatVND(amount: number) {
@@ -59,7 +58,7 @@ export default function JobCard({ job, locale, showSite = false }: JobCardProps)
           <StatusBadge status={job.status} />
         </div>
 
-        <p className="text-xs text-[#98A2B2] font-medium mb-1">{formatDate(job.workDate)}</p>
+        <p className="text-xs text-[#98A2B2] font-medium mb-1">{formatDate(job.workDate, locale)}</p>
         <p className="text-sm font-bold text-[#0669F7] mb-3">{formatVND(job.dailyWage)}</p>
 
         {/* Slots progress */}

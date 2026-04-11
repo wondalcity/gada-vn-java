@@ -1,33 +1,25 @@
-const MONTHS_SHORT = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
+const MONTHS = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC']
 
 /**
- * Full date: ko → "2026년 4월 1일 (수)", others → "01-Apr-2026"
+ * Full date with year.
+ * ko  → "4월 15일" (n월 n일)
+ * others → "15.MAR.2025"
  */
 export function formatDate(dateStr: string, locale: string): string {
   const d = new Date(dateStr)
   if (isNaN(d.getTime())) return dateStr
   if (locale === 'ko') {
-    return new Intl.DateTimeFormat('ko-KR', {
-      year: 'numeric', month: 'long', day: 'numeric', weekday: 'short',
-    }).format(d)
+    return `${d.getMonth() + 1}월 ${d.getDate()}일`
   }
   const day = String(d.getDate()).padStart(2, '0')
-  const month = MONTHS_SHORT[d.getMonth()]
-  return `${day}-${month}-${d.getFullYear()}`
+  return `${day}.${MONTHS[d.getMonth()]}.${d.getFullYear()}`
 }
 
 /**
- * Short date (no year): ko → "4월 1일 (수)", others → "01-Apr-2026"
+ * Short date (same format, without year for non-ko already compact).
+ * ko  → "4월 15일"
+ * others → "15.MAR.2025"
  */
 export function formatDateShort(dateStr: string, locale: string): string {
-  const d = new Date(dateStr)
-  if (isNaN(d.getTime())) return dateStr
-  if (locale === 'ko') {
-    return new Intl.DateTimeFormat('ko-KR', {
-      month: 'long', day: 'numeric', weekday: 'short',
-    }).format(d)
-  }
-  const day = String(d.getDate()).padStart(2, '0')
-  const month = MONTHS_SHORT[d.getMonth()]
-  return `${day}-${month}-${d.getFullYear()}`
+  return formatDate(dateStr, locale)
 }

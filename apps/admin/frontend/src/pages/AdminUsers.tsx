@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { api } from '../lib/api'
 import { useAuth } from '../context/AuthContext'
 import { useAdminTranslation } from '../context/LanguageContext'
+import { fmtDate } from '../lib/dateUtils'
 
 interface AdminUserItem {
   id: string
@@ -329,7 +330,7 @@ function ResetPasswordModal({ user, onSave, onCancel }: { user: AdminUserItem; o
 // ── Main Page ─────────────────────────────────────────────────────────────────
 
 export default function AdminUsers() {
-  const { t } = useAdminTranslation()
+  const { t, locale } = useAdminTranslation()
   const { user: me } = useAuth()
   const [users, setUsers] = useState<AdminUserItem[]>([])
   const [loading, setLoading] = useState(true)
@@ -473,7 +474,7 @@ export default function AdminUsers() {
                       </span>
                     </td>
                     <td className="px-5 py-4 text-xs text-gray-400 whitespace-nowrap">
-                      {u.last_login_at ? new Date(u.last_login_at).toLocaleDateString('ko-KR') : '-'}
+                      {fmtDate(u.last_login_at, locale)}
                     </td>
                     <td className="px-5 py-4 whitespace-nowrap">
                       {isSuperAdmin && u.id !== me?.id && u.status !== 'DISABLED' && (
