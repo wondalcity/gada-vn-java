@@ -473,6 +473,7 @@ export default function ManagerDetail() {
             siteStatusLabel={SITE_STATUS_LABEL}
             siteStatusClass={SITE_STATUS_CLASS}
             t={t}
+            locale={locale}
           />
         )}
       </div>
@@ -508,6 +509,7 @@ function SiteAssignmentTab({
   siteStatusLabel: Record<string, string>
   siteStatusClass: Record<string, string>
   t: (key: string) => string
+  locale: string
 }) {
   const assignedIds = new Set(assignedSites.map((s) => s.id))
 

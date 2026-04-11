@@ -209,7 +209,7 @@ function SiteDetailPanel({
   onBack: () => void
   onDeleted: () => void
 }) {
-  const { t } = useAdminTranslation()
+  const { t, locale } = useAdminTranslation()
   const navigate = useNavigate()
   const [site, setSite] = useState<SiteDetail | null>(null)
   const [loading, setLoading] = useState(true)
