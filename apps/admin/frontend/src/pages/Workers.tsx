@@ -30,9 +30,18 @@ interface Worker {
 
 const IN = 'w-full border border-[#EFF1F5] rounded-2xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#0669F7]'
 
+const COUNTRY_CODES = [
+  { code: '+84', label: '🇻🇳 +84 (VN)' },
+  { code: '+82', label: '🇰🇷 +82 (KR)' },
+  { code: '+1',  label: '🇺🇸 +1  (US)' },
+  { code: '+81', label: '🇯🇵 +81 (JP)' },
+  { code: '+86', label: '🇨🇳 +86 (CN)' },
+]
+
 function CreateWorkerModal({ onSave, onCancel }: { onSave: (phone: string, fullName: string) => Promise<void>; onCancel: () => void }) {
   const { t } = useAdminTranslation()
-  const [phone, setPhone] = useState('')
+  const [countryCode, setCountryCode] = useState('+84')
+  const [localPhone, setLocalPhone] = useState('')
   const [fullName, setFullName] = useState('')
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
@@ -41,10 +50,12 @@ function CreateWorkerModal({ onSave, onCancel }: { onSave: (phone: string, fullN
     e.preventDefault()
     setSaving(true)
     setError('')
+    const phone = countryCode + localPhone.replace(/^0/, '')
     try {
       await onSave(phone, fullName)
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : t('workers.modal.register_failed'))
+      const apiMsg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message
+      setError(apiMsg ?? (err instanceof Error ? err.message : t('workers.modal.register_failed')))
     } finally {
       setSaving(false)
     }
@@ -58,7 +69,25 @@ function CreateWorkerModal({ onSave, onCancel }: { onSave: (phone: string, fullN
         <form onSubmit={handleSubmit} className="space-y-3">
           <div>
             <label className="block text-xs font-medium text-gray-500 mb-1">{t('workers.modal.phone_label')}</label>
-            <input required className={IN} value={phone} onChange={e => setPhone(e.target.value)} placeholder="+84901234567" />
+            <div className="flex gap-2">
+              <select
+                value={countryCode}
+                onChange={e => setCountryCode(e.target.value)}
+                className="border border-[#EFF1F5] rounded-2xl px-2 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#0669F7] bg-white"
+              >
+                {COUNTRY_CODES.map(c => (
+                  <option key={c.code} value={c.code}>{c.label}</option>
+                ))}
+              </select>
+              <input
+                required
+                className={IN + ' flex-1'}
+                value={localPhone}
+                onChange={e => setLocalPhone(e.target.value)}
+                placeholder={countryCode === '+84' ? '901234567' : countryCode === '+82' ? '1012345678' : ''}
+                type="tel"
+              />
+            </div>
           </div>
           <div>
             <label className="block text-xs font-medium text-gray-500 mb-1">{t('workers.modal.name_label')}</label>

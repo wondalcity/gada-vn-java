@@ -267,7 +267,7 @@ class AdminRepository(
                RETURNING *""",
             phone
         ).firstOrNull() ?: return null
-        val userId = user["id"] as String
+        val userId = user["id"].toString()
 
         // Create worker_profiles entry
         return db.queryForList(

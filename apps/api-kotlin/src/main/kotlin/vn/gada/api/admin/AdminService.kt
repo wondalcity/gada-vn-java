@@ -87,7 +87,8 @@ class AdminService(
     fun createWorker(phone: String, fullName: String): Map<String, Any?>? {
         if (phone.isBlank()) throw BadRequestException("phone is required")
         if (fullName.isBlank()) throw BadRequestException("fullName is required")
-        return repo.createWorker(phone, fullName)
+        val normalized = authService.normalizePhone(phone)
+        return repo.createWorker(normalized, fullName)
     }
 
     fun updateWorker(id: String, body: Map<String, Any?>): Map<String, Any?>? {
