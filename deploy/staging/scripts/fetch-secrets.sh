@@ -14,6 +14,25 @@ SECRETS_DIR="$DEPLOY_DIR/secrets"
 DRY_RUN=false
 [[ "${1:-}" == "--dry-run" ]] && DRY_RUN=true
 
+# ── Ensure IMDSv2 hop limit >= 2 so Docker containers can reach IMDS ──────────
+# Default hop_limit=1 blocks bridge-networked Docker containers from using
+# the EC2 instance profile credentials (needed for S3 uploads).
+INSTANCE_ID=$(curl -s --max-time 3 \
+  -H "X-aws-ec2-metadata-token: $(curl -s -X PUT http://169.254.169.254/latest/api/token -H 'X-aws-ec2-metadata-token-ttl-seconds: 60')" \
+  http://169.254.169.254/latest/meta-data/instance-id 2>/dev/null || true)
+if [[ -n "$INSTANCE_ID" ]]; then
+  HOP=$(aws ec2 describe-instances --instance-ids "$INSTANCE_ID" --region "$REGION" \
+    --query "Reservations[0].Instances[0].MetadataOptions.HttpPutResponseHopLimit" --output text 2>/dev/null || echo "1")
+  if [[ "$HOP" -lt 2 ]]; then
+    log "Setting IMDSv2 hop limit to 2 (was $HOP)..."
+    aws ec2 modify-instance-metadata-options \
+      --instance-id "$INSTANCE_ID" \
+      --http-put-response-hop-limit 2 \
+      --http-tokens required \
+      --region "$REGION" > /dev/null
+  fi
+fi
+
 log()  { echo "[$(date -u +%H:%M:%S)] $*"; }
 die()  { echo "[ERROR] $*" >&2; exit 1; }
 

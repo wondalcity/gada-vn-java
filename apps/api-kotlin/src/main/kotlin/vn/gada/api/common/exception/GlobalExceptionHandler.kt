@@ -29,6 +29,12 @@ class GlobalExceptionHandler {
     fun handleConflict(ex: ConflictException): ResponseEntity<Map<String, Any>> =
         buildError(HttpStatus.CONFLICT, ex.message ?: "Conflict")
 
+    @ExceptionHandler(ServiceException::class)
+    fun handleService(ex: ServiceException): ResponseEntity<Map<String, Any>> {
+        ex.printStackTrace()
+        return buildError(HttpStatus.INTERNAL_SERVER_ERROR, ex.message ?: "Service error")
+    }
+
     @ExceptionHandler(Exception::class)
     fun handleGeneric(ex: Exception): ResponseEntity<Map<String, Any>> {
         ex.printStackTrace()
@@ -50,3 +56,4 @@ class UnauthorizedException(message: String) : RuntimeException(message)
 class BadRequestException(message: String) : RuntimeException(message)
 class ForbiddenException(message: String) : RuntimeException(message)
 class ConflictException(message: String) : RuntimeException(message)
+class ServiceException(message: String, cause: Throwable? = null) : RuntimeException(message, cause)

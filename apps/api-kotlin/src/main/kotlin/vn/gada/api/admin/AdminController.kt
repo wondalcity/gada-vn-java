@@ -5,6 +5,7 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import vn.gada.api.common.exception.BadRequestException
+import vn.gada.api.common.exception.ServiceException
 import vn.gada.api.common.exception.UnauthorizedException
 import vn.gada.api.files.FileService
 
@@ -444,8 +445,19 @@ class AdminController(
         val fileName = body["fileName"] as? String ?: "seal.png"
         val ext = fileName.substringAfterLast('.', "png")
         val key = "company-seals/$id/${java.util.UUID.randomUUID()}.$ext"
-        val bytes = java.util.Base64.getDecoder().decode(fileData)
-        fileService.uploadBytes(key, bytes, contentType)
+        val bytes = try {
+            java.util.Base64.getDecoder().decode(fileData)
+        } catch (e: IllegalArgumentException) {
+            throw BadRequestException("Invalid base64 fileData")
+        }
+        try {
+            fileService.uploadBytes(key, bytes, contentType)
+        } catch (e: IllegalStateException) {
+            throw ServiceException("S3 not configured: ${e.message}", e)
+        } catch (e: Exception) {
+            val msg = e.message ?: e.javaClass.simpleName
+            throw ServiceException("S3 upload failed: $msg", e)
+        }
         return ok(adminService.updateCompany(id, mapOf("signatureS3Key" to key)))
     }
 

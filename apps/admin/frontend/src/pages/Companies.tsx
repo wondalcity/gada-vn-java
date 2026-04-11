@@ -199,7 +199,8 @@ function CompanyDetailPanel({
       showMsg(t('companies.seal.uploaded'))
       load()
     } catch (err: unknown) {
-      showMsg(err instanceof Error ? err.message : t('companies.seal.upload_failed'))
+      const apiMsg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message
+      showMsg(apiMsg ?? (err instanceof Error ? err.message : t('companies.seal.upload_failed')))
     } finally {
       setSealUploading(false)
       if (sealInputRef.current) sealInputRef.current.value = ''
