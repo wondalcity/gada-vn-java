@@ -26,6 +26,7 @@ interface Country {
 const COUNTRIES: Country[] = [
   { code: 'VN', dial: '+84', flag: '🇻🇳', name: '베트남',   placeholder: '901 234 567'  },
   { code: 'KR', dial: '+82', flag: '🇰🇷', name: '대한민국', placeholder: '10 1234 5678' },
+  { code: 'AU', dial: '+61', flag: '🇦🇺', name: '호주',     placeholder: '412 345 678'  },
   { code: 'US', dial: '+1',  flag: '🇺🇸', name: '미국',     placeholder: '201 234 5678' },
 ]
 
@@ -34,6 +35,7 @@ const COUNTRIES: Country[] = [
 const PHONE_RULES: Record<string, { min: number; max: number; errorKey: string }> = {
   '+84': { min: 9,  max: 9,  errorKey: 'otp.phone_invalid_vn' },
   '+82': { min: 9,  max: 10, errorKey: 'otp.phone_invalid_kr' },
+  '+61': { min: 9,  max: 9,  errorKey: 'otp.phone_invalid_au' },
   '+1':  { min: 10, max: 10, errorKey: 'otp.phone_invalid_us' },
 }
 

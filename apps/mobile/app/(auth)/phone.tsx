@@ -10,6 +10,7 @@ import { signInWithPhoneOtp } from '../../lib/firebase';
 const COUNTRY_CODES = [
   { code: '+84', flag: '🇻🇳', label: 'VN' },
   { code: '+82', flag: '🇰🇷', label: 'KR' },
+  { code: '+61', flag: '🇦🇺', label: 'AU' },
 ];
 
 export default function PhoneScreen() {

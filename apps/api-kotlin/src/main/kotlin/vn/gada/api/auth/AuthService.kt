@@ -265,6 +265,8 @@ class AuthService(
             digits.startsWith("84")  -> "+$digits"
             digits.startsWith("820") -> "+82${digits.drop(3)}"  // +82 0XX → strip leading 0
             digits.startsWith("82")  -> "+$digits"
+            digits.startsWith("610") -> "+61${digits.drop(3)}"  // +61 0XX → strip leading 0
+            digits.startsWith("61")  -> "+$digits"
             digits.startsWith("0")   -> "+84${digits.drop(1)}"  // local VN format
             else                     -> "+$digits"
         }
