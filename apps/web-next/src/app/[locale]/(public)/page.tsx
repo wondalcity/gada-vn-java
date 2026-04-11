@@ -46,7 +46,7 @@ export default async function LandingPage({ params }: Props) {
     fetchTrades(locale).catch(() => []),
   ])
 
-  const latestJobs = jobsResult.jobs.slice(0, 6)
+  const latestJobs = jobsResult.jobs.slice(0, 5)
   const totalJobs = jobsResult.total
   const totalCities = provinces.length
 
@@ -127,6 +127,7 @@ export default async function LandingPage({ params }: Props) {
             jobs={latestJobs}
             locale={locale}
             emptyMessage={t('jobs.empty')}
+            columns={5}
           />
         </div>
       </section>

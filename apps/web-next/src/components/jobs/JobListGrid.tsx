@@ -6,9 +6,10 @@ interface Props {
   locale: string
   emptyMessage?: string
   basePath?: string
+  columns?: 4 | 5
 }
 
-export function JobListGrid({ jobs, locale, emptyMessage = '공고가 없습니다.', basePath }: Props) {
+export function JobListGrid({ jobs, locale, emptyMessage = '공고가 없습니다.', basePath, columns = 4 }: Props) {
   if (jobs.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-20 text-center">
@@ -30,8 +31,12 @@ export function JobListGrid({ jobs, locale, emptyMessage = '공고가 없습니�
     )
   }
 
+  const gridClass = columns === 5
+    ? 'grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4'
+    : 'grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4'
+
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+    <div className={gridClass}>
       {jobs.map(job => (
         <JobCard key={job.id} job={job} locale={locale} basePath={basePath} />
       ))}
