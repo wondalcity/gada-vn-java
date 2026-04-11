@@ -21,9 +21,12 @@ class AdminRepository(
     fun findManagersPaginated(status: String, page: Int, limit: Int): List<Map<String, Any?>> {
         val offset = (page - 1) * limit
         return db.queryForList(
-            """SELECT mp.*, u.phone, u.created_at as user_created_at
+            """SELECT mp.*,
+                      COALESCE(wp.full_name, mp.representative_name) as representative_name,
+                      u.phone, u.created_at as user_created_at
                FROM app.manager_profiles mp
                JOIN auth.users u ON mp.user_id = u.id
+               LEFT JOIN app.worker_profiles wp ON wp.user_id = u.id
                WHERE mp.approval_status = ?
                ORDER BY mp.created_at DESC
                LIMIT ? OFFSET ?""",
