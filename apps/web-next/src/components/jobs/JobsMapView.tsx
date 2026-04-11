@@ -59,6 +59,8 @@ interface Props {
   selectedRadius?: number
   activeFilterCount?: number
   basePath?: string
+  focusJobId?: string | null
+  onFocused?: () => void
 }
 
 // ── Wage marker pill ──────────────────────────────────────────────────────────
@@ -470,6 +472,8 @@ export default function JobsMapView({
   selectedRadius,
   activeFilterCount = 0,
   basePath = '/worker/jobs',
+  focusJobId,
+  onFocused,
 }: Props) {
   const [selectedJobId, setSelectedJobId] = useState<string | null>(null)
   const [hoveredJobId, setHoveredJobId] = useState<string | null>(null)
@@ -482,6 +486,8 @@ export default function JobsMapView({
   const [cardKey, setCardKey] = useState(0)
   // Suppress bounds_changed callbacks during programmatic fly-to
   const animatingRef = useRef(false)
+  // Job to focus once map finishes loading (set by focusJobId effect when map not ready)
+  const pendingFocusRef = useRef<string | null>(null)
 
   const { isLoaded } = useJsApiLoader({
     googleMapsApiKey: GOOGLE_MAPS_API_KEY,
@@ -501,12 +507,34 @@ export default function JobsMapView({
 
   const handleMapLoad = useCallback((map: google.maps.Map) => {
     mapRef.current = map
+    // Apply pending focus from list view first; fall back to fitBounds all jobs
+    const pending = pendingFocusRef.current
+    if (pending) {
+      pendingFocusRef.current = null
+      const job = jobs.find(j => j.id === pending)
+      if (job && job.siteLat != null && job.siteLng != null) {
+        setSelectedJobId(pending)
+        setCardKey(k => k + 1)
+        setSheetExpanded(false)
+        setIsZoomedIn(true)
+        const lat = job.siteLat as number
+        const lng = job.siteLng as number
+        const D = 0.0014
+        const bounds = new window.google.maps.LatLngBounds(
+          { lat: lat - D, lng: lng - D },
+          { lat: lat + D, lng: lng + D },
+        )
+        setTimeout(() => map.fitBounds(bounds, { top: 40, right: 40, bottom: 200, left: 40 }), 50)
+        return
+      }
+    }
     if (centerLat == null && jobsWithCoords.length > 0) {
       const bounds = new window.google.maps.LatLngBounds()
       jobsWithCoords.forEach(j => bounds.extend({ lat: j.siteLat as number, lng: j.siteLng as number }))
       map.fitBounds(bounds, 40)
     }
-  }, [centerLat, jobsWithCoords])
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [centerLat, jobsWithCoords, jobs, onFocused])
 
   const handleBoundsChanged = useCallback(() => {
     if (animatingRef.current || !onBoundsChange || !mapRef.current) return
@@ -601,6 +629,27 @@ export default function JobsMapView({
     const el = listRef.current.querySelector(`[data-job-id="${selectedJobId}"]`)
     if (el) el.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
   }, [selectedJobId])
+
+  // Auto-focus job coming from list view
+  useEffect(() => {
+    if (!focusJobId) return
+    const job = jobs.find(j => j.id === focusJobId)
+    if (job) {
+      setSelectedJobId(focusJobId)
+      setCardKey(k => k + 1)
+      setSheetExpanded(false)
+      if (mapRef.current) {
+        // Map already loaded — fly immediately
+        flyToJob(job, true)
+        pendingFocusRef.current = null
+      } else {
+        // Map still loading — handleMapLoad will pick this up
+        pendingFocusRef.current = focusJobId
+      }
+    }
+    onFocused?.()
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [focusJobId])
 
   // Loading spinner
   const mapSpinner = (

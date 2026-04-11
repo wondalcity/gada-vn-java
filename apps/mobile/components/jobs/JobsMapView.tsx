@@ -1,4 +1,4 @@
-import React, { useRef, useState, useCallback } from 'react';
+import React, { useRef, useState, useCallback, useEffect } from 'react';
 import {
   View, Text, TouchableOpacity, StyleSheet, Animated,
   Dimensions, Platform,
@@ -127,9 +127,11 @@ function JobCard({
 interface Props {
   jobs: JobWithSite[];
   initialRegion?: Region;
+  focusJobId?: string | null;
+  onFocused?: () => void;
 }
 
-export default function JobsMapView({ jobs, initialRegion }: Props) {
+export default function JobsMapView({ jobs, initialRegion, focusJobId, onFocused }: Props) {
   const mapRef = useRef<MapView>(null);
   const [selectedJobId, setSelectedJobId] = useState<string | null>(null);
   const slideAnim = useRef(new Animated.Value(120)).current;
@@ -184,6 +186,15 @@ export default function JobsMapView({ jobs, initialRegion }: Props) {
       useNativeDriver: true,
     }).start(() => setSelectedJobId(null));
   }, [slideAnim]);
+
+  // Auto-select job from list view when focusJobId changes
+  useEffect(() => {
+    if (!focusJobId) return;
+    const job = jobsWithCoords.find(j => j.id === focusJobId);
+    if (job) selectJob(job);
+    onFocused?.();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [focusJobId]);
 
   const handleMapPress = useCallback((_e: MapPressEvent) => {
     if (selectedJobId) deselectJob();

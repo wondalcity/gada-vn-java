@@ -10,6 +10,7 @@ interface Props {
   job: PublicJob
   locale: string
   basePath?: string
+  onWagePress?: () => void
 }
 
 function formatVnd(n: number, locale: string) {
@@ -24,7 +25,7 @@ const STATUS_COLORS = {
   COMPLETED: { bg: '#EFF1F5', text: '#98A2B2', dot: '#DBDFE9' },
 } as const
 
-export function JobCard({ job, locale, basePath = '/jobs' }: Props) {
+export function JobCard({ job, locale, basePath = '/jobs', onWagePress }: Props) {
   const t = useTranslations('jobs')
 
   const statusColors = STATUS_COLORS[job.status as keyof typeof STATUS_COLORS] ?? STATUS_COLORS.OPEN
@@ -124,7 +125,10 @@ export function JobCard({ job, locale, basePath = '/jobs' }: Props) {
 
         {/* Daily wage + slots */}
         <div className="mt-auto">
-          <p className="text-base font-bold text-[#0669F7] mb-3">
+          <p
+            className={`text-base font-bold text-[#0669F7] mb-3 ${onWagePress ? 'cursor-pointer hover:underline' : ''}`}
+            onClick={onWagePress ? (e) => { e.preventDefault(); e.stopPropagation(); onWagePress() } : undefined}
+          >
             {formatVnd(job.dailyWage, locale)}
             <span className="text-xs font-semibold text-[#98A2B2] ml-1">{t('card.per_day')}</span>
           </p>

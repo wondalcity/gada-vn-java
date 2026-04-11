@@ -83,6 +83,7 @@ export function WorkerJobsClient({
 }: Props) {
   const [viewMode, setViewMode] = useState<ViewMode>(initialView as ViewMode)
   const [mapCenter, setMapCenter] = useState<{ lat: number; lng: number } | undefined>(undefined)
+  const [focusJobId, setFocusJobId] = useState<string | null>(null)
 
   // Load worker's saved default location for map center (only when authenticated)
   useEffect(() => {
@@ -174,6 +175,8 @@ export function WorkerJobsClient({
           selectedRadius={selectedRadius}
           activeFilterCount={activeFilterCount}
           basePath={basePath}
+          focusJobId={focusJobId}
+          onFocused={() => setFocusJobId(null)}
         />
       )}
 
@@ -250,7 +253,16 @@ export function WorkerJobsClient({
                     </div>
                   ) : (
                     jobs.map(job => (
-                      <JobCard key={job.id} job={job} locale={locale} basePath={basePath} />
+                      <JobCard
+                        key={job.id}
+                        job={job}
+                        locale={locale}
+                        basePath={basePath}
+                        onWagePress={() => {
+                          setFocusJobId(job.id)
+                          setViewMode('map')
+                        }}
+                      />
                     ))
                   )}
                 </div>

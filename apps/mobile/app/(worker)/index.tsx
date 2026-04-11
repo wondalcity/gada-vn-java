@@ -28,6 +28,7 @@ export default function WorkerJobFeed() {
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [viewMode, setViewMode] = useState<ViewMode>('list');
+  const [focusJobId, setFocusJobId] = useState<string | null>(null);
 
   const dates = getDatesAround(selectedDate);
 
@@ -124,7 +125,15 @@ export default function WorkerJobFeed() {
         <FlatList
           data={jobs}
           keyExtractor={(item) => item.id}
-          renderItem={({ item }) => <JobCard job={item} />}
+          renderItem={({ item }) => (
+            <JobCard
+              job={item}
+              onWagePress={() => {
+                setFocusJobId(item.id);
+                setViewMode('map');
+              }}
+            />
+          )}
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={loadJobs} colors={['#FF6B2C']} />}
           contentContainerStyle={styles.list}
           ListEmptyComponent={
@@ -134,7 +143,11 @@ export default function WorkerJobFeed() {
           }
         />
       ) : (
-        <JobsMapView jobs={jobs} />
+        <JobsMapView
+          jobs={jobs}
+          focusJobId={focusJobId}
+          onFocused={() => setFocusJobId(null)}
+        />
       )}
     </View>
   );

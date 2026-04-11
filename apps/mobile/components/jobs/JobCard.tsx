@@ -7,9 +7,10 @@ import { api } from '../../lib/api-client';
 
 interface Props {
   job: JobWithSite;
+  onWagePress?: () => void;
 }
 
-export default function JobCard({ job }: Props) {
+export default function JobCard({ job, onWagePress }: Props) {
   const { t } = useTranslation();
   const router = useRouter();
 
@@ -44,7 +45,9 @@ export default function JobCard({ job }: Props) {
         <Text style={styles.address} numberOfLines={1}>{job.site?.address}</Text>
 
         <View style={styles.meta}>
-          <Text style={styles.wage}>₫{job.dailyWage.toLocaleString()}</Text>
+          <TouchableOpacity onPress={onWagePress} activeOpacity={onWagePress ? 0.65 : 1} disabled={!onWagePress}>
+            <Text style={styles.wage}>₫{job.dailyWage.toLocaleString()}</Text>
+          </TouchableOpacity>
           {job.distanceKm !== undefined && (
             <Text style={styles.distance}>{t('jobs.distance', { km: job.distanceKm.toFixed(1) })}</Text>
           )}
