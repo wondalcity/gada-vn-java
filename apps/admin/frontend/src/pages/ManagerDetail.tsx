@@ -496,6 +496,7 @@ function SiteAssignmentTab({
   siteStatusLabel,
   siteStatusClass,
   t,
+  locale,
 }: {
   assignedSites: AssignedSite[]
   allSites: SiteOption[]
