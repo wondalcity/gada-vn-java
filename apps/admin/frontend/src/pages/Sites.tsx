@@ -61,6 +61,7 @@ interface Manager {
   id: string
   representative_name: string
   company_name?: string
+  phone?: string
 }
 
 interface Company {
@@ -84,6 +85,86 @@ const JOB_STATUS_BADGE: Record<string, string> = {
 
 
 const IN = 'w-full border border-[#EFF1F5] rounded-2xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#0669F7]'
+
+function managerLabel(m: Manager): string {
+  const phone = m.phone ? m.phone : ''
+  return `${m.representative_name}${phone ? `(${phone})` : ''}`
+}
+
+// ── Searchable manager combobox ────────────────────────────────────────────
+function ManagerSearchSelect({
+  managers,
+  value,
+  onChange,
+  placeholder,
+}: {
+  managers: Manager[]
+  value: string
+  onChange: (id: string) => void
+  placeholder: string
+}) {
+  const [query, setQuery] = useState('')
+  const [open, setOpen] = useState(false)
+
+  const selected = managers.find(m => m.id === value)
+
+  const filtered = query
+    ? managers.filter(m => {
+        const q = query.toLowerCase()
+        return (
+          m.representative_name.toLowerCase().includes(q) ||
+          (m.phone ?? '').toLowerCase().includes(q)
+        )
+      })
+    : managers
+
+  function handleSelect(m: Manager) {
+    onChange(m.id)
+    setQuery('')
+    setOpen(false)
+  }
+
+  function handleInputChange(e: React.ChangeEvent<HTMLInputElement>) {
+    setQuery(e.target.value)
+    setOpen(true)
+    if (!e.target.value) onChange('')
+  }
+
+  return (
+    <div className="relative">
+      <input
+        className={IN + ' pr-8'}
+        value={open ? query : (selected ? managerLabel(selected) : '')}
+        onChange={handleInputChange}
+        onFocus={() => setOpen(true)}
+        onBlur={() => setTimeout(() => setOpen(false), 150)}
+        placeholder={placeholder}
+        autoComplete="off"
+      />
+      {/* Chevron */}
+      <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs">▾</span>
+
+      {open && (
+        <div className="absolute z-50 mt-1 w-full bg-white border border-[#EFF1F5] rounded-2xl shadow-lg max-h-52 overflow-y-auto">
+          {filtered.length === 0 ? (
+            <div className="px-4 py-3 text-sm text-gray-400">검색 결과 없음</div>
+          ) : (
+            filtered.map(m => (
+              <button
+                key={m.id}
+                type="button"
+                className={`w-full text-left px-4 py-2.5 text-sm hover:bg-[#F2F4F5] transition-colors ${m.id === value ? 'bg-[#EFF1F5] font-semibold' : ''}`}
+                onMouseDown={() => handleSelect(m)}
+              >
+                {managerLabel(m)}
+              </button>
+            ))
+          )}
+        </div>
+      )}
+    </div>
+  )
+}
 
 // ── Site Form Modal ────────────────────────────────────────────────────────
 function SiteFormModal({
@@ -116,6 +197,7 @@ function SiteFormModal({
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
+    if (!form.managerId) { setError(t('sites.modal.manager_required')); return }
     setSaving(true)
     setError('')
     try {
@@ -144,14 +226,12 @@ function SiteFormModal({
           </div>
           <div>
             <label className="block text-xs font-medium text-gray-500 mb-1">{t('sites.modal.manager')}</label>
-            <GadaSelect required value={form.managerId} onChange={e => setForm({ ...form, managerId: e.target.value })}>
-              <option value="">{t('sites.modal.manager_placeholder')}</option>
-              {managers.map(m => (
-                <option key={m.id} value={m.id}>
-                  {m.representative_name}{m.company_name ? ` (${m.company_name})` : ''}
-                </option>
-              ))}
-            </GadaSelect>
+            <ManagerSearchSelect
+              managers={managers}
+              value={form.managerId}
+              onChange={id => setForm({ ...form, managerId: id })}
+              placeholder={t('sites.modal.manager_placeholder')}
+            />
           </div>
           <div>
             <label className="block text-xs font-medium text-gray-500 mb-1">{t('sites.modal.site_name')}</label>
