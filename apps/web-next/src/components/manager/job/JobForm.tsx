@@ -452,18 +452,19 @@ export default function JobForm({
         </div>
       )}
 
-      <div className="flex justify-end gap-3 mt-4">
+      {/* Action buttons — stacked full-width on mobile, right-aligned on desktop */}
+      <div className="mt-6 flex flex-col sm:flex-row gap-3 sm:justify-end">
         <button
           type="button"
           onClick={() => router.back()}
-          className="px-5 py-2.5 rounded-full border border-[#EFF1F5] text-[#25282A] font-medium text-sm"
+          className="w-full sm:w-auto sm:min-w-[120px] py-3.5 sm:py-2.5 px-6 rounded-full border-2 border-[#EFF1F5] text-[#25282A] font-semibold text-sm hover:border-[#98A2B2] active:bg-[#F8F8FA] transition-colors"
         >
           취소
         </button>
         <button
           type="submit"
           disabled={isSaving}
-          className="px-5 py-2.5 rounded-full bg-[#0669F7] text-white font-medium text-sm hover:bg-[#0557D4] disabled:opacity-40"
+          className="w-full sm:w-auto sm:min-w-[120px] py-3.5 sm:py-2.5 px-6 rounded-full bg-[#0669F7] text-white font-semibold text-sm hover:bg-[#0557D4] active:bg-[#0447BE] disabled:opacity-40 transition-colors shadow-md shadow-[#0669F7]/30"
         >
           {isSaving ? '저장 중...' : '저장'}
         </button>

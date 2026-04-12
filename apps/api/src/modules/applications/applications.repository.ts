@@ -51,19 +51,21 @@ export class ApplicationsRepository {
     const { rows } = await this.db.query(
       `SELECT
          a.id,
-         a.job_id       AS "jobId",
-         j.title        AS "jobTitle",
-         s.id           AS "siteId",
-         s.name         AS "siteName",
-         j.work_date    AS "workDate",
+         a.job_id              AS "jobId",
+         j.title               AS "jobTitle",
+         s.id                  AS "siteId",
+         s.name                AS "siteName",
+         j.work_date           AS "workDate",
          j.daily_wage::INTEGER AS "dailyWage",
          a.status,
-         a.applied_at   AS "appliedAt",
-         a.notes
+         a.applied_at          AS "appliedAt",
+         a.notes,
+         t.name_ko             AS "tradeNameKo"
        FROM app.job_applications a
        JOIN app.worker_profiles wp ON a.worker_id = wp.id
        JOIN app.jobs j ON a.job_id = j.id
        JOIN app.construction_sites s ON j.site_id = s.id
+       LEFT JOIN ref.construction_trades t ON j.trade_id = t.id
        WHERE wp.user_id = $1
        ORDER BY a.applied_at DESC
        LIMIT $2 OFFSET $3`,

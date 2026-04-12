@@ -53,6 +53,7 @@ const DEMO_APPLICATIONS: WorkerApplication[] = [
     dailyWage: 700000,
     status: 'CONTRACTED',
     appliedAt: '2026-03-20T08:30:00Z',
+    tradeNameKo: '전기',
   },
   {
     id: 'demo-app-2',
@@ -64,6 +65,7 @@ const DEMO_APPLICATIONS: WorkerApplication[] = [
     dailyWage: 410000,
     status: 'ACCEPTED',
     appliedAt: '2026-03-22T09:15:00Z',
+    tradeNameKo: '건축',
   },
   {
     id: 'demo-app-3',
@@ -75,6 +77,7 @@ const DEMO_APPLICATIONS: WorkerApplication[] = [
     dailyWage: 580000,
     status: 'PENDING',
     appliedAt: '2026-03-25T10:00:00Z',
+    tradeNameKo: '타일',
   },
   {
     id: 'demo-app-4',
@@ -86,6 +89,7 @@ const DEMO_APPLICATIONS: WorkerApplication[] = [
     dailyWage: 490000,
     status: 'REJECTED',
     appliedAt: '2026-03-12T14:00:00Z',
+    tradeNameKo: '도장',
   },
 ]
 
@@ -252,7 +256,7 @@ export default function WorkerApplicationsClient({ locale }: { locale?: string }
           </div>
         ) : (
           filtered.map(app => {
-            const coverImg = app.coverImageUrl || pickTradeImage(app.tradeNameKo, app.jobId)
+            const coverImg = app.coverImageUrl || pickTradeImage(app.tradeNameKo, app.jobId, app.jobTitle)
             return (
               <Link
                 key={app.id}

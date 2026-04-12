@@ -69,12 +69,14 @@ const TRADE_IMAGE_MAP: Array<{ keywords: string[]; url: string }> = [
 ]
 
 /**
- * Pick a trade-specific image based on Korean trade name.
- * Falls back to a deterministic hash-based image if no trade keyword matches.
+ * Pick a trade-specific image based on Korean trade name or job title.
+ * Falls back to a deterministic hash-based image if no keyword matches.
  */
-export function pickTradeImage(tradeNameKo?: string | null, jobId?: string): string {
-  if (tradeNameKo) {
-    const name = tradeNameKo.trim()
+export function pickTradeImage(tradeNameKo?: string | null, jobId?: string, jobTitle?: string): string {
+  // Try tradeNameKo first, then jobTitle as keyword source
+  for (const searchText of [tradeNameKo, jobTitle]) {
+    if (!searchText) continue
+    const name = searchText.trim()
     for (const entry of TRADE_IMAGE_MAP) {
       if (entry.keywords.some((kw) => name.includes(kw))) {
         return entry.url
@@ -82,7 +84,7 @@ export function pickTradeImage(tradeNameKo?: string | null, jobId?: string): str
     }
   }
   // Fallback: deterministic hash-based selection
-  return pickDummyImage(jobId ?? tradeNameKo ?? 'default')
+  return pickDummyImage(jobId ?? tradeNameKo ?? jobTitle ?? 'default')
 }
 
 /**

@@ -55,6 +55,8 @@ export function DatePicker({
   const [open, setOpen] = React.useState(false)
   const [view, setView] = React.useState<'calendar' | 'month' | 'year'>('calendar')
   const containerRef = React.useRef<HTMLDivElement>(null)
+  const [fixedTop, setFixedTop] = React.useState(0)
+  const [fixedLeft, setFixedLeft] = React.useState(0)
 
   const today = new Date()
   const selected = parseDate(value)
@@ -78,16 +80,26 @@ export function DatePicker({
     }
   }, [value]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Close on outside click
+  // Close on outside click, scroll, or resize
   React.useEffect(() => {
     if (!open) return
-    function handler(e: MouseEvent) {
+    function handleClick(e: MouseEvent) {
       if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+        // Also check the fixed dropdown (rendered outside container visually but still inside DOM)
+        const picker = document.getElementById('datepicker-portal')
+        if (picker && picker.contains(e.target as Node)) return
         setOpen(false)
       }
     }
-    document.addEventListener('mousedown', handler)
-    return () => document.removeEventListener('mousedown', handler)
+    function handleClose() { setOpen(false) }
+    document.addEventListener('mousedown', handleClick)
+    window.addEventListener('scroll', handleClose, true)
+    window.addEventListener('resize', handleClose)
+    return () => {
+      document.removeEventListener('mousedown', handleClick)
+      window.removeEventListener('scroll', handleClose, true)
+      window.removeEventListener('resize', handleClose)
+    }
   }, [open])
 
   function openPicker() {
@@ -96,6 +108,17 @@ export function DatePicker({
     setViewYear(base.getFullYear())
     setViewMonth(base.getMonth())
     setView('calendar')
+    if (containerRef.current) {
+      const rect = containerRef.current.getBoundingClientRect()
+      const calendarH = 380
+      const spaceBelow = window.innerHeight - rect.bottom - 8
+      const top = spaceBelow >= calendarH
+        ? rect.bottom + 6
+        : Math.max(8, rect.top - calendarH - 6)
+      const left = Math.max(8, Math.min(rect.left, window.innerWidth - 320 - 16))
+      setFixedTop(top)
+      setFixedLeft(left)
+    }
     setOpen(true)
   }
 
@@ -159,12 +182,13 @@ export function DatePicker({
         </svg>
       </button>
 
-      {/* Dropdown */}
+      {/* Dropdown — fixed position to escape overflow:hidden parents */}
       {open && (
         <div
+          id="datepicker-portal"
           role="dialog"
-          className="absolute z-50 mt-1.5 w-80 max-w-[calc(100vw-2rem)] bg-white rounded-2xl shadow-xl border border-[#EFF1F5] overflow-hidden"
-          style={{ left: 0, top: '100%' }}
+          className="w-80 bg-white rounded-2xl shadow-2xl border border-[#EFF1F5] overflow-hidden"
+          style={{ position: 'fixed', top: fixedTop, left: fixedLeft, zIndex: 9999, maxWidth: 'calc(100vw - 2rem)' }}
         >
           {/* ── Calendar view ── */}
           {view === 'calendar' && (

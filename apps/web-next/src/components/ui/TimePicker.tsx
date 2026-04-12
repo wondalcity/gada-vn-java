@@ -100,19 +100,30 @@ export function TimePicker({
 }: TimePickerProps) {
   const [open, setOpen] = React.useState(false)
   const containerRef = React.useRef<HTMLDivElement>(null)
+  const [fixedTop, setFixedTop] = React.useState(0)
+  const [fixedLeft, setFixedLeft] = React.useState(0)
 
   const { period, hour, minute } = parse(value)
 
-  // Close on outside click
+  // Close on outside click, scroll, or resize
   React.useEffect(() => {
     if (!open) return
-    function handler(e: MouseEvent) {
+    function handleClick(e: MouseEvent) {
       if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+        const picker = document.getElementById('timepicker-portal')
+        if (picker && picker.contains(e.target as Node)) return
         setOpen(false)
       }
     }
-    document.addEventListener('mousedown', handler)
-    return () => document.removeEventListener('mousedown', handler)
+    function handleClose() { setOpen(false) }
+    document.addEventListener('mousedown', handleClick)
+    window.addEventListener('scroll', handleClose, true)
+    window.addEventListener('resize', handleClose)
+    return () => {
+      document.removeEventListener('mousedown', handleClick)
+      window.removeEventListener('scroll', handleClose, true)
+      window.removeEventListener('resize', handleClose)
+    }
   }, [open])
 
   function setPeriod(p: 'AM' | 'PM') {
@@ -136,11 +147,27 @@ export function TimePicker({
     disabled ? 'border-[#EFF1F5] bg-[#F2F4F5] cursor-not-allowed text-[#98A2B2]' : 'border-[#EFF1F5] text-[#25282A] hover:border-[#0669F7]'
   } ${open ? 'border-[#0669F7] ring-2 ring-[#0669F7]/10' : ''} ${className}`
 
+  function openPicker() {
+    if (disabled) return
+    if (containerRef.current) {
+      const rect = containerRef.current.getBoundingClientRect()
+      const pickerH = 290
+      const spaceBelow = window.innerHeight - rect.bottom - 8
+      const top = spaceBelow >= pickerH
+        ? rect.bottom + 6
+        : Math.max(8, rect.top - pickerH - 6)
+      const left = Math.max(8, Math.min(rect.left, window.innerWidth - 240 - 16))
+      setFixedTop(top)
+      setFixedLeft(left)
+    }
+    setOpen(v => !v)
+  }
+
   return (
     <div ref={containerRef} className="relative w-full">
       <button
         type="button"
-        onClick={() => { if (!disabled) setOpen(v => !v) }}
+        onClick={openPicker}
         disabled={disabled}
         className={inputBase}
         aria-haspopup="dialog"
@@ -156,9 +183,10 @@ export function TimePicker({
 
       {open && (
         <div
+          id="timepicker-portal"
           role="dialog"
-          className="absolute z-50 mt-1.5 bg-white rounded-2xl shadow-xl border border-[#EFF1F5] overflow-hidden"
-          style={{ left: 0, top: '100%', width: 240 }}
+          className="bg-white rounded-2xl shadow-2xl border border-[#EFF1F5] overflow-hidden"
+          style={{ position: 'fixed', top: fixedTop, left: fixedLeft, zIndex: 9999, width: 240 }}
         >
           {/* Header */}
           <div className="flex items-center justify-between px-4 pt-3 pb-2 border-b border-[#EFF1F5]">

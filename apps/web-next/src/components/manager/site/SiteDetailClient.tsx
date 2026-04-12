@@ -41,6 +41,20 @@ export default function SiteDetailClient({ siteId, locale }: SiteDetailClientPro
   const [lightboxIdx, setLightboxIdx] = React.useState<number | null>(null)
   const [showDeleteModal, setShowDeleteModal] = React.useState(false)
   const [isDeleting, setIsDeleting] = React.useState(false)
+  const [statusMenuOpen, setStatusMenuOpen] = React.useState(false)
+  const statusMenuRef = React.useRef<HTMLDivElement>(null)
+
+  // Close status menu on outside click
+  React.useEffect(() => {
+    if (!statusMenuOpen) return
+    function handler(e: MouseEvent) {
+      if (statusMenuRef.current && !statusMenuRef.current.contains(e.target as Node)) {
+        setStatusMenuOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [statusMenuOpen])
 
   React.useEffect(() => {
     // Demo mode (no token) — load from localStorage store
@@ -177,18 +191,71 @@ export default function SiteDetailClient({ siteId, locale }: SiteDetailClientPro
             {t('manager_site_detail.edit')}
           </Link>
 
-          {/* Status change dropdown */}
-          <div className="relative">
-            <select
-              value={site.status}
-              onChange={(e) => handleStatusChange(e.target.value as SiteStatus)}
-              className="px-5 py-2.5 rounded-full border border-[#EFF1F5] text-[#25282A] font-medium text-sm bg-white appearance-none pr-8 cursor-pointer"
-            >
-              <option value="ACTIVE">{t('manager_site_detail.status_active')}</option>
-              <option value="PAUSED">{t('manager_site_detail.status_paused')}</option>
-              <option value="COMPLETED">{t('manager_site_detail.status_completed')}</option>
-            </select>
-          </div>
+          {/* Status change — custom GADA dropdown */}
+          {(() => {
+            const STATUS_UI: Record<SiteStatus, { label: string; dot: string; bg: string; text: string; border: string }> = {
+              ACTIVE:    { label: '운영중',   dot: '#22C55E', bg: '#D1F3D3', text: '#166534', border: '#86D98A' },
+              PAUSED:    { label: '일시중지', dot: '#F59E0B', bg: '#FEF3C7', text: '#92400E', border: '#F5D87D' },
+              COMPLETED: { label: '완료',     dot: '#9CA3AF', bg: '#F3F4F6', text: '#374151', border: '#DDDDDD' },
+            }
+            const current = STATUS_UI[site.status]
+            return (
+              <div className="relative" ref={statusMenuRef}>
+                <button
+                  type="button"
+                  onClick={() => setStatusMenuOpen(v => !v)}
+                  className={`flex items-center gap-2 px-4 py-2.5 rounded-full border font-medium text-sm transition-colors ${
+                    statusMenuOpen
+                      ? 'border-[#0669F7] bg-[#E6F0FE] text-[#0669F7]'
+                      : 'border-[#EFF1F5] bg-white text-[#25282A] hover:border-[#0669F7]'
+                  }`}
+                >
+                  <span className="w-2 h-2 rounded-full shrink-0" style={{ background: current.dot }} />
+                  <span>{current.label}</span>
+                  <svg
+                    className={`w-3.5 h-3.5 transition-transform ${statusMenuOpen ? 'rotate-180 text-[#0669F7]' : 'text-[#98A2B2]'}`}
+                    fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </button>
+
+                {statusMenuOpen && (
+                  <div className="absolute left-0 top-full mt-2 w-44 bg-white rounded-2xl shadow-xl border border-[#EFF1F5] overflow-hidden z-20 py-1">
+                    {(Object.keys(STATUS_UI) as SiteStatus[]).map(key => {
+                      const ui = STATUS_UI[key]
+                      const isCurrent = site.status === key
+                      return (
+                        <button
+                          key={key}
+                          type="button"
+                          onClick={() => { handleStatusChange(key); setStatusMenuOpen(false) }}
+                          className={`w-full flex items-center justify-between px-4 py-2.5 text-sm transition-colors ${
+                            isCurrent ? 'bg-[#F8F8FA]' : 'hover:bg-[#F8F8FA]'
+                          }`}
+                        >
+                          <div className="flex items-center gap-2.5">
+                            <span className="w-2 h-2 rounded-full shrink-0" style={{ background: ui.dot }} />
+                            <span
+                              className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold"
+                              style={{ background: ui.bg, color: ui.text, border: `1px solid ${ui.border}` }}
+                            >
+                              {ui.label}
+                            </span>
+                          </div>
+                          {isCurrent && (
+                            <svg className="w-4 h-4 text-[#0669F7] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+                            </svg>
+                          )}
+                        </button>
+                      )
+                    })}
+                  </div>
+                )}
+              </div>
+            )
+          })()}
 
           <button
             onClick={() => setShowDeleteModal(true)}
