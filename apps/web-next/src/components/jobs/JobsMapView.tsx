@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useEffect, useRef, useState, useCallback } from 'react'
+import { useTranslations } from 'next-intl'
 import { GoogleMap, useJsApiLoader, OverlayView, Circle, type Libraries } from '@react-google-maps/api'
 import type { PublicJob } from '@/lib/api/public'
 import { Link } from '@/components/navigation'
@@ -40,10 +41,10 @@ function formatVnd(n: number) {
 }
 
 const STATUS_CONFIG = {
-  OPEN:      { label: '모집중',  bg: '#D1F3D3', text: '#024209', dot: '#00C800' },
-  FILLED:    { label: '마감',    bg: '#F2F2F2', text: '#595959', dot: '#B2B2B2' },
-  CANCELLED: { label: '취소',    bg: '#FFDCE0', text: '#540C0E', dot: '#ED1C24' },
-  COMPLETED: { label: '완료',    bg: '#F2F2F2', text: '#595959', dot: '#B2B2B2' },
+  OPEN:      { labelKey: 'card.status.open',      bg: '#D1F3D3', text: '#024209', dot: '#00C800' },
+  FILLED:    { labelKey: 'card.status.filled',    bg: '#F2F2F2', text: '#595959', dot: '#B2B2B2' },
+  CANCELLED: { labelKey: 'card.status.cancelled', bg: '#FFDCE0', text: '#540C0E', dot: '#ED1C24' },
+  COMPLETED: { labelKey: 'card.status.completed', bg: '#F2F2F2', text: '#595959', dot: '#B2B2B2' },
 } as const
 
 interface Props {
@@ -142,6 +143,7 @@ function AirbnbJobCard({
   onMouseLeave: () => void
   onClick: () => void
 }) {
+  const t = useTranslations('jobs')
   const remaining = job.slotsTotal - job.slotsFilled
 
   return (
@@ -173,19 +175,19 @@ function AirbnbJobCard({
 
       {/* Info */}
       <div className="flex-1 min-w-0">
-        <p className="text-xs text-[#7A7B7A] truncate">{job.siteNameKo} · {job.provinceNameVi}</p>
+        <p className="text-xs text-[#7A7B7A] truncate">{locale === 'ko' ? job.siteNameKo : (job.siteNameVi || job.siteNameKo)} · {job.provinceNameVi}</p>
         <p className={`text-sm line-clamp-2 leading-snug mt-0.5 ${isSelected ? 'font-bold text-[#1A1A1A]' : 'font-semibold text-[#25282A]'}`}>
-          {job.titleKo}
+          {locale === 'ko' ? job.titleKo : (job.titleVi || job.titleKo)}
         </p>
         <p className="text-xs text-[#7A7B7A] mt-0.5">{fmtDateShort(job.workDate, locale)}</p>
         <div className="flex items-center justify-between mt-1">
           <p className="text-sm font-bold text-[#25282A]">
             {new Intl.NumberFormat('ko-KR').format(job.dailyWage)}{' '}
-            <span className="font-normal text-[#7A7B7A] text-xs">₫ / 일</span>
+            <span className="font-normal text-[#7A7B7A] text-xs">₫ {t('card.per_day')}</span>
           </p>
           {remaining > 0 && job.status === 'OPEN' && (
             <span className="text-[10px] text-[#7A7B7A] bg-[#F2F2F2] px-2 py-0.5 rounded-full">
-              잔여 {remaining}명
+              {t('card.slots_left', { n: remaining })}
             </span>
           )}
         </div>
@@ -219,6 +221,7 @@ function MapPopupCard({
   onClose: () => void
   basePath?: string
 }) {
+  const t = useTranslations('jobs')
   const status = STATUS_CONFIG[job.status as keyof typeof STATUS_CONFIG] ?? STATUS_CONFIG.OPEN
   const remaining = job.slotsTotal - job.slotsFilled
 
@@ -246,7 +249,7 @@ function MapPopupCard({
           type="button"
           onClick={onClose}
           className="absolute top-2.5 right-2.5 w-7 h-7 flex items-center justify-center rounded-full bg-white/90 backdrop-blur-sm shadow text-[#25282A] hover:bg-white transition-colors"
-          aria-label="닫기"
+          aria-label={t('listing.close')}
         >
           <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
@@ -259,24 +262,26 @@ function MapPopupCard({
           style={{ background: status.bg, color: status.text }}
         >
           <span className="w-1.5 h-1.5 rounded-full" style={{ background: status.dot }} />
-          {status.label}
+          {t(status.labelKey as any)}
         </span>
       </div>
 
       {/* Content */}
       <div className="p-4">
-        <h3 className="text-sm font-bold text-[#25282A] line-clamp-2 leading-snug mb-1">{job.titleKo}</h3>
-        <p className="text-xs text-[#7A7B7A] truncate mb-0.5">{job.siteNameKo} · {job.provinceNameVi}</p>
+        <h3 className="text-sm font-bold text-[#25282A] line-clamp-2 leading-snug mb-1">
+          {locale === 'ko' ? job.titleKo : (job.titleVi || job.titleKo)}
+        </h3>
+        <p className="text-xs text-[#7A7B7A] truncate mb-0.5">{locale === 'ko' ? job.siteNameKo : (job.siteNameVi || job.siteNameKo)} · {job.provinceNameVi}</p>
         <p className="text-xs text-[#7A7B7A] mb-3">{fmtDate(job.workDate, locale)}</p>
 
         <div className="flex items-center justify-between mb-3">
           <p className="text-base font-bold text-[#25282A]">
             {new Intl.NumberFormat('ko-KR').format(job.dailyWage)}{' '}
-            <span className="text-xs font-normal text-[#7A7B7A]">₫ / 일</span>
+            <span className="text-xs font-normal text-[#7A7B7A]">₫ {t('card.per_day')}</span>
           </p>
           {remaining > 0 && job.status === 'OPEN' && (
             <span className="text-xs font-medium text-[#024209] bg-[#D1F3D3] px-2.5 py-0.5 rounded-full">
-              잔여 {remaining}명
+              {t('card.slots_left', { n: remaining })}
             </span>
           )}
         </div>
@@ -285,7 +290,7 @@ function MapPopupCard({
           href={`${basePath}/${job.slug ?? job.id}`}
           className="block w-full text-center py-2.5 bg-[#0669F7] hover:bg-[#0454C5] text-white text-sm font-semibold rounded-xl transition-colors"
         >
-          자세히 보기
+          {t('listing.view_details')}
         </Link>
       </div>
     </div>
@@ -305,6 +310,7 @@ function MobileJobCard({
   onClose: () => void
   basePath?: string
 }) {
+  const t = useTranslations('jobs')
   const status = STATUS_CONFIG[job.status as keyof typeof STATUS_CONFIG] ?? STATUS_CONFIG.OPEN
   const remaining = job.slotsTotal - job.slotsFilled
 
@@ -331,8 +337,8 @@ function MobileJobCard({
         <div className="flex-1 min-w-0">
           <div className="flex items-start justify-between gap-1">
             <div className="min-w-0">
-              <p className="text-[11px] text-[#7A7B7A] truncate">{job.siteNameKo} · {job.provinceNameVi}</p>
-              <p className="text-sm font-bold text-[#25282A] line-clamp-2 leading-snug mt-0.5">{job.titleKo}</p>
+              <p className="text-[11px] text-[#7A7B7A] truncate">{locale === 'ko' ? job.siteNameKo : (job.siteNameVi || job.siteNameKo)} · {job.provinceNameVi}</p>
+              <p className="text-sm font-bold text-[#25282A] line-clamp-2 leading-snug mt-0.5">{locale === 'ko' ? job.titleKo : (job.titleVi || job.titleKo)}</p>
             </div>
             <button
               type="button"
@@ -351,7 +357,7 @@ function MobileJobCard({
               style={{ background: status.bg, color: status.text }}
             >
               <span className="w-1.5 h-1.5 rounded-full" style={{ background: status.dot }} />
-              {status.label}
+              {t(status.labelKey as any)}
             </span>
             <span className="text-[11px] text-[#7A7B7A]">{fmtDateShort(job.workDate, locale)}</span>
           </div>
@@ -359,11 +365,11 @@ function MobileJobCard({
           <div className="flex items-center justify-between mt-2">
             <p className="text-base font-bold text-[#25282A]">
               {new Intl.NumberFormat('ko-KR').format(job.dailyWage)}{' '}
-              <span className="text-xs font-normal text-[#7A7B7A]">₫/일</span>
+              <span className="text-xs font-normal text-[#7A7B7A]">₫ {t('card.per_day')}</span>
             </p>
             {remaining > 0 && job.status === 'OPEN' && (
               <span className="text-[10px] text-[#024209] bg-[#D1F3D3] px-2 py-0.5 rounded-full font-medium">
-                잔여 {remaining}명
+                {t('card.slots_left', { n: remaining })}
               </span>
             )}
           </div>
@@ -376,7 +382,7 @@ function MobileJobCard({
           href={`${basePath}/${job.slug ?? job.id}`}
           className="block w-full text-center py-3 bg-[#0669F7] hover:bg-[#0454C5] text-white text-sm font-semibold rounded-xl transition-colors"
         >
-          자세히 보기
+          {t('listing.view_details')}
         </Link>
       </div>
     </div>
@@ -388,11 +394,13 @@ function MobileJobCard({
 function FilterToggleButton({
   open,
   count,
+  label,
   onClick,
   dark = false,
 }: {
   open: boolean
   count: number
+  label: string
   onClick: () => void
   dark?: boolean
 }) {
@@ -413,7 +421,7 @@ function FilterToggleButton({
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
           d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2a1 1 0 01-.293.707L13 13.414V19a1 1 0 01-.553.894l-4 2A1 1 0 017 21v-7.586L3.293 6.707A1 1 0 013 6V4z" />
       </svg>
-      필터
+      {label}
       {count > 0 && (
         <span className={`w-4 h-4 flex items-center justify-center rounded-full text-[10px] font-bold ${
           active && dark ? 'bg-white text-[#25282A]' : 'bg-[#0669F7] text-white'
@@ -427,7 +435,7 @@ function FilterToggleButton({
 
 // ── Reset zoom button ─────────────────────────────────────────────────────────
 
-function ResetZoomButton({ onClick }: { onClick: () => void }) {
+function ResetZoomButton({ onClick, label }: { onClick: () => void; label: string }) {
   return (
     <button
       type="button"
@@ -438,7 +446,7 @@ function ResetZoomButton({ onClick }: { onClick: () => void }) {
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
           d="M4 8V4m0 0h4M4 4l5 5m11-5h-4m4 0v4m0-4l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
       </svg>
-      전체 보기
+      {label}
     </button>
   )
 }
@@ -461,6 +469,7 @@ export default function JobsMapView({
   focusJobId,
   onFocused,
 }: Props) {
+  const t = useTranslations('jobs')
   const [selectedJobId, setSelectedJobId] = useState<string | null>(null)
   const [hoveredJobId, setHoveredJobId] = useState<string | null>(null)
   const [filterOpen, setFilterOpen] = useState(false)
@@ -721,7 +730,7 @@ export default function JobsMapView({
       {jobsWithoutCoords.length > 0 && (
         <>
           <div className="mx-4 border-b border-[#F2F2F2]" />
-          <p className="text-xs font-medium text-[#B2B2B2] px-4 pt-4 pb-2">위치 정보 없음</p>
+          <p className="text-xs font-medium text-[#B2B2B2] px-4 pt-4 pb-2">{t('listing.no_location')}</p>
           {jobsWithoutCoords.map((job, i) => (
             <React.Fragment key={job.id}>
               <AirbnbJobCard
@@ -745,7 +754,7 @@ export default function JobsMapView({
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5}
               d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
           </svg>
-          <p className="text-sm text-[#7A7B7A]">조건에 맞는 공고가 없습니다.</p>
+          <p className="text-sm text-[#7A7B7A]">{t('listing.empty')}</p>
         </div>
       )}
       <div className="h-4" />
@@ -762,7 +771,7 @@ export default function JobsMapView({
         <div className="shrink-0 pt-3 pb-3 px-5 border-b border-[#F2F2F2]">
           <div className="w-8 h-1 rounded-full bg-[#DDDDDD] mx-auto mb-3" />
           <div className="flex items-center justify-between">
-            <p className="text-base font-bold text-[#25282A]">필터</p>
+            <p className="text-base font-bold text-[#25282A]">{t('listing.filter_title')}</p>
             <button type="button" onClick={() => setFilterOpen(false)}
               className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-[#F2F2F2] text-[#25282A]">
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -775,7 +784,7 @@ export default function JobsMapView({
         <div className="shrink-0 px-5 pt-3 pb-5 border-t border-[#F2F2F2]">
           <button type="button" onClick={() => setFilterOpen(false)}
             className="w-full py-3.5 rounded-full bg-[#0669F7] text-white font-semibold hover:bg-[#0557D4] transition-colors text-sm">
-            {activeFilterCount > 0 ? `필터 적용 (${activeFilterCount})` : '닫기'}
+            {activeFilterCount > 0 ? t('listing.filter_applied', { n: activeFilterCount }) : t('listing.close')}
           </button>
         </div>
       </div>
@@ -794,15 +803,15 @@ export default function JobsMapView({
           <div className="shrink-0 flex items-center justify-between gap-3 px-4 py-3 border-b border-[#EBEBEB]">
             <div className="min-w-0">
               <p className="text-sm font-semibold text-[#25282A]">
-                총 {displayTotal.toLocaleString()}개 공고
+                {t('listing.total_count', { n: displayTotal.toLocaleString() })}
               </p>
               {geoActive && selectedRadius && (
-                <p className="text-xs text-[#0669F7] font-medium mt-0.5">반경 {selectedRadius}km 내</p>
+                <p className="text-xs text-[#0669F7] font-medium mt-0.5">{t('listing.within_radius', { n: selectedRadius })}</p>
               )}
             </div>
             <div className="flex items-center gap-2 shrink-0">
               {filterPanel && (
-                <FilterToggleButton open={filterOpen} count={activeFilterCount}
+                <FilterToggleButton open={filterOpen} count={activeFilterCount} label={t('listing.filter_title')}
                   onClick={() => setFilterOpen(v => !v)} dark />
               )}
               {viewToggle}
@@ -828,7 +837,7 @@ export default function JobsMapView({
           {isZoomedIn && (
             <div className="absolute top-3 left-1/2 -translate-x-1/2 z-[1000] pointer-events-auto"
               style={{ animation: 'slideUpSheet 0.2s ease-out both' }}>
-              <ResetZoomButton onClick={resetZoom} />
+              <ResetZoomButton onClick={resetZoom} label={t('listing.view_all')} />
             </div>
           )}
 
@@ -856,12 +865,12 @@ export default function JobsMapView({
         <div className="absolute top-3 left-0 right-0 z-[500] flex items-center justify-between px-3 pointer-events-none">
           <div className="pointer-events-auto">
             {filterPanel && (
-              <FilterToggleButton open={filterOpen} count={activeFilterCount}
+              <FilterToggleButton open={filterOpen} count={activeFilterCount} label={t('listing.filter_title')}
                 onClick={() => setFilterOpen(v => !v)} />
             )}
           </div>
           <div className="flex items-center gap-2 pointer-events-auto">
-            {isZoomedIn && <ResetZoomButton onClick={resetZoom} />}
+            {isZoomedIn && <ResetZoomButton onClick={resetZoom} label={t('listing.view_all')} />}
             {viewToggle}
           </div>
         </div>
@@ -901,9 +910,9 @@ export default function JobsMapView({
             <div className="w-9 h-1 bg-[#D4D4D4] rounded-full mb-2.5" />
             <div className="flex items-center justify-between w-full">
               <p className="text-sm font-semibold text-[#25282A]">
-                {displayTotal.toLocaleString()}개 공고
+                {t('listing.total_count', { n: displayTotal.toLocaleString() })}
                 {geoActive && selectedRadius && (
-                  <span className="ml-2 text-xs font-normal text-[#0669F7]">· {selectedRadius}km 내</span>
+                  <span className="ml-2 text-xs font-normal text-[#0669F7]">{t('listing.within_radius', { n: selectedRadius })}</span>
                 )}
               </p>
               <svg className={`w-4 h-4 text-[#7A7B7A] transition-transform duration-300 ${sheetExpanded ? 'rotate-180' : ''}`}

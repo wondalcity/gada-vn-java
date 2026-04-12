@@ -174,7 +174,9 @@ export function JobFilters({
           >
             <option value="">{t('listing.filter.all_trades')}</option>
             {trades.map(tr => (
-              <option key={tr.id} value={String(tr.id)}>{tr.nameKo}</option>
+              <option key={tr.id} value={String(tr.id)}>
+                {_locale === 'vi' ? tr.nameVi : _locale === 'en' ? (tr.nameEn || tr.nameKo) : tr.nameKo}
+              </option>
             ))}
           </select>
         </div>

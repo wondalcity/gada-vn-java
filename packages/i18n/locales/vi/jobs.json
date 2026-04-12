@@ -54,7 +54,10 @@
     "within_radius": "· Trong vòng {n}km",
     "search_radius": "Bán kính tìm kiếm",
     "filter_applied": "Đã lọc ({n})",
-    "close": "Đóng"
+    "close": "Đóng",
+    "view_details": "Xem chi tiết",
+    "view_all": "Xem tất cả",
+    "no_location": "Không có thông tin vị trí"
   },
   "card": {
     "status": {

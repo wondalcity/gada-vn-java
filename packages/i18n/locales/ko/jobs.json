@@ -54,7 +54,10 @@
     "within_radius": "· 반경 {n}km 내",
     "search_radius": "검색 반경",
     "filter_applied": "필터 적용 ({n})",
-    "close": "닫기"
+    "close": "닫기",
+    "view_details": "자세히 보기",
+    "view_all": "전체 보기",
+    "no_location": "위치 정보 없음"
   },
   "card": {
     "status": {

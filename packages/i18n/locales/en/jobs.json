@@ -54,7 +54,10 @@
     "within_radius": "· Within {n}km",
     "search_radius": "Search radius",
     "filter_applied": "Filter applied ({n})",
-    "close": "Close"
+    "close": "Close",
+    "view_details": "View Details",
+    "view_all": "View All",
+    "no_location": "No location info"
   },
   "card": {
     "status": {
