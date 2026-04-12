@@ -44,6 +44,22 @@ export function RegisterForm({ locale, expired }: RegisterFormProps) {
   const [error,              setError]              = React.useState<string | null>(null)
   const [otpFieldError,      setOtpFieldError]      = React.useState<string | null>(null)
   const [alreadyRegistered,  setAlreadyRegistered]  = React.useState(false)
+  const [toastVisible,       setToastVisible]       = React.useState(false)
+  const toastTimer = React.useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  function showOtpError(msg: string) {
+    setOtpFieldError(msg)
+    setToastVisible(true)
+    if (toastTimer.current) clearTimeout(toastTimer.current)
+    toastTimer.current = setTimeout(() => setToastVisible(false), 4000)
+  }
+
+  function mapFirebaseError(msg: string): string {
+    if (msg.includes('auth/invalid-verification-code') || msg.includes('auth/invalid-credential')) return 'otp.invalid'
+    if (msg.includes('auth/code-expired') || msg.includes('auth/session-expired')) return 'otp.expired'
+    if (msg.includes('auth/too-many-requests') || msg.includes('auth/quota-exceeded')) return 'otp.rate_limited'
+    return ''
+  }
 
   React.useEffect(() => {
     if (countdown <= 0) return
@@ -158,14 +174,33 @@ export function RegisterForm({ locale, expired }: RegisterFormProps) {
       const msg = err instanceof Error ? err.message : String(err)
       console.error('[register verifyOtp error]', err)
       setOtpError(true)
-      setOtpFieldError(msg || t('otp.invalid'))
+      const key = mapFirebaseError(msg)
+      showOtpError(key ? t(key as Parameters<typeof t>[0]) : t('otp.invalid'))
     } finally {
       setIsLoading(false)
     }
   }
 
+  const otpToast = (
+    <div
+      aria-live="assertive"
+      className={`fixed bottom-8 left-1/2 z-50 flex items-center gap-3 px-5 py-3.5 rounded-2xl shadow-xl pointer-events-none transition-all duration-300 ${
+        toastVisible ? 'opacity-100 -translate-x-1/2 translate-y-0' : 'opacity-0 -translate-x-1/2 translate-y-2'
+      }`}
+      style={{ background: '#1C1C1E', minWidth: '280px', maxWidth: '90vw' }}
+    >
+      <span className="shrink-0 flex items-center justify-center w-6 h-6 rounded-full bg-[#ED1C24]">
+        <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
+        </svg>
+      </span>
+      <p className="text-[14px] font-semibold text-white leading-snug">{otpFieldError}</p>
+    </div>
+  )
+
   return (
     <div className="bg-[#F8F8FA] flex flex-col">
+      {otpToast}
       {/* Invisible reCAPTCHA container */}
       <div id="recaptcha-container-register" />
 
@@ -261,14 +296,11 @@ export function RegisterForm({ locale, expired }: RegisterFormProps) {
             </p>
             <OtpInput
               value={otp}
-              onChange={v => { setOtp(v); setOtpError(false); setOtpFieldError(null) }}
+              onChange={v => { setOtp(v); setOtpError(false); setOtpFieldError(null); setToastVisible(false) }}
               onComplete={handleVerifyOtp}
               error={otpError}
               disabled={isLoading}
             />
-            {otpFieldError && (
-              <p className="text-center text-[13px] text-[#ED1C24]">{otpFieldError}</p>
-            )}
             <button
               type="button"
               onClick={() => handleVerifyOtp()}

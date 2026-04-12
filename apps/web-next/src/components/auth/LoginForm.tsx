@@ -36,6 +36,14 @@ async function apiFetch<T>(path: string, options: RequestInit & { token?: string
 
 type LoginStep = 'input' | 'otp' | 'fb_phone' | 'fb_otp'
 
+/** Maps Firebase auth error codes to i18n keys */
+function mapFirebaseError(msg: string): string {
+  if (msg.includes('auth/invalid-verification-code') || msg.includes('auth/invalid-credential')) return 'otp.invalid'
+  if (msg.includes('auth/code-expired') || msg.includes('auth/session-expired')) return 'otp.expired'
+  if (msg.includes('auth/too-many-requests') || msg.includes('auth/quota-exceeded')) return 'otp.rate_limited'
+  return ''
+}
+
 interface LoginFormInnerProps {
   locale: string
   redirectTo?: string
@@ -64,6 +72,15 @@ function LoginFormInner({ locale, redirectTo, expired }: LoginFormInnerProps) {
   const [isLoading, setIsLoading] = React.useState(false)
   const [error,     setError]     = React.useState<string | null>(null)
   const [isTestFlow, setIsTestFlow] = React.useState(false)
+  const [toastVisible, setToastVisible] = React.useState(false)
+  const toastTimer = React.useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  function showOtpError(msg: string) {
+    setError(msg)
+    setToastVisible(true)
+    if (toastTimer.current) clearTimeout(toastTimer.current)
+    toastTimer.current = setTimeout(() => setToastVisible(false), 4000)
+  }
 
   // ── Countdown timers ──────────────────────────────────────────────────────
   React.useEffect(() => {
@@ -150,7 +167,8 @@ function LoginFormInner({ locale, redirectTo, expired }: LoginFormInnerProps) {
       const msg = err instanceof Error ? err.message : String(err)
       console.error('[verifyOtp error]', err)
       setOtpError(true)
-      setError(msg || t('otp.invalid'))
+      const key = mapFirebaseError(msg)
+      showOtpError(key ? t(key as Parameters<typeof t>[0]) : t('otp.invalid'))
     } finally {
       setIsLoading(false)
     }
@@ -261,7 +279,8 @@ function LoginFormInner({ locale, redirectTo, expired }: LoginFormInnerProps) {
       const msg = err instanceof Error ? err.message : String(err)
       console.error('[fbVerifyOtp error]', err)
       setFbOtpError(true)
-      setError(msg || t('otp.invalid'))
+      const key = mapFirebaseError(msg)
+      showOtpError(key ? t(key as Parameters<typeof t>[0]) : t('otp.invalid'))
     } finally {
       setIsLoading(false)
     }
@@ -269,10 +288,30 @@ function LoginFormInner({ locale, redirectTo, expired }: LoginFormInnerProps) {
 
   // ── Render ────────────────────────────────────────────────────────────────
 
+  // ── OTP Error Toast ───────────────────────────────────────────────────────
+  const otpToast = (
+    <div
+      aria-live="assertive"
+      className={`fixed bottom-8 left-1/2 z-50 flex items-center gap-3 px-5 py-3.5 rounded-2xl shadow-xl pointer-events-none transition-all duration-300 ${
+        toastVisible ? 'opacity-100 -translate-x-1/2 translate-y-0' : 'opacity-0 -translate-x-1/2 translate-y-2'
+      }`}
+      style={{ background: '#1C1C1E', minWidth: '280px', maxWidth: '90vw' }}
+    >
+      {/* Error icon */}
+      <span className="shrink-0 flex items-center justify-center w-6 h-6 rounded-full bg-[#ED1C24]">
+        <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
+        </svg>
+      </span>
+      <p className="text-[14px] font-semibold text-white leading-snug">{error}</p>
+    </div>
+  )
+
   // Facebook phone collection screens
   if (step === 'fb_phone' || step === 'fb_otp') {
     return (
       <div className="min-h-dvh bg-[#F8F8FA] flex flex-col">
+        {otpToast}
         <div id="recaptcha-container-fb" />
         <div className="bg-white px-6 pb-6 text-center border-b border-[#EFF1F5]"
           style={{ paddingTop: 'calc(env(safe-area-inset-top, 0px) + 48px)' }}
@@ -327,7 +366,6 @@ function LoginFormInner({ locale, redirectTo, expired }: LoginFormInnerProps) {
                 error={fbOtpError}
                 disabled={isLoading}
               />
-              {error && <p className="text-center text-[13px] text-[#ED1C24]">{error}</p>}
               <button
                 type="button"
                 onClick={() => handleFbVerifyOtp()}
@@ -352,6 +390,7 @@ function LoginFormInner({ locale, redirectTo, expired }: LoginFormInnerProps) {
 
   return (
     <div className="bg-[#F8F8FA] flex flex-col">
+      {otpToast}
       {/* Invisible reCAPTCHA container */}
       <div id="recaptcha-container" />
 
@@ -425,12 +464,11 @@ function LoginFormInner({ locale, redirectTo, expired }: LoginFormInnerProps) {
             </div>
             <OtpInput
               value={otp}
-              onChange={v => { setOtp(v); setOtpError(false) }}
+              onChange={v => { setOtp(v); setOtpError(false); setToastVisible(false) }}
               onComplete={() => handleVerifyOtp()}
               error={otpError}
               disabled={isLoading}
             />
-            {error && <p className="text-center text-[13px] text-[#ED1C24]">{error}</p>}
             <button
               type="submit"
               disabled={isLoading || otp.replace(/\s/g, '').length < 6}

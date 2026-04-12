@@ -175,7 +175,7 @@ function AirbnbJobCard({
 
       {/* Info */}
       <div className="flex-1 min-w-0">
-        <p className="text-xs text-[#7A7B7A] truncate">{locale === 'ko' ? job.siteNameKo : (job.siteNameVi || job.siteNameKo)} · {job.provinceNameVi}</p>
+        <p className="text-xs text-[#7A7B7A] truncate">{locale === 'ko' ? job.siteNameKo : job.siteNameKo} · {job.provinceNameVi}</p>
         <p className={`text-sm line-clamp-2 leading-snug mt-0.5 ${isSelected ? 'font-bold text-[#1A1A1A]' : 'font-semibold text-[#25282A]'}`}>
           {locale === 'ko' ? job.titleKo : (job.titleVi || job.titleKo)}
         </p>
@@ -271,7 +271,7 @@ function MapPopupCard({
         <h3 className="text-sm font-bold text-[#25282A] line-clamp-2 leading-snug mb-1">
           {locale === 'ko' ? job.titleKo : (job.titleVi || job.titleKo)}
         </h3>
-        <p className="text-xs text-[#7A7B7A] truncate mb-0.5">{locale === 'ko' ? job.siteNameKo : (job.siteNameVi || job.siteNameKo)} · {job.provinceNameVi}</p>
+        <p className="text-xs text-[#7A7B7A] truncate mb-0.5">{locale === 'ko' ? job.siteNameKo : job.siteNameKo} · {job.provinceNameVi}</p>
         <p className="text-xs text-[#7A7B7A] mb-3">{fmtDate(job.workDate, locale)}</p>
 
         <div className="flex items-center justify-between mb-3">
@@ -337,7 +337,7 @@ function MobileJobCard({
         <div className="flex-1 min-w-0">
           <div className="flex items-start justify-between gap-1">
             <div className="min-w-0">
-              <p className="text-[11px] text-[#7A7B7A] truncate">{locale === 'ko' ? job.siteNameKo : (job.siteNameVi || job.siteNameKo)} · {job.provinceNameVi}</p>
+              <p className="text-[11px] text-[#7A7B7A] truncate">{locale === 'ko' ? job.siteNameKo : job.siteNameKo} · {job.provinceNameVi}</p>
               <p className="text-sm font-bold text-[#25282A] line-clamp-2 leading-snug mt-0.5">{locale === 'ko' ? job.titleKo : (job.titleVi || job.titleKo)}</p>
             </div>
             <button
