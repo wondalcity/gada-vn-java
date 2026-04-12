@@ -1,6 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { DatabaseService } from '../../common/database/database.service';
 
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 @Injectable()
 export class ApplicationsRepository {
   constructor(private readonly db: DatabaseService) {}
@@ -16,6 +18,7 @@ export class ApplicationsRepository {
   }
 
   async findById(id: string) {
+    if (!UUID_RE.test(id)) return null;
     const { rows } = await this.db.query(
       'SELECT * FROM app.job_applications WHERE id = $1',
       [id],
@@ -24,6 +27,7 @@ export class ApplicationsRepository {
   }
 
   async findByIdAndWorker(id: string, userId: string) {
+    if (!UUID_RE.test(id)) return null;
     const { rows } = await this.db.query(
       `SELECT
          a.id, a.job_id AS "jobId", j.title AS "jobTitle",

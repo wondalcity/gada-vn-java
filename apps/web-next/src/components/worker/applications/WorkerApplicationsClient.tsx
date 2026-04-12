@@ -252,7 +252,7 @@ export default function WorkerApplicationsClient({ locale }: { locale?: string }
           </div>
         ) : (
           filtered.map(app => {
-            const coverImg = app.coverImageUrl ?? pickTradeImage(app.tradeNameKo, app.jobId)
+            const coverImg = app.coverImageUrl || pickTradeImage(app.tradeNameKo, app.jobId)
             return (
               <Link
                 key={app.id}

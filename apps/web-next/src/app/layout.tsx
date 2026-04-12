@@ -14,6 +14,7 @@ export const metadata: Metadata = {
   description: 'Nền tảng kết nối thợ xây dựng và nhà thầu hàng đầu Việt Nam.',
   robots: { index: true, follow: true },
   appleWebApp: { capable: true, statusBarStyle: 'default', title: 'GADA VN' },
+  icons: { icon: '/logo.png', shortcut: '/logo.png', apple: '/logo.png' },
 }
 
 export const viewport: Viewport = {
