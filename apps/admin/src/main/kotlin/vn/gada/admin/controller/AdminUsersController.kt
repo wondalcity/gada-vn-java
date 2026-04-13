@@ -8,6 +8,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.security.core.userdetails.UserDetails
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.web.bind.annotation.*
+import vn.gada.admin.service.EmailService
 import java.util.UUID
 
 // Handles all /api/admin/admin-users/* endpoints directly in the admin Spring Boot app.
@@ -19,7 +20,12 @@ class AdminUsersController(
     private val jdbc: JdbcTemplate,
     private val passwordEncoder: PasswordEncoder,
     private val objectMapper: ObjectMapper,
+    private val emailService: EmailService,
 ) {
+
+    companion object {
+        private const val PROTECTED_EMAIL = "admin@gada.vn"
+    }
 
     // ── /me ──────────────────────────────────────────────────────────────────
 
@@ -123,9 +129,16 @@ class AdminUsersController(
         val scheme = request.getHeader("X-Forwarded-Proto") ?: request.scheme
         val inviteUrl = "$scheme://$host/accept-invite?token=$token"
 
+        val emailSent = emailService.sendInvite(
+            toEmail = email,
+            toName = name,
+            inviteUrl = inviteUrl,
+            invitedByEmail = principal.username,
+        )
+
         return ResponseEntity.ok(mapOf(
             "statusCode" to 200,
-            "data" to mapOf("inviteUrl" to inviteUrl, "email" to email),
+            "data" to mapOf("inviteUrl" to inviteUrl, "email" to email, "emailSent" to emailSent),
         ))
     }
 
@@ -230,15 +243,40 @@ class AdminUsersController(
 
     // ── Disable ───────────────────────────────────────────────────────────────
 
-    /** DELETE /api/admin/admin-users/{id} */
+    /** DELETE /api/admin/admin-users/{id} — soft disable */
     @DeleteMapping("/{id}")
     fun disableUser(
         @PathVariable id: String,
     ): ResponseEntity<Map<String, Any?>> {
+        val email = jdbc.queryForList(
+            "SELECT email FROM ops.admin_users WHERE id = ?::uuid", id
+        ).firstOrNull()?.get("email")?.toString()
+        if (email == PROTECTED_EMAIL) {
+            return ResponseEntity.status(403)
+                .body(mapOf("statusCode" to 403, "message" to "슈퍼어드민 계정은 비활성화할 수 없습니다"))
+        }
         jdbc.update(
             "UPDATE ops.admin_users SET status = 'DISABLED' WHERE id = ?::uuid",
             id
         )
+        return ResponseEntity.ok(mapOf("statusCode" to 200, "data" to mapOf("ok" to true)))
+    }
+
+    // ── Permanent Delete ──────────────────────────────────────────────────────
+
+    /** DELETE /api/admin/admin-users/{id}/permanent — hard delete */
+    @DeleteMapping("/{id}/permanent")
+    fun deleteUser(
+        @PathVariable id: String,
+    ): ResponseEntity<Map<String, Any?>> {
+        val email = jdbc.queryForList(
+            "SELECT email FROM ops.admin_users WHERE id = ?::uuid", id
+        ).firstOrNull()?.get("email")?.toString()
+        if (email == PROTECTED_EMAIL) {
+            return ResponseEntity.status(403)
+                .body(mapOf("statusCode" to 403, "message" to "슈퍼어드민 계정은 삭제할 수 없습니다"))
+        }
+        jdbc.update("DELETE FROM ops.admin_users WHERE id = ?::uuid", id)
         return ResponseEntity.ok(mapOf("statusCode" to 200, "data" to mapOf("ok" to true)))
     }
 

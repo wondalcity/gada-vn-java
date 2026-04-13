@@ -5,5 +5,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties
 @ConfigurationProperties(prefix = "gada.admin")
 data class AppProperties(
     val apiBaseUrl: String = "http://localhost:7001/v1",
-    val apiAdminKey: String = ""
+    val apiAdminKey: String = "",
+    val mailFrom: String = "noreply@gada.vn",
+    val mailEnabled: Boolean = false,
 )

@@ -46,6 +46,7 @@ function InviteModal({ onSave, onCancel }: { onSave: () => void; onCancel: () =>
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
   const [inviteUrl, setInviteUrl] = useState('')
+  const [emailSent, setEmailSent] = useState<boolean | null>(null)
 
   function setRolePreset(r: string) {
     setRole(r)
@@ -63,10 +64,11 @@ function InviteModal({ onSave, onCancel }: { onSave: () => void; onCancel: () =>
     setSaving(true)
     setError('')
     try {
-      const res = await api.post<{ inviteUrl: string; email: string }>('/admin/admin-users/invite', {
+      const res = await api.post<{ inviteUrl: string; email: string; emailSent: boolean }>('/admin/admin-users/invite', {
         email, name: name || undefined, role, permissions,
       })
       setInviteUrl(res.inviteUrl)
+      setEmailSent(res.emailSent ?? false)
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : t('admin_users.invite_modal.invite_failed'))
     } finally {
@@ -79,9 +81,18 @@ function InviteModal({ onSave, onCancel }: { onSave: () => void; onCancel: () =>
       <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
         <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm p-6 space-y-4">
           <h3 className="text-base font-bold text-gray-900">{t('admin_users.invite_modal.invite_done')}</h3>
-          <div className="bg-green-50 border border-green-200 rounded-xl p-3 text-sm text-green-700">
-            <span className="font-semibold">{email}</span>{t('admin_users.invite_modal.invite_instruction')}
-          </div>
+          {emailSent ? (
+            <div className="bg-green-50 border border-green-200 rounded-xl p-3 text-sm text-green-700 flex items-center gap-2">
+              <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
+              <span>{t('admin_users.invite_modal.email_sent')} · <span className="font-semibold">{email}</span></span>
+            </div>
+          ) : (
+            <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 text-sm text-amber-700">
+              {t('admin_users.invite_modal.email_not_sent')}
+            </div>
+          )}
           <div>
             <label className={LABEL}>{t('admin_users.invite_modal.invite_link_label')}</label>
             <div className="flex gap-2">
@@ -383,11 +394,24 @@ export default function AdminUsers() {
 
   useEffect(() => { load() }, [])
 
+  const SUPER_ADMIN_EMAIL = 'admin@gada.vn'
+
   async function handleDisable(u: AdminUserItem) {
     if (!confirm(`"${u.email}" ${t('admin_users.confirm_disable')}`)) return
     try {
       await api.delete(`/admin/admin-users/${u.id}`)
       showMsg(t('admin_users.disabled'))
+      load()
+    } catch (err: unknown) {
+      showMsg(err instanceof Error ? err.message : t('common.delete_failed'))
+    }
+  }
+
+  async function handleDelete(u: AdminUserItem) {
+    if (!confirm(`"${u.email}" ${t('admin_users.confirm_delete')}`)) return
+    try {
+      await api.delete(`/admin/admin-users/${u.id}/permanent`)
+      showMsg(t('admin_users.deleted'))
       load()
     } catch (err: unknown) {
       showMsg(err instanceof Error ? err.message : t('common.delete_failed'))
@@ -480,11 +504,24 @@ export default function AdminUsers() {
                       {fmtDateTime(u.created_at)}
                     </td>
                     <td className="px-5 py-4 whitespace-nowrap">
-                      {isSuperAdmin && u.id !== me?.id && u.status !== 'DISABLED' && (
+                      {isSuperAdmin && u.id !== me?.id && u.email !== SUPER_ADMIN_EMAIL && (
                         <div className="flex gap-2 justify-end">
-                          <button onClick={() => setEditUser(u)} className="text-xs text-[#0669F7] hover:underline">{t('admin_users.action_edit_permissions')}</button>
-                          <button onClick={() => setResetUser(u)} className="text-xs text-gray-500 hover:underline">{t('admin_users.action_reset_password')}</button>
-                          <button onClick={() => handleDisable(u)} className="text-xs text-[#D81A48] hover:underline">{t('admin_users.action_disable')}</button>
+                          {u.status === 'ACTIVE' && (
+                            <>
+                              <button onClick={() => setEditUser(u)} className="text-xs text-[#0669F7] hover:underline">{t('admin_users.action_edit_permissions')}</button>
+                              <button onClick={() => setResetUser(u)} className="text-xs text-gray-500 hover:underline">{t('admin_users.action_reset_password')}</button>
+                              <button onClick={() => handleDisable(u)} className="text-xs text-[#D81A48] hover:underline">{t('admin_users.action_disable')}</button>
+                            </>
+                          )}
+                          {u.status === 'INVITED' && (
+                            <>
+                              <button onClick={() => handleDisable(u)} className="text-xs text-[#D81A48] hover:underline">{t('admin_users.action_disable')}</button>
+                              <button onClick={() => handleDelete(u)} className="text-xs text-[#D81A48] font-semibold hover:underline">{t('admin_users.action_delete')}</button>
+                            </>
+                          )}
+                          {u.status === 'DISABLED' && (
+                            <button onClick={() => handleDelete(u)} className="text-xs text-[#D81A48] font-semibold hover:underline">{t('admin_users.action_delete')}</button>
+                          )}
                         </div>
                       )}
                     </td>

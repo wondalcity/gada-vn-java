@@ -27,6 +27,8 @@ dependencies {
     implementation("org.jetbrains.kotlin:kotlin-reflect")
     // For password hashing
     implementation("org.springframework.security:spring-security-crypto")
+    // Email (JavaMailSender)
+    implementation("org.springframework.boot:spring-boot-starter-mail")
     // PostgreSQL JDBC driver
     runtimeOnly("org.postgresql:postgresql")
     testImplementation("org.springframework.boot:spring-boot-starter-test")
