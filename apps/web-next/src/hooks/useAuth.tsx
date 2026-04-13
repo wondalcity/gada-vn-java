@@ -22,7 +22,7 @@ import {
   signOutFirebase,
   subscribeToTokenRefresh,
 } from '../lib/firebase/auth'
-import { setSessionCookie, clearSessionCookie, getSessionCookie, getRememberMe } from '../lib/auth/session'
+import { setSessionCookie, setRememberMe, clearSessionCookie, getSessionCookie, getRememberMe } from '../lib/auth/session'
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -105,20 +105,40 @@ function useAuthProvider(locale: string) {
       })
   }, [])
 
-  // Subscribe to Firebase token refresh — keeps cookie in sync
+  // Subscribe to Firebase token refresh — keeps cookie in sync.
+  //
+  // IMPORTANT: onIdTokenChanged fires immediately on subscription.
+  // Firebase restores auth state from IndexedDB asynchronously, so the
+  // very first callback is often null even when a valid session exists.
+  // We must ignore this initial null — the /auth/me effect above already
+  // validates the session cookie on mount. Only treat subsequent nulls as
+  // a real sign-out so we don't race-condition users to the login screen.
   React.useEffect(() => {
+    let firebaseInitResolved = false
+
     const unsubscribe = subscribeToTokenRefresh((newToken) => {
       if (newToken) {
+        // Firebase has resolved and provided a valid token.
+        firebaseInitResolved = true
         setSessionCookie(newToken, getRememberMe())
         setState((s) => ({ ...s, idToken: newToken }))
       } else {
         // devToken (dev_* prefix) is not a Firebase token — Firebase has no
         // knowledge of it, so onIdTokenChanged always fires null for dev users.
-        // Only redirect when it is not a dev-mode token and a session exists.
         const current = getSessionCookie()
-        if (!current) return // no session — nothing to do
-        if (current.startsWith('dev')) return // dev token — skip
-        // Firebase session expired — redirect to login with notice
+        if (!current) { firebaseInitResolved = true; return } // no session — nothing to do
+        if (current.startsWith('dev')) { firebaseInitResolved = true; return } // dev token — skip
+
+        if (!firebaseInitResolved) {
+          // First null from Firebase during initialization — IndexedDB read is
+          // still in progress. Do NOT redirect; let /auth/me be the authority
+          // for the initial session check.
+          firebaseInitResolved = true
+          return
+        }
+
+        // Subsequent null after a valid session was confirmed = real sign-out
+        // (e.g. server-side token revocation, explicit sign-out on another device).
         clearSessionCookie()
         setState({ user: null, idToken: null, isLoading: false })
         router.push('/login?expired=1' as any)
@@ -132,9 +152,10 @@ function useAuthProvider(locale: string) {
   /**
    * After getting an ID Token, load the user profile and set session.
    * Handles the isNewUser redirect.
+   * Uses the stored rememberMe preference (set by the login form before calling this).
    */
   async function finalizeLogin(idToken: string, isNewUser: boolean, redirectTo?: string): Promise<void> {
-    setSessionCookie(idToken)
+    setSessionCookie(idToken, getRememberMe())
 
     // Load full user profile from /me
     const { data: user } = await apiFetch<{ statusCode: number; data: AuthUser }>('/auth/me', { token: idToken })

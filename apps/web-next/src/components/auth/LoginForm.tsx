@@ -145,7 +145,8 @@ function LoginFormInner({ locale, redirectTo, expired }: LoginFormInnerProps) {
           { method: 'POST', body: JSON.stringify({ phone, otp: otp.replace(/\s/g, '') }) }
         )
         const token = res.data.devToken ?? res.data.customToken ?? ''
-        setSessionCookie(token)
+        setRememberMe(rememberMe)
+        setSessionCookie(token, rememberMe)
         window.location.href = redirectTo ?? `/${locale}/worker`
         return
       }
