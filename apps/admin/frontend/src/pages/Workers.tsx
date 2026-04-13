@@ -1,7 +1,6 @@
 import { useEffect, useState, useCallback } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { api } from '../lib/api'
-import { DEMO_WORKERS } from '../lib/demo-data'
 import { useAdminTranslation } from '../context/LanguageContext'
 import { fmtDateTime } from '../lib/dateUtils'
 
@@ -118,7 +117,6 @@ export default function Workers() {
   const [workers, setWorkers] = useState<Worker[]>([])
   const [total, setTotal] = useState(0)
   const [loading, setLoading] = useState(true)
-  const [isDemo, setIsDemo] = useState(false)
   const [showCreate, setShowCreate] = useState(false)
   const [toast, setToast] = useState<string | null>(null)
 
@@ -129,12 +127,10 @@ export default function Workers() {
         const data = res.data ?? []
         setWorkers(data)
         setTotal(res.total ?? data.length)
-        setIsDemo(false)
       })
       .catch(() => {
-        setWorkers(DEMO_WORKERS as unknown as Worker[])
-        setTotal(DEMO_WORKERS.length)
-        setIsDemo(true)
+        setWorkers([])
+        setTotal(0)
       })
       .finally(() => setLoading(false))
   }, [])
@@ -198,13 +194,6 @@ export default function Workers() {
         </button>
       </div>
 
-      {isDemo && (
-        <div className="mb-4 flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-amber-50 border border-amber-200 text-sm text-amber-700">
-          <span className="font-semibold">{t('common.demo_data')}</span>
-          <span className="text-amber-600">{t('common.demo_suffix')}</span>
-        </div>
-      )}
-
       <form onSubmit={handleSearch} className="flex gap-2 mb-6">
         <input
           type="text"
@@ -263,9 +252,7 @@ export default function Workers() {
                     <td className="px-6 py-4 text-right whitespace-nowrap">
                       <div className="flex gap-3 justify-end items-center">
                         <Link to={`/workers/${w.id}`} className="text-[#0669F7] hover:underline text-sm">{t('common.detail_arrow')}</Link>
-                        {!isDemo && (
-                          <button onClick={() => handleDelete(w)} className="text-[#D81A48] text-sm hover:underline">{t('common.deactivate')}</button>
-                        )}
+                        <button onClick={() => handleDelete(w)} className="text-[#D81A48] text-sm hover:underline">{t('common.deactivate')}</button>
                       </div>
                     </td>
                   </tr>
@@ -277,7 +264,7 @@ export default function Workers() {
       </div>
 
       {/* Pagination */}
-      {!isDemo && total > limit && (
+      {total > limit && (
         <div className="mt-4 flex items-center justify-center gap-1">
           <button
             onClick={() => goToPage(page - 1)}

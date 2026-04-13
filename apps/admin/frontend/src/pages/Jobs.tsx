@@ -1,7 +1,6 @@
 import { useEffect, useState, useCallback } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { api } from '../lib/api'
-import { DEMO_JOBS } from '../lib/demo-data'
 import { useAdminTranslation } from '../context/LanguageContext'
 import { fmtDateTime } from '../lib/dateUtils'
 
@@ -37,7 +36,6 @@ export default function Jobs() {
   const [jobs, setJobs] = useState<Job[]>([])
   const [total, setTotal] = useState(0)
   const [loading, setLoading] = useState(true)
-  const [isDemo, setIsDemo] = useState(false)
   const flash = searchParams.get('flash') ?? ''
 
   const STATUS_TABS = [
@@ -52,22 +50,12 @@ export default function Jobs() {
     api.get<{ data: Job[]; total: number }>(`/admin/jobs?status=${s}&search=${encodeURIComponent(q)}&page=${p}&limit=${l}`)
       .then((res) => {
         const data = res.data ?? []
-        if (data.length === 0 && !q) {
-          const demo = (s ? DEMO_JOBS.filter((j) => j.status === s) : DEMO_JOBS) as unknown as Job[]
-          setJobs(demo)
-          setTotal(demo.length)
-          setIsDemo(true)
-        } else {
-          setJobs(data)
-          setTotal(res.total ?? data.length)
-          setIsDemo(false)
-        }
+        setJobs(data)
+        setTotal(res.total ?? data.length)
       })
       .catch(() => {
-        const demo = (s ? DEMO_JOBS.filter((j) => j.status === s) : DEMO_JOBS) as unknown as Job[]
-        setJobs(demo)
-        setTotal(demo.length)
-        setIsDemo(true)
+        setJobs([])
+        setTotal(0)
       })
       .finally(() => setLoading(false))
   }, [])
@@ -104,13 +92,6 @@ export default function Jobs() {
           {t('jobs.new')}
         </Link>
       </div>
-
-      {isDemo && (
-        <div className="mb-4 flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-amber-50 border border-amber-200 text-sm text-amber-700">
-          <span className="font-semibold">{t('common.demo_data')}</span>
-          <span className="text-amber-600">{t('common.demo_suffix')}</span>
-        </div>
-      )}
 
       {flash === 'created' && <div className="bg-green-50 border border-green-200 text-green-700 rounded-2xl p-3 mb-4 text-sm">{t('jobs.flash_created')}</div>}
       {flash === 'updated' && <div className="bg-green-50 border border-green-200 text-green-700 rounded-2xl p-3 mb-4 text-sm">{t('jobs.flash_updated')}</div>}
@@ -194,7 +175,7 @@ export default function Jobs() {
       </div>
 
       {/* Pagination */}
-      {!isDemo && total > limit && (
+      {total > limit && (
         <div className="mt-4 flex items-center justify-center gap-1">
           <button onClick={() => goToPage(page - 1)} disabled={page <= 1}
             className="px-3 py-1.5 rounded-xl text-sm border border-[#EFF1F5] text-gray-600 hover:bg-[#F2F4F5] disabled:opacity-40">‹</button>

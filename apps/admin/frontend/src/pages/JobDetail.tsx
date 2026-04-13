@@ -1,7 +1,6 @@
 import { useEffect, useState, useRef } from 'react'
 import { useParams, Link, useNavigate } from 'react-router-dom'
 import { api } from '../lib/api'
-import { DEMO_JOBS, DEMO_ROSTERS } from '../lib/demo-data'
 import { useAdminTranslation } from '../context/LanguageContext'
 import { fmtDate, fmtDateTime } from '../lib/dateUtils'
 
@@ -152,10 +151,9 @@ function RejectModal({
 
 // ── Action buttons per row ────────────────────────────────────────────────
 function ApplicationActions({
-  row, isDemo, acting, onAccept, onReject, onReset,
+  row, acting, onAccept, onReject, onReset,
 }: {
   row: RosterRow
-  isDemo: boolean
   acting: boolean
   onAccept: (id: string) => void
   onReject: (id: string, name: string) => void
@@ -167,16 +165,14 @@ function ApplicationActions({
   }
 
   const disabledClass = 'disabled:opacity-40 disabled:cursor-not-allowed'
-  const disabled = acting || isDemo
-  const title = isDemo ? '데모 모드에서는 변경 불가' : undefined
 
   return (
     <div className="flex items-center gap-1.5 flex-wrap">
       {(status === 'PENDING' || status === 'REJECTED') && (
         <button
-          disabled={disabled}
+          disabled={acting}
           onClick={() => onAccept(row.application_id)}
-          title={title ?? '합격 처리'}
+          title={'합격 처리'}
           className={`flex items-center gap-1 px-2.5 py-1 text-xs font-semibold rounded-lg bg-[#E6F0FE] text-[#0669F7] border border-[#C8D8FF] hover:bg-[#0669F7] hover:text-white transition-colors whitespace-nowrap ${disabledClass}`}
         >
           {acting ? (
@@ -195,9 +191,9 @@ function ApplicationActions({
 
       {(status === 'PENDING' || status === 'ACCEPTED') && (
         <button
-          disabled={disabled}
+          disabled={acting}
           onClick={() => onReject(row.application_id, row.worker_name)}
-          title={title ?? '불합격 처리'}
+          title={'불합격 처리'}
           className={`flex items-center gap-1 px-2.5 py-1 text-xs font-semibold rounded-lg bg-[#FDE8EE] text-[#D81A48] border border-[#F4B0C0] hover:bg-[#D81A48] hover:text-white transition-colors whitespace-nowrap ${disabledClass}`}
         >
           <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
@@ -209,9 +205,9 @@ function ApplicationActions({
 
       {(status === 'ACCEPTED' || status === 'REJECTED') && (
         <button
-          disabled={disabled}
+          disabled={acting}
           onClick={() => onReset(row.application_id)}
-          title={title ?? '검토중으로 되돌리기'}
+          title={'검토중으로 되돌리기'}
           className={`flex items-center gap-1 px-2.5 py-1 text-xs font-medium rounded-lg bg-[#EFF1F5] text-[#98A2B2] border border-[#EFF1F5] hover:bg-gray-200 hover:text-gray-700 transition-colors whitespace-nowrap ${disabledClass}`}
         >
           <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -232,7 +228,6 @@ export default function JobDetail() {
   const [job, setJob] = useState<Job | null>(null)
   const [roster, setRoster] = useState<RosterRow[]>([])
   const [loading, setLoading] = useState(true)
-  const [isDemo, setIsDemo] = useState(false)
   const [filter, setFilter] = useState<string>('ALL')
   const [actingId, setActingId] = useState<string | null>(null)
   const [rejectTarget, setRejectTarget] = useState<{ id: string; name: string } | null>(null)
@@ -245,15 +240,9 @@ export default function JobDetail() {
       .then((res) => {
         setJob(res.job)
         setRoster(res.roster ?? [])
-        setIsDemo(false)
       })
       .catch(() => {
-        const demoJob = DEMO_JOBS.find((j) => j.id === id)
-        if (demoJob) {
-          setJob(demoJob as unknown as Job)
-          setRoster((DEMO_ROSTERS[id] ?? []) as unknown as RosterRow[])
-          setIsDemo(true)
-        }
+        // Job not found — stay on loading=false with null job
       })
       .finally(() => setLoading(false))
   }, [id])
@@ -386,13 +375,6 @@ export default function JobDetail() {
       <button onClick={() => navigate('/jobs')} className="flex items-center gap-1 text-sm text-[#98A2B2] hover:text-gray-700 mb-5">
         ← 일자리 목록으로
       </button>
-
-      {isDemo && (
-        <div className="mb-4 flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-amber-50 border border-amber-200 text-sm text-amber-700">
-          <span className="font-semibold">데모 데이터</span>
-          <span className="text-amber-600">— 실제 API 연결 시 합격/불합격 처리가 가능합니다</span>
-        </div>
-      )}
 
       {/* Job header */}
       <div className="bg-white rounded-2xl shadow-sm border border-[#EFF1F5] p-6 mb-5">
@@ -531,7 +513,6 @@ export default function JobDetail() {
                     <td className="px-5 py-4">
                       <ApplicationActions
                         row={row}
-                        isDemo={isDemo}
                         acting={actingId === row.application_id}
                         onAccept={handleAccept}
                         onReject={(appId, name) => setRejectTarget({ id: appId, name })}

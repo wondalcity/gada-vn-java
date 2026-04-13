@@ -1,7 +1,6 @@
 import { useEffect, useState, useCallback, useRef } from 'react'
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom'
 import { api } from '../lib/api'
-import { DEMO_COMPANIES } from '../lib/demo-data'
 import { useAdminTranslation } from '../context/LanguageContext'
 import { fmtDateTime } from '../lib/dateUtils'
 
@@ -135,17 +134,8 @@ function CompanyDetailPanel({
   const [sealDeleting, setSealDeleting] = useState(false)
   const sealInputRef = useRef<HTMLInputElement>(null)
 
-  const isDemo = companyId.startsWith('demo-')
-
   const load = useCallback(() => {
     setLoading(true)
-    if (isDemo) {
-      const demo = DEMO_COMPANIES.find(c => c.id === companyId)
-      setCompany(demo ? demo as unknown as Company : null)
-      if (!demo) setError(t('companies.load_error'))
-      setLoading(false)
-      return
-    }
     api.get<Company>(`/admin/companies/${companyId}`)
       .then(data => setCompany(data))
       .catch(() => setError(t('companies.load_error')))
@@ -293,30 +283,22 @@ function CompanyDetailPanel({
               <div className="flex items-center justify-between mb-2">
                 <p className="text-xs text-gray-500">{t('companies.detail.signature')}</p>
                 <div className="flex items-center gap-2">
-                  {/* Upload / Change button — disabled for demo companies */}
-                  {isDemo ? (
-                    <span className="px-2.5 py-1 text-xs rounded-xl border border-[#EFF1F5] text-[#98A2B2] cursor-not-allowed">
-                      {t('companies.seal.upload')}
-                    </span>
-                  ) : (
-                    <label
-                      className={`cursor-pointer px-2.5 py-1 text-xs rounded-xl border border-[#0669F7] text-[#0669F7] hover:bg-[#E6F0FE] transition-colors ${sealUploading ? 'opacity-50 pointer-events-none' : ''}`}
-                    >
-                      {sealUploading ? t('common.processing') : company.signature_url ? t('companies.seal.change') : t('companies.seal.upload')}
-                      <input
-                        ref={sealInputRef}
-                        type="file"
-                        accept="image/*"
-                        className="hidden"
-                        onChange={e => {
-                          const file = e.target.files?.[0]
-                          if (file) handleSealUpload(file)
-                        }}
-                      />
-                    </label>
-                  )}
-                  {/* Delete button — only if seal exists and not demo */}
-                  {!isDemo && company.signature_url && (
+                  <label
+                    className={`cursor-pointer px-2.5 py-1 text-xs rounded-xl border border-[#0669F7] text-[#0669F7] hover:bg-[#E6F0FE] transition-colors ${sealUploading ? 'opacity-50 pointer-events-none' : ''}`}
+                  >
+                    {sealUploading ? t('common.processing') : company.signature_url ? t('companies.seal.change') : t('companies.seal.upload')}
+                    <input
+                      ref={sealInputRef}
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={e => {
+                        const file = e.target.files?.[0]
+                        if (file) handleSealUpload(file)
+                      }}
+                    />
+                  </label>
+                  {company.signature_url && (
                     <button
                       onClick={handleSealDelete}
                       disabled={sealDeleting}
@@ -390,7 +372,6 @@ export default function Companies() {
   const [companies, setCompanies] = useState<Company[]>([])
   const [total, setTotal] = useState(0)
   const [loading, setLoading] = useState(true)
-  const [isDemo, setIsDemo] = useState(false)
   const [showCreate, setShowCreate] = useState(false)
   const [editCompany, setEditCompany] = useState<Company | null>(null)
   const [toast, setToast] = useState<string | null>(null)
@@ -401,20 +382,12 @@ export default function Companies() {
     api.get<{ data: Company[]; total: number }>(`/admin/companies?search=${encodeURIComponent(q)}&page=${p}&limit=${l}`)
       .then(res => {
         const arr = res.data ?? []
-        if (arr.length === 0 && !q) {
-          setCompanies(DEMO_COMPANIES as unknown as Company[])
-          setTotal(DEMO_COMPANIES.length)
-          setIsDemo(true)
-        } else {
-          setCompanies(arr)
-          setTotal(res.total ?? arr.length)
-          setIsDemo(false)
-        }
+        setCompanies(arr)
+        setTotal(res.total ?? arr.length)
       })
       .catch(() => {
-        setCompanies(DEMO_COMPANIES as unknown as Company[])
-        setTotal(DEMO_COMPANIES.length)
-        setIsDemo(true)
+        setCompanies([])
+        setTotal(0)
       })
       .finally(() => setLoading(false))
   }, [id])
@@ -501,13 +474,6 @@ export default function Companies() {
         </button>
       </div>
 
-      {isDemo && (
-        <div className="mb-4 flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-amber-50 border border-amber-200 text-sm text-amber-700">
-          <span className="font-semibold">{t('common.demo_data')}</span>
-          <span className="text-amber-600">{t('common.demo_suffix')}</span>
-        </div>
-      )}
-
       <form onSubmit={handleSearch} className="flex gap-2 mb-6">
         <input
           type="text"
@@ -569,12 +535,10 @@ export default function Companies() {
                   <td className="px-6 py-4 text-right whitespace-nowrap">
                     <div className="flex gap-3 justify-end items-center">
                       <button onClick={() => navigate(`/companies/${c.id}`)} className="text-[#0669F7] hover:underline text-sm">{t('common.detail')}</button>
-                      {!isDemo && (
                         <>
                           <button onClick={e => { e.stopPropagation(); setEditCompany(c) }} className="text-gray-400 hover:text-gray-700 text-sm">{t('common.edit')}</button>
                           <button onClick={e => { e.stopPropagation(); handleDelete(c) }} className="text-[#D81A48] text-sm">{t('common.delete')}</button>
                         </>
-                      )}
                     </div>
                   </td>
                 </tr>
@@ -586,7 +550,7 @@ export default function Companies() {
       </div>
 
       {/* Pagination */}
-      {!isDemo && total > limit && (
+      {total > limit && (
         <div className="mt-4 flex items-center justify-center gap-1">
           <button onClick={() => goToPage(page - 1)} disabled={page <= 1}
             className="px-3 py-1.5 rounded-xl text-sm border border-[#EFF1F5] text-gray-600 hover:bg-[#F2F4F5] disabled:opacity-40">‹</button>

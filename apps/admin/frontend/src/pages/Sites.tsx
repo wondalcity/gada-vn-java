@@ -1,7 +1,6 @@
 import { useEffect, useState, useCallback } from 'react'
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom'
 import { api } from '../lib/api'
-import { DEMO_SITES, DEMO_COMPANIES } from '../lib/demo-data'
 import { useAdminTranslation } from '../context/LanguageContext'
 import { fmtDate, fmtDateTime } from '../lib/dateUtils'
 import { GadaSelect } from '../components/ui/GadaFormControls'
@@ -297,7 +296,6 @@ function SiteDetailPanel({
   const [site, setSite] = useState<SiteDetail | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
-  const [isDemo, setIsDemo] = useState(false)
   const [showEdit, setShowEdit] = useState(false)
   const [deleting, setDeleting] = useState(false)
   const [toast, setToast] = useState<string | null>(null)
@@ -305,23 +303,9 @@ function SiteDetailPanel({
   const load = useCallback(() => {
     setLoading(true)
     api.get<SiteDetail>(`/admin/sites/${siteId}`)
-      .then((data) => { setSite(data); setIsDemo(false) })
+      .then((data) => { setSite(data) })
       .catch(() => {
-        const demo = DEMO_SITES.find((s) => s.id === siteId)
-        if (demo) {
-          const company = demo.company_id
-            ? DEMO_COMPANIES.find(c => c.id === demo.company_id)
-            : undefined
-          setSite({
-            ...demo,
-            company_contact_name: company?.contact_name,
-            company_contact_phone: company?.contact_phone,
-            company_contact_email: company?.contact_email,
-          } as unknown as SiteDetail)
-          setIsDemo(true)
-        } else {
-          setError(t('sites.load_error'))
-        }
+        setError(t('sites.load_error'))
       })
       .finally(() => setLoading(false))
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -394,13 +378,6 @@ function SiteDetailPanel({
         {t('sites.detail.back')}
       </button>
 
-      {isDemo && (
-        <div className="mb-4 flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-amber-50 border border-amber-200 text-sm text-amber-700">
-          <span className="font-semibold">{t('common.demo_data')}</span>
-          <span className="text-amber-600">{t('common.demo_suffix')}</span>
-        </div>
-      )}
-
       {/* Site info header */}
       <div className="bg-white rounded-2xl shadow-sm p-6 mb-6">
         <div className="flex items-start justify-between">
@@ -414,23 +391,21 @@ function SiteDetailPanel({
             <span className={`px-3 py-1 text-xs rounded-full font-medium ${SITE_STATUS_BADGE[site.status ?? ''] ?? 'bg-[#EFF1F5] text-[#98A2B2]'}`}>
               {getSiteStatusLabel(site.status)}
             </span>
-            {!isDemo && (
-              <>
-                <button
-                  onClick={() => setShowEdit(true)}
-                  className="px-3 py-1.5 text-xs border border-[#EFF1F5] rounded-xl text-gray-600 hover:bg-[#F2F4F5]"
-                >
-                  {t('common.edit')}
-                </button>
-                <button
-                  onClick={handleDelete}
-                  disabled={deleting}
-                  className="px-3 py-1.5 text-xs border border-[#F4B0C0] rounded-xl text-[#D81A48] hover:bg-[#FDE8EE] disabled:opacity-50"
-                >
-                  {t('common.delete')}
-                </button>
-              </>
-            )}
+            <>
+              <button
+                onClick={() => setShowEdit(true)}
+                className="px-3 py-1.5 text-xs border border-[#EFF1F5] rounded-xl text-gray-600 hover:bg-[#F2F4F5]"
+              >
+                {t('common.edit')}
+              </button>
+              <button
+                onClick={handleDelete}
+                disabled={deleting}
+                className="px-3 py-1.5 text-xs border border-[#F4B0C0] rounded-xl text-[#D81A48] hover:bg-[#FDE8EE] disabled:opacity-50"
+              >
+                {t('common.delete')}
+              </button>
+            </>
           </div>
         </div>
         <div className="mt-4 grid grid-cols-4 gap-4 text-sm">
@@ -559,7 +534,6 @@ export default function Sites() {
   const [managers, setManagers] = useState<Manager[]>([])
   const [companies, setCompanies] = useState<Company[]>([])
   const [loading, setLoading] = useState(true)
-  const [isDemo, setIsDemo] = useState(false)
   const [showCreate, setShowCreate] = useState(false)
   const [editSite, setEditSite] = useState<Site | null>(null)
   const [toast, setToast] = useState<string | null>(null)
@@ -588,20 +562,12 @@ export default function Sites() {
     api.get<{ data: Site[]; total: number }>(`/admin/sites?search=${encodeURIComponent(q)}&page=${p}&limit=${l}`)
       .then((res) => {
         const arr = res.data ?? []
-        if (arr.length === 0 && !q) {
-          setSites(DEMO_SITES as unknown as Site[])
-          setTotal(DEMO_SITES.length)
-          setIsDemo(true)
-        } else {
-          setSites(arr)
-          setTotal(res.total ?? arr.length)
-          setIsDemo(false)
-        }
+        setSites(arr)
+        setTotal(res.total ?? arr.length)
       })
       .catch(() => {
-        setSites(DEMO_SITES as unknown as Site[])
-        setTotal(DEMO_SITES.length)
-        setIsDemo(true)
+        setSites([])
+        setTotal(0)
       })
       .finally(() => setLoading(false))
   }, [id])
@@ -702,13 +668,6 @@ export default function Sites() {
         </button>
       </div>
 
-      {isDemo && (
-        <div className="mb-4 flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-amber-50 border border-amber-200 text-sm text-amber-700">
-          <span className="font-semibold">{t('common.demo_data')}</span>
-          <span className="text-amber-600">{t('common.demo_suffix')}</span>
-        </div>
-      )}
-
       <form onSubmit={handleSearch} className="flex gap-2 mb-6">
         <input
           type="text"
@@ -776,12 +735,10 @@ export default function Sites() {
                   <td className="px-6 py-4 text-right whitespace-nowrap">
                     <div className="flex gap-3 justify-end items-center">
                       <button onClick={() => navigate(`/sites/${s.id}`)} className="text-[#0669F7] hover:underline text-sm">{t('common.detail')}</button>
-                      {!isDemo && (
                         <>
                           <button onClick={e => { e.stopPropagation(); setEditSite(s) }} className="text-gray-400 hover:text-gray-700 text-sm">{t('common.edit')}</button>
                           <button onClick={e => { e.stopPropagation(); handleDelete(s) }} className="text-[#D81A48] text-sm">{t('common.delete')}</button>
                         </>
-                      )}
                     </div>
                   </td>
                 </tr>
@@ -793,7 +750,7 @@ export default function Sites() {
       </div>
 
       {/* Pagination */}
-      {!isDemo && total > limit && (
+      {total > limit && (
         <div className="mt-4 flex items-center justify-center gap-1">
           <button onClick={() => goToPage(page - 1)} disabled={page <= 1}
             className="px-3 py-1.5 rounded-xl text-sm border border-[#EFF1F5] text-gray-600 hover:bg-[#F2F4F5] disabled:opacity-40">‹</button>

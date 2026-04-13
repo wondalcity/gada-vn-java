@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { api } from '../lib/api'
-import { DEMO_MANAGERS } from '../lib/demo-data'
 import { useAdminTranslation } from '../context/LanguageContext'
 import { fmtDateTime } from '../lib/dateUtils'
 
@@ -46,7 +45,6 @@ export default function Managers() {
   const [managers, setManagers] = useState<Manager[]>([])
   const [total, setTotal] = useState(0)
   const [loading, setLoading] = useState(true)
-  const [isDemo, setIsDemo] = useState(false)
   const [flash] = useState(searchParams.get('flash') ?? '')
 
   const STATUS_TABS: { key: Status; labelKey: string }[] = [
@@ -66,22 +64,12 @@ export default function Managers() {
     api.get<{ data: Manager[]; total: number }>(`/admin/managers?status=${status}&page=${page}&limit=20`)
       .then((res) => {
         const data = res.data ?? []
-        if (data.length === 0) {
-          const demo = DEMO_MANAGERS.filter((m) => m.approval_status === status) as unknown as Manager[]
-          setManagers(demo)
-          setTotal(demo.length)
-          setIsDemo(true)
-        } else {
-          setManagers(data)
-          setTotal(res.total ?? data.length)
-          setIsDemo(false)
-        }
+        setManagers(data)
+        setTotal(res.total ?? data.length)
       })
       .catch(() => {
-        const demo = DEMO_MANAGERS.filter((m) => m.approval_status === status) as unknown as Manager[]
-        setManagers(demo)
-        setTotal(demo.length)
-        setIsDemo(true)
+        setManagers([])
+        setTotal(0)
       })
       .finally(() => setLoading(false))
   }
@@ -99,13 +87,6 @@ export default function Managers() {
   return (
     <div className="p-8">
       <h1 className="text-2xl font-bold text-gray-900 mb-6">{t('managers.title')}</h1>
-
-      {isDemo && (
-        <div className="mb-4 flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-amber-50 border border-amber-200 text-sm text-amber-700">
-          <span className="font-semibold">{t('common.demo_data')}</span>
-          <span className="text-amber-600">{t('common.demo_suffix')}</span>
-        </div>
-      )}
 
       {flash === 'approved' && (
         <div className="bg-green-50 border border-green-200 text-green-700 rounded-2xl p-4 mb-6 text-sm">{t('managers.flash_approved')}</div>
