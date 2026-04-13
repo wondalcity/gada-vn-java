@@ -18,6 +18,23 @@ interface AdminUserItem {
 const IN = 'w-full border border-[#EFF1F5] rounded-2xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#0669F7]'
 const LABEL = 'block text-xs font-medium text-gray-500 mb-1'
 
+// Clipboard fallback for HTTP (navigator.clipboard requires HTTPS/localhost)
+function copyToClipboard(text: string): boolean {
+  if (navigator.clipboard && window.isSecureContext) {
+    navigator.clipboard.writeText(text).catch(() => {})
+    return true
+  }
+  const el = document.createElement('textarea')
+  el.value = text
+  el.style.cssText = 'position:fixed;top:-9999px;left:-9999px;opacity:0'
+  document.body.appendChild(el)
+  el.focus()
+  el.select()
+  const ok = document.execCommand('copy')
+  document.body.removeChild(el)
+  return ok
+}
+
 // ── Invite Modal ─────────────────────────────────────────────────────────────
 
 function InviteModal({ onSave, onCancel }: { onSave: () => void; onCancel: () => void }) {
@@ -47,6 +64,7 @@ function InviteModal({ onSave, onCancel }: { onSave: () => void; onCancel: () =>
   const [error, setError] = useState('')
   const [inviteUrl, setInviteUrl] = useState('')
   const [emailSent, setEmailSent] = useState<boolean | null>(null)
+  const [copied, setCopied] = useState(false)
 
   function setRolePreset(r: string) {
     setRole(r)
@@ -99,10 +117,14 @@ function InviteModal({ onSave, onCancel }: { onSave: () => void; onCancel: () =>
               <input readOnly value={inviteUrl} className={`${IN} text-xs text-gray-500 bg-gray-50`} />
               <button
                 type="button"
-                onClick={() => navigator.clipboard.writeText(inviteUrl)}
-                className="px-3 py-2 rounded-2xl text-xs font-medium bg-[#0669F7] text-white hover:bg-[#0550C4]"
+                onClick={() => {
+                  copyToClipboard(inviteUrl)
+                  setCopied(true)
+                  setTimeout(() => setCopied(false), 2000)
+                }}
+                className={`px-3 py-2 rounded-2xl text-xs font-medium transition-colors ${copied ? 'bg-green-500 text-white' : 'bg-[#0669F7] text-white hover:bg-[#0550C4]'}`}
               >
-                {t('admin_users.invite_modal.copy')}
+                {copied ? '✓' : t('admin_users.invite_modal.copy')}
               </button>
             </div>
           </div>
@@ -407,6 +429,21 @@ export default function AdminUsers() {
     }
   }
 
+  async function handleResend(u: AdminUserItem) {
+    try {
+      await api.post('/admin/admin-users/invite', {
+        email: u.email,
+        name: u.name,
+        role: u.role,
+        permissions: u.permissions,
+      })
+      showMsg(t('admin_users.invite_issued'))
+      load()
+    } catch (err: unknown) {
+      showMsg(err instanceof Error ? err.message : t('admin_users.invite_modal.invite_failed'))
+    }
+  }
+
   async function handleDelete(u: AdminUserItem) {
     if (!confirm(`"${u.email}" ${t('admin_users.confirm_delete')}`)) return
     try {
@@ -515,6 +552,7 @@ export default function AdminUsers() {
                           )}
                           {u.status === 'INVITED' && (
                             <>
+                              <button onClick={() => handleResend(u)} className="text-xs text-[#0669F7] hover:underline">{t('admin_users.action_resend')}</button>
                               <button onClick={() => handleDisable(u)} className="text-xs text-[#D81A48] hover:underline">{t('admin_users.action_disable')}</button>
                               <button onClick={() => handleDelete(u)} className="text-xs text-[#D81A48] font-semibold hover:underline">{t('admin_users.action_delete')}</button>
                             </>
