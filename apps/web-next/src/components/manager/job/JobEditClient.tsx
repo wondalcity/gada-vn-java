@@ -3,7 +3,6 @@
 import * as React from 'react'
 import { getSessionCookie } from '@/lib/auth/session'
 import { apiClient } from '@/lib/api/client'
-import { siteStore } from '@/lib/demo/siteStore'
 import type { Job } from '@/types/manager-site-job'
 import JobForm from './JobForm'
 
@@ -20,8 +19,6 @@ export default function JobEditClient({ jobId, locale }: JobEditClientProps) {
 
   React.useEffect(() => {
     if (!idToken) {
-      const stored = siteStore.getJob(jobId)
-      if (stored) setJob(stored)
       setIsLoading(false)
       return
     }

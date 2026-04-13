@@ -32,6 +32,5 @@ export default function SiteFormWrapper({ locale }: SiteFormWrapperProps) {
 
   if (!mounted) return <Skeleton />
 
-  // Allow demo mode (no token) — SiteForm will use siteStore
   return <SiteForm mode="create" locale={locale} idToken={idToken ?? ''} />
 }

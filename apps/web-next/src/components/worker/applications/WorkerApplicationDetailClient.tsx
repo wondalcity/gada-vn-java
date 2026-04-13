@@ -35,33 +35,6 @@ const STATUS_CONFIG: Record<ApplicationStatus, { label: string; bg: string; text
   CONTRACTED: { label: '계약 완료', bg: '#E3F2FD', text: '#0D47A1' },
 }
 
-const DEMO_DETAILS: Record<string, ApplicationDetail> = {
-  'demo-app-1': {
-    id: 'demo-app-1', jobId: 'djob-1', jobTitle: '전기 배선 작업',
-    siteId: 'demo-1', siteName: '롯데몰 하노이 지하 1층 공사', siteAddress: '하노이시 Tay Ho구 롯데몰',
-    workDate: '2026-03-28', startTime: '07:00', endTime: '17:00', dailyWage: 700000,
-    status: 'CONTRACTED', appliedAt: '2026-03-20T08:30:00Z', reviewedAt: '2026-03-21T10:00:00Z', notes: null,
-  },
-  'demo-app-2': {
-    id: 'demo-app-2', jobId: 'djob-3', jobTitle: '잡부 — 자재 운반',
-    siteId: 'demo-2', siteName: '인천 송도 물류센터', siteAddress: '인천시 연수구 송도동',
-    workDate: '2026-03-30', startTime: '08:00', endTime: '18:00', dailyWage: 410000,
-    status: 'ACCEPTED', appliedAt: '2026-03-22T09:15:00Z', reviewedAt: '2026-03-23T11:00:00Z', notes: null,
-  },
-  'demo-app-3': {
-    id: 'demo-app-3', jobId: 'djob-5', jobTitle: '타일 시공 — 로비 바닥',
-    siteId: 'demo-3', siteName: '광명역 복합쇼핑몰 신축', siteAddress: '경기도 광명시 일직동',
-    workDate: '2026-04-01', startTime: '07:30', endTime: '17:30', dailyWage: 580000,
-    status: 'PENDING', appliedAt: '2026-03-25T10:00:00Z', reviewedAt: null, notes: '타일 시공 5년 경력 있습니다.',
-  },
-  'demo-app-4': {
-    id: 'demo-app-4', jobId: 'djob-6', jobTitle: '도장 작업 — 외벽 마감',
-    siteId: 'demo-5', siteName: '호치민 스카이라인 빌딩', siteAddress: '호치민시 Binh Thanh구',
-    workDate: '2026-03-20', startTime: '07:00', endTime: '17:00', dailyWage: 490000,
-    status: 'REJECTED', appliedAt: '2026-03-12T14:00:00Z', reviewedAt: '2026-03-14T09:00:00Z', notes: null,
-  },
-}
-
 function formatDate(d: string) {
   return new Intl.DateTimeFormat('ko-KR', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'short' }).format(new Date(d))
 }
@@ -104,13 +77,6 @@ export default function WorkerApplicationDetailClient({ id, locale }: { id: stri
   const [isWithdrawing, setIsWithdrawing] = React.useState(false)
 
   React.useEffect(() => {
-    if (id.startsWith('demo-')) {
-      const demo = DEMO_DETAILS[id]
-      if (demo) setApplication(demo)
-      else setError(t('worker_applications.fetch_error'))
-      setIsLoading(false)
-      return
-    }
     if (!idToken) { setIsLoading(false); return }
     fetch(`${API_BASE}/applications/${id}/detail`, {
       headers: { Authorization: `Bearer ${idToken}` },
@@ -125,7 +91,7 @@ export default function WorkerApplicationDetailClient({ id, locale }: { id: stri
   }, [id, idToken, t])
 
   async function handleWithdraw() {
-    if (!idToken || id.startsWith('demo-')) return
+    if (!idToken) return
     setIsWithdrawing(true)
     try {
       const res = await fetch(`${API_BASE}/applications/${id}`, {

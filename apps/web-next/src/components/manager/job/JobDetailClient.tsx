@@ -5,7 +5,6 @@ import { Link, useRouter } from '@/i18n/navigation'
 import { useTranslations } from 'next-intl'
 import { getSessionCookie } from '@/lib/auth/session'
 import { apiClient } from '@/lib/api/client'
-import { siteStore } from '@/lib/demo/siteStore'
 import type { Job, JobStatus } from '@/types/manager-site-job'
 import StatusBadge from '@/components/manager/StatusBadge'
 import ConfirmModal from '@/components/manager/ConfirmModal'
@@ -49,7 +48,6 @@ export default function JobDetailClient({ jobId, locale }: JobDetailClientProps)
   const idToken = getSessionCookie()
   const [job, setJob] = React.useState<Job | null>(null)
   const [isLoading, setIsLoading] = React.useState(true)
-  const [isDemo, setIsDemo] = React.useState(false)
   const [error, setError] = React.useState<string | null>(null)
   const [lightboxIdx, setLightboxIdx] = React.useState<number | null>(null)
   const [showCancelModal, setShowCancelModal] = React.useState(false)
@@ -58,11 +56,6 @@ export default function JobDetailClient({ jobId, locale }: JobDetailClientProps)
 
   React.useEffect(() => {
     if (!idToken) {
-      const stored = siteStore.getJob(jobId)
-      if (stored) {
-        setJob(stored)
-        setIsDemo(true)
-      }
       setIsLoading(false)
       return
     }
@@ -73,20 +66,15 @@ export default function JobDetailClient({ jobId, locale }: JobDetailClientProps)
   }, [jobId, idToken])
 
   async function changeStatus(newStatus: JobStatus) {
-    if (!job) return
+    if (!job || !idToken) return
     setIsActioning(true)
     try {
-      if (!idToken) {
-        siteStore.updateJob(jobId, { status: newStatus })
-        setJob((prev) => prev ? { ...prev, status: newStatus } : prev)
-      } else {
-        await apiClient(`/manager/jobs/${jobId}/status`, {
-          method: 'PATCH',
-          token: idToken,
-          body: JSON.stringify({ status: newStatus }),
-        })
-        setJob((prev) => prev ? { ...prev, status: newStatus } : prev)
-      }
+      await apiClient(`/manager/jobs/${jobId}/status`, {
+        method: 'PATCH',
+        token: idToken,
+        body: JSON.stringify({ status: newStatus }),
+      })
+      setJob((prev) => prev ? { ...prev, status: newStatus } : prev)
     } catch (e) {
       alert(e instanceof Error ? e.message : t('manager_job_detail.status_change_error'))
     } finally {
@@ -95,19 +83,15 @@ export default function JobDetailClient({ jobId, locale }: JobDetailClientProps)
   }
 
   async function handleDelete() {
+    if (!idToken) return
     setIsActioning(true)
     try {
-      if (!idToken) {
-        siteStore.deleteJob(jobId)
-        router.push(`/manager/sites/${job?.siteId}`)
-      } else {
-        await apiClient(`/manager/jobs/${jobId}/status`, {
-          method: 'PATCH',
-          token: idToken,
-          body: JSON.stringify({ status: 'CANCELLED' }),
-        })
-        router.push(`/manager/sites/${job?.siteId}`)
-      }
+      await apiClient(`/manager/jobs/${jobId}/status`, {
+        method: 'PATCH',
+        token: idToken,
+        body: JSON.stringify({ status: 'CANCELLED' }),
+      })
+      router.push(`/manager/sites/${job?.siteId}`)
     } catch (e) {
       alert(e instanceof Error ? e.message : t('manager_job_detail.delete_error'))
     } finally {
@@ -139,12 +123,6 @@ export default function JobDetailClient({ jobId, locale }: JobDetailClientProps)
 
   return (
     <>
-      {isDemo && (
-        <div className="mb-4 flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-[#FFF8E6] border border-[#F5D87D] text-sm text-[#856404]">
-          <span className="font-semibold">{t('manager_job_detail.demo_notice')}</span>
-          <span className="text-[#856404]">{t('manager_job_detail.demo_notice_sub')}</span>
-        </div>
-      )}
       {/* Header */}
       <div className="flex items-start justify-between gap-2 mb-4">
         <div>

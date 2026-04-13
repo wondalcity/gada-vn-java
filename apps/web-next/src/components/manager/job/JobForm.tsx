@@ -6,7 +6,6 @@ import { apiClient } from '@/lib/api/client'
 import { DatePicker } from '@/components/ui/DatePicker'
 import { TimePicker } from '@/components/ui/TimePicker'
 import { AccordionSection } from '@/components/ui/AccordionSection'
-import { siteStore } from '@/lib/demo/siteStore'
 import type { Job, JobStatus } from '@/types/manager-site-job'
 
 interface Trade {
@@ -138,18 +137,6 @@ export default function JobForm({
 
       if (mode === 'edit') {
         payload.status = jobStatus
-      }
-
-      if (!idToken) {
-        // Demo mode — use siteStore
-        if (mode === 'create') {
-          const newJob = siteStore.createJob(siteId, payload as Parameters<typeof siteStore.createJob>[1])
-          router.push(`/manager/jobs/${newJob.id}`)
-        } else {
-          siteStore.updateJob(jobId!, payload as Partial<Job>)
-          router.push(`/manager/jobs/${jobId}`)
-        }
-        return
       }
 
       if (mode === 'create') {

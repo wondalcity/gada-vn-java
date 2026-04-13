@@ -94,7 +94,6 @@ export default function ManagerHomePage({ params }: Props) {
   const idToken = getSessionCookie()
   const [stats, setStats] = React.useState<Stats | null>(null)
   const [managerInfo, setManagerInfo] = React.useState<ManagerInfo | null>(null)
-  const [isTestAccount, setIsTestAccount] = React.useState(false)
 
   React.useEffect(() => {
     params.then(p => setLocale(p.locale))
@@ -109,16 +108,11 @@ export default function ManagerHomePage({ params }: Props) {
       fetch(`${API_BASE}/managers/me`, {
         headers: { Authorization: `Bearer ${idToken}` },
       }).then(r => r.json()).then(body => setManagerInfo(body.data)).catch(() => {}),
-      fetch(`${API_BASE}/auth/me`, {
-        headers: { Authorization: `Bearer ${idToken}` },
-      }).then(r => r.json()).then(body => setIsTestAccount(body.data?.isTestAccount === true)).catch(() => {}),
     ])
   }, [idToken])
 
-  const DEMO_STATS: Stats = { activeSites: 3, openJobs: 4, pendingApplications: 7 }
   const ZERO_STATS: Stats = { activeSites: 0, openJobs: 0, pendingApplications: 0 }
-  const isDemo = !idToken || isTestAccount
-  const displayStats = isDemo ? DEMO_STATS : (stats ?? ZERO_STATS)
+  const displayStats = stats ?? ZERO_STATS
 
   const displayName = managerInfo?.representative_name ?? managerInfo?.company_name ?? '관리자'
   const initial = displayName.charAt(0).toUpperCase()
@@ -195,11 +189,6 @@ export default function ManagerHomePage({ params }: Props) {
                   <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#FFC72C] text-[#3C2C02] leading-none">
                     관리자
                   </span>
-                  {isDemo && (
-                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-white/15 border border-white/25 text-white/80 leading-none">
-                      데모
-                    </span>
-                  )}
                 </div>
               </div>
             </div>
@@ -263,15 +252,6 @@ export default function ManagerHomePage({ params }: Props) {
               </Link>
             </div>
           </div>
-
-          {isDemo && (
-            <div className="mb-3 flex items-center gap-2">
-              <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-[#FFF8E6] text-[#92620A] border border-[#F5D87D]">
-                데모 데이터
-              </span>
-              <span className="text-xs text-[#98A2B2]">API 연결 후 실제 데이터가 표시됩니다</span>
-            </div>
-          )}
 
           <div className="grid grid-cols-3 gap-3">
             {statCards.map(({ label, value, href, color, bg, border, Icon }) => (

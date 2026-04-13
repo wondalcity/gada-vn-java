@@ -167,75 +167,6 @@ function SignaturePad({
   )
 }
 
-const DEMO_CONTRACT_MAP: Record<string, Contract> = {
-  'demo-ctr-1': {
-    id: 'demo-ctr-1',
-    status: 'PENDING_WORKER_SIGN',
-    jobTitle: '전기 배선 작업',
-    siteName: '롯데몰 하노이 지하 1층 공사',
-    siteAddress: '54 Liễu Giai, Ngọc Khánh, Ba Đình, Hà Nội',
-    workDate: '2026-03-28',
-    startTime: '07:30',
-    endTime: '17:30',
-    slotsTotal: 4,
-    dailyWage: 700000,
-    workerName: '홍길동',
-    workerPhone: '0901 234 567',
-    managerName: 'Kim Soo-jin',
-    managerPhone: '0912 345 678',
-    downloadUrl: null,
-    workerSigUrl: null,
-    managerSigUrl: null,
-    workerSignedAt: null,
-    managerSignedAt: null,
-    createdAt: '2026-03-22T10:00:00Z',
-  },
-  'demo-ctr-2': {
-    id: 'demo-ctr-2',
-    status: 'FULLY_SIGNED',
-    jobTitle: '철근 조립 — 3층 골조',
-    siteName: '광명역 복합쇼핑몰 신축',
-    siteAddress: '1 Hoàng Ngân, Trung Hòa, Cầu Giấy, Hà Nội',
-    workDate: '2026-03-25',
-    startTime: '07:00',
-    endTime: '17:00',
-    slotsTotal: 6,
-    dailyWage: 620000,
-    workerName: '홍길동',
-    workerPhone: '0901 234 567',
-    managerName: 'Lee Yeon-soo',
-    managerPhone: '0988 765 432',
-    downloadUrl: null,
-    workerSigUrl: null,
-    managerSigUrl: null,
-    workerSignedAt: '2026-03-16T14:00:00Z',
-    managerSignedAt: '2026-03-17T09:30:00Z',
-    createdAt: '2026-03-15T08:00:00Z',
-  },
-  'demo-ctr-3': {
-    id: 'demo-ctr-3',
-    status: 'PENDING_MANAGER_SIGN',
-    jobTitle: '잡부 — 자재 운반',
-    siteName: '인천 송도 물류센터',
-    siteAddress: '100 Phạm Hùng, Mỹ Đình, Nam Từ Liêm, Hà Nội',
-    workDate: '2026-03-30',
-    startTime: '08:00',
-    endTime: '17:00',
-    slotsTotal: 10,
-    dailyWage: 410000,
-    workerName: '홍길동',
-    workerPhone: '0901 234 567',
-    managerName: 'Park Joon-ho',
-    managerPhone: '0976 543 210',
-    downloadUrl: null,
-    workerSigUrl: null,
-    managerSigUrl: null,
-    workerSignedAt: '2026-03-25T11:00:00Z',
-    managerSignedAt: null,
-    createdAt: '2026-03-24T09:00:00Z',
-  },
-}
-
 function SignatureBox({
   label,
   signedAt,
@@ -388,14 +319,9 @@ export default function WorkerContractDetailClient({ contractId }: Props) {
   const params = useParams()
   const locale = (params?.locale as string) ?? 'ko'
   const documentRef = React.useRef<HTMLDivElement>(null)
-  const isDemo = contractId.startsWith('demo-')
-  const [contract, setContract] = React.useState<Contract | null>(
-    isDemo ? (DEMO_CONTRACT_MAP[contractId] ?? null) : null
-  )
-  const [isLoading, setIsLoading] = React.useState(!isDemo)
-  const [error, setError] = React.useState<string | null>(
-    isDemo && !DEMO_CONTRACT_MAP[contractId] ? t('worker_contracts.not_found') : null
-  )
+  const [contract, setContract] = React.useState<Contract | null>(null)
+  const [isLoading, setIsLoading] = React.useState(true)
+  const [error, setError] = React.useState<string | null>(null)
   const [successMessage, setSuccessMessage] = React.useState<string | null>(null)
   const [showSignModal, setShowSignModal] = React.useState(false)
   const [profileSigUrl, setProfileSigUrl] = React.useState<string | null>(null)
@@ -411,15 +337,14 @@ export default function WorkerContractDetailClient({ contractId }: Props) {
   }, [idToken])
 
   const load = React.useCallback(() => {
-    if (isDemo) return
-    if (!idToken) return
+    if (!idToken) { setIsLoading(false); return }
     setIsLoading(true)
     setError(null)
     apiClient<Contract>(`/contracts/${contractId}`, { token: idToken })
       .then(({ data }) => setContract(data))
       .catch(() => setError(t('worker_contracts.fetch_error')))
       .finally(() => setIsLoading(false))
-  }, [contractId, idToken, isDemo, t])
+  }, [contractId, idToken, t])
 
   React.useEffect(() => { load() }, [load])
 
@@ -427,7 +352,7 @@ export default function WorkerContractDetailClient({ contractId }: Props) {
     setIsConfirming(true)
     setConfirmError(null)
     try {
-      if (!isDemo && idToken) {
+      if (idToken) {
         await apiClient(`/contracts/${contractId}/sign`, {
           method: 'POST',
           token: idToken,
@@ -447,7 +372,7 @@ export default function WorkerContractDetailClient({ contractId }: Props) {
       setPreviewWorkerSigUrl(dataUrl)
       setShowSignModal(false)
       setSuccessMessage(t('worker_contracts.sign_success'))
-      if (!isDemo && idToken) {
+      if (idToken) {
         // Background refresh without skeleton to update contract status
         apiClient<Contract>(`/contracts/${contractId}`, { token: idToken })
           .then(({ data }) => setContract(data))

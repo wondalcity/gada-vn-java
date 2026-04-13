@@ -42,62 +42,10 @@ const STATUS_CLASS: Record<ApplicationStatus, string> = {
   CONTRACTED: 'bg-[#E6F0FE] text-[#0669F7] border-[#B3D9FF]',
 }
 
-const DEMO_APPLICATIONS: WorkerApplication[] = [
-  {
-    id: 'demo-app-1',
-    jobId: 'djob-1',
-    jobTitle: '전기 배선 작업',
-    siteId: 'demo-1',
-    siteName: '롯데몰 하노이 지하 1층 공사',
-    workDate: '2026-03-28',
-    dailyWage: 700000,
-    status: 'CONTRACTED',
-    appliedAt: '2026-03-20T08:30:00Z',
-    tradeNameKo: '전기',
-  },
-  {
-    id: 'demo-app-2',
-    jobId: 'djob-3',
-    jobTitle: '잡부 — 자재 운반',
-    siteId: 'demo-2',
-    siteName: '인천 송도 물류센터',
-    workDate: '2026-03-30',
-    dailyWage: 410000,
-    status: 'ACCEPTED',
-    appliedAt: '2026-03-22T09:15:00Z',
-    tradeNameKo: '건축',
-  },
-  {
-    id: 'demo-app-3',
-    jobId: 'djob-5',
-    jobTitle: '타일 시공 — 로비 바닥',
-    siteId: 'demo-3',
-    siteName: '광명역 복합쇼핑몰 신축',
-    workDate: '2026-04-01',
-    dailyWage: 580000,
-    status: 'PENDING',
-    appliedAt: '2026-03-25T10:00:00Z',
-    tradeNameKo: '타일',
-  },
-  {
-    id: 'demo-app-4',
-    jobId: 'djob-6',
-    jobTitle: '도장 작업 — 외벽 마감',
-    siteId: 'demo-5',
-    siteName: '호치민 스카이라인 빌딩',
-    workDate: '2026-03-20',
-    dailyWage: 490000,
-    status: 'REJECTED',
-    appliedAt: '2026-03-12T14:00:00Z',
-    tradeNameKo: '도장',
-  },
-]
-
 export default function WorkerApplicationsClient({ locale }: { locale?: string }) {
   const { idToken } = useAuth()
   const t = useTranslations('common')
   const [applications, setApplications] = React.useState<WorkerApplication[]>([])
-  const [isDemo, setIsDemo] = React.useState(false)
   const [activeTab, setActiveTab] = React.useState<TabKey>('all')
   const [isLoading, setIsLoading] = React.useState(true)
   const [withdrawingId, setWithdrawingId] = React.useState<string | null>(null)
@@ -122,22 +70,12 @@ export default function WorkerApplicationsClient({ locale }: { locale?: string }
 
   React.useEffect(() => {
     if (!idToken) {
-      setApplications(DEMO_APPLICATIONS)
-      setIsDemo(true)
       setIsLoading(false)
       return
     }
     setIsLoading(true)
     apiClient<WorkerApplication[]>('/applications/mine', { token: idToken })
-      .then(({ data }) => {
-        if (data.length === 0) {
-          setApplications(DEMO_APPLICATIONS)
-          setIsDemo(true)
-        } else {
-          setApplications(data)
-          setIsDemo(false)
-        }
-      })
+      .then(({ data }) => setApplications(data))
       .catch(() => setError(t('worker_applications.fetch_error')))
       .finally(() => setIsLoading(false))
   }, [idToken])
@@ -214,11 +152,6 @@ export default function WorkerApplicationsClient({ locale }: { locale?: string }
     <div>
       <div className="py-6 flex items-center gap-3">
         <h1 className="text-xl font-bold text-[#25282A]">{t('worker_applications.title')}</h1>
-        {isDemo && (
-          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-[#FFE9B0] text-[#856404] border border-[#F5D87D]">
-            {t('demo_data')}
-          </span>
-        )}
       </div>
 
       {/* Tab filter bar */}

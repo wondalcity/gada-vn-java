@@ -5,7 +5,6 @@ import { useRouter } from '@/i18n/navigation'
 import { useSearchParams } from 'next/navigation'
 import { getSessionCookie } from '@/lib/auth/session'
 import { apiClient } from '@/lib/api/client'
-import { siteStore } from '@/lib/demo/siteStore'
 import type { Job, Site } from '@/types/manager-site-job'
 import JobCard from './JobCard'
 import StatusBadge from '@/components/manager/StatusBadge'
@@ -240,8 +239,8 @@ export default function AllJobsClient({ locale }: AllJobsClientProps) {
 
   React.useEffect(() => {
     if (!idToken) {
-      setJobs(siteStore.listJobs())
-      setSites(siteStore.list())
+      setJobs([])
+      setSites([])
       setIsLoading(false)
       return
     }
@@ -258,7 +257,6 @@ export default function AllJobsClient({ locale }: AllJobsClientProps) {
       .finally(() => setIsLoading(false))
   }, [idToken])
 
-  const isDemo = !idToken
   const displayJobs = jobs
 
   // Build siteId→province map for province filtering
@@ -332,16 +330,6 @@ export default function AllJobsClient({ locale }: AllJobsClientProps) {
 
   return (
     <>
-      {/* Demo badge */}
-      {isDemo && (
-        <div className="mb-2 flex items-center gap-2">
-          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-[#FFE9B0] text-[#856404] border border-[#F5D87D]">
-            데모 데이터
-          </span>
-          <span className="text-xs text-[#98A2B2]">실제 공고를 등록하면 여기에 표시됩니다</span>
-        </div>
-      )}
-
       {/* Active search filter chips */}
       {activeFilters.length > 0 && (
         <div className="mb-2 flex flex-wrap items-center gap-2">

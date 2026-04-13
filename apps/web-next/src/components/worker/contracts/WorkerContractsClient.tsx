@@ -25,42 +25,6 @@ const STATUS_CONFIG = {
   VOID:                 { label: '계약 무효',        bg: 'bg-[#EFF1F5] text-[#7A7B7A] border-[#DDDDDD]',    dot: '#9CA3AF' },
 } as const
 
-const DEMO_CONTRACTS: ContractListItem[] = [
-  {
-    id: 'demo-ctr-1',
-    status: 'PENDING_WORKER_SIGN',
-    jobTitle: '전기 배선 작업',
-    siteName: '롯데몰 하노이 지하 1층 공사',
-    workDate: '2026-03-28',
-    dailyWage: 700000,
-    managerName: 'Kim Soo-jin',
-    workerSignedAt: null,
-    createdAt: '2026-03-22T10:00:00Z',
-  },
-  {
-    id: 'demo-ctr-2',
-    status: 'FULLY_SIGNED',
-    jobTitle: '철근 조립 — 3층 골조',
-    siteName: '광명역 복합쇼핑몰 신축',
-    workDate: '2026-03-25',
-    dailyWage: 620000,
-    managerName: 'Lee Yeon-soo',
-    workerSignedAt: '2026-03-16T14:00:00Z',
-    createdAt: '2026-03-15T08:00:00Z',
-  },
-  {
-    id: 'demo-ctr-3',
-    status: 'PENDING_MANAGER_SIGN',
-    jobTitle: '잡부 — 자재 운반',
-    siteName: '인천 송도 물류센터',
-    workDate: '2026-03-30',
-    dailyWage: 410000,
-    managerName: 'Park Joon-ho',
-    workerSignedAt: '2026-03-25T11:00:00Z',
-    createdAt: '2026-03-24T09:00:00Z',
-  },
-]
-
 function fmtDate(d: string) {
   return new Date(d).toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'short' })
 }
@@ -118,21 +82,12 @@ export default function WorkerContractsClient() {
     )
   }
 
-  const isDemo = contracts.length === 0
-  const displayContracts = isDemo ? DEMO_CONTRACTS : contracts
-  const pendingCount = displayContracts.filter(c => c.status === 'PENDING_WORKER_SIGN').length
+  const pendingCount = contracts.filter(c => c.status === 'PENDING_WORKER_SIGN').length
 
   return (
     <div className="py-6">
       <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center gap-3">
-          <h1 className="text-xl font-bold text-[#25282A]">계약서</h1>
-          {isDemo && (
-            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-[#FFE9B0] text-[#856404] border border-[#F5D87D]">
-              데모 데이터
-            </span>
-          )}
-        </div>
+        <h1 className="text-xl font-bold text-[#25282A]">계약서</h1>
         {pendingCount > 0 && (
           <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-[#FFE9B0] text-[#856404] border border-[#F5D87D]">
             <span className="w-1.5 h-1.5 rounded-full bg-[#FFC72C]" />
@@ -141,7 +96,7 @@ export default function WorkerContractsClient() {
         )}
       </div>
 
-      {displayContracts.length === 0 ? (
+      {contracts.length === 0 ? (
         <div className="py-20 text-center bg-white rounded-2xl border border-[#EFF1F5]">
           <div className="w-14 h-14 rounded-full bg-[#EFF1F5] flex items-center justify-center mx-auto mb-4">
             <svg className="w-7 h-7 text-[#98A2B2]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
@@ -153,7 +108,7 @@ export default function WorkerContractsClient() {
         </div>
       ) : (
         <div className="space-y-3">
-          {displayContracts.map((c) => {
+          {contracts.map((c) => {
             const st = STATUS_CONFIG[c.status] ?? STATUS_CONFIG.VOID
             const needsSign = c.status === 'PENDING_WORKER_SIGN'
             return (

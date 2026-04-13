@@ -52,49 +52,6 @@ function notifIconBg(type: string): string {
   return 'bg-[#F2F4F5] text-[#7A7B7A]'
 }
 
-const DEMO_NOTIFICATIONS: Notification[] = [
-  {
-    id: 'notif-1',
-    type: 'APPLICATION_ACCEPTED',
-    title: '합격 축하드립니다',
-    body: '전기 배선 작업 (롯데몰 하노이 지하 1층 공사) 공고에 합격하셨습니다. 계약서를 확인해 주세요.',
-    read: false,
-    created_at: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
-  },
-  {
-    id: 'notif-2',
-    type: 'CONTRACT_CREATED',
-    title: '계약서가 발행되었습니다',
-    body: '전기 배선 작업 계약서가 발행되었습니다. 서명이 필요합니다.',
-    read: false,
-    created_at: new Date(Date.now() - 5 * 60 * 60 * 1000).toISOString(),
-  },
-  {
-    id: 'notif-3',
-    type: 'CONTRACT_SIGNED',
-    title: '계약이 완료되었습니다',
-    body: '철근 조립 — 3층 골조 계약서에 사업주가 서명하여 계약이 완료되었습니다.',
-    read: true,
-    created_at: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
-  },
-  {
-    id: 'notif-4',
-    type: 'ATTENDANCE_MARKED',
-    title: '출근이 확인되었습니다',
-    body: '2026년 3월 25일 철근 조립 현장 출근이 기록되었습니다. 수고하셨습니다!',
-    read: true,
-    created_at: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
-  },
-  {
-    id: 'notif-5',
-    type: 'ADMIN',
-    title: 'GADA VN 공지사항',
-    body: '3월 28일 설 연휴로 인해 일부 현장 운영이 변경될 수 있습니다. 담당 현장 사업주에게 문의해 주세요.',
-    read: true,
-    created_at: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
-  },
-]
-
 export default function NotificationsClient() {
   const t = useTranslations('notifications')
   const idToken = getSessionCookie()
@@ -106,8 +63,6 @@ export default function NotificationsClient() {
 
   React.useEffect(() => {
     if (!idToken) {
-      setNotifications(DEMO_NOTIFICATIONS)
-      setUnreadCount(DEMO_NOTIFICATIONS.filter(n => !n.read).length)
       setIsLoading(false)
       return
     }
@@ -121,10 +76,8 @@ export default function NotificationsClient() {
       .then(body => {
         const payload = body.data ?? body
         const items: Notification[] = payload.data ?? []
-        setNotifications(items.length === 0 ? DEMO_NOTIFICATIONS : items)
-        setUnreadCount(items.length === 0
-          ? DEMO_NOTIFICATIONS.filter(n => !n.read).length
-          : (payload.unreadCount ?? 0))
+        setNotifications(items)
+        setUnreadCount(payload.unreadCount ?? 0)
       })
       .catch(err => setError(err.message))
       .finally(() => setIsLoading(false))

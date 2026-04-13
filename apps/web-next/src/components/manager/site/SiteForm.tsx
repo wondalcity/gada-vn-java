@@ -3,7 +3,6 @@
 import * as React from 'react'
 import { useRouter } from '@/i18n/navigation'
 import { apiClient } from '@/lib/api/client'
-import { siteStore } from '@/lib/demo/siteStore'
 import { getGoogleMapsLoader } from '@/lib/maps/loader'
 import ImageUploader from '@/components/manager/ImageUploader'
 import type { Site, SiteStatus } from '@/types/manager-site-job'
@@ -228,18 +227,6 @@ export default function SiteForm({ mode, initialData, siteId, locale, idToken }:
         lng,
         siteType: siteType || undefined,
         status,
-      }
-
-      // Demo mode (no API token) — use localStorage store
-      if (!idToken) {
-        if (mode === 'create') {
-          const newSite = siteStore.create(payload)
-          router.push(`/manager/sites/${newSite.id}`)
-        } else if (siteId) {
-          siteStore.update(siteId, payload)
-          router.push(`/manager/sites/${siteId}`)
-        }
-        return
       }
 
       const apiPayload: Record<string, unknown> = { ...payload }

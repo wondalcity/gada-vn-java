@@ -11,33 +11,6 @@ import HireConfirmationPanel from './HireConfirmationPanel'
 
 const API_BASE = '/api/v1'
 
-const DEMO_APPLICANTS: Record<string, { applicants: Applicant[]; meta: JobSlotMeta & { jobTitle: string } }> = {
-  'djob-1': {
-    applicants: [
-      { id: 'dapp-1-1', status: 'PENDING', appliedAt: '2025-03-01T09:00:00Z', worker: { id: 'dw-1', name: '김민준', phone: '010-1234-5678', experienceMonths: 36, primaryTradeId: 1, tradeNameKo: '철근공', idVerified: true, hasSignature: true } },
-      { id: 'dapp-1-2', status: 'ACCEPTED', appliedAt: '2025-03-02T10:00:00Z', worker: { id: 'dw-2', name: '이서준', phone: '010-2345-6789', experienceMonths: 60, primaryTradeId: 1, tradeNameKo: '철근공', idVerified: true, hasSignature: false } },
-      { id: 'dapp-1-3', status: 'REJECTED', appliedAt: '2025-03-03T11:00:00Z', notes: '경력 부족', worker: { id: 'dw-3', name: '박도윤', phone: '010-3456-7890', experienceMonths: 6, primaryTradeId: 2, tradeNameKo: '목공', idVerified: false, hasSignature: false } },
-    ],
-    meta: { jobTitle: '강남구 철근 작업 모집', slotsTotal: 3, slotsFilled: 1, jobStatus: 'OPEN' },
-  },
-  'djob-2': {
-    applicants: [
-      { id: 'dapp-2-1', status: 'PENDING', appliedAt: '2025-03-05T08:30:00Z', worker: { id: 'dw-4', name: '최현우', phone: '010-4567-8901', experienceMonths: 24, primaryTradeId: 3, tradeNameKo: '미장공', idVerified: true, hasSignature: true } },
-      { id: 'dapp-2-2', status: 'PENDING', appliedAt: '2025-03-06T09:00:00Z', worker: { id: 'dw-5', name: '정시우', phone: '010-5678-9012', experienceMonths: 48, primaryTradeId: 3, tradeNameKo: '미장공', idVerified: true, hasSignature: true } },
-    ],
-    meta: { jobTitle: '서초 오피스텔 미장 작업', slotsTotal: 2, slotsFilled: 0, jobStatus: 'OPEN' },
-  },
-  'djob-3': {
-    applicants: [
-      { id: 'dapp-3-1', status: 'ACCEPTED', appliedAt: '2025-02-20T10:00:00Z', worker: { id: 'dw-6', name: '강지훈', phone: '010-6789-0123', experienceMonths: 72, primaryTradeId: 4, tradeNameKo: '배관공', idVerified: true, hasSignature: true } },
-    ],
-    meta: { jobTitle: '마포구 배관 설치', slotsTotal: 1, slotsFilled: 1, jobStatus: 'FILLED' },
-  },
-  'djob-4': { applicants: [], meta: { jobTitle: '용산 리모델링 전기 작업', slotsTotal: 2, slotsFilled: 0, jobStatus: 'OPEN' } },
-  'djob-5': { applicants: [], meta: { jobTitle: '성동구 신축 도장 작업', slotsTotal: 4, slotsFilled: 0, jobStatus: 'OPEN' } },
-  'djob-6': { applicants: [], meta: { jobTitle: '노원구 아파트 방수 공사', slotsTotal: 3, slotsFilled: 0, jobStatus: 'OPEN' } },
-}
-
 type TabKey = 'ALL' | 'PENDING' | 'ACCEPTED' | 'REJECTED'
 
 const TAB_LABELS: Record<TabKey, string> = {
@@ -71,15 +44,6 @@ export default function ApplicantListClient({ jobId, locale }: Props) {
   const [contractGenToast, setContractGenToast] = React.useState<string | null>(null)
 
   React.useEffect(() => {
-    // Demo fallback for demo job IDs
-    if (jobId in DEMO_APPLICANTS) {
-      const demo = DEMO_APPLICANTS[jobId]
-      setApplicants(demo.applicants)
-      setSlotMeta(demo.meta)
-      setJobTitle(demo.meta.jobTitle)
-      setIsLoading(false)
-      return
-    }
     if (!idToken) {
       setIsLoading(false)
       setError('로그인이 필요합니다')

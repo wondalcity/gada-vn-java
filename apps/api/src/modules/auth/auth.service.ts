@@ -124,6 +124,11 @@ export class AuthService {
     return this.repo.upsertFcmToken(userId, dto.token, dto.platform);
   }
 
+  async isTestPhone(phone: string): Promise<{ isTest: boolean }> {
+    const isTest = await this.repo.isTestPhone(phone);
+    return { isTest };
+  }
+
   // ── OTP flow ────────────────────────────────────────────────────────────────
 
   async sendOtp(phone: string): Promise<{ message: string; devOtp?: string }> {

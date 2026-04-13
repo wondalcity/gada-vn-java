@@ -4,7 +4,6 @@ import * as React from 'react'
 import { useRouter } from '@/i18n/navigation'
 import { getSessionCookie } from '@/lib/auth/session'
 import { apiClient } from '@/lib/api/client'
-import { siteStore } from '@/lib/demo/siteStore'
 import type { Site } from '@/types/manager-site-job'
 import SiteCard from './SiteCard'
 
@@ -30,14 +29,10 @@ export default function SiteListClient({ locale }: SiteListClientProps) {
   const idToken = getSessionCookie()
   const [sites, setSites] = React.useState<Site[]>([])
   const [isLoading, setIsLoading] = React.useState(true)
-  const [isDemo, setIsDemo] = React.useState(false)
   const [error, setError] = React.useState<string | null>(null)
 
   React.useEffect(() => {
     if (!idToken) {
-      // Demo mode — load from localStorage store
-      setSites(siteStore.list())
-      setIsDemo(true)
       setIsLoading(false)
       return
     }
@@ -95,14 +90,6 @@ export default function SiteListClient({ locale }: SiteListClientProps) {
 
   return (
     <>
-      {isDemo && (
-        <div className="mb-3 flex items-center gap-2">
-          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-[#FFE9B0] text-[#856404] border border-[#F5D87D]">
-            데모 데이터
-          </span>
-          <span className="text-xs text-[#98A2B2]">실제 현장을 등록하면 여기에 표시됩니다</span>
-        </div>
-      )}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {sites.map((site) => (
           <SiteCard key={site.id} site={site} locale={locale} />

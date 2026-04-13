@@ -154,6 +154,14 @@ export class AuthRepository {
     return this.getMeProfile(userId);
   }
 
+  async isTestPhone(phone: string): Promise<boolean> {
+    const { rows } = await this.db.query<{ is_test_account: boolean }>(
+      'SELECT is_test_account FROM auth.users WHERE phone = $1',
+      [phone],
+    );
+    return rows[0]?.is_test_account === true;
+  }
+
   /** Ensure a minimal worker_profiles row exists for new WORKER users. */
   async ensureWorkerProfile(userId: string, phone: string | null): Promise<void> {
     await this.db.query(

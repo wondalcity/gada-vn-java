@@ -3,7 +3,6 @@
 import * as React from 'react'
 import { getSessionCookie } from '@/lib/auth/session'
 import { apiClient } from '@/lib/api/client'
-import { siteStore } from '@/lib/demo/siteStore'
 import type { Site } from '@/types/manager-site-job'
 import SiteForm from './SiteForm'
 
@@ -20,12 +19,6 @@ export default function SiteEditClient({ siteId, locale }: SiteEditClientProps) 
 
   React.useEffect(() => {
     if (!idToken) {
-      // Demo mode — load from localStorage store
-      const stored = siteStore.get(siteId)
-      if (stored) {
-        const { demoJobs: _d, ...siteData } = stored
-        setSite(siteData)
-      }
       setIsLoading(false)
       return
     }

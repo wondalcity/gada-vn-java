@@ -5,7 +5,6 @@ import { Link, useRouter } from '@/i18n/navigation'
 import { useTranslations } from 'next-intl'
 import { getSessionCookie } from '@/lib/auth/session'
 import { apiClient } from '@/lib/api/client'
-import { siteStore } from '@/lib/demo/siteStore'
 import type { Site, SiteStatus, Job } from '@/types/manager-site-job'
 import StatusBadge from '@/components/manager/StatusBadge'
 import ConfirmModal from '@/components/manager/ConfirmModal'
@@ -36,7 +35,6 @@ export default function SiteDetailClient({ siteId, locale }: SiteDetailClientPro
   const [site, setSite] = React.useState<Site | null>(null)
   const [jobs, setJobs] = React.useState<Job[]>([])
   const [isLoading, setIsLoading] = React.useState(true)
-  const [isDemo, setIsDemo] = React.useState(false)
   const [error, setError] = React.useState<string | null>(null)
   const [lightboxIdx, setLightboxIdx] = React.useState<number | null>(null)
   const [showDeleteModal, setShowDeleteModal] = React.useState(false)
@@ -57,14 +55,7 @@ export default function SiteDetailClient({ siteId, locale }: SiteDetailClientPro
   }, [statusMenuOpen])
 
   React.useEffect(() => {
-    // Demo mode (no token) — load from localStorage store
     if (!idToken) {
-      const stored = siteStore.get(siteId)
-      if (stored) {
-        setSite(stored)
-        setJobs(stored.demoJobs)
-        setIsDemo(true)
-      }
       setIsLoading(false)
       return
     }
@@ -81,13 +72,7 @@ export default function SiteDetailClient({ siteId, locale }: SiteDetailClientPro
   }, [siteId, idToken])
 
   async function handleStatusChange(newStatus: SiteStatus) {
-    if (!site) return
-    if (!idToken) {
-      // Demo mode
-      siteStore.updateStatus(siteId, newStatus)
-      setSite((prev) => prev ? { ...prev, status: newStatus } : prev)
-      return
-    }
+    if (!site || !idToken) return
     try {
       await apiClient<Site>(`/manager/sites/${siteId}/status`, {
         method: 'PATCH',
@@ -101,14 +86,9 @@ export default function SiteDetailClient({ siteId, locale }: SiteDetailClientPro
   }
 
   async function handleDelete() {
+    if (!idToken) return
     setIsDeleting(true)
     try {
-      if (!idToken) {
-        // Demo mode
-        siteStore.delete(siteId)
-        router.push('/manager/sites')
-        return
-      }
       await apiClient(`/manager/sites/${siteId}/status`, {
         method: 'PATCH',
         token: idToken,
@@ -139,12 +119,6 @@ export default function SiteDetailClient({ siteId, locale }: SiteDetailClientPro
 
   return (
     <>
-      {isDemo && (
-        <div className="mb-4 flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-[#FFF8E6] border border-[#F5D87D] text-sm text-[#856404]">
-          <span className="font-semibold">{t('manager_site_detail.demo_notice')}</span>
-          <span className="text-[#856404]">{t('manager_site_detail.demo_notice_sub')}</span>
-        </div>
-      )}
       {/* Image Gallery */}
       {allImages.length > 0 ? (
         <div className="flex gap-2 overflow-x-auto pb-2 mb-4">

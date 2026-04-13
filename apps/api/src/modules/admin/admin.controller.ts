@@ -112,6 +112,11 @@ export class AdminController {
     return this.adminService.updateWorker(id, body);
   }
 
+  @Get('workers/:id/contracts')
+  async getWorkerContracts(@Param('id') id: string) {
+    return this.adminService.getWorkerContracts(id);
+  }
+
   @Put('workers/:id/trade-skills')
   async updateWorkerTradeSkills(
     @Param('id') id: string,
@@ -135,10 +140,11 @@ export class AdminController {
   @Get('jobs')
   async listJobs(
     @Query('status') status = '',
+    @Query('search') search = '',
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
     @Query('limit', new DefaultValuePipe(20), ParseIntPipe) limit: number,
   ) {
-    return this.adminService.listJobs(status, page, limit);
+    return this.adminService.listJobs(status, search, page, limit);
   }
 
   @Post('jobs')
@@ -192,8 +198,12 @@ export class AdminController {
   // ── Construction company management ──────────────────────────────────────
 
   @Get('companies')
-  async listCompanies() {
-    return this.adminService.listCompanies();
+  async listCompanies(
+    @Query('search') search = '',
+    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
+    @Query('limit', new DefaultValuePipe(20), ParseIntPipe) limit: number,
+  ) {
+    return this.adminService.listCompanies(search, page, limit);
   }
 
   @Get('companies/:id')
@@ -217,6 +227,19 @@ export class AdminController {
   @Delete('companies/:id')
   async deleteCompany(@Param('id') id: string) {
     return this.adminService.deleteCompany(id);
+  }
+
+  @Post('companies/:id/seal')
+  async uploadCompanySeal(
+    @Param('id') id: string,
+    @Body() body: { fileData: string; contentType: string; fileName: string },
+  ) {
+    return this.adminService.uploadCompanySeal(id, body.fileData, body.contentType);
+  }
+
+  @Delete('companies/:id/seal')
+  async deleteCompanySeal(@Param('id') id: string) {
+    return this.adminService.deleteCompanySeal(id);
   }
 
   // ── Site management ───────────────────────────────────────────────────────
@@ -247,6 +270,25 @@ export class AdminController {
   @Delete('sites/:id')
   async deleteSite(@Param('id') id: string) {
     return this.adminService.deleteSite(id);
+  }
+
+  // ── Test account management ───────────────────────────────────────────────
+
+  @Get('test-accounts')
+  async listTestAccounts() {
+    return this.adminService.listTestAccounts();
+  }
+
+  @Post('test-accounts')
+  async createTestAccount(
+    @Body() body: { phone: string; role: string; name?: string },
+  ) {
+    return this.adminService.createTestAccount(body);
+  }
+
+  @Delete('test-accounts/:id')
+  async deleteTestAccount(@Param('id') id: string) {
+    return this.adminService.deleteTestAccount(id);
   }
 
   // ── Notification management ───────────────────────────────────────────────

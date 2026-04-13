@@ -5,6 +5,7 @@ import * as nodemailer from 'nodemailer';
 import { AdminRepository } from './admin.repository';
 import { NotificationsService } from '../notifications/notifications.service';
 import { FirebaseService } from '../../common/firebase/firebase.service';
+import { FilesService } from '../files/files.service';
 
 @Injectable()
 export class AdminService {
@@ -15,6 +16,7 @@ export class AdminService {
     private readonly repo: AdminRepository,
     private readonly notifications: NotificationsService,
     private readonly firebase: FirebaseService,
+    private readonly files: FilesService,
   ) {
     const host = process.env.SMTP_HOST;
     if (host) {
@@ -138,12 +140,38 @@ export class AdminService {
 
   // ── Job management ────────────────────────────────────────────────────────
 
-  async listJobs(status: string, page: number, limit: number) {
+  async listJobs(status: string, search: string, page: number, limit: number) {
     const [data, total] = await Promise.all([
-      this.repo.findJobs(status, page, limit),
-      this.repo.countJobs(status),
+      this.repo.findJobs(status, search, page, limit),
+      this.repo.countJobs(status, search),
     ]);
     return { data, total, page, limit };
+  }
+
+  async getWorkerContracts(workerId: string) {
+    const worker = await this.repo.findWorkerById(workerId);
+    if (!worker) throw new NotFoundException(`Worker ${workerId} not found`);
+    return this.repo.findWorkerContracts(workerId);
+  }
+
+  async listTestAccounts() {
+    return this.repo.findTestAccounts();
+  }
+
+  async createTestAccount(data: { phone: string; role: string; name?: string }) {
+    const { uid } = await this.firebase.getOrCreateUserByPhone(data.phone);
+    return this.repo.createTestAccount({
+      firebaseUid: uid,
+      phone: data.phone,
+      role: data.role,
+      name: data.name ?? null,
+    });
+  }
+
+  async deleteTestAccount(id: string) {
+    const result = await this.repo.deleteTestAccount(id);
+    if (!result) throw new NotFoundException(`Test account ${id} not found`);
+    return result;
   }
 
   async getJob(id: string) {
@@ -212,8 +240,8 @@ export class AdminService {
 
   // ── Construction company management ──────────────────────────────────────
 
-  async listCompanies() {
-    return this.repo.findCompanies();
+  async listCompanies(search: string, page: number, limit: number) {
+    return this.repo.findCompanies(search, page, limit);
   }
 
   async getCompany(id: string) {
@@ -236,6 +264,20 @@ export class AdminService {
     const company = await this.repo.findCompanyById(id);
     if (!company) throw new NotFoundException(`Company ${id} not found`);
     return this.repo.deleteCompany(id);
+  }
+
+  async uploadCompanySeal(id: string, fileData: string, contentType: string): Promise<unknown> {
+    const company = await this.repo.findCompanyById(id);
+    if (!company) throw new NotFoundException(`Company ${id} not found`);
+    const dataUrl = `data:${contentType};base64,${fileData}`;
+    const key = await this.files.uploadBase64(`company-${id}`, dataUrl, 'company-seals');
+    return this.repo.updateCompanySealKey(id, key);
+  }
+
+  async deleteCompanySeal(id: string): Promise<unknown> {
+    const company = await this.repo.findCompanyById(id);
+    if (!company) throw new NotFoundException(`Company ${id} not found`);
+    return this.repo.updateCompanySealKey(id, null);
   }
 
   // ── Site management ───────────────────────────────────────────────────────

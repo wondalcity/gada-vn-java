@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Patch, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Patch, Post, Query, UseGuards } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { FirebaseAuthGuard } from '../../common/guards/firebase-auth.guard';
 import { CurrentUser, CurrentUserPayload } from '../../common/decorators/current-user.decorator';
@@ -51,6 +51,13 @@ export class AuthController {
   @Public()
   async verifyToken(@Body('idToken') idToken: string) {
     return this.authService.verifyAndGetOrCreateUser(idToken);
+  }
+
+  /** Check if phone is a test account (bypass Firebase OTP) */
+  @Get('is-test-phone')
+  @Public()
+  async isTestPhone(@Query('phone') phone: string) {
+    return this.authService.isTestPhone(phone);
   }
 
   /** Step 1: Send OTP to phone */

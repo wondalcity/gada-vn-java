@@ -25,29 +25,6 @@ interface RawApplication {
   contractId?: string
 }
 
-const DEMO_APPLICATIONS: RawApplication[] = [
-  {
-    id: 'demo-app-1', jobId: 'djob-1', jobTitle: '전기 배선 작업',
-    siteName: '롯데몰 하노이 지하 1층 공사', workDate: '2026-03-28', dailyWage: 700000,
-    status: 'CONTRACTED', jobStatus: 'FILLED', appliedAt: '2026-03-20T08:30:00Z',
-  },
-  {
-    id: 'demo-app-2', jobId: 'djob-3', jobTitle: '잡부 — 자재 운반',
-    siteName: '인천 송도 물류센터', workDate: '2026-03-30', dailyWage: 410000,
-    status: 'ACCEPTED', jobStatus: 'OPEN', appliedAt: '2026-03-22T09:15:00Z',
-  },
-  {
-    id: 'demo-app-3', jobId: 'djob-5', jobTitle: '타일 시공 — 로비 바닥',
-    siteName: '광명역 복합쇼핑몰 신축', workDate: '2026-04-01', dailyWage: 580000,
-    status: 'PENDING', jobStatus: 'OPEN', appliedAt: '2026-03-25T10:00:00Z',
-  },
-  {
-    id: 'demo-app-4', jobId: 'djob-6', jobTitle: '도장 작업 — 외벽 마감',
-    siteName: '호치민 스카이라인 빌딩', workDate: '2026-03-20', dailyWage: 490000,
-    status: 'REJECTED', jobStatus: 'CANCELLED', appliedAt: '2026-03-12T14:00:00Z',
-  },
-]
-
 const STATUS_CONFIG: Record<string, { label: string; className: string }> = {
   APPLIED:    { label: '검토 대기', className: 'status-pending border' },
   PENDING:    { label: '검토 대기', className: 'status-pending border' },
@@ -151,9 +128,7 @@ export default async function WorkerHomePage({ params }: Props) {
       : Promise.resolve(null),
   ])
 
-  const rawApplications: RawApplication[] = appsRes?.data ?? []
-  const isDemo = !token || (user?.isTestAccount ?? false)
-  const applications: RawApplication[] = isDemo ? DEMO_APPLICATIONS : rawApplications
+  const applications: RawApplication[] = appsRes?.data ?? []
 
   const counts = {
     pending:  applications.filter(a => a.status === 'APPLIED' || a.status === 'PENDING').length,
@@ -216,11 +191,6 @@ export default async function WorkerHomePage({ params }: Props) {
                 {isManager && (
                   <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#FFC72C] text-[#3C2C02] leading-none">
                     {t('dashboard.role_manager')}
-                  </span>
-                )}
-                {isDemo && (
-                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-white/15 border border-white/25 text-white/80 leading-none">
-                    데모
                   </span>
                 )}
               </div>
@@ -300,11 +270,6 @@ export default async function WorkerHomePage({ params }: Props) {
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
             <h2 className="text-base font-bold text-[#25282A]">{t('dashboard.recent_section')}</h2>
-            {isDemo && (
-              <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#FFF8E6] text-[#92620A] border border-[#F5D87D]">
-                {t('dashboard.demo_badge')}
-              </span>
-            )}
           </div>
           <Link href={'/worker/applications' as never} className="text-sm text-[#0669F7] font-medium hover:underline">
             {t('dashboard.view_all')}

@@ -456,24 +456,29 @@ export class AdminRepository {
 
   // ── Job management ─────────────────────────────────────────────────────────
 
-  async findJobs(status: string, page: number, limit: number) {
+  async findJobs(status: string, search: string, page: number, limit: number) {
     const offset = (page - 1) * limit;
     const params: unknown[] = [];
-    let where = '';
+    const conditions: string[] = [];
     if (status) {
       params.push(status);
-      where = `AND j.status = $${params.length}`;
+      conditions.push(`j.status = $${params.length}`);
     }
+    if (search) {
+      params.push(`%${search}%`);
+      conditions.push(`(j.title ILIKE $${params.length} OR cs.name ILIKE $${params.length})`);
+    }
+    const where = conditions.length ? `WHERE ${conditions.join(' AND ')}` : '';
     params.push(limit);
     const limitIdx = params.length;
     params.push(offset);
     const offsetIdx = params.length;
     const { rows } = await this.db.query(
       `SELECT j.id, j.title, j.work_date, j.daily_wage, j.slots_total, j.slots_filled, j.status,
-              cs.name AS site_name
+              cs.name AS site_name, j.created_at
        FROM app.jobs j
        LEFT JOIN app.construction_sites cs ON j.site_id = cs.id
-       WHERE 1=1 ${where}
+       ${where}
        ORDER BY j.created_at DESC
        LIMIT $${limitIdx} OFFSET $${offsetIdx}`,
       params,
@@ -481,18 +486,83 @@ export class AdminRepository {
     return rows;
   }
 
-  async countJobs(status: string): Promise<number> {
+  async countJobs(status: string, search: string): Promise<number> {
     const params: unknown[] = [];
-    let where = '';
+    const conditions: string[] = [];
     if (status) {
       params.push(status);
-      where = `WHERE j.status = $1`;
+      conditions.push(`j.status = $${params.length}`);
     }
+    if (search) {
+      params.push(`%${search}%`);
+      conditions.push(`(j.title ILIKE $${params.length} OR cs.name ILIKE $${params.length})`);
+    }
+    const where = conditions.length ? `WHERE ${conditions.join(' AND ')}` : '';
     const { rows } = await this.db.query<{ count: string }>(
-      `SELECT COUNT(*) as count FROM app.jobs j ${where}`,
+      `SELECT COUNT(*) as count FROM app.jobs j
+       LEFT JOIN app.construction_sites cs ON j.site_id = cs.id
+       ${where}`,
       params,
     );
     return parseInt(rows[0]?.count ?? '0');
+  }
+
+  async findWorkerContracts(workerId: string) {
+    const { rows } = await this.db.query(
+      `SELECT c.id, c.status, c.worker_signed_at, c.manager_signed_at, c.created_at,
+              j.title AS job_title, j.work_date, j.daily_wage
+       FROM app.contracts c
+       JOIN app.jobs j ON c.job_id = j.id
+       WHERE c.worker_id = $1
+       ORDER BY c.created_at DESC`,
+      [workerId],
+    );
+    return rows;
+  }
+
+  async findTestAccounts() {
+    const { rows } = await this.db.query(
+      `SELECT u.id, u.phone, u.role, u.status, u.created_at, wp.full_name
+       FROM auth.users u
+       LEFT JOIN app.worker_profiles wp ON wp.user_id = u.id
+       WHERE u.is_test_account = TRUE
+       ORDER BY u.created_at DESC`,
+    );
+    return rows;
+  }
+
+  async createTestAccount(data: { firebaseUid: string; phone: string; role: string; name: string | null }) {
+    const { rows: userRows } = await this.db.query<{ id: string }>(
+      `INSERT INTO auth.users (firebase_uid, phone, role, is_test_account)
+       VALUES ($1, $2, $3, TRUE)
+       ON CONFLICT (firebase_uid) DO UPDATE SET
+         phone = EXCLUDED.phone, role = EXCLUDED.role, is_test_account = TRUE, updated_at = NOW()
+       RETURNING id`,
+      [data.firebaseUid, data.phone, data.role],
+    );
+    const userId = userRows[0].id;
+    await this.db.query(
+      `INSERT INTO app.worker_profiles (user_id, full_name)
+       VALUES ($1, $2)
+       ON CONFLICT (user_id) DO UPDATE SET full_name = EXCLUDED.full_name, updated_at = NOW()`,
+      [userId, data.name ?? data.phone],
+    );
+    const { rows } = await this.db.query(
+      `SELECT u.id, u.phone, u.role, u.status, u.created_at, wp.full_name
+       FROM auth.users u
+       LEFT JOIN app.worker_profiles wp ON wp.user_id = u.id
+       WHERE u.id = $1`,
+      [userId],
+    );
+    return rows[0];
+  }
+
+  async deleteTestAccount(id: string) {
+    const { rows } = await this.db.query(
+      `DELETE FROM auth.users WHERE id = $1 AND is_test_account = TRUE RETURNING id`,
+      [id],
+    );
+    return rows[0] ?? null;
   }
 
   async findJobById(id: string) {
@@ -635,22 +705,35 @@ export class AdminRepository {
 
   // ── Construction company management ─────────────────────────────────────────
 
-  async findCompanies() {
+  async findCompanies(search: string, page: number, limit: number) {
+    const offset = (page - 1) * limit;
+    const param = `%${search}%`;
     const { rows } = await this.db.query(
       `SELECT cc.id, cc.name, cc.business_reg_no, cc.contact_name, cc.contact_phone, cc.contact_email,
               cc.signature_s3_key, cc.business_reg_cert_s3_key, cc.created_at,
               COUNT(cs.id) AS site_count
        FROM app.construction_companies cc
        LEFT JOIN app.construction_sites cs ON cs.company_id = cc.id
+       WHERE ($1 = '' OR cc.name ILIKE $2 OR cc.business_reg_no ILIKE $2 OR cc.contact_name ILIKE $2)
        GROUP BY cc.id
-       ORDER BY cc.created_at DESC`,
+       ORDER BY cc.created_at DESC
+       LIMIT $3 OFFSET $4`,
+      [search, param, limit, offset],
     );
-    return rows.map((r) => ({
-      ...r,
-      site_count: parseInt(r.site_count) || 0,
-      signature_url: cdnUrl(r.signature_s3_key),
-      business_reg_cert_url: cdnUrl(r.business_reg_cert_s3_key),
-    }));
+    const { rows: countRows } = await this.db.query(
+      `SELECT COUNT(*) AS total FROM app.construction_companies
+       WHERE ($1 = '' OR name ILIKE $2 OR business_reg_no ILIKE $2 OR contact_name ILIKE $2)`,
+      [search, param],
+    );
+    return {
+      data: rows.map((r) => ({
+        ...r,
+        site_count: parseInt(r.site_count) || 0,
+        signature_url: cdnUrl(r.signature_s3_key),
+        business_reg_cert_url: cdnUrl(r.business_reg_cert_s3_key),
+      })),
+      total: parseInt(countRows[0].total) || 0,
+    };
   }
 
   async findCompanyById(id: string) {
@@ -706,6 +789,22 @@ export class AdminRepository {
       ],
     );
     return rows[0] ?? null;
+  }
+
+  async updateCompanySealKey(id: string, key: string | null) {
+    const { rows } = await this.db.query(
+      `UPDATE app.construction_companies
+       SET signature_s3_key = $2, updated_at = NOW()
+       WHERE id = $1 RETURNING *`,
+      [id, key],
+    );
+    if (!rows[0]) return null;
+    return {
+      ...rows[0],
+      site_count: 0,
+      signature_url: cdnUrl(rows[0].signature_s3_key),
+      business_reg_cert_url: cdnUrl(rows[0].business_reg_cert_s3_key),
+    };
   }
 
   async deleteCompany(id: string) {

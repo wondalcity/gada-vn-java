@@ -13,55 +13,6 @@ interface HireWithContractId extends Hire {
   contractId?: string
 }
 
-const DEMO_HIRES: HireWithContractId[] = [
-  {
-    id: 'demo-hire-1',
-    jobId: 'djob-1',
-    jobTitle: '전기 배선 작업',
-    siteId: 'demo-1',
-    siteName: '롯데몰 하노이 지하 1층 공사',
-    workDate: '2026-03-28',
-    startTime: '07:00',
-    endTime: '17:00',
-    dailyWage: 700000,
-    status: 'CONTRACTED',
-    appliedAt: '2026-03-20T08:00:00Z',
-    reviewedAt: '2026-03-22T10:00:00Z',
-    managerName: 'Kim Soo-jin',
-    contractId: 'demo-ctr-1',
-  },
-  {
-    id: 'demo-hire-2',
-    jobId: 'djob-3',
-    jobTitle: '잡부 — 자재 운반',
-    siteId: 'demo-2',
-    siteName: '인천 송도 물류센터',
-    workDate: '2026-03-30',
-    startTime: '08:00',
-    endTime: '17:00',
-    dailyWage: 410000,
-    status: 'ACCEPTED',
-    appliedAt: '2026-03-22T09:00:00Z',
-    reviewedAt: '2026-03-24T09:00:00Z',
-    managerName: 'Park Joon-ho',
-  },
-  {
-    id: 'demo-hire-3',
-    jobId: 'djob-5',
-    jobTitle: '타일 시공 — 로비 바닥',
-    siteId: 'demo-3',
-    siteName: '광명역 복합쇼핑몰 신축',
-    workDate: '2026-04-01',
-    startTime: '08:00',
-    endTime: '17:00',
-    dailyWage: 580000,
-    status: 'ACCEPTED',
-    appliedAt: '2026-03-24T10:00:00Z',
-    reviewedAt: '2026-03-25T09:00:00Z',
-    managerName: 'Lee Yeon-soo',
-  },
-]
-
 function formatVND(n: number): string {
   return new Intl.NumberFormat('ko-KR').format(n) + ' ₫'
 }
@@ -140,21 +91,13 @@ export default function WorkerHiresClient() {
     )
   }
 
-  const isDemo = hires.length === 0
-  const displayHires = isDemo ? DEMO_HIRES : hires
-
   return (
     <div className="pb-10">
-      <div className="py-6 flex items-center gap-3">
+      <div className="py-6">
         <h1 className="text-xl font-bold text-[#25282A]">{t('worker_hires.title')}</h1>
-        {isDemo && (
-          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-[#FFE9B0] text-[#856404] border border-[#F5D87D]">
-            {t('demo_data')}
-          </span>
-        )}
       </div>
 
-      {displayHires.length === 0 ? (
+      {hires.length === 0 ? (
         <div className="py-16 text-center bg-white rounded-2xl border border-[#EFF1F5] shadow-sm">
           <BuildingIllustration />
           <p className="text-[#98A2B2] text-sm font-medium">{t('worker_hires.empty')}</p>
@@ -162,7 +105,7 @@ export default function WorkerHiresClient() {
         </div>
       ) : (
         <div className="space-y-3">
-          {displayHires.map(hire => (
+          {hires.map(hire => (
             <div key={hire.id} className="bg-white rounded-2xl shadow-sm border border-[#EFF1F5] p-4 relative">
               {/* Accepted badge */}
               <span className="absolute top-4 right-4 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-[#E6F9E6] text-[#1A6B1A] border border-[#86D98A]">
@@ -211,7 +154,7 @@ export default function WorkerHiresClient() {
         </div>
       )}
       <div className="mt-6 pt-4 border-t border-[#EFF1F5]">
-        <p className="text-xs text-[#98A2B2] text-center">{t('worker_hires.total_count', { count: displayHires.length })}</p>
+        <p className="text-xs text-[#98A2B2] text-center">{t('worker_hires.total_count', { count: hires.length })}</p>
       </div>
     </div>
   )

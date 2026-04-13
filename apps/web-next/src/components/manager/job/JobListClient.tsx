@@ -4,7 +4,6 @@ import * as React from 'react'
 import { Link } from '@/i18n/navigation'
 import { getSessionCookie } from '@/lib/auth/session'
 import { apiClient } from '@/lib/api/client'
-import { siteStore } from '@/lib/demo/siteStore'
 import type { Job } from '@/types/manager-site-job'
 import JobCard from './JobCard'
 
@@ -35,7 +34,6 @@ export default function JobListClient({ siteId, locale }: JobListClientProps) {
 
   React.useEffect(() => {
     if (!idToken) {
-      setJobs(siteStore.listJobsBySite(siteId))
       setIsLoading(false)
       return
     }

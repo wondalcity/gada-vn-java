@@ -9,74 +9,6 @@ import { STATUS_LABELS, STATUS_COLORS, formatHoursWorked } from '@/lib/attendanc
 
 const API_BASE = '/api/v1'
 
-const DEMO_RECORDS: WorkerAttendanceRecord[] = [
-  {
-    id: 'att-1',
-    jobId: 'djob-1',
-    jobTitle: '전기 배선 작업',
-    siteName: '롯데몰 하노이 지하 1층 공사',
-    workDate: '2026-03-24',
-    status: 'ATTENDED',
-    checkInTime: '07:05',
-    checkOutTime: '17:10',
-    hoursWorked: 10.08,
-  },
-  {
-    id: 'att-2',
-    jobId: 'djob-1',
-    jobTitle: '전기 배선 작업',
-    siteName: '롯데몰 하노이 지하 1층 공사',
-    workDate: '2026-03-25',
-    status: 'ATTENDED',
-    checkInTime: '07:00',
-    checkOutTime: '17:00',
-    hoursWorked: 10,
-  },
-  {
-    id: 'att-3',
-    jobId: 'djob-4',
-    jobTitle: '철근 조립 — 3층 골조',
-    siteName: '광명역 복합쇼핑몰 신축',
-    workDate: '2026-03-20',
-    status: 'HALF_DAY',
-    checkInTime: '07:00',
-    checkOutTime: '12:00',
-    hoursWorked: 5,
-    notes: '개인 사정으로 조기 퇴근',
-  },
-  {
-    id: 'att-4',
-    jobId: 'djob-4',
-    jobTitle: '철근 조립 — 3층 골조',
-    siteName: '광명역 복합쇼핑몰 신축',
-    workDate: '2026-03-21',
-    status: 'ABSENT',
-    notes: '병가',
-  },
-  {
-    id: 'att-5',
-    jobId: 'djob-4',
-    jobTitle: '철근 조립 — 3층 골조',
-    siteName: '광명역 복합쇼핑몰 신축',
-    workDate: '2026-03-22',
-    status: 'ATTENDED',
-    checkInTime: '07:00',
-    checkOutTime: '17:00',
-    hoursWorked: 10,
-  },
-  {
-    id: 'att-6',
-    jobId: 'djob-3',
-    jobTitle: '잡부 — 자재 운반',
-    siteName: '인천 송도 물류센터',
-    workDate: '2026-03-19',
-    status: 'ATTENDED',
-    checkInTime: '08:00',
-    checkOutTime: '17:00',
-    hoursWorked: 9,
-  },
-]
-
 type Tab = 'all' | AttendanceStatus
 
 const TABS: { key: Tab; label: string }[] = [
@@ -130,28 +62,20 @@ export default function WorkerAttendanceClient() {
       .finally(() => setIsLoading(false))
   }, [idToken, jobIdFilter])
 
-  const isDemo = records.length === 0 && !error && !isLoading
-  const displayRecords = isDemo ? DEMO_RECORDS : records
-
   const filteredRecords = activeTab === 'all'
-    ? displayRecords
-    : displayRecords.filter(r => r.status === activeTab)
+    ? records
+    : records.filter(r => r.status === activeTab)
 
-  const totalDays = displayRecords.length
-  const attendedDays = displayRecords.filter(r => r.status === 'ATTENDED').length
-  const absentDays = displayRecords.filter(r => r.status === 'ABSENT').length
-  const halfDayDays = displayRecords.filter(r => r.status === 'HALF_DAY').length
+  const totalDays = records.length
+  const attendedDays = records.filter(r => r.status === 'ATTENDED').length
+  const absentDays = records.filter(r => r.status === 'ABSENT').length
+  const halfDayDays = records.filter(r => r.status === 'HALF_DAY').length
 
   return (
     <div className="pb-10">
       {/* Header */}
       <div className="py-6 flex items-center gap-3">
         <h1 className="text-xl font-bold text-[#25282A]">근무 이력</h1>
-        {isDemo && (
-          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-[#FFE9B0] text-[#856404] border border-[#F5D87D]">
-            데모 데이터
-          </span>
-        )}
         {jobIdFilter && (
           <span className="text-xs text-[#98A2B2]">특정 일자리 필터링 중</span>
         )}
@@ -193,7 +117,7 @@ export default function WorkerAttendanceClient() {
                 }`}
               >
                 {tab.label}
-                {tab.key !== 'all' && (
+                {tab.key !== 'all' && count > 0 && (
                   <span className={`text-xs px-1.5 py-0.5 rounded-full ${
                     activeTab === tab.key ? 'bg-[#0669F7] text-white' : 'bg-[#EFF1F5] text-[#7A7B7A]'
                   }`}>
