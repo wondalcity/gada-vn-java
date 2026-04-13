@@ -104,7 +104,7 @@ export default function WorkerAttendanceClient() {
       >
         <div className="flex overflow-x-auto scrollbar-hide gap-1">
           {TABS.map(tab => {
-            const count = tab.key === 'all' ? 0 : displayRecords.filter(r => r.status === tab.key).length
+            const count = tab.key === 'all' ? 0 : records.filter(r => r.status === tab.key).length
             return (
               <button
                 key={tab.key}
