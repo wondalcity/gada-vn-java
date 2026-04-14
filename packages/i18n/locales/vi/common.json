@@ -376,7 +376,9 @@
     "empty_subtitle": "Ứng viên đăng ký vào công việc sẽ hiện ở đây.",
     "no_search_results": "Không tìm thấy kết quả.",
     "error_load": "Không thể tải danh sách ứng viên.",
-    "retry": "Thử lại"
+    "retry": "Thử lại",
+    "processing": "Đang xử lý...",
+    "action_error": "Đã xảy ra lỗi."
   },
   "manager_contracts": {
     "title": "Quản lý hợp đồng",

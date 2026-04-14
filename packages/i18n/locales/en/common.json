@@ -376,7 +376,9 @@
     "empty_subtitle": "Applicants who apply to your jobs will appear here.",
     "no_search_results": "No results found.",
     "error_load": "Unable to load applicants.",
-    "retry": "Retry"
+    "retry": "Retry",
+    "processing": "Processing...",
+    "action_error": "An error occurred."
   },
   "manager_contracts": {
     "title": "Contract Management",

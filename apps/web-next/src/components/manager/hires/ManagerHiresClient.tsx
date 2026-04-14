@@ -70,8 +70,11 @@ export default function ManagerHiresClient() {
     setIsLoading(true)
     setError(null)
     apiClient<Application[]>('/manager/applications', { token: idToken })
-      .then(({ data }) => setApplications(data))
-      .catch(() => setError(t('manager_hires.error_load')))
+      .then(({ data }) => setApplications(Array.isArray(data) ? data : []))
+      .catch(() => {
+        // API 실패(등록된 일자리 없음 등)는 빈 목록으로 처리
+        setApplications([])
+      })
       .finally(() => setIsLoading(false))
   }, [idToken, t])
 
@@ -98,7 +101,7 @@ export default function ManagerHiresClient() {
         prev.map((a) => (a.id === appId ? { ...a, status: 'ACCEPTED' } : a)),
       )
     } catch {
-      showToast('오류가 발생했습니다.')
+      showToast(t('manager_hires.action_error'))
     } finally {
       setActionLoading((prev) => ({ ...prev, [appId]: null }))
     }
@@ -120,7 +123,7 @@ export default function ManagerHiresClient() {
         prev.map((a) => (a.id === appId ? { ...a, status: 'REJECTED' } : a)),
       )
     } catch {
-      showToast('오류가 발생했습니다.')
+      showToast(t('manager_hires.action_error'))
     } finally {
       setActionLoading((prev) => ({ ...prev, [appId]: null }))
     }
@@ -336,7 +339,7 @@ export default function ManagerHiresClient() {
                         disabled={!!isActing}
                         className="flex-1 py-1.5 rounded-full bg-[#0669F7] text-white font-medium text-xs hover:bg-[#0557D4] transition-colors disabled:opacity-40"
                       >
-                        {isActing === 'accept' ? '처리 중...' : t('manager_hires.action_accept')}
+                        {isActing === 'accept' ? t('manager_hires.processing') : t('manager_hires.action_accept')}
                       </button>
                       <button
                         type="button"
@@ -344,7 +347,7 @@ export default function ManagerHiresClient() {
                         disabled={!!isActing}
                         className="flex-1 py-1.5 rounded-full border border-[#ED1C24] text-[#ED1C24] font-medium text-xs hover:bg-[#ED1C24] hover:text-white transition-colors disabled:opacity-40"
                       >
-                        {isActing === 'reject' ? '처리 중...' : t('manager_hires.action_reject')}
+                        {isActing === 'reject' ? t('manager_hires.processing') : t('manager_hires.action_reject')}
                       </button>
                     </div>
                   )}
