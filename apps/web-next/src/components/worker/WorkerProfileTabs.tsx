@@ -283,7 +283,7 @@ function UploadZone({
 
 // ── Basic Info Tab ───────────────────────────────────────────────────────────
 
-function BasicTab({ profile, onSaved }: { profile: WorkerProfile; onSaved: (p: Partial<WorkerProfile>) => void }) {
+function BasicTab({ profile, onSaved, locale }: { profile: WorkerProfile; onSaved: (p: Partial<WorkerProfile>) => void; locale: string }) {
   const t = useTranslations('worker')
   const { showAlert } = useAlert()
   const [fullName, setFullName] = React.useState(profile.full_name ?? '')
@@ -1656,7 +1656,7 @@ export default function WorkerProfileTabs({ locale }: { locale: string }) {
           </div>
         )}
         <div className="bg-white rounded-2xl border border-[#EFF1F5] shadow-sm p-5 md:p-8">
-          {activeTab === 'basic'      && <BasicTab profile={profile} onSaved={handleSaved} />}
+          {activeTab === 'basic'      && <BasicTab profile={profile} onSaved={handleSaved} locale={locale} />}
           {activeTab === 'experience' && <ExperienceTab profile={profile} onSaved={handleSaved} />}
           {activeTab === 'address'    && <AddressTab profile={profile} onSaved={handleSaved} />}
           {activeTab === 'bank'       && <BankTab profile={profile} onSaved={handleSaved} />}

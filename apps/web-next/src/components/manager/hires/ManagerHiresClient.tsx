@@ -6,16 +6,26 @@ import { useParams } from 'next/navigation'
 import { useTranslations } from 'next-intl'
 import { getSessionCookie } from '@/lib/auth/session'
 import { apiClient } from '@/lib/api/client'
-import type { HireWithContract } from '@/types/contract'
-import { CONTRACT_STATUS_LABELS, CONTRACT_STATUS_COLORS } from '@/types/contract'
 
+const API_BASE = '/api/v1'
 
-function formatVND(n: number): string {
-  return new Intl.NumberFormat('ko-KR').format(n) + ' ₫'
+interface Application {
+  id: string
+  status: 'PENDING' | 'ACCEPTED' | 'REJECTED' | 'CONTRACTED' | 'WITHDRAWN'
+  jobId: string
+  jobTitle: string
+  workDate: string
+  workerId: string
+  workerName: string
+  workerPhone: string
+  workerTrades: string[]
+  experienceYears?: number
 }
 
-function formatDate(d: string): string {
-  return new Intl.DateTimeFormat('ko-KR', {
+type TabKey = 'all' | 'pending' | 'accepted' | 'contracted'
+
+function formatDate(d: string, locale: string): string {
+  return new Intl.DateTimeFormat(locale === 'vi' ? 'vi-VN' : locale === 'en' ? 'en-US' : 'ko-KR', {
     year: 'numeric',
     month: 'long',
     day: 'numeric',
@@ -45,10 +55,13 @@ export default function ManagerHiresClient() {
   const idToken = getSessionCookie()
   const params = useParams()
   const locale = (params?.locale as string) ?? 'ko'
-  const [hires, setHires] = React.useState<HireWithContract[]>([])
+
+  const [applications, setApplications] = React.useState<Application[]>([])
   const [isLoading, setIsLoading] = React.useState(true)
   const [error, setError] = React.useState<string | null>(null)
   const [searchQuery, setSearchQuery] = React.useState('')
+  const [activeTab, setActiveTab] = React.useState<TabKey>('all')
+  const [actionLoading, setActionLoading] = React.useState<Record<string, 'accept' | 'reject' | null>>({})
   const [creatingContractFor, setCreatingContractFor] = React.useState<string | null>(null)
   const [toastMessage, setToastMessage] = React.useState<string | null>(null)
 
@@ -56,76 +69,131 @@ export default function ManagerHiresClient() {
     if (!idToken) { setIsLoading(false); return }
     setIsLoading(true)
     setError(null)
-    apiClient<Record<string, any>[]>('/applications/for-manager', { token: idToken })
-      .then(({ data }) => {
-        const mapped: HireWithContract[] = data
-          .filter((a) => a.status === 'ACCEPTED' || a.status === 'CONTRACTED')
-          .map((a) => ({
-            id: a.id,
-            jobId: a.job_id,
-            jobTitle: a.job_title ?? '',
-            siteName: a.site_name ?? '',
-            workDate: a.work_date ?? '',
-            dailyWage: a.daily_wage ?? 0,
-            workerName: a.worker_name ?? '',
-            workerPhone: a.worker_phone ?? '',
-            status: a.status,
-            reviewedAt: a.reviewed_at ?? null,
-            contract: a.contract_id ? {
-              id: a.contract_id,
-              status: a.contract_status,
-              workerSignedAt: a.worker_signed_at ?? null,
-              managerSignedAt: a.manager_signed_at ?? null,
-              downloadUrl: null,
-            } : null,
-          }))
-        setHires(mapped)
-      })
+    apiClient<Application[]>('/manager/applications', { token: idToken })
+      .then(({ data }) => setApplications(data))
       .catch(() => setError(t('manager_hires.error_load')))
       .finally(() => setIsLoading(false))
-  }, [idToken])
+  }, [idToken, t])
 
-  React.useEffect(() => {
-    load()
-  }, [load])
+  React.useEffect(() => { load() }, [load])
 
   function showToast(msg: string) {
     setToastMessage(msg)
     setTimeout(() => setToastMessage(null), 3000)
   }
 
-  async function handleCreateContract(hireId: string) {
+  async function handleAccept(appId: string) {
     if (!idToken) return
-    setCreatingContractFor(hireId)
+    setActionLoading((prev) => ({ ...prev, [appId]: 'accept' }))
+    try {
+      const token = getSessionCookie()
+      const res = await fetch(`${API_BASE}/manager/applications/${appId}/accept`, {
+        method: 'PATCH',
+        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({}),
+      })
+      if (!res.ok) throw new Error()
+      showToast(t('manager_hires.accept_success'))
+      setApplications((prev) =>
+        prev.map((a) => (a.id === appId ? { ...a, status: 'ACCEPTED' } : a)),
+      )
+    } catch {
+      showToast('오류가 발생했습니다.')
+    } finally {
+      setActionLoading((prev) => ({ ...prev, [appId]: null }))
+    }
+  }
+
+  async function handleReject(appId: string) {
+    if (!idToken) return
+    setActionLoading((prev) => ({ ...prev, [appId]: 'reject' }))
+    try {
+      const token = getSessionCookie()
+      const res = await fetch(`${API_BASE}/manager/applications/${appId}/reject`, {
+        method: 'PATCH',
+        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({}),
+      })
+      if (!res.ok) throw new Error()
+      showToast(t('manager_hires.reject_success'))
+      setApplications((prev) =>
+        prev.map((a) => (a.id === appId ? { ...a, status: 'REJECTED' } : a)),
+      )
+    } catch {
+      showToast('오류가 발생했습니다.')
+    } finally {
+      setActionLoading((prev) => ({ ...prev, [appId]: null }))
+    }
+  }
+
+  async function handleCreateContract(appId: string) {
+    if (!idToken) return
+    setCreatingContractFor(appId)
     try {
       await apiClient(`/contracts/generate`, {
         method: 'POST',
         token: idToken,
-        body: JSON.stringify({ applicationId: hireId }),
+        body: JSON.stringify({ applicationId: appId }),
       })
       showToast(t('manager_hires.contract_created'))
       load()
     } catch (err) {
-      const msg = err instanceof Error ? err.message : t('manager_hires.contract_create_error')
-      showToast(msg)
+      showToast(err instanceof Error ? err.message : t('manager_hires.contract_create_error'))
     } finally {
       setCreatingContractFor(null)
     }
   }
 
-  const displayHires = hires
+  const TABS: { key: TabKey; label: string }[] = [
+    { key: 'all', label: t('manager_hires.tab_all') },
+    { key: 'pending', label: t('manager_hires.tab_pending') },
+    { key: 'accepted', label: t('manager_hires.tab_accepted') },
+    { key: 'contracted', label: t('manager_hires.tab_contracted') },
+  ]
 
-  const filteredHires = React.useMemo(() => {
-    if (!searchQuery.trim()) return displayHires
-    const q = searchQuery.toLowerCase()
-    return displayHires.filter(
-      (h) =>
-        h.workerName.toLowerCase().includes(q) ||
-        h.workerPhone.includes(q),
-    )
-  }, [displayHires, searchQuery])
+  const STATUS_LABELS: Record<string, string> = {
+    PENDING: t('manager_hires.status_pending'),
+    ACCEPTED: t('manager_hires.status_accepted'),
+    CONTRACTED: t('manager_hires.status_contracted'),
+    REJECTED: t('manager_hires.status_rejected'),
+  }
 
-  const contractedCount = displayHires.filter((h) => h.status === 'CONTRACTED').length
+  const STATUS_STYLES: Record<string, string> = {
+    PENDING: 'bg-[#FFFBEB] text-[#856404] border border-[#F5D87D]',
+    ACCEPTED: 'bg-[#E6F0FE] text-[#0669F7] border border-[#B3D9FF]',
+    CONTRACTED: 'bg-[#E6F9E6] text-[#1A6B1A] border border-[#86D98A]',
+    REJECTED: 'bg-[#FDE8EE] text-[#ED1C24] border border-[#F4A8B8]',
+  }
+
+  // Tab count helpers
+  const counts = React.useMemo(() => ({
+    all: applications.length,
+    pending: applications.filter((a) => a.status === 'PENDING').length,
+    accepted: applications.filter((a) => a.status === 'ACCEPTED').length,
+    contracted: applications.filter((a) => a.status === 'CONTRACTED').length,
+  }), [applications])
+
+  const filteredApplications = React.useMemo(() => {
+    let list = applications
+
+    // Tab filter
+    if (activeTab === 'pending') list = list.filter((a) => a.status === 'PENDING')
+    else if (activeTab === 'accepted') list = list.filter((a) => a.status === 'ACCEPTED')
+    else if (activeTab === 'contracted') list = list.filter((a) => a.status === 'CONTRACTED')
+
+    // Search filter
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase()
+      list = list.filter(
+        (a) =>
+          a.workerName.toLowerCase().includes(q) ||
+          a.workerPhone.includes(q) ||
+          a.jobTitle.toLowerCase().includes(q),
+      )
+    }
+
+    return list
+  }, [applications, activeTab, searchQuery])
 
   if (isLoading) {
     return (
@@ -133,10 +201,7 @@ export default function ManagerHiresClient() {
         <h1 className="text-xl font-bold text-[#25282A] mb-6">{t('manager_hires.title')}</h1>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           {[1, 2, 3].map((i) => (
-            <div
-              key={i}
-              className="bg-white rounded-2xl shadow-sm border border-[#EFF1F5] p-4 animate-pulse"
-            >
+            <div key={i} className="bg-white rounded-2xl shadow-sm border border-[#EFF1F5] p-4 animate-pulse">
               <div className="h-4 bg-[#DDDDDD] rounded w-1/2 mb-3" />
               <div className="h-3 bg-[#DDDDDD] rounded w-2/3 mb-2" />
               <div className="h-3 bg-[#DDDDDD] rounded w-1/3 mb-2" />
@@ -166,26 +231,41 @@ export default function ManagerHiresClient() {
 
   return (
     <div className="max-w-[1760px] mx-auto px-4 py-6">
-      <div className="flex items-center gap-3 mb-2">
-        <h1 className="text-xl font-bold text-[#25282A]">{t('manager_hires.title')}</h1>
+      <h1 className="text-xl font-bold text-[#25282A] mb-4">{t('manager_hires.title')}</h1>
+
+      {/* Tabs */}
+      <div className="flex gap-1.5 mb-4 overflow-x-auto pb-1">
+        {TABS.map((tab) => {
+          const count = counts[tab.key]
+          const isActive = activeTab === tab.key
+          return (
+            <button
+              key={tab.key}
+              type="button"
+              onClick={() => setActiveTab(tab.key)}
+              className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${
+                isActive
+                  ? 'bg-[#0669F7] text-white'
+                  : 'bg-white border border-[#EFF1F5] text-[#98A2B2] hover:border-[#0669F7] hover:text-[#0669F7]'
+              }`}
+            >
+              {tab.label}
+              {count > 0 && (
+                <span
+                  className={`inline-flex items-center justify-center min-w-[18px] h-[18px] rounded-full text-[11px] font-bold px-1 ${
+                    isActive ? 'bg-white/20 text-white' : 'bg-[#F2F4F5] text-[#98A2B2]'
+                  }`}
+                >
+                  {count}
+                </span>
+              )}
+            </button>
+          )
+        })}
       </div>
 
-      {/* Summary stats */}
-      {displayHires.length > 0 && (
-        <div className="flex gap-4 mb-4">
-          <div className="flex-1 bg-[#E6F0FE] rounded-2xl p-3 text-center">
-            <p className="text-2xl font-bold text-[#0669F7]">{displayHires.length}</p>
-            <p className="text-xs text-[#98A2B2] mt-0.5">{t('manager_hires.total_accepted')}</p>
-          </div>
-          <div className="flex-1 bg-[#E6F9E6] rounded-2xl p-3 text-center">
-            <p className="text-2xl font-bold text-[#1A6B1A]">{contractedCount}</p>
-            <p className="text-xs text-[#98A2B2] mt-0.5">{t('manager_hires.contracted_count')}</p>
-          </div>
-        </div>
-      )}
-
       {/* Search */}
-      {displayHires.length > 0 && (
+      {applications.length > 0 && (
         <div className="mb-4">
           <input
             type="search"
@@ -197,91 +277,107 @@ export default function ManagerHiresClient() {
         </div>
       )}
 
-      {displayHires.length === 0 ? (
+      {/* Empty state */}
+      {applications.length === 0 ? (
         <div className="py-16 text-center">
           <PeopleIllustration />
           <p className="text-[#98A2B2] text-sm font-medium">{t('manager_hires.empty_title')}</p>
           <p className="text-[#98A2B2] text-xs mt-1">{t('manager_hires.empty_subtitle')}</p>
         </div>
-      ) : filteredHires.length === 0 ? (
+      ) : filteredApplications.length === 0 ? (
         <p className="text-center text-[#98A2B2] text-sm py-12">{t('manager_hires.no_search_results')}</p>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-          {filteredHires.map((hire) => (
-            <div
-              key={hire.id}
-              className="bg-white rounded-2xl shadow-sm border border-[#EFF1F5] p-4"
-            >
-              {/* Worker info */}
-              <div className="flex items-start justify-between gap-2 mb-2">
-                <div>
-                  <Link
-                    href={`/manager/hires/${hire.id}`}
-                    className="font-semibold text-[#25282A] text-sm hover:text-[#0669F7] transition-colors"
+          {filteredApplications.map((app) => {
+            const isActing = actionLoading[app.id]
+            return (
+              <div
+                key={app.id}
+                className="bg-white rounded-2xl shadow-sm border border-[#EFF1F5] p-4"
+              >
+                {/* Header: worker name + status badge */}
+                <div className="flex items-start justify-between gap-2 mb-2">
+                  <div>
+                    <p className="font-semibold text-[#25282A] text-sm">{app.workerName}</p>
+                    <p className="text-xs text-[#98A2B2] mt-0.5">{app.workerPhone}</p>
+                    {app.workerTrades.length > 0 && (
+                      <p className="text-xs text-[#98A2B2] mt-0.5">{app.workerTrades.join(', ')}</p>
+                    )}
+                  </div>
+                  <span
+                    className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium whitespace-nowrap ${
+                      STATUS_STYLES[app.status] ?? 'bg-[#F2F4F5] text-[#98A2B2]'
+                    }`}
                   >
-                    {hire.workerName}
-                  </Link>
-                  <p className="text-xs text-[#98A2B2] mt-0.5">{hire.workerPhone}</p>
+                    {STATUS_LABELS[app.status] ?? app.status}
+                  </span>
                 </div>
-                <span
-                  className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium whitespace-nowrap ${
-                    hire.status === 'CONTRACTED'
-                      ? 'bg-[#E6F9E6] text-[#1A6B1A] border border-[#86D98A]'
-                      : 'bg-[#E6F0FE] text-[#0669F7] border border-[#B3D9FF]'
-                  }`}
-                >
-                  {hire.status === 'CONTRACTED' ? t('manager_hires.status_contracted') : t('manager_hires.status_accepted')}
-                </span>
-              </div>
 
-              {/* Job info */}
-              <div className="border-t border-[#EFF1F5] pt-2 space-y-1 text-xs text-[#98A2B2]">
-                <p className="text-[#25282A] font-medium text-sm">{hire.jobTitle}</p>
-                <p>{hire.siteName}</p>
-                <p>{formatDate(hire.workDate)}</p>
-                <p className="text-base font-bold text-[#0669F7] mt-1">{formatVND(hire.dailyWage)}</p>
-              </div>
+                {/* Job info */}
+                <div className="border-t border-[#EFF1F5] pt-2 space-y-0.5">
+                  <Link
+                    href={`/manager/jobs/${app.jobId}` as never}
+                    className="text-sm font-medium text-[#25282A] hover:text-[#0669F7] transition-colors"
+                  >
+                    {app.jobTitle}
+                  </Link>
+                  {app.workDate && (
+                    <p className="text-xs text-[#98A2B2]">{formatDate(app.workDate, locale)}</p>
+                  )}
+                </div>
 
-              {/* Contract section */}
-              <div className="mt-3 pt-3 border-t border-[#EFF1F5]">
-                {hire.contract ? (
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <span
-                      className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                        CONTRACT_STATUS_COLORS[hire.contract.status]
-                      }`}
+                {/* Actions */}
+                <div className="mt-3 pt-3 border-t border-[#EFF1F5]">
+                  {app.status === 'PENDING' && (
+                    <div className="flex gap-2">
+                      <button
+                        type="button"
+                        onClick={() => handleAccept(app.id)}
+                        disabled={!!isActing}
+                        className="flex-1 py-1.5 rounded-full bg-[#0669F7] text-white font-medium text-xs hover:bg-[#0557D4] transition-colors disabled:opacity-40"
+                      >
+                        {isActing === 'accept' ? '처리 중...' : t('manager_hires.action_accept')}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleReject(app.id)}
+                        disabled={!!isActing}
+                        className="flex-1 py-1.5 rounded-full border border-[#ED1C24] text-[#ED1C24] font-medium text-xs hover:bg-[#ED1C24] hover:text-white transition-colors disabled:opacity-40"
+                      >
+                        {isActing === 'reject' ? '처리 중...' : t('manager_hires.action_reject')}
+                      </button>
+                    </div>
+                  )}
+
+                  {app.status === 'ACCEPTED' && (
+                    <button
+                      type="button"
+                      onClick={() => handleCreateContract(app.id)}
+                      disabled={creatingContractFor === app.id}
+                      className="w-full py-1.5 rounded-full border border-[#0669F7] text-[#0669F7] font-medium text-xs hover:bg-[#0669F7] hover:text-white transition-colors disabled:opacity-40"
                     >
-                      {CONTRACT_STATUS_LABELS[hire.contract.status]}
-                    </span>
+                      {creatingContractFor === app.id
+                        ? t('manager_hires.creating_contract')
+                        : t('manager_hires.create_contract')}
+                    </button>
+                  )}
+
+                  {app.status === 'CONTRACTED' && (
                     <Link
-                      href={`/manager/contracts/${hire.contract.id}`}
-                      className="px-4 py-1.5 rounded-full bg-[#0669F7] text-white font-medium text-xs hover:bg-[#0557D4] transition-colors"
+                      href={`/manager/hires/${app.id}` as never}
+                      className="block w-full py-1.5 rounded-full bg-[#E6F9E6] border border-[#86D98A] text-[#1A6B1A] font-medium text-xs text-center hover:bg-[#1A6B1A] hover:text-white transition-colors"
                     >
                       {t('manager_hires.view_contract')}
                     </Link>
-                    {hire.contract.status === 'FULLY_SIGNED' && hire.contract.downloadUrl && (
-                      <button
-                        type="button"
-                        onClick={() => window.open(hire.contract!.downloadUrl!, '_blank')}
-                        className="px-4 py-1.5 rounded-full border border-[#EFF1F5] text-[#25282A] font-medium text-xs hover:border-[#0669F7] hover:text-[#0669F7] transition-colors"
-                      >
-                        {t('manager_hires.download')}
-                      </button>
-                    )}
-                  </div>
-                ) : (
-                  <button
-                    type="button"
-                    onClick={() => handleCreateContract(hire.id)}
-                    disabled={creatingContractFor === hire.id}
-                    className="px-4 py-1.5 rounded-full border border-[#0669F7] text-[#0669F7] font-medium text-xs hover:bg-[#0669F7] hover:text-white transition-colors disabled:opacity-40"
-                  >
-                    {creatingContractFor === hire.id ? t('manager_hires.creating_contract') : t('manager_hires.create_contract')}
-                  </button>
-                )}
+                  )}
+
+                  {app.status === 'REJECTED' && (
+                    <p className="text-xs text-[#98A2B2] text-center">{t('manager_hires.status_rejected')}</p>
+                  )}
+                </div>
               </div>
-            </div>
-          ))}
+            )
+          })}
         </div>
       )}
 
