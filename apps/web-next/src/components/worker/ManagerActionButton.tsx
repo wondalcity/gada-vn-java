@@ -26,6 +26,25 @@ export function ManagerActionButton({ locale, isManager, managerStatus, variant 
     if (managerStatus === 'pending') setStatus('pending')
   }, [managerStatus])
 
+  // On mount: verify registration status directly from API to handle cases
+  // where the server component doesn't reflect the latest DB state
+  React.useEffect(() => {
+    if (isManager || managerStatus === 'pending') return
+    const token = getSessionCookie()
+    if (!token) return
+
+    fetch(`${API_BASE}/managers/registration-status`, {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+      .then(r => r.ok ? r.json() : null)
+      .then(body => {
+        if (body?.data?.hasApplied && body?.data?.approvalStatus === 'PENDING') {
+          setStatus('pending')
+        }
+      })
+      .catch(() => {})
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+
   async function handleApply() {
     const token = getSessionCookie()
     if (!token) return

@@ -445,5 +445,8 @@
     "load_error": "Failed to load",
     "status_change_error": "Status change failed",
     "delete_error": "Delete failed"
+  },
+  "date_picker": {
+    "select_year": "Select Year"
   }
 }

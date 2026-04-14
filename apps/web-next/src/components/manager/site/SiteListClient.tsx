@@ -2,6 +2,7 @@
 
 import * as React from 'react'
 import { useRouter } from '@/i18n/navigation'
+import { useTranslations } from 'next-intl'
 import { getSessionCookie } from '@/lib/auth/session'
 import { apiClient } from '@/lib/api/client'
 import type { Site } from '@/types/manager-site-job'
@@ -25,6 +26,7 @@ function SkeletonCard() {
 }
 
 export default function SiteListClient({ locale }: SiteListClientProps) {
+  const t = useTranslations('manager')
   const router = useRouter()
   const idToken = getSessionCookie()
   const [sites, setSites] = React.useState<Site[]>([])
@@ -39,7 +41,7 @@ export default function SiteListClient({ locale }: SiteListClientProps) {
     setIsLoading(true)
     apiClient<Site[]>('/manager/sites', { token: idToken })
       .then((res) => setSites(res.data))
-      .catch((e) => setError(e instanceof Error ? e.message : '불러오기 실패'))
+      .catch((e) => setError(e instanceof Error ? e.message : t('sites_page.load_error')))
       .finally(() => setIsLoading(false))
   }, [idToken])
 
@@ -77,12 +79,12 @@ export default function SiteListClient({ locale }: SiteListClientProps) {
             d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
           />
         </svg>
-        <p className="text-[#98A2B2] text-sm mb-4">등록된 현장이 없습니다</p>
+        <p className="text-[#98A2B2] text-sm mb-4">{t('sites_page.empty_text')}</p>
         <button
           onClick={() => router.push('/manager/sites/new')}
           className="px-5 py-2.5 rounded-full bg-[#0669F7] text-white font-medium hover:bg-[#0557D4] transition-colors text-sm"
         >
-          첫 현장 등록하기
+          {t('sites_page.empty_cta')}
         </button>
       </div>
     )

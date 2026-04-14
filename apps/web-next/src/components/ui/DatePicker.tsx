@@ -1,6 +1,7 @@
 'use client'
 
 import * as React from 'react'
+import { useTranslations } from 'next-intl'
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -25,8 +26,20 @@ function firstDayOfWeek(year: number, month: number): number {
   return new Date(year, month, 1).getDay()
 }
 
-const WEEK_DAYS = ['일', '월', '화', '수', '목', '금', '토']
-const MONTHS_KO = ['1월', '2월', '3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월']
+/** Short weekday names starting from Sunday, using Intl */
+function getWeekDayNames(locale: string): string[] {
+  // Jan 7, 2024 is a known Sunday
+  return Array.from({ length: 7 }, (_, i) =>
+    new Intl.DateTimeFormat(locale, { weekday: 'short' }).format(new Date(2024, 0, 7 + i))
+  )
+}
+
+/** Short month names (Jan–Dec) using Intl */
+function getMonthNames(locale: string): string[] {
+  return Array.from({ length: 12 }, (_, i) =>
+    new Intl.DateTimeFormat(locale, { month: 'short' }).format(new Date(2024, i, 1))
+  )
+}
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -39,6 +52,7 @@ export interface DatePickerProps {
   className?: string
   disabled?: boolean
   label?: string
+  locale?: string          // BCP 47 locale string, e.g. 'ko', 'vi', 'en'
 }
 
 // ── Main Component ────────────────────────────────────────────────────────────
@@ -51,7 +65,9 @@ export function DatePicker({
   placeholder = '날짜 선택',
   className = '',
   disabled = false,
+  locale = 'ko',
 }: DatePickerProps) {
+  const t = useTranslations('common')
   const [open, setOpen] = React.useState(false)
   const [view, setView] = React.useState<'calendar' | 'month' | 'year'>('calendar')
   const containerRef = React.useRef<HTMLDivElement>(null)
@@ -72,6 +88,10 @@ export function DatePicker({
   const yearMin = minDate ? minDate.getFullYear() : currentYear - 100
   const yearMax = maxDate ? maxDate.getFullYear() : currentYear + 10
 
+  // Locale-aware labels (memoized to avoid re-computing on every render)
+  const weekDayNames = React.useMemo(() => getWeekDayNames(locale), [locale])
+  const monthNames = React.useMemo(() => getMonthNames(locale), [locale])
+
   // Sync view when value changes externally
   React.useEffect(() => {
     if (selected) {
@@ -85,7 +105,6 @@ export function DatePicker({
     if (!open) return
     function handleClick(e: MouseEvent) {
       if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
-        // Also check the fixed dropdown (rendered outside container visually but still inside DOM)
         const picker = document.getElementById('datepicker-portal')
         if (picker && picker.contains(e.target as Node)) return
         setOpen(false)
@@ -144,10 +163,18 @@ export function DatePicker({
     else setViewMonth(m => m + 1)
   }
 
-  // Display value
+  // Display value — locale-aware
   const displayValue = selected
-    ? `${selected.getFullYear()}년 ${selected.getMonth() + 1}월 ${selected.getDate()}일`
+    ? new Intl.DateTimeFormat(locale, { year: 'numeric', month: 'long', day: 'numeric' }).format(selected)
     : ''
+
+  // Calendar header — locale-aware year + month
+  const calendarHeader = new Intl.DateTimeFormat(locale, { year: 'numeric', month: 'long' }).format(
+    new Date(viewYear, viewMonth, 1)
+  )
+
+  // Month view year label
+  const yearLabel = new Intl.DateTimeFormat(locale, { year: 'numeric' }).format(new Date(viewYear, 0, 1))
 
   // Build calendar grid
   const totalDays = daysInMonth(viewYear, viewMonth)
@@ -156,7 +183,6 @@ export function DatePicker({
     ...Array(startDay).fill(null),
     ...Array.from({ length: totalDays }, (_, i) => i + 1),
   ]
-  // Pad to full rows
   while (cells.length % 7 !== 0) cells.push(null)
 
   const inputBase = `w-full px-3 py-2.5 rounded-lg border text-sm bg-white flex items-center justify-between cursor-pointer transition-colors ${
@@ -204,7 +230,7 @@ export function DatePicker({
                 <button type="button"
                   onClick={() => setView('month')}
                   className="flex items-center gap-1 px-3 py-1 rounded-lg hover:bg-[#F8F8FA] transition-colors">
-                  <span className="text-sm font-semibold text-[#25282A]">{viewYear}년 {MONTHS_KO[viewMonth]}</span>
+                  <span className="text-sm font-semibold text-[#25282A]">{calendarHeader}</span>
                   <svg className="w-3.5 h-3.5 text-[#98A2B2]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                   </svg>
@@ -219,8 +245,8 @@ export function DatePicker({
 
               {/* Week days */}
               <div className="grid grid-cols-7 mb-1">
-                {WEEK_DAYS.map((d, i) => (
-                  <div key={d} className={`text-center text-xs font-medium py-1 ${i === 0 ? 'text-[#ED1C24]' : i === 6 ? 'text-[#0669F7]' : 'text-[#98A2B2]'}`}>
+                {weekDayNames.map((d, i) => (
+                  <div key={i} className={`text-center text-xs font-medium py-1 ${i === 0 ? 'text-[#ED1C24]' : i === 6 ? 'text-[#0669F7]' : 'text-[#98A2B2]'}`}>
                     {d}
                   </div>
                 ))}
@@ -232,7 +258,7 @@ export function DatePicker({
                   if (!day) return <div key={idx} />
                   const isSelected = selected?.getFullYear() === viewYear && selected?.getMonth() === viewMonth && selected?.getDate() === day
                   const isToday = today.getFullYear() === viewYear && today.getMonth() === viewMonth && today.getDate() === day
-                  const disabled = isDayDisabled(day)
+                  const isDisabled = isDayDisabled(day)
                   const col = idx % 7
                   const isSunday = col === 0
                   const isSaturday = col === 6
@@ -240,18 +266,18 @@ export function DatePicker({
                     <button
                       key={idx}
                       type="button"
-                      disabled={disabled}
+                      disabled={isDisabled}
                       onClick={() => selectDay(day)}
                       className={`
                         w-full aspect-square flex items-center justify-center rounded-full text-sm font-medium transition-all
                         ${isSelected ? 'bg-[#0669F7] text-white shadow-sm' : ''}
                         ${!isSelected && isToday ? 'border border-[#0669F7] text-[#0669F7]' : ''}
-                        ${!isSelected && !isToday && !disabled ? (
+                        ${!isSelected && !isToday && !isDisabled ? (
                           isSunday ? 'text-[#ED1C24] hover:bg-[#FDE8EE]' :
                           isSaturday ? 'text-[#0669F7] hover:bg-[#E6F0FE]' :
                           'text-[#25282A] hover:bg-[#F8F8FA]'
                         ) : ''}
-                        ${disabled ? 'text-[#DDDDDD] cursor-not-allowed' : 'cursor-pointer'}
+                        ${isDisabled ? 'text-[#DDDDDD] cursor-not-allowed' : 'cursor-pointer'}
                       `}
                     >
                       {day}
@@ -281,7 +307,7 @@ export function DatePicker({
                   }}
                   className="w-full py-2 rounded-lg text-xs font-medium text-[#0669F7] hover:bg-[#E6F0FE] transition-colors"
                 >
-                  오늘
+                  {t('manager_attendance.today')}
                 </button>
               </div>
             </div>
@@ -299,7 +325,7 @@ export function DatePicker({
                 </button>
                 <button type="button" onClick={() => setView('year')}
                   className="flex items-center gap-1 px-3 py-1 rounded-lg hover:bg-[#F8F8FA]">
-                  <span className="text-sm font-semibold text-[#25282A]">{viewYear}년</span>
+                  <span className="text-sm font-semibold text-[#25282A]">{yearLabel}</span>
                   <svg className="w-3.5 h-3.5 text-[#98A2B2]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                   </svg>
@@ -312,7 +338,7 @@ export function DatePicker({
                 </button>
               </div>
               <div className="grid grid-cols-3 gap-2">
-                {MONTHS_KO.map((name, idx) => {
+                {monthNames.map((name, idx) => {
                   const isSelected = selected && selected.getFullYear() === viewYear && selected.getMonth() === idx
                   const isCurrent = today.getFullYear() === viewYear && today.getMonth() === idx
                   return (
@@ -335,9 +361,9 @@ export function DatePicker({
           {view === 'year' && (
             <div className="p-4">
               <div className="flex items-center justify-between mb-4">
-                <span className="text-sm font-semibold text-[#25282A]">연도 선택</span>
+                <span className="text-sm font-semibold text-[#25282A]">{t('date_picker.select_year')}</span>
                 <button type="button" onClick={() => setView('month')}
-                  className="text-xs text-[#0669F7] font-medium hover:underline">닫기</button>
+                  className="text-xs text-[#0669F7] font-medium hover:underline">{t('button.close')}</button>
               </div>
               <div className="grid grid-cols-4 gap-1.5 max-h-52 overflow-y-auto">
                 {Array.from({ length: yearMax - yearMin + 1 }, (_, i) => yearMax - i).map(year => {

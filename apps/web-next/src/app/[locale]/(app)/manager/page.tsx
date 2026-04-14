@@ -2,6 +2,7 @@
 
 import * as React from 'react'
 import { Link, useRouter } from '@/i18n/navigation'
+import { useTranslations } from 'next-intl'
 import { getSessionCookie, clearSessionCookie } from '@/lib/auth/session'
 
 const API_BASE = '/api/v1'
@@ -89,15 +90,11 @@ function IconListings() {
 }
 
 export default function ManagerHomePage({ params }: Props) {
+  const t = useTranslations('manager')
   const router = useRouter()
-  const [locale, setLocale] = React.useState('ko')
   const idToken = getSessionCookie()
   const [stats, setStats] = React.useState<Stats | null>(null)
   const [managerInfo, setManagerInfo] = React.useState<ManagerInfo | null>(null)
-
-  React.useEffect(() => {
-    params.then(p => setLocale(p.locale))
-  }, [params])
 
   React.useEffect(() => {
     if (!idToken) return
@@ -114,50 +111,56 @@ export default function ManagerHomePage({ params }: Props) {
   const ZERO_STATS: Stats = { activeSites: 0, openJobs: 0, pendingApplications: 0 }
   const displayStats = stats ?? ZERO_STATS
 
-  const displayName = managerInfo?.representative_name ?? managerInfo?.company_name ?? '관리자'
+  const displayName = managerInfo?.representative_name ?? managerInfo?.company_name ?? t('home_page.manager_label')
   const initial = displayName.charAt(0).toUpperCase()
 
   const statCards = [
     {
-      label: '운영중 현장', value: displayStats.activeSites,
+      label: t('home_page.stat_active_sites'), value: displayStats.activeSites,
       href: '/manager/sites', color: '#0669F7', bg: '#E6F0FE', border: '#A8C7FD',
       Icon: IconSite,
     },
     {
-      label: '모집중 공고', value: displayStats.openJobs,
+      label: t('home_page.stat_open_jobs'), value: displayStats.openJobs,
       href: '/manager/jobs', color: '#1A6B1A', bg: '#E6F9E6', border: '#86D98A',
       Icon: IconJob,
     },
     {
-      label: '검토 대기', value: displayStats.pendingApplications,
+      label: t('home_page.stat_pending'), value: displayStats.pendingApplications,
       href: '/manager/hires', color: '#92620A', bg: '#FFF8E6', border: '#F5D87D',
       Icon: IconHires,
     },
   ]
 
   const quickActions = [
-    { href: '/manager/sites/new', Icon: IconSite,     label: '현장등록' },
-    { href: '/manager/jobs',      Icon: IconJob,      label: '공고관리' },
-    { href: '/manager/hires',     Icon: IconHires,    label: '채용관리' },
-    { href: '/manager/contracts', Icon: IconContract, label: '계약서' },
+    { href: '/manager/sites/new', Icon: IconSite,     label: t('home_page.quick_site') },
+    { href: '/manager/jobs',      Icon: IconJob,      label: t('home_page.quick_jobs') },
+    { href: '/manager/hires',     Icon: IconHires,    label: t('home_page.quick_hires') },
+    { href: '/manager/contracts', Icon: IconContract, label: t('home_page.quick_contracts') },
   ]
 
   const menuCards = [
     {
-      href: '/manager/sites', Icon: IconSite, title: '현장 관리', desc: '건설 현장 등록 및 이미지 관리',
-      badge: displayStats.activeSites > 0 ? `${displayStats.activeSites}개` : null, badgeUrgent: false,
+      href: '/manager/sites', Icon: IconSite,
+      title: t('home_page.menu_sites_title'), desc: t('home_page.menu_sites_desc'),
+      badge: displayStats.activeSites > 0 ? t('home_page.menu_sites_badge', { count: displayStats.activeSites }) : null,
+      badgeUrgent: false,
     },
     {
-      href: '/manager/jobs', Icon: IconJob, title: '공고 관리', desc: '일자리 공고 등록·수정·마감',
-      badge: displayStats.openJobs > 0 ? `모집중 ${displayStats.openJobs}` : null, badgeUrgent: false,
+      href: '/manager/jobs', Icon: IconJob,
+      title: t('home_page.menu_jobs_title'), desc: t('home_page.menu_jobs_desc'),
+      badge: displayStats.openJobs > 0 ? t('home_page.menu_jobs_badge', { count: displayStats.openJobs }) : null,
+      badgeUrgent: false,
     },
     {
-      href: '/manager/hires', Icon: IconHires, title: '채용 관리', desc: '지원자 검토 및 합격 처리',
-      badge: displayStats.pendingApplications > 0 ? `대기 ${displayStats.pendingApplications}` : null,
+      href: '/manager/hires', Icon: IconHires,
+      title: t('home_page.menu_hires_title'), desc: t('home_page.menu_hires_desc'),
+      badge: displayStats.pendingApplications > 0 ? t('home_page.menu_hires_badge', { count: displayStats.pendingApplications }) : null,
       badgeUrgent: displayStats.pendingApplications > 0,
     },
     {
-      href: '/manager/contracts', Icon: IconContract, title: '계약서 관리', desc: '전자계약 및 서명 현황',
+      href: '/manager/contracts', Icon: IconContract,
+      title: t('home_page.menu_contracts_title'), desc: t('home_page.menu_contracts_desc'),
       badge: null, badgeUrgent: false,
     },
   ]
@@ -169,7 +172,6 @@ export default function ManagerHomePage({ params }: Props) {
         {/* ── MOBILE: manager hero card ───────────────────── */}
         <div className="md:hidden mb-4">
           <div className="rounded-3xl p-5 bg-[#0669F7] relative overflow-hidden">
-            {/* Subtle geometric decoration */}
             <div className="absolute right-0 top-0 w-36 h-36 rounded-full bg-white/[0.06] -translate-y-1/3 translate-x-1/4 pointer-events-none" />
             <div className="absolute right-8 bottom-0 w-24 h-24 rounded-full bg-white/[0.06] translate-y-1/2 pointer-events-none" />
 
@@ -187,7 +189,7 @@ export default function ManagerHomePage({ params }: Props) {
                 </div>
                 <div className="flex items-center gap-1.5 mt-1.5 flex-wrap">
                   <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#FFC72C] text-[#3C2C02] leading-none">
-                    관리자
+                    {t('home_page.manager_label')}
                   </span>
                 </div>
               </div>
@@ -204,7 +206,7 @@ export default function ManagerHomePage({ params }: Props) {
             </div>
           </div>
 
-          {/* Quick action grid — SVG icons */}
+          {/* Quick action grid */}
           <div className="grid grid-cols-4 gap-2 mt-3">
             {quickActions.map(({ href, Icon, label }) => (
               <Link
@@ -224,7 +226,7 @@ export default function ManagerHomePage({ params }: Props) {
             className="mt-3 w-full flex items-center justify-center gap-2 py-2.5 rounded-2xl bg-white border border-[#EFF1F5] text-[#4B5563] text-sm font-medium shadow-sm hover:border-[#0669F7] hover:text-[#0669F7] hover:bg-[#E6F0FE] transition-colors min-h-[44px]"
           >
             <IconWorker />
-            근로자 화면으로 전환
+            {t('home_page.switch_to_worker')}
           </Link>
         </div>
 
@@ -232,8 +234,8 @@ export default function ManagerHomePage({ params }: Props) {
         <div className="hidden md:block mb-6">
           <div className="flex items-center justify-between mb-5">
             <div>
-              <h1 className="text-xl font-bold text-[#25282A]">관리자 홈</h1>
-              <p className="text-sm text-[#98A2B2] mt-0.5">건설 현장과 일자리를 관리하세요</p>
+              <h1 className="text-xl font-bold text-[#25282A]">{t('home_page.title')}</h1>
+              <p className="text-sm text-[#98A2B2] mt-0.5">{t('home_page.subtitle')}</p>
             </div>
             <div className="flex items-center gap-2">
               <Link
@@ -241,14 +243,14 @@ export default function ManagerHomePage({ params }: Props) {
                 className="inline-flex items-center gap-2 px-4 py-2.5 rounded-full border border-[#DDDDDD] bg-white text-[#25282A] text-sm font-medium hover:border-[#0669F7] hover:text-[#0669F7] hover:bg-[#E6F0FE] transition-colors min-h-[44px]"
               >
                 <IconWorker />
-                근로자 화면으로 전환
+                {t('home_page.switch_to_worker')}
               </Link>
               <Link
                 href={'/manager/sites/new' as never}
                 className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-[#0669F7] text-white text-sm font-bold hover:bg-[#0557D4] transition-colors min-h-[44px] focus-ring"
               >
                 <IconPlus />
-                새 현장 등록
+                {t('home_page.new_site_btn')}
               </Link>
             </div>
           </div>
@@ -273,7 +275,7 @@ export default function ManagerHomePage({ params }: Props) {
           </div>
         </div>
 
-        {/* ── Listings shortcut — flat, no gradient ───────── */}
+        {/* ── Listings shortcut ───────────────────────────── */}
         <Link
           href={'/manager/my-listings' as never}
           className="flex items-center gap-3 mb-4 md:mb-6 p-4 rounded-2xl bg-[#0669F7] text-white hover:bg-[#0557D4] transition-colors active:opacity-90 press-effect border border-[#0448B0]"
@@ -282,8 +284,8 @@ export default function ManagerHomePage({ params }: Props) {
             <IconListings />
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-bold">내 현장·공고 보기</p>
-            <p className="text-xs text-white/75 mt-0.5">근로자 화면으로 내 공고·현장을 확인하세요</p>
+            <p className="text-sm font-bold">{t('home_page.listings_title')}</p>
+            <p className="text-xs text-white/75 mt-0.5">{t('home_page.listings_desc')}</p>
           </div>
           <svg className="w-4 h-4 text-white/60 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
@@ -320,7 +322,7 @@ export default function ManagerHomePage({ params }: Props) {
           ))}
         </div>
 
-        {/* New Job CTA — primary repeated action */}
+        {/* New Job CTA */}
         <Link
           href={'/manager/jobs?new=1' as never}
           className="flex items-center justify-center gap-3 mt-4 p-4 rounded-2xl bg-[#0669F7] hover:bg-[#0557D4] active:bg-[#0448B0] transition-colors shadow-md"
@@ -332,8 +334,8 @@ export default function ManagerHomePage({ params }: Props) {
             </svg>
           </span>
           <div className="text-left">
-            <p className="text-sm font-bold text-white">새 공고 등록</p>
-            <p className="text-xs text-white/75 mt-0.5">현장을 선택하고 새 일자리를 올리세요</p>
+            <p className="text-sm font-bold text-white">{t('home_page.new_job_cta')}</p>
+            <p className="text-xs text-white/75 mt-0.5">{t('home_page.new_job_desc')}</p>
           </div>
           <svg className="w-4 h-4 text-white/60 shrink-0 ml-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />

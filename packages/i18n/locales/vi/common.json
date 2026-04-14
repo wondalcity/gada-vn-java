@@ -445,5 +445,8 @@
     "load_error": "Tải thất bại",
     "status_change_error": "Thay đổi trạng thái thất bại",
     "delete_error": "Xóa thất bại"
+  },
+  "date_picker": {
+    "select_year": "Chọn năm"
   }
 }

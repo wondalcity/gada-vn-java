@@ -3,6 +3,7 @@
 import * as React from 'react'
 import { useRouter } from '@/i18n/navigation'
 import { useSearchParams } from 'next/navigation'
+import { useTranslations } from 'next-intl'
 import { getSessionCookie } from '@/lib/auth/session'
 import { apiClient } from '@/lib/api/client'
 import type { Job, Site } from '@/types/manager-site-job'
@@ -13,14 +14,6 @@ import type { JobStatus } from '@/types/manager-site-job'
 interface AllJobsClientProps {
   locale: string
 }
-
-const STATUS_TABS: { key: JobStatus | 'ALL'; label: string }[] = [
-  { key: 'ALL', label: '전체' },
-  { key: 'OPEN', label: '모집중' },
-  { key: 'FILLED', label: '마감' },
-  { key: 'COMPLETED', label: '완료' },
-  { key: 'CANCELLED', label: '취소' },
-]
 
 function SkeletonCard() {
   return (
@@ -41,19 +34,19 @@ function SiteGroupedJobList({
   jobs,
   sites,
   locale,
+  siteStatusLabels,
 }: {
   jobs: Job[]
   sites: Site[]
   locale: string
+  siteStatusLabels: { active: string; paused: string; completed: string }
 }) {
-  // Build siteId → Site map for enriching groups
   const siteMap = React.useMemo(() => {
     const m = new Map<string, Site>()
     for (const s of sites) m.set(s.id, s)
     return m
   }, [sites])
 
-  // Group jobs by siteId preserving insertion order
   const groups = React.useMemo(() => {
     const map = new Map<string, Job[]>()
     for (const job of jobs) {
@@ -75,7 +68,6 @@ function SiteGroupedJobList({
           <div key={siteId}>
             {/* ── Site header ─────────────────────────── */}
             <div className="flex items-center gap-3 mb-3 px-0.5">
-              {/* Thumbnail */}
               <div
                 className="w-10 h-10 rounded-xl shrink-0 overflow-hidden flex items-center justify-center text-white font-bold text-base"
                 style={
@@ -92,23 +84,22 @@ function SiteGroupedJobList({
                 )}
               </div>
 
-              {/* Site info */}
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 flex-wrap">
                   <span className="text-sm font-bold text-[#25282A] truncate">{siteJobs[0].siteName}</span>
                   {siteStatus === 'ACTIVE' && (
                     <span className="shrink-0 text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-[#E8FBE8] text-[#1A6B1A] border border-[#86D98A]">
-                      운영중
+                      {siteStatusLabels.active}
                     </span>
                   )}
                   {siteStatus === 'PAUSED' && (
                     <span className="shrink-0 text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-[#FFF3CD] text-[#856404]">
-                      중단
+                      {siteStatusLabels.paused}
                     </span>
                   )}
                   {siteStatus === 'COMPLETED' && (
                     <span className="shrink-0 text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-[#EFF1F5] text-[#98A2B2]">
-                      완료
+                      {siteStatusLabels.completed}
                     </span>
                   )}
                 </div>
@@ -123,7 +114,6 @@ function SiteGroupedJobList({
                 )}
               </div>
 
-              {/* Job count badge */}
               <div className="shrink-0 flex items-center gap-1 px-2.5 py-1 rounded-full bg-[#E6F0FE] border border-[#C8D8FF]">
                 <svg className="w-3.5 h-3.5 text-[#0669F7]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round"
@@ -133,10 +123,7 @@ function SiteGroupedJobList({
               </div>
             </div>
 
-            {/* ── Job cards under this site ─────────────── */}
-            <div
-              className="grid grid-cols-1 md:grid-cols-2 gap-3 pl-4 border-l-2 border-[#E6F0FE]"
-            >
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pl-4 border-l-2 border-[#E6F0FE]">
               {siteJobs.map((job) => (
                 <JobCard key={job.id} job={job} locale={locale} />
               ))}
@@ -153,10 +140,16 @@ function SitePickerModal({
   sites,
   onSelect,
   onClose,
+  title,
+  hint,
+  emptyText,
 }: {
   sites: Site[]
   onSelect: (siteId: string) => void
   onClose: () => void
+  title: string
+  hint: string
+  emptyText: string
 }) {
   return (
     <div
@@ -165,7 +158,7 @@ function SitePickerModal({
     >
       <div className="bg-white rounded-t-2xl sm:rounded-2xl w-full max-w-sm max-h-[70vh] flex flex-col shadow-xl">
         <div className="flex items-center justify-between px-5 pt-5 pb-3 border-b border-[#EFF1F5]">
-          <h3 className="text-base font-semibold text-[#25282A]">현장 선택</h3>
+          <h3 className="text-base font-semibold text-[#25282A]">{title}</h3>
           <button
             type="button"
             onClick={onClose}
@@ -176,11 +169,11 @@ function SitePickerModal({
             </svg>
           </button>
         </div>
-        <p className="px-5 pt-3 pb-2 text-xs text-[#98A2B2]">공고를 등록할 현장을 선택하세요</p>
+        <p className="px-5 pt-3 pb-2 text-xs text-[#98A2B2]">{hint}</p>
         <div className="overflow-y-auto flex-1 px-4 pb-4">
           {sites.length === 0 ? (
             <div className="py-8 text-center text-sm text-[#98A2B2]">
-              등록된 현장이 없습니다
+              {emptyText}
             </div>
           ) : (
             <div className="space-y-2 mt-1">
@@ -207,6 +200,7 @@ function SitePickerModal({
 }
 
 export default function AllJobsClient({ locale }: AllJobsClientProps) {
+  const t = useTranslations('manager')
   const router = useRouter()
   const searchParams = useSearchParams()
   const idToken = getSessionCookie()
@@ -217,20 +211,31 @@ export default function AllJobsClient({ locale }: AllJobsClientProps) {
   const [activeTab, setActiveTab] = React.useState<JobStatus | 'ALL'>('ALL')
   const [showSitePicker, setShowSitePicker] = React.useState(false)
 
-  // URL search params
+  const STATUS_TABS: { key: JobStatus | 'ALL'; label: string }[] = [
+    { key: 'ALL',       label: t('jobs_page.tab_all') },
+    { key: 'OPEN',      label: t('jobs_page.tab_open') },
+    { key: 'FILLED',    label: t('jobs_page.tab_filled') },
+    { key: 'COMPLETED', label: t('jobs_page.tab_completed') },
+    { key: 'CANCELLED', label: t('jobs_page.tab_cancelled') },
+  ]
+
+  const siteStatusLabels = {
+    active:    t('jobs_page.site_status_active'),
+    paused:    t('jobs_page.site_status_paused'),
+    completed: t('jobs_page.site_status_completed'),
+  }
+
   const qParam = searchParams.get('q') ?? ''
   const siteParam = searchParams.get('site') ?? ''
   const statusParam = searchParams.get('status') ?? ''
   const newJobParam = searchParams.get('new') === '1'
 
-  // Sync status tab from URL param
   React.useEffect(() => {
-    if (statusParam && STATUS_TABS.some(t => t.key === statusParam)) {
+    if (statusParam && STATUS_TABS.some(tab => tab.key === statusParam)) {
       setActiveTab(statusParam as JobStatus | 'ALL')
     }
   }, [statusParam])
 
-  // Auto-open site picker when ?new=1
   React.useEffect(() => {
     if (newJobParam && !isLoading) {
       setShowSitePicker(true)
@@ -253,13 +258,12 @@ export default function AllJobsClient({ locale }: AllJobsClientProps) {
         setJobs(jobsRes.data)
         setSites(sitesRes.data)
       })
-      .catch((e) => setError(e instanceof Error ? e.message : '불러오기 실패'))
+      .catch((e) => setError(e instanceof Error ? e.message : t('jobs_page.load_error')))
       .finally(() => setIsLoading(false))
   }, [idToken])
 
   const displayJobs = jobs
 
-  // Build siteId→province map for province filtering
   const siteProvinceMap = React.useMemo(() => {
     const m = new Map<string, string>()
     for (const s of sites) m.set(s.id, s.province ?? '')
@@ -288,13 +292,12 @@ export default function AllJobsClient({ locale }: AllJobsClientProps) {
     return counts
   }, [displayJobs])
 
-  // Active search filters for the chip bar
   const activeFilters = React.useMemo(() => {
     const chips: { key: string; label: string }[] = []
     if (qParam) chips.push({ key: 'q', label: `"${qParam}"` })
     if (siteParam) {
       const name = sites.find(s => s.id === siteParam)?.name
-      chips.push({ key: 'site', label: `현장: ${name ?? siteParam}` })
+      chips.push({ key: 'site', label: `${t('jobs_page.site_filter_prefix')}${name ?? siteParam}` })
     }
     return chips
   }, [qParam, siteParam, sites])
@@ -333,7 +336,7 @@ export default function AllJobsClient({ locale }: AllJobsClientProps) {
       {/* Active search filter chips */}
       {activeFilters.length > 0 && (
         <div className="mb-2 flex flex-wrap items-center gap-2">
-          <span className="text-xs text-[#98A2B2] font-medium">검색 조건:</span>
+          <span className="text-xs text-[#98A2B2] font-medium">{t('jobs_page.filter_label')}</span>
           {activeFilters.map(chip => (
             <span
               key={chip.key}
@@ -357,7 +360,7 @@ export default function AllJobsClient({ locale }: AllJobsClientProps) {
             onClick={() => router.push('/manager/jobs' as never)}
             className="text-xs text-[#98A2B2] hover:text-[#25282A] underline"
           >
-            전체 초기화
+            {t('jobs_page.filter_clear')}
           </button>
         </div>
       )}
@@ -393,7 +396,7 @@ export default function AllJobsClient({ locale }: AllJobsClientProps) {
               d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
           </svg>
           <p className="text-[#98A2B2] text-sm mb-4">
-            {activeTab === 'ALL' ? '등록된 공고가 없습니다' : '해당 상태의 공고가 없습니다'}
+            {activeTab === 'ALL' ? t('jobs_page.empty_all') : t('jobs_page.empty_filtered')}
           </p>
           {activeTab === 'ALL' && (
             <button
@@ -401,12 +404,17 @@ export default function AllJobsClient({ locale }: AllJobsClientProps) {
               onClick={() => setShowSitePicker(true)}
               className="px-5 py-2.5 rounded-full bg-[#0669F7] text-white font-medium hover:bg-[#0557D4] transition-colors text-sm"
             >
-              첫 공고 등록하기
+              {t('jobs_page.empty_cta')}
             </button>
           )}
         </div>
       ) : (
-        <SiteGroupedJobList jobs={filtered} sites={sites} locale={locale} />
+        <SiteGroupedJobList
+          jobs={filtered}
+          sites={sites}
+          locale={locale}
+          siteStatusLabels={siteStatusLabels}
+        />
       )}
 
       {/* FAB — new job */}
@@ -414,7 +422,7 @@ export default function AllJobsClient({ locale }: AllJobsClientProps) {
         type="button"
         onClick={() => setShowSitePicker(true)}
         className="fixed bottom-20 right-5 w-14 h-14 rounded-full bg-[#0669F7] shadow-lg flex items-center justify-center text-white z-40"
-        aria-label="새 공고 등록"
+        aria-label={t('jobs_page.empty_cta')}
       >
         <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
           <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
@@ -427,6 +435,9 @@ export default function AllJobsClient({ locale }: AllJobsClientProps) {
           sites={sites.filter((s) => s.status === 'ACTIVE')}
           onSelect={handleSiteSelect}
           onClose={() => setShowSitePicker(false)}
+          title={t('jobs_page.site_picker_title')}
+          hint={t('jobs_page.site_picker_hint')}
+          emptyText={t('jobs_page.site_picker_empty')}
         />
       )}
     </>
