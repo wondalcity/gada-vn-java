@@ -2,6 +2,7 @@
 
 import * as React from 'react'
 import { Link } from '@/i18n/navigation'
+import { useTranslations } from 'next-intl'
 import type { Site } from '@/types/manager-site-job'
 import StatusBadge from '@/components/manager/StatusBadge'
 
@@ -11,6 +12,7 @@ interface SiteCardProps {
 }
 
 export default function SiteCard({ site, locale }: SiteCardProps) {
+  const t = useTranslations('manager_site_list')
   return (
     <Link href={`/manager/sites/${site.id}`} className="press-effect block">
       <div
@@ -48,7 +50,7 @@ export default function SiteCard({ site, locale }: SiteCardProps) {
             <StatusBadge status={site.status} />
           </div>
           <p className="text-xs text-[#98A2B2] font-medium mb-2">{site.province}</p>
-          <p className="text-xs text-[#25282A] font-semibold">일자리 {site.jobCount}개</p>
+          <p className="text-xs text-[#25282A] font-semibold">{t('job_count', { count: site.jobCount })}</p>
         </div>
       </div>
     </Link>

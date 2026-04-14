@@ -10,6 +10,16 @@ import StatusBadge from '@/components/manager/StatusBadge'
 import ConfirmModal from '@/components/manager/ConfirmModal'
 import JobCard from '@/components/manager/job/JobCard'
 
+// Maps Korean DB-stored values → site_type_labels i18n keys
+const SITE_TYPE_KEY: Record<string, string> = {
+  '아파트/주거': 'residential',
+  '도로/교량':   'road_bridge',
+  '상업시설':    'commercial',
+  '산업시설':    'industrial',
+  '공공시설':    'public',
+  '기타':        'other',
+}
+
 interface SiteDetailClientProps {
   siteId: string
   locale: string
@@ -30,6 +40,7 @@ function SkeletonDetail() {
 
 export default function SiteDetailClient({ siteId, locale }: SiteDetailClientProps) {
   const t = useTranslations('common')
+  const tType = useTranslations('site_type_labels')
   const router = useRouter()
   const idToken = getSessionCookie()
   const [site, setSite] = React.useState<Site | null>(null)
@@ -151,7 +162,12 @@ export default function SiteDetailClient({ siteId, locale }: SiteDetailClientPro
           <p><span className="text-[#98A2B2]">{t('manager_site_detail.address')}:</span> {site.address}</p>
           <p><span className="text-[#98A2B2]">{t('manager_site_detail.province')}:</span> {site.province}</p>
           {site.district && <p><span className="text-[#98A2B2]">{t('manager_site_detail.district')}:</span> {site.district}</p>}
-          {site.siteType && <p><span className="text-[#98A2B2]">{t('manager_site_detail.site_type')}:</span> {site.siteType}</p>}
+          {site.siteType && (
+            <p>
+              <span className="text-[#98A2B2]">{t('manager_site_detail.site_type')}:</span>{' '}
+              {SITE_TYPE_KEY[site.siteType] ? tType(SITE_TYPE_KEY[site.siteType] as keyof typeof SITE_TYPE_KEY) : site.siteType}
+            </p>
+          )}
         </div>
       </div>
 
@@ -168,9 +184,9 @@ export default function SiteDetailClient({ siteId, locale }: SiteDetailClientPro
           {/* Status change — custom GADA dropdown */}
           {(() => {
             const STATUS_UI: Record<SiteStatus, { label: string; dot: string; bg: string; text: string; border: string }> = {
-              ACTIVE:    { label: '운영중',   dot: '#22C55E', bg: '#D1F3D3', text: '#166534', border: '#86D98A' },
-              PAUSED:    { label: '일시중지', dot: '#F59E0B', bg: '#FEF3C7', text: '#92400E', border: '#F5D87D' },
-              COMPLETED: { label: '완료',     dot: '#9CA3AF', bg: '#F3F4F6', text: '#374151', border: '#DDDDDD' },
+              ACTIVE:    { label: t('manager_site_detail.status_active_label'),    dot: '#22C55E', bg: '#D1F3D3', text: '#166534', border: '#86D98A' },
+              PAUSED:    { label: t('manager_site_detail.status_paused_label'),    dot: '#F59E0B', bg: '#FEF3C7', text: '#92400E', border: '#F5D87D' },
+              COMPLETED: { label: t('manager_site_detail.status_completed_label'), dot: '#9CA3AF', bg: '#F3F4F6', text: '#374151', border: '#DDDDDD' },
             }
             const current = STATUS_UI[site.status]
             return (

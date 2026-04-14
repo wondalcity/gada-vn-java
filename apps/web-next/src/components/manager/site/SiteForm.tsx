@@ -2,6 +2,7 @@
 
 import * as React from 'react'
 import { useRouter } from '@/i18n/navigation'
+import { useTranslations } from 'next-intl'
 import { apiClient } from '@/lib/api/client'
 import { getGoogleMapsLoader } from '@/lib/maps/loader'
 import ImageUploader from '@/components/manager/ImageUploader'
@@ -16,22 +17,6 @@ interface SiteFormProps {
   locale: string
   idToken: string
 }
-
-const SITE_TYPE_OPTIONS = [
-  { value: '', label: '유형 선택' },
-  { value: '아파트/주거', label: '아파트/주거' },
-  { value: '도로/교량', label: '도로/교량' },
-  { value: '상업시설', label: '상업시설' },
-  { value: '산업시설', label: '산업시설' },
-  { value: '공공시설', label: '공공시설' },
-  { value: '기타', label: '기타' },
-]
-
-const STATUS_OPTIONS: { value: SiteStatus; label: string }[] = [
-  { value: 'ACTIVE', label: '운영중' },
-  { value: 'COMPLETED', label: '완료' },
-  { value: 'PAUSED', label: '일시중지' },
-]
 
 // ── Custom dropdown ──────────────────────────────────────────────────────────
 interface CustomSelectProps {
@@ -105,6 +90,24 @@ function CustomSelect({ value, onChange, options, placeholder }: CustomSelectPro
 // ── Main form ────────────────────────────────────────────────────────────────
 export default function SiteForm({ mode, initialData, siteId, locale, idToken }: SiteFormProps) {
   const router = useRouter()
+  const tType = useTranslations('site_type_labels')
+  const tStatus = useTranslations('site_status')
+
+  const SITE_TYPE_OPTIONS = [
+    { value: '', label: tType('select') },
+    { value: '아파트/주거', label: tType('residential') },
+    { value: '도로/교량',   label: tType('road_bridge') },
+    { value: '상업시설',    label: tType('commercial') },
+    { value: '산업시설',    label: tType('industrial') },
+    { value: '공공시설',    label: tType('public') },
+    { value: '기타',        label: tType('other') },
+  ]
+
+  const STATUS_OPTIONS: { value: SiteStatus; label: string }[] = [
+    { value: 'ACTIVE',    label: tStatus('ACTIVE') },
+    { value: 'PAUSED',    label: tStatus('PAUSED') },
+    { value: 'COMPLETED', label: tStatus('COMPLETED') },
+  ]
 
   const [name, setName] = React.useState(initialData?.name ?? '')
   const [nameVi, setNameVi] = React.useState(initialData?.nameVi ?? '')

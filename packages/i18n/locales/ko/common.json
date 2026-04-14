@@ -454,7 +454,10 @@
     "delete_modal_confirm": "삭제",
     "load_error": "불러오기 실패",
     "status_change_error": "상태 변경 실패",
-    "delete_error": "삭제 실패"
+    "delete_error": "삭제 실패",
+    "status_active_label": "운영중",
+    "status_paused_label": "일시중지",
+    "status_completed_label": "완료"
   },
   "date_picker": {
     "select_year": "연도 선택"
@@ -489,5 +492,25 @@
     "sign": "서명하기",
     "view": "계약서 보기",
     "retry": "다시 시도"
+  },
+  "site_status": {
+    "ACTIVE": "운영중",
+    "OPEN": "모집중",
+    "COMPLETED": "완료",
+    "PAUSED": "일시중지",
+    "FILLED": "마감",
+    "CANCELLED": "취소"
+  },
+  "site_type_labels": {
+    "select": "유형 선택",
+    "residential": "아파트/주거",
+    "road_bridge": "도로/교량",
+    "commercial": "상업시설",
+    "industrial": "산업시설",
+    "public": "공공시설",
+    "other": "기타"
+  },
+  "manager_site_list": {
+    "job_count": "일자리 {count}개"
   }
 }

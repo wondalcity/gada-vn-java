@@ -454,7 +454,10 @@
     "delete_modal_confirm": "Xóa",
     "load_error": "Tải thất bại",
     "status_change_error": "Thay đổi trạng thái thất bại",
-    "delete_error": "Xóa thất bại"
+    "delete_error": "Xóa thất bại",
+    "status_active_label": "Đang hoạt động",
+    "status_paused_label": "Tạm dừng",
+    "status_completed_label": "Hoàn thành"
   },
   "date_picker": {
     "select_year": "Chọn năm"
@@ -489,5 +492,25 @@
     "sign": "Ký ngay",
     "view": "Xem hợp đồng",
     "retry": "Thử lại"
+  },
+  "site_status": {
+    "ACTIVE": "Đang hoạt động",
+    "OPEN": "Đang tuyển",
+    "COMPLETED": "Hoàn thành",
+    "PAUSED": "Tạm dừng",
+    "FILLED": "Đã đủ",
+    "CANCELLED": "Đã hủy"
+  },
+  "site_type_labels": {
+    "select": "Chọn loại công trình",
+    "residential": "Chung cư/Nhà ở",
+    "road_bridge": "Đường/Cầu",
+    "commercial": "Công trình thương mại",
+    "industrial": "Công trình công nghiệp",
+    "public": "Công trình công cộng",
+    "other": "Khác"
+  },
+  "manager_site_list": {
+    "job_count": "{count} việc làm"
   }
 }

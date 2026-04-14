@@ -454,7 +454,10 @@
     "delete_modal_confirm": "Delete",
     "load_error": "Failed to load",
     "status_change_error": "Status change failed",
-    "delete_error": "Delete failed"
+    "delete_error": "Delete failed",
+    "status_active_label": "Active",
+    "status_paused_label": "Paused",
+    "status_completed_label": "Completed"
   },
   "date_picker": {
     "select_year": "Select Year"
@@ -489,5 +492,25 @@
     "sign": "Sign Now",
     "view": "View Contract",
     "retry": "Retry"
+  },
+  "site_status": {
+    "ACTIVE": "Active",
+    "OPEN": "Open",
+    "COMPLETED": "Completed",
+    "PAUSED": "Paused",
+    "FILLED": "Filled",
+    "CANCELLED": "Cancelled"
+  },
+  "site_type_labels": {
+    "select": "Select Type",
+    "residential": "Apartment/Residential",
+    "road_bridge": "Road/Bridge",
+    "commercial": "Commercial",
+    "industrial": "Industrial",
+    "public": "Public Facility",
+    "other": "Other"
+  },
+  "manager_site_list": {
+    "job_count": "{count} jobs"
   }
 }
