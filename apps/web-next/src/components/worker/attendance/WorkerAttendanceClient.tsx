@@ -21,7 +21,7 @@ function formatWorkDate(dateStr: string, locale: string): string {
 }
 
 export default function WorkerAttendanceClient() {
-  const t = useTranslations('attendance')
+  const t = useTranslations('worker.attendance')
   const idToken = getSessionCookie()
   const searchParams = useSearchParams()
   const jobIdFilter = searchParams.get('jobId')

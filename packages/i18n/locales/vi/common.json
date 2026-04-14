@@ -462,37 +462,6 @@
   "date_picker": {
     "select_year": "Chọn năm"
   },
-  "attendance": {
-    "title": "Lịch sử chấm công",
-    "tab_all": "Tất cả",
-    "tab_attended": "Có mặt",
-    "tab_absent": "Vắng mặt",
-    "tab_half_day": "Nửa ngày",
-    "empty_title": "Chưa có dữ liệu chấm công",
-    "empty_hint": "Dữ liệu sẽ hiển thị khi bạn bắt đầu làm việc tại công việc được phân công.",
-    "empty_status": "Không có dữ liệu {status}.",
-    "filtering": "Đang lọc theo công việc",
-    "summary": "Tổng {total} ngày · Có mặt {attended} · Vắng {absent} · Nửa ngày {halfDay}",
-    "retry": "Thử lại",
-    "load_error": "Không thể tải dữ liệu chấm công."
-  },
-  "contracts": {
-    "title": "Hợp đồng",
-    "empty": "Chưa có hợp đồng",
-    "empty_hint": "Hợp đồng sẽ xuất hiện ở đây sau khi được tạo.",
-    "pending_count": "{count} hợp đồng cần ký",
-    "status": {
-      "PENDING_WORKER_SIGN": "Chờ công nhân ký",
-      "PENDING_MANAGER_SIGN": "Chờ công ty ký",
-      "FULLY_SIGNED": "Hoàn tất",
-      "VOID": "Đã huỷ"
-    },
-    "worker_sign": "Chữ ký công nhân",
-    "company_sign": "Con dấu công ty",
-    "sign": "Ký ngay",
-    "view": "Xem hợp đồng",
-    "retry": "Thử lại"
-  },
   "site_status": {
     "ACTIVE": "Đang hoạt động",
     "OPEN": "Đang tuyển",

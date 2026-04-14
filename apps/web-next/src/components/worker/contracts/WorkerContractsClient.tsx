@@ -38,7 +38,7 @@ function fmtVND(n: number) {
 }
 
 export default function WorkerContractsClient() {
-  const t = useTranslations('contracts')
+  const t = useTranslations('worker.contracts')
   const idToken = getSessionCookie()
   const params = useParams()
   const locale = (params?.locale as string) ?? 'ko'
