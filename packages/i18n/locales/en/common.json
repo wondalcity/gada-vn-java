@@ -458,5 +458,36 @@
   },
   "date_picker": {
     "select_year": "Select Year"
+  },
+  "attendance": {
+    "title": "Attendance",
+    "tab_all": "All",
+    "tab_attended": "Present",
+    "tab_absent": "Absent",
+    "tab_half_day": "Half Day",
+    "empty_title": "No attendance records",
+    "empty_hint": "Records will appear once you start working on an assigned job.",
+    "empty_status": "No {status} records.",
+    "filtering": "Filtered by job",
+    "summary": "Total {total} · Present {attended} · Absent {absent} · Half Day {halfDay}",
+    "retry": "Retry",
+    "load_error": "Could not load attendance records."
+  },
+  "contracts": {
+    "title": "Contracts",
+    "empty": "No contracts yet",
+    "empty_hint": "Contracts will appear here once created.",
+    "pending_count": "{count} pending signature",
+    "status": {
+      "PENDING_WORKER_SIGN": "Awaiting worker signature",
+      "PENDING_MANAGER_SIGN": "Awaiting company signature",
+      "FULLY_SIGNED": "Completed",
+      "VOID": "Void"
+    },
+    "worker_sign": "Worker Signature",
+    "company_sign": "Company Seal",
+    "sign": "Sign Now",
+    "view": "View Contract",
+    "retry": "Retry"
   }
 }

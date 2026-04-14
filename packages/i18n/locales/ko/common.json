@@ -458,5 +458,36 @@
   },
   "date_picker": {
     "select_year": "연도 선택"
+  },
+  "attendance": {
+    "title": "출퇴근 현황",
+    "tab_all": "전체",
+    "tab_attended": "출근",
+    "tab_absent": "결근",
+    "tab_half_day": "반차",
+    "empty_title": "출퇴근 기록이 없습니다",
+    "empty_hint": "배정된 일자리에서 근무가 시작되면 기록이 표시됩니다.",
+    "empty_status": "{status} 기록이 없습니다.",
+    "filtering": "일자리 필터 적용 중",
+    "summary": "전체 {total}일 · 출근 {attended}일 · 결근 {absent}일 · 반차 {halfDay}일",
+    "retry": "다시 시도",
+    "load_error": "출퇴근 기록을 불러올 수 없습니다."
+  },
+  "contracts": {
+    "title": "계약서",
+    "empty": "계약서가 없습니다",
+    "empty_hint": "계약이 생성되면 여기에 표시됩니다.",
+    "pending_count": "{count}개 서명 필요",
+    "status": {
+      "PENDING_WORKER_SIGN": "근로자 서명 대기",
+      "PENDING_MANAGER_SIGN": "건설사 서명 대기",
+      "FULLY_SIGNED": "계약 완료",
+      "VOID": "계약 취소"
+    },
+    "worker_sign": "근로자 서명",
+    "company_sign": "건설사 직인",
+    "sign": "서명하기",
+    "view": "계약서 보기",
+    "retry": "다시 시도"
   }
 }
