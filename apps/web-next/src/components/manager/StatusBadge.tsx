@@ -18,7 +18,7 @@ const STATUS_STYLE: Record<string, { bg: string; text: string; dot: string }> = 
 }
 
 export default function StatusBadge({ status }: StatusBadgeProps) {
-  const t = useTranslations('site_status')
+  const t = useTranslations('common.site_status')
   const style = STATUS_STYLE[status] ?? { bg: '#EFF1F5', text: '#98A2B2', dot: '#DBDFE9' }
   const label = STATUS_STYLE[status] ? t(status as keyof typeof STATUS_STYLE) : status
 

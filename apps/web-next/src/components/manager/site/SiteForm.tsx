@@ -90,8 +90,8 @@ function CustomSelect({ value, onChange, options, placeholder }: CustomSelectPro
 // ── Main form ────────────────────────────────────────────────────────────────
 export default function SiteForm({ mode, initialData, siteId, locale, idToken }: SiteFormProps) {
   const router = useRouter()
-  const tType = useTranslations('site_type_labels')
-  const tStatus = useTranslations('site_status')
+  const tType = useTranslations('common.site_type_labels')
+  const tStatus = useTranslations('common.site_status')
 
   const SITE_TYPE_OPTIONS = [
     { value: '', label: tType('select') },

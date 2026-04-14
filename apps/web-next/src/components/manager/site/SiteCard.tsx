@@ -12,7 +12,7 @@ interface SiteCardProps {
 }
 
 export default function SiteCard({ site, locale }: SiteCardProps) {
-  const t = useTranslations('manager_site_list')
+  const t = useTranslations('common.manager_site_list')
   return (
     <Link href={`/manager/sites/${site.id}`} className="press-effect block">
       <div

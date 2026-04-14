@@ -40,7 +40,7 @@ function SkeletonDetail() {
 
 export default function SiteDetailClient({ siteId, locale }: SiteDetailClientProps) {
   const t = useTranslations('common')
-  const tType = useTranslations('site_type_labels')
+  const tType = useTranslations('common.site_type_labels')
   const router = useRouter()
   const idToken = getSessionCookie()
   const [site, setSite] = React.useState<Site | null>(null)
