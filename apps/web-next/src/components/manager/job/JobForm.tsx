@@ -2,6 +2,7 @@
 
 import * as React from 'react'
 import { useRouter } from '@/i18n/navigation'
+import { useTranslations } from 'next-intl'
 import { apiClient } from '@/lib/api/client'
 import { DatePicker } from '@/components/ui/DatePicker'
 import { TimePicker } from '@/components/ui/TimePicker'
@@ -24,13 +25,6 @@ interface JobFormProps {
   idToken: string
 }
 
-const STATUS_OPTIONS: { value: JobStatus; label: string }[] = [
-  { value: 'OPEN', label: '모집중' },
-  { value: 'FILLED', label: '마감' },
-  { value: 'CANCELLED', label: '취소' },
-  { value: 'COMPLETED', label: '완료' },
-]
-
 function formatVND(amount: number) {
   return new Intl.NumberFormat('ko-KR').format(amount) + ' ₫'
 }
@@ -45,6 +39,14 @@ export default function JobForm({
   idToken,
 }: JobFormProps) {
   const router = useRouter()
+  const t = useTranslations('common.manager_job_form')
+
+  const STATUS_OPTIONS: { value: JobStatus; label: string }[] = [
+    { value: 'OPEN',      label: t('status_open') },
+    { value: 'FILLED',    label: t('status_filled') },
+    { value: 'CANCELLED', label: t('status_cancelled') },
+    { value: 'COMPLETED', label: t('status_completed') },
+  ]
 
   // Basic info
   const [title, setTitle] = React.useState(initialData?.title ?? '')
@@ -95,13 +97,13 @@ export default function JobForm({
       .catch(() => {})
   }, [idToken])
 
-  const filteredTrades = trades.filter((t) =>
-    (t.nameKo ?? t.name).toLowerCase().includes(tradeSearch.toLowerCase())
+  const filteredTrades = trades.filter((tr) =>
+    (tr.nameKo ?? tr.name).toLowerCase().includes(tradeSearch.toLowerCase())
   ).slice(0, 20)
 
-  function selectTrade(t: Trade) {
-    setTradeId(t.id)
-    setTradeSearch(t.nameKo ?? t.name)
+  function selectTrade(tr: Trade) {
+    setTradeId(tr.id)
+    setTradeSearch(tr.nameKo ?? tr.name)
     setShowTradeDropdown(false)
   }
 
@@ -109,10 +111,10 @@ export default function JobForm({
     e.preventDefault()
     setError(null)
 
-    if (!title.trim()) { setError('직종/일자리 제목을 입력해주세요.'); return }
-    if (!workDate) { setError('작업일을 선택해주세요.'); return }
-    if (!dailyWage || Number(dailyWage) <= 0) { setError('일당을 입력해주세요.'); return }
-    if (!slotsTotal || Number(slotsTotal) <= 0) { setError('채용 인원을 입력해주세요.'); return }
+    if (!title.trim()) { setError(t('error_no_title')); return }
+    if (!workDate) { setError(t('error_no_work_date')); return }
+    if (!dailyWage || Number(dailyWage) <= 0) { setError(t('error_no_wage')); return }
+    if (!slotsTotal || Number(slotsTotal) <= 0) { setError(t('error_no_slots')); return }
 
     setIsSaving(true)
     try {
@@ -155,7 +157,7 @@ export default function JobForm({
         router.push(`/manager/jobs/${jobId}`)
       }
     } catch (e: unknown) {
-      const msg = e instanceof Error ? e.message : '저장에 실패했습니다.'
+      const msg = e instanceof Error ? e.message : t('error_save')
       setError(msg)
     } finally {
       setIsSaving(false)
@@ -166,24 +168,31 @@ export default function JobForm({
     'w-full px-3 py-2.5 rounded-2xl border border-[#EFF1F5] focus:outline-none focus:border-[#0669F7] text-sm text-[#25282A] bg-white'
   const labelClass = 'block text-sm font-medium text-[#25282A] mb-1.5'
 
+  const BENEFITS = [
+    { key: 'meals',         label: t('benefit_meals'),         value: meals,         setter: setMeals },
+    { key: 'transport',     label: t('benefit_transport'),     value: transport,     setter: setTransport },
+    { key: 'accommodation', label: t('benefit_accommodation'), value: accommodation, setter: setAccommodation },
+    { key: 'insurance',     label: t('benefit_insurance'),     value: insurance,     setter: setInsurance },
+  ]
+
   return (
     <form onSubmit={handleSubmit} className="pb-10">
       {/* Desktop: two-column layout. Mobile: single column. */}
       <div className="flex flex-col lg:flex-row lg:gap-6 lg:items-start">
 
-        {/* ── Left column: 기본 정보 ── */}
+        {/* ── Left column: Basic Info ── */}
         <div className="flex-1 min-w-0 space-y-4">
-          <AccordionSection title="기본 정보">
+          <AccordionSection title={t('section_basic')}>
             {/* Title (Korean) */}
             <div>
               <label className={labelClass}>
-                공고 제목 (한국어) <span className="text-[#ED1C24]">*</span>
+                {t('title_ko_label')} <span className="text-[#ED1C24]">*</span>
               </label>
               <input
                 type="text"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
-                placeholder="예: 도장공 모집"
+                placeholder={t('title_ko_placeholder')}
                 className={inputClass}
               />
             </div>
@@ -191,21 +200,21 @@ export default function JobForm({
             {/* Title (Vietnamese) */}
             <div>
               <label className={labelClass}>
-                공고 제목 (베트남어)
-                <span className="ml-1 text-xs font-normal text-[#98A2B2]">근로자에게 표시됩니다</span>
+                {t('title_vi_label')}
+                <span className="ml-1 text-xs font-normal text-[#98A2B2]">{t('shown_to_workers')}</span>
               </label>
               <input
                 type="text"
                 value={titleVi}
                 onChange={(e) => setTitleVi(e.target.value)}
-                placeholder="예: Tuyển thợ sơn"
+                placeholder={t('title_vi_placeholder')}
                 className={inputClass}
               />
             </div>
 
             {/* Trade */}
             <div className="relative">
-              <label className={labelClass}>직종 (공종)</label>
+              <label className={labelClass}>{t('trade_label')}</label>
               <input
                 type="text"
                 value={tradeSearch}
@@ -215,19 +224,19 @@ export default function JobForm({
                   if (!e.target.value) setTradeId('')
                 }}
                 onFocus={() => setShowTradeDropdown(true)}
-                placeholder="직종 검색..."
+                placeholder={t('trade_search_placeholder')}
                 className={inputClass}
               />
               {showTradeDropdown && filteredTrades.length > 0 && (
                 <div className="absolute z-20 top-full left-0 right-0 bg-white border border-[#EFF1F5] rounded-2xl shadow-lg max-h-48 overflow-y-auto mt-1">
-                  {filteredTrades.map((t) => (
+                  {filteredTrades.map((tr) => (
                     <button
-                      key={t.id}
+                      key={tr.id}
                       type="button"
-                      onMouseDown={() => selectTrade(t)}
+                      onMouseDown={() => selectTrade(tr)}
                       className="w-full text-left px-3 py-2 text-sm text-[#25282A] hover:bg-[#F2F4F5]"
                     >
-                      {t.nameKo ?? t.name}
+                      {tr.nameKo ?? tr.name}
                     </button>
                   ))}
                 </div>
@@ -236,13 +245,13 @@ export default function JobForm({
 
             {/* Description (Korean) */}
             <div>
-              <label className={labelClass}>상세 설명 (한국어)</label>
+              <label className={labelClass}>{t('desc_ko_label')}</label>
               <textarea
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 rows={5}
                 maxLength={2000}
-                placeholder="업무 내용, 특이사항 등을 자유롭게 작성해주세요"
+                placeholder={t('desc_ko_placeholder')}
                 className={`${inputClass} resize-none`}
               />
               <p className="mt-1 text-xs text-[#98A2B2] text-right">{description.length}/2000</p>
@@ -251,15 +260,15 @@ export default function JobForm({
             {/* Description (Vietnamese) */}
             <div>
               <label className={labelClass}>
-                상세 설명 (베트남어)
-                <span className="ml-1 text-xs font-normal text-[#98A2B2]">근로자에게 표시됩니다</span>
+                {t('desc_vi_label')}
+                <span className="ml-1 text-xs font-normal text-[#98A2B2]">{t('shown_to_workers')}</span>
               </label>
               <textarea
                 value={descriptionVi}
                 onChange={(e) => setDescriptionVi(e.target.value)}
                 rows={5}
                 maxLength={2000}
-                placeholder="예: Mô tả công việc, yêu cầu đặc biệt..."
+                placeholder={t('desc_vi_placeholder')}
                 className={`${inputClass} resize-none`}
               />
               <p className="mt-1 text-xs text-[#98A2B2] text-right">{descriptionVi.length}/2000</p>
@@ -270,42 +279,42 @@ export default function JobForm({
         {/* ── Right column: schedule / pay / benefits / requirements ── */}
         <div className="w-full lg:w-[400px] shrink-0 space-y-4 mt-4 lg:mt-0">
 
-          {/* 일정 */}
-          <AccordionSection title="일정">
+          {/* Schedule */}
+          <AccordionSection title={t('section_schedule')}>
             {/* Work date */}
             <div>
               <label className={labelClass}>
-                작업일 <span className="text-[#ED1C24]">*</span>
+                {t('work_date_label')} <span className="text-[#ED1C24]">*</span>
               </label>
               <DatePicker
                 value={workDate}
                 onChange={setWorkDate}
                 min={today}
-                placeholder="작업일 선택"
+                placeholder={t('work_date_placeholder')}
               />
             </div>
 
             {/* Expires at */}
             <div>
-              <label className={labelClass}>모집 마감일</label>
+              <label className={labelClass}>{t('deadline_label')}</label>
               <DatePicker
                 value={expiresAt}
                 onChange={setExpiresAt}
                 max={workDate || undefined}
-                placeholder="마감일 선택"
+                placeholder={t('deadline_placeholder')}
               />
-              <p className="mt-1 text-xs text-[#98A2B2]">이 날짜 이후 지원이 불가합니다</p>
+              <p className="mt-1 text-xs text-[#98A2B2]">{t('deadline_hint')}</p>
             </div>
 
             {/* Start / End time */}
             <div>
-              <label className={labelClass}>근무 시간 (선택)</label>
+              <label className={labelClass}>{t('work_hours_label')}</label>
               <div className="flex items-center gap-2">
                 <div className="flex-1">
                   <TimePicker
                     value={startTime}
                     onChange={setStartTime}
-                    placeholder="시작 시간"
+                    placeholder={t('start_time_placeholder')}
                   />
                 </div>
                 <span className="text-[#98A2B2] text-sm font-medium shrink-0">~</span>
@@ -313,25 +322,25 @@ export default function JobForm({
                   <TimePicker
                     value={endTime}
                     onChange={setEndTime}
-                    placeholder="종료 시간"
+                    placeholder={t('end_time_placeholder')}
                   />
                 </div>
               </div>
             </div>
           </AccordionSection>
 
-          {/* 급여 */}
-          <AccordionSection title="급여">
+          {/* Pay */}
+          <AccordionSection title={t('section_pay')}>
             {/* Daily wage */}
             <div>
               <label className={labelClass}>
-                일당 (VND) <span className="text-[#ED1C24]">*</span>
+                {t('daily_wage_label')} <span className="text-[#ED1C24]">*</span>
               </label>
               <input
                 type="number"
                 value={dailyWage}
                 onChange={(e) => setDailyWage(e.target.value === '' ? '' : Number(e.target.value))}
-                placeholder="예: 450000"
+                placeholder="450000"
                 min={0}
                 className={inputClass}
               />
@@ -345,28 +354,23 @@ export default function JobForm({
             {/* Slots total */}
             <div>
               <label className={labelClass}>
-                채용 인원 수 <span className="text-[#ED1C24]">*</span>
+                {t('slots_label')} <span className="text-[#ED1C24]">*</span>
               </label>
               <input
                 type="number"
                 value={slotsTotal}
                 onChange={(e) => setSlotsTotal(e.target.value === '' ? '' : Number(e.target.value))}
                 min={1}
-                placeholder="예: 5"
+                placeholder="5"
                 className={inputClass}
               />
             </div>
           </AccordionSection>
 
-          {/* 복리후생 */}
-          <AccordionSection title="복리후생" contentClassName="">
+          {/* Benefits */}
+          <AccordionSection title={t('section_benefits')} contentClassName="">
             <div className="grid grid-cols-2 gap-3">
-              {[
-                { key: 'meals', label: '식사 제공', value: meals, setter: setMeals },
-                { key: 'transport', label: '교통비 지원', value: transport, setter: setTransport },
-                { key: 'accommodation', label: '숙박 제공', value: accommodation, setter: setAccommodation },
-                { key: 'insurance', label: '산재보험', value: insurance, setter: setInsurance },
-              ].map((b) => (
+              {BENEFITS.map((b) => (
                 <label
                   key={b.key}
                   className={`flex items-center gap-2.5 p-3 rounded-2xl border cursor-pointer transition-colors ${
@@ -387,26 +391,26 @@ export default function JobForm({
             </div>
           </AccordionSection>
 
-          {/* 자격요건 */}
-          <AccordionSection title="자격요건" defaultOpen={false}>
+          {/* Requirements */}
+          <AccordionSection title={t('section_requirements')} defaultOpen={false}>
             <div>
-              <label className={labelClass}>최소 경력 (개월)</label>
+              <label className={labelClass}>{t('min_exp_label')}</label>
               <input
                 type="number"
                 value={minExp}
                 onChange={(e) => setMinExp(e.target.value === '' ? '' : Number(e.target.value))}
                 min={0}
-                placeholder="0 = 신입 가능"
+                placeholder={t('min_exp_placeholder')}
                 className={inputClass}
               />
             </div>
             <div>
-              <label className={labelClass}>특이사항 또는 자격요건</label>
+              <label className={labelClass}>{t('req_notes_label')}</label>
               <textarea
                 value={reqNotes}
                 onChange={(e) => setReqNotes(e.target.value)}
                 rows={3}
-                placeholder="특이사항 또는 자격요건"
+                placeholder={t('req_notes_placeholder')}
                 className={`${inputClass} resize-none`}
               />
             </div>
@@ -415,7 +419,7 @@ export default function JobForm({
           {/* Status (edit only) */}
           {mode === 'edit' && (
             <div className="bg-white rounded-2xl shadow-sm border border-[#EFF1F5] px-5 py-4">
-              <label className={labelClass}>상태</label>
+              <label className={labelClass}>{t('status_label')}</label>
               <select
                 value={jobStatus}
                 onChange={(e) => setJobStatus(e.target.value as JobStatus)}
@@ -439,21 +443,21 @@ export default function JobForm({
         </div>
       )}
 
-      {/* Action buttons — stacked full-width on mobile, right-aligned on desktop */}
+      {/* Action buttons */}
       <div className="mt-6 flex flex-col sm:flex-row gap-3 sm:justify-end">
         <button
           type="button"
           onClick={() => router.back()}
           className="w-full sm:w-auto sm:min-w-[120px] py-3.5 sm:py-2.5 px-6 rounded-full border-2 border-[#EFF1F5] text-[#25282A] font-semibold text-sm hover:border-[#98A2B2] active:bg-[#F8F8FA] transition-colors"
         >
-          취소
+          {t('cancel')}
         </button>
         <button
           type="submit"
           disabled={isSaving}
           className="w-full sm:w-auto sm:min-w-[120px] py-3.5 sm:py-2.5 px-6 rounded-full bg-[#0669F7] text-white font-semibold text-sm hover:bg-[#0557D4] active:bg-[#0447BE] disabled:opacity-40 transition-colors shadow-md shadow-[#0669F7]/30"
         >
-          {isSaving ? '저장 중...' : '저장'}
+          {isSaving ? t('saving') : t('save')}
         </button>
       </div>
     </form>

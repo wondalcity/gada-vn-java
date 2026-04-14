@@ -87,7 +87,8 @@
     "title": "Quản lý công trình",
     "load_error": "Tải dữ liệu thất bại",
     "empty_text": "Chưa có công trình nào",
-    "empty_cta": "Thêm công trình đầu tiên"
+    "empty_cta": "Thêm công trình đầu tiên",
+    "add_site": "Thêm công trường"
   },
   "jobs_page": {
     "title": "Quản lý tin tuyển dụng",

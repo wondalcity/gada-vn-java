@@ -1,6 +1,7 @@
 'use client'
 
 import * as React from 'react'
+import { useTranslations } from 'next-intl'
 import { getSessionCookie } from '@/lib/auth/session'
 import JobForm from './JobForm'
 import type { Job } from '@/types/manager-site-job'
@@ -35,6 +36,7 @@ export default function JobFormWrapper({
   initialData,
   locale,
 }: JobFormWrapperProps) {
+  const t = useTranslations('common.manager_job_form')
   const [idToken, setIdToken] = React.useState<string | null>(null)
   const [mounted, setMounted] = React.useState(false)
 
@@ -48,7 +50,7 @@ export default function JobFormWrapper({
   if (!idToken) {
     return (
       <div className="p-4 rounded-2xl bg-[#FDE8EE] border border-[#F4A8B8] text-sm text-[#ED1C24] text-center">
-        인증이 필요합니다.
+        {t('auth_required')}
       </div>
     )
   }

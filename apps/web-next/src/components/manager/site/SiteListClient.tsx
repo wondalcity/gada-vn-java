@@ -1,7 +1,7 @@
 'use client'
 
 import * as React from 'react'
-import { useRouter } from '@/i18n/navigation'
+import { useRouter, Link } from '@/i18n/navigation'
 import { useTranslations } from 'next-intl'
 import { getSessionCookie } from '@/lib/auth/session'
 import { apiClient } from '@/lib/api/client'
@@ -92,6 +92,18 @@ export default function SiteListClient({ locale }: SiteListClientProps) {
 
   return (
     <>
+      {/* Add Site button — always visible when sites exist */}
+      <div className="flex justify-end mb-4">
+        <Link
+          href="/manager/sites/new"
+          className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-[#0669F7] text-white font-medium hover:bg-[#0557D4] transition-colors text-sm shadow-sm"
+        >
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+          </svg>
+          {t('sites_page.add_site')}
+        </Link>
+      </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {sites.map((site) => (
           <SiteCard key={site.id} site={site} locale={locale} />

@@ -87,7 +87,8 @@
     "title": "Site Management",
     "load_error": "Failed to load",
     "empty_text": "No sites registered yet",
-    "empty_cta": "Register Your First Site"
+    "empty_cta": "Register Your First Site",
+    "add_site": "Add Site"
   },
   "jobs_page": {
     "title": "Job Management",

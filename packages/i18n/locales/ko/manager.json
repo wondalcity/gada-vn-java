@@ -87,7 +87,8 @@
     "title": "현장 관리",
     "load_error": "불러오기 실패",
     "empty_text": "등록된 현장이 없습니다",
-    "empty_cta": "첫 현장 등록하기"
+    "empty_cta": "첫 현장 등록하기",
+    "add_site": "현장 추가"
   },
   "jobs_page": {
     "title": "공고 관리",
