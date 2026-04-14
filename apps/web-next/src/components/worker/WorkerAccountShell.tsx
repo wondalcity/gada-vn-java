@@ -130,15 +130,18 @@ export default function WorkerAccountShell({ locale, userName, userPhone, isMana
       </div>
 
       {/* ── Desktop layout: sidebar + content ── */}
-      <div className="md:grid md:grid-cols-[240px_1fr] md:gap-8 md:items-start">
+      <div className="md:grid md:grid-cols-[280px_1fr] md:gap-8 md:items-start">
 
         {/* ── LNB sidebar (desktop only) ── */}
         <aside
-          className="hidden md:flex flex-col gap-3 sticky"
-          style={{ top: 'calc(var(--app-bar-height, 56px) + 24px)' }}
+          className="hidden md:flex flex-col sticky"
+          style={{
+            top: 'calc(var(--app-bar-height, 56px) + 24px)',
+            maxHeight: 'calc(100vh - var(--app-bar-height, 56px) - 48px)',
+          }}
         >
           {/* Mini profile card */}
-          <div className="flex items-center gap-3 px-3.5 py-3 rounded-2xl bg-white border border-[#EFF1F5] shadow-sm">
+          <div className="flex items-center gap-3 px-3.5 py-3 rounded-2xl bg-white border border-[#EFF1F5] shadow-sm shrink-0 mb-3">
             <div className="w-9 h-9 rounded-full bg-[#0669F7] flex items-center justify-center text-white text-sm font-bold shrink-0">
               {initial}
             </div>
@@ -157,21 +160,18 @@ export default function WorkerAccountShell({ locale, userName, userPhone, isMana
             </div>
           </div>
 
-          {/* Nav links */}
-          <nav className="bg-white rounded-2xl border border-[#EFF1F5] overflow-hidden shadow-sm">
+          {/* Nav links — flex-1 so it fills remaining space */}
+          <nav className="flex-1 bg-white rounded-2xl border border-[#EFF1F5] overflow-y-auto shadow-sm mb-3 min-h-0">
             {NAV_ITEMS.map((item, idx) => {
               const active = isItemActive(item)
               const isLast = idx === NAV_ITEMS.length - 1
 
               return (
                 <div key={item.key}>
-                  {/* Main nav row */}
                   <div className={`relative flex items-center group ${!isLast ? 'border-b border-[#EFF1F5]' : ''}`}>
-                    {/* Active left accent bar */}
                     {active && (
                       <div className="absolute left-0 top-1 bottom-1 w-[3px] rounded-r-full bg-[#0669F7]" />
                     )}
-
                     <Link
                       href={item.href(locale) as never}
                       className={`flex-1 flex items-center gap-3 pl-5 pr-3 py-3 text-sm font-medium transition-colors ${
@@ -191,13 +191,15 @@ export default function WorkerAccountShell({ locale, userName, userPhone, isMana
             })}
           </nav>
 
-          {/* Manager action (always shown) */}
-          <ManagerActionButton
-            locale={locale}
-            isManager={isManager ?? false}
-            managerStatus={managerStatus}
-            variant="sidebar"
-          />
+          {/* Manager action — always pinned at bottom of sidebar */}
+          <div className="shrink-0">
+            <ManagerActionButton
+              locale={locale}
+              isManager={isManager ?? false}
+              managerStatus={managerStatus}
+              variant="sidebar"
+            />
+          </div>
         </aside>
 
         {/* ── Page content ── */}
