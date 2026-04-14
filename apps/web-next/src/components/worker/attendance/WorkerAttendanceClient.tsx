@@ -1,7 +1,7 @@
 'use client'
 
 import * as React from 'react'
-import { useRouter } from '@/i18n/navigation'
+import { useTranslations } from 'next-intl'
 import { useSearchParams } from 'next/navigation'
 import { getSessionCookie } from '@/lib/auth/session'
 import type { WorkerAttendanceRecord, AttendanceStatus } from '@/types/attendance'
@@ -11,15 +11,8 @@ const API_BASE = '/api/v1'
 
 type Tab = 'all' | AttendanceStatus
 
-const TABS: { key: Tab; label: string }[] = [
-  { key: 'all',      label: '전체' },
-  { key: 'ATTENDED', label: '출근' },
-  { key: 'ABSENT',   label: '결근' },
-  { key: 'HALF_DAY', label: '반차' },
-]
-
-function formatWorkDate(dateStr: string): string {
-  return new Intl.DateTimeFormat('ko-KR', {
+function formatWorkDate(dateStr: string, locale: string): string {
+  return new Intl.DateTimeFormat(locale, {
     year: 'numeric',
     month: 'long',
     day: 'numeric',
@@ -28,14 +21,27 @@ function formatWorkDate(dateStr: string): string {
 }
 
 export default function WorkerAttendanceClient() {
+  const t = useTranslations('attendance')
   const idToken = getSessionCookie()
   const searchParams = useSearchParams()
   const jobIdFilter = searchParams.get('jobId')
+
+  const TABS: { key: Tab; label: string }[] = [
+    { key: 'all',      label: t('tab_all') },
+    { key: 'ATTENDED', label: t('tab_attended') },
+    { key: 'ABSENT',   label: t('tab_absent') },
+    { key: 'HALF_DAY', label: t('tab_half_day') },
+  ]
 
   const [records, setRecords] = React.useState<WorkerAttendanceRecord[]>([])
   const [isLoading, setIsLoading] = React.useState(true)
   const [error, setError] = React.useState<string | null>(null)
   const [activeTab, setActiveTab] = React.useState<Tab>('all')
+  const [locale, setLocale] = React.useState('ko')
+
+  React.useEffect(() => {
+    setLocale(document.documentElement.lang || navigator.language || 'ko')
+  }, [])
 
   React.useEffect(() => {
     if (!idToken) { setIsLoading(false); return }
@@ -50,7 +56,7 @@ export default function WorkerAttendanceClient() {
       .then(async res => {
         if (!res.ok) {
           const body = await res.json().catch(() => ({}))
-          throw new Error(body.message ?? '근무 이력을 불러올 수 없습니다')
+          throw new Error(body.message ?? t('load_error'))
         }
         return res.json()
       })
@@ -75,9 +81,9 @@ export default function WorkerAttendanceClient() {
     <div className="pb-10">
       {/* Header */}
       <div className="py-6 flex items-center gap-3">
-        <h1 className="text-xl font-bold text-[#25282A]">근무 이력</h1>
+        <h1 className="text-xl font-bold text-[#25282A]">{t('title')}</h1>
         {jobIdFilter && (
-          <span className="text-xs text-[#98A2B2]">특정 일자리 필터링 중</span>
+          <span className="text-xs text-[#98A2B2]">{t('filtering')}</span>
         )}
       </div>
 
@@ -85,9 +91,9 @@ export default function WorkerAttendanceClient() {
       {!isLoading && !error && (
         <div className="grid grid-cols-3 gap-3 mb-4">
           {[
-            { label: '출근', value: attendedDays, cls: 'text-[#1A6B1A]' },
-            { label: '결근', value: absentDays, cls: 'text-[#ED1C24]' },
-            { label: '반차', value: halfDayDays, cls: 'text-[#856404]' },
+            { label: t('tab_attended'), value: attendedDays, cls: 'text-[#1A6B1A]' },
+            { label: t('tab_absent'),   value: absentDays,   cls: 'text-[#ED1C24]' },
+            { label: t('tab_half_day'), value: halfDayDays,  cls: 'text-[#856404]' },
           ].map(({ label, value, cls }) => (
             <div key={label} className="bg-white rounded-2xl shadow-sm border border-[#EFF1F5] px-4 py-3 text-center">
               <p className={`text-2xl font-bold ${cls}`}>{value}</p>
@@ -97,7 +103,7 @@ export default function WorkerAttendanceClient() {
         </div>
       )}
 
-      {/* Tab bar — sticky, matches profile style */}
+      {/* Tab bar */}
       <div
         className="sticky z-10 bg-white border-b border-[#EFF1F5]"
         style={{ top: 'var(--app-bar-height, 56px)' }}
@@ -150,7 +156,7 @@ export default function WorkerAttendanceClient() {
               onClick={() => window.location.reload()}
               className="px-4 py-2 rounded-2xl border border-[#EFF1F5] text-sm text-[#25282A] hover:border-[#0669F7] transition-colors"
             >
-              다시 시도
+              {t('retry')}
             </button>
           </div>
         ) : filteredRecords.length === 0 ? (
@@ -159,11 +165,11 @@ export default function WorkerAttendanceClient() {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5}
                 d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
             </svg>
-            <p className="text-[#25282A] text-sm font-semibold mb-1">근무 이력이 없습니다</p>
+            <p className="text-[#25282A] text-sm font-semibold mb-1">{t('empty_title')}</p>
             <p className="text-[#98A2B2] text-xs">
               {activeTab === 'all'
-                ? '합격 후 현장에 출근하면 여기에 기록됩니다'
-                : `${STATUS_LABELS[activeTab as AttendanceStatus] ?? activeTab} 이력이 없습니다`}
+                ? t('empty_hint')
+                : t('empty_status', { status: STATUS_LABELS[activeTab as AttendanceStatus] ?? activeTab })}
             </p>
           </div>
         ) : (
@@ -174,7 +180,7 @@ export default function WorkerAttendanceClient() {
                   {/* Date + status */}
                   <div className="flex items-start justify-between mb-2">
                     <p className="font-semibold text-[#25282A] text-sm">
-                      {formatWorkDate(record.workDate)}
+                      {formatWorkDate(record.workDate, locale)}
                     </p>
                     <span
                       className={[
@@ -217,7 +223,7 @@ export default function WorkerAttendanceClient() {
             {/* Summary footer */}
             <div className="mt-6 pt-4 border-t border-[#EFF1F5]">
               <p className="text-xs text-[#98A2B2] text-center">
-                총 {totalDays}일 중 출근 {attendedDays}일 (결근 {absentDays}일, 반차 {halfDayDays}일)
+                {t('summary', { total: totalDays, attended: attendedDays, absent: absentDays, halfDay: halfDayDays })}
               </p>
             </div>
           </>

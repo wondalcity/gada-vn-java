@@ -1,6 +1,7 @@
 'use client'
 
 import * as React from 'react'
+import { useTranslations } from 'next-intl'
 import { Link } from '@/i18n/navigation'
 import { useParams } from 'next/navigation'
 import { getSessionCookie } from '@/lib/auth/session'
@@ -18,22 +19,26 @@ interface ContractListItem {
   createdAt: string
 }
 
-const STATUS_CONFIG = {
-  PENDING_WORKER_SIGN:  { label: '서명 필요',       bg: 'bg-[#FFF8E6] text-[#856404] border-[#F5D87D]',  dot: '#F59E0B' },
-  PENDING_MANAGER_SIGN: { label: '건설사 서명 대기', bg: 'bg-[#E6F0FE] text-[#0669F7] border-[#B3D9FF]',     dot: '#0669F7' },
-  FULLY_SIGNED:         { label: '계약 완료',        bg: 'bg-[#E6F9E6] text-[#1A6B1A] border-[#86D98A]',  dot: '#16A34A' },
-  VOID:                 { label: '계약 무효',        bg: 'bg-[#EFF1F5] text-[#7A7B7A] border-[#DDDDDD]',    dot: '#9CA3AF' },
+const STATUS_BG = {
+  PENDING_WORKER_SIGN:  'bg-[#FFF8E6] text-[#856404] border-[#F5D87D]',
+  PENDING_MANAGER_SIGN: 'bg-[#E6F0FE] text-[#0669F7] border-[#B3D9FF]',
+  FULLY_SIGNED:         'bg-[#E6F9E6] text-[#1A6B1A] border-[#86D98A]',
+  VOID:                 'bg-[#EFF1F5] text-[#7A7B7A] border-[#DDDDDD]',
 } as const
 
-function fmtDate(d: string) {
-  return new Date(d).toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'short' })
-}
+const STATUS_DOT = {
+  PENDING_WORKER_SIGN:  '#F59E0B',
+  PENDING_MANAGER_SIGN: '#0669F7',
+  FULLY_SIGNED:         '#16A34A',
+  VOID:                 '#9CA3AF',
+} as const
 
 function fmtVND(n: number) {
-  return new Intl.NumberFormat('ko-KR').format(n) + ' ₫'
+  return new Intl.NumberFormat('vi-VN').format(n) + ' ₫'
 }
 
 export default function WorkerContractsClient() {
+  const t = useTranslations('contracts')
   const idToken = getSessionCookie()
   const params = useParams()
   const locale = (params?.locale as string) ?? 'ko'
@@ -55,7 +60,7 @@ export default function WorkerContractsClient() {
   if (isLoading) {
     return (
       <div className="py-6">
-        <h1 className="text-xl font-bold text-[#25282A] mb-6">계약서</h1>
+        <h1 className="text-xl font-bold text-[#25282A] mb-6">{t('title')}</h1>
         <div className="space-y-3">
           {[1, 2, 3].map(i => (
             <div key={i} className="bg-white rounded-2xl border border-[#EFF1F5] p-4 animate-pulse shadow-sm">
@@ -75,9 +80,9 @@ export default function WorkerContractsClient() {
   if (error) {
     return (
       <div className="py-6">
-        <h1 className="text-xl font-bold text-[#25282A] mb-6">계약서</h1>
+        <h1 className="text-xl font-bold text-[#25282A] mb-6">{t('title')}</h1>
         <p className="text-[#ED1C24] text-sm mb-4">{error}</p>
-        <button type="button" onClick={load} className="px-5 py-2.5 rounded-full bg-[#0669F7] text-white font-medium hover:bg-[#0557D4] transition-colors text-sm">다시 시도</button>
+        <button type="button" onClick={load} className="px-5 py-2.5 rounded-full bg-[#0669F7] text-white font-medium hover:bg-[#0557D4] transition-colors text-sm">{t('retry')}</button>
       </div>
     )
   }
@@ -87,11 +92,11 @@ export default function WorkerContractsClient() {
   return (
     <div className="py-6">
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-xl font-bold text-[#25282A]">계약서</h1>
+        <h1 className="text-xl font-bold text-[#25282A]">{t('title')}</h1>
         {pendingCount > 0 && (
           <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-[#FFE9B0] text-[#856404] border border-[#F5D87D]">
             <span className="w-1.5 h-1.5 rounded-full bg-[#FFC72C]" />
-            서명 필요 {pendingCount}건
+            {t('pending_count', { count: pendingCount })}
           </span>
         )}
       </div>
@@ -103,14 +108,16 @@ export default function WorkerContractsClient() {
               <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
             </svg>
           </div>
-          <p className="text-[#25282A] font-semibold text-sm">계약서가 없습니다</p>
-          <p className="text-[#98A2B2] text-xs mt-1">합격 후 계약서가 생성되면 여기에 표시됩니다.</p>
+          <p className="text-[#25282A] font-semibold text-sm">{t('empty')}</p>
+          <p className="text-[#98A2B2] text-xs mt-1">{t('empty_hint')}</p>
         </div>
       ) : (
         <div className="space-y-3">
           {contracts.map((c) => {
-            const st = STATUS_CONFIG[c.status] ?? STATUS_CONFIG.VOID
             const needsSign = c.status === 'PENDING_WORKER_SIGN'
+            const bg = STATUS_BG[c.status] ?? STATUS_BG.VOID
+            const dot = STATUS_DOT[c.status] ?? STATUS_DOT.VOID
+            const fmtDate = new Date(c.workDate).toLocaleDateString(locale, { year: 'numeric', month: 'long', day: 'numeric', weekday: 'short' })
             return (
               <div
                 key={c.id}
@@ -124,9 +131,9 @@ export default function WorkerContractsClient() {
                     <p className="font-semibold text-[#25282A] text-sm truncate">{c.jobTitle}</p>
                     <p className="text-xs text-[#98A2B2] mt-0.5 truncate">{c.siteName}</p>
                   </div>
-                  <span className={`shrink-0 inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold border ${st.bg}`}>
-                    <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: st.dot }} />
-                    {st.label}
+                  <span className={`shrink-0 inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold border ${bg}`}>
+                    <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: dot }} />
+                    {t(`status.${c.status}`)}
                   </span>
                 </div>
 
@@ -136,7 +143,7 @@ export default function WorkerContractsClient() {
                     <svg className="w-3.5 h-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                     </svg>
-                    {fmtDate(c.workDate)}
+                    {fmtDate}
                   </span>
                   <span className="flex items-center gap-1 font-semibold text-[#0669F7]">
                     {fmtVND(c.dailyWage)}
@@ -159,7 +166,7 @@ export default function WorkerContractsClient() {
                     ) : (
                       <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><circle cx="12" cy="12" r="9" /></svg>
                     )}
-                    근로자 서명
+                    {t('worker_sign')}
                   </span>
                   <svg className="w-3 h-3 text-[#D1D5DB]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" /></svg>
                   <span className={`flex items-center gap-1 ${c.status === 'FULLY_SIGNED' ? 'text-[#1A6B1A] font-semibold' : 'text-[#B2B2B2]'}`}>
@@ -168,7 +175,7 @@ export default function WorkerContractsClient() {
                     ) : (
                       <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><circle cx="12" cy="12" r="9" /></svg>
                     )}
-                    사업주 서명
+                    {t('company_sign')}
                   </span>
                 </div>
 
@@ -187,14 +194,14 @@ export default function WorkerContractsClient() {
                         <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                           <path strokeLinecap="round" strokeLinejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
                         </svg>
-                        서명하기
+                        {t('sign')}
                       </>
                     ) : (
                       <>
                         <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                           <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                         </svg>
-                        계약서 보기
+                        {t('view')}
                       </>
                     )}
                   </Link>

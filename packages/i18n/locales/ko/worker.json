@@ -48,13 +48,39 @@
     },
     "withdraw_confirm": "지원을 취소하시겠습니까?"
   },
+  "attendance": {
+    "title": "근무 이력",
+    "filtering": "특정 일자리 필터링 중",
+    "tab_all": "전체",
+    "tab_attended": "출근",
+    "tab_absent": "결근",
+    "tab_half_day": "반차",
+    "load_error": "근무 이력을 불러올 수 없습니다",
+    "retry": "다시 시도",
+    "empty_title": "근무 이력이 없습니다",
+    "empty_hint": "합격 후 현장에 출근하면 여기에 기록됩니다",
+    "empty_status": "{status} 이력이 없습니다",
+    "summary": "총 {total}일 중 출근 {attended}일 (결근 {absent}일, 반차 {halfDay}일)"
+  },
   "contracts": {
     "title": "계약서",
     "empty": "계약서가 없습니다.",
+    "empty_hint": "합격 후 계약서가 생성되면 여기에 표시됩니다.",
     "sign": "서명하기",
+    "view": "계약서 보기",
     "signed": "서명 완료",
     "download": "다운로드",
-    "no_signature": "서명을 먼저 등록해 주세요."
+    "no_signature": "서명을 먼저 등록해 주세요.",
+    "retry": "다시 시도",
+    "pending_count": "서명 필요 {count}건",
+    "worker_sign": "근로자 서명",
+    "company_sign": "사업주 서명",
+    "status": {
+      "PENDING_WORKER_SIGN": "서명 필요",
+      "PENDING_MANAGER_SIGN": "건설사 서명 대기",
+      "FULLY_SIGNED": "계약 완료",
+      "VOID": "계약 무효"
+    }
   },
   "profile_tabs": {
     "title": "프로필 관리",
@@ -94,6 +120,7 @@
       "full_name": "이름 *",
       "name_placeholder": "이름",
       "dob": "생년월일 *",
+      "dob_placeholder": "생년월일 선택",
       "gender": "성별 *",
       "male": "남성",
       "female": "여성",

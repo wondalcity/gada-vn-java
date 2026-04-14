@@ -467,7 +467,7 @@ function BasicTab({ profile, onSaved }: { profile: WorkerProfile; onSaved: (p: P
           placeholder={t('profile_tabs.basic.name_placeholder')} className={inputCls} />
       </Field>
       <Field label={t('profile_tabs.basic.dob')}>
-        <DatePicker value={dob} max={maxDate} onChange={setDob} placeholder="생년월일 선택" />
+        <DatePicker value={dob} max={maxDate} onChange={setDob} placeholder={t('profile_tabs.basic.dob_placeholder')} />
       </Field>
       <Field label={t('profile_tabs.basic.gender')}>
         <div className="flex gap-2">

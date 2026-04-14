@@ -48,13 +48,39 @@
     },
     "withdraw_confirm": "Bạn có chắc muốn rút đơn ứng tuyển?"
   },
+  "attendance": {
+    "title": "Lịch sử làm việc",
+    "filtering": "Đang lọc theo công việc cụ thể",
+    "tab_all": "Tất cả",
+    "tab_attended": "Đi làm",
+    "tab_absent": "Vắng mặt",
+    "tab_half_day": "Nửa ngày",
+    "load_error": "Không thể tải lịch sử làm việc",
+    "retry": "Thử lại",
+    "empty_title": "Không có lịch sử làm việc",
+    "empty_hint": "Sau khi được nhận vào, lịch sử chấm công sẽ được ghi lại ở đây",
+    "empty_status": "Không có lịch sử {status}",
+    "summary": "Tổng {total} ngày: đi làm {attended} ngày (vắng {absent} ngày, nửa ngày {halfDay} ngày)"
+  },
   "contracts": {
     "title": "Hợp đồng",
     "empty": "Không có hợp đồng nào.",
+    "empty_hint": "Sau khi được nhận vào, hợp đồng sẽ được tạo và hiển thị ở đây.",
     "sign": "Ký hợp đồng",
+    "view": "Xem hợp đồng",
     "signed": "Đã ký",
     "download": "Tải xuống",
-    "no_signature": "Vui lòng đăng ký chữ ký trước."
+    "no_signature": "Vui lòng đăng ký chữ ký trước.",
+    "retry": "Thử lại",
+    "pending_count": "{count} hợp đồng cần ký",
+    "worker_sign": "Chữ ký công nhân",
+    "company_sign": "Chữ ký chủ thầu",
+    "status": {
+      "PENDING_WORKER_SIGN": "Cần ký",
+      "PENDING_MANAGER_SIGN": "Chờ ký từ nhà thầu",
+      "FULLY_SIGNED": "Hoàn tất",
+      "VOID": "Vô hiệu"
+    }
   },
   "profile_tabs": {
     "title": "Quản lý hồ sơ",
@@ -94,6 +120,7 @@
       "full_name": "Họ và tên *",
       "name_placeholder": "Họ và tên",
       "dob": "Ngày sinh *",
+      "dob_placeholder": "Chọn ngày sinh",
       "gender": "Giới tính *",
       "male": "Nam",
       "female": "Nữ",

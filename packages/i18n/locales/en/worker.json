@@ -48,13 +48,39 @@
     },
     "withdraw_confirm": "Are you sure you want to withdraw this application?"
   },
+  "attendance": {
+    "title": "Work History",
+    "filtering": "Filtering by specific job",
+    "tab_all": "All",
+    "tab_attended": "Attended",
+    "tab_absent": "Absent",
+    "tab_half_day": "Half Day",
+    "load_error": "Unable to load work history",
+    "retry": "Retry",
+    "empty_title": "No work history",
+    "empty_hint": "After being hired, your attendance will be recorded here",
+    "empty_status": "No {status} records",
+    "summary": "Total {total} days: attended {attended} days (absent {absent}, half-day {halfDay})"
+  },
   "contracts": {
     "title": "Contracts",
     "empty": "No contracts found.",
+    "empty_hint": "After being hired, contracts will be generated and shown here.",
     "sign": "Sign Contract",
+    "view": "View Contract",
     "signed": "Signed",
     "download": "Download",
-    "no_signature": "Please add a signature to your profile first."
+    "no_signature": "Please add a signature to your profile first.",
+    "retry": "Retry",
+    "pending_count": "{count} contracts need signing",
+    "worker_sign": "Worker signature",
+    "company_sign": "Employer signature",
+    "status": {
+      "PENDING_WORKER_SIGN": "Signature required",
+      "PENDING_MANAGER_SIGN": "Awaiting employer signature",
+      "FULLY_SIGNED": "Completed",
+      "VOID": "Void"
+    }
   },
   "profile_tabs": {
     "title": "Profile Management",
@@ -94,6 +120,7 @@
       "full_name": "Full Name *",
       "name_placeholder": "Full name",
       "dob": "Date of Birth *",
+      "dob_placeholder": "Select date of birth",
       "gender": "Gender *",
       "male": "Male",
       "female": "Female",
