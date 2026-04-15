@@ -1057,14 +1057,18 @@ function VietnamBankSelect({ value, onChange }: { value: string; onChange: (v: s
       if (portal?.contains(e.target as Node)) return
       setOpen(false)
     }
-    function handleClose() { setOpen(false) }
+    function handleClose(e: Event) {
+      // Don't close when the scroll originates from inside the portal (i.e. scrolling the list)
+      const portal = document.getElementById('vnbank-portal')
+      if (portal?.contains(e.target as Node)) return
+      setOpen(false)
+    }
     document.addEventListener('mousedown', handleClick)
-    window.addEventListener('scroll', handleClose, true)
-    window.addEventListener('resize', handleClose)
+    window.addEventListener('scroll', handleClose as EventListener, true)
+    window.addEventListener('resize', () => setOpen(false))
     return () => {
       document.removeEventListener('mousedown', handleClick)
-      window.removeEventListener('scroll', handleClose, true)
-      window.removeEventListener('resize', handleClose)
+      window.removeEventListener('scroll', handleClose as EventListener, true)
     }
   }, [open])
 
@@ -1133,7 +1137,7 @@ function VietnamBankSelect({ value, onChange }: { value: string; onChange: (v: s
               />
             </div>
           </div>
-          <div style={{ maxHeight: maxListH, overflowY: 'scroll' }}>
+          <div style={{ maxHeight: maxListH, overflowY: 'auto' }}>
             {filtered.length === 0 ? (
               <p className="text-center text-sm text-[#98A2B2] py-6">검색 결과가 없습니다</p>
             ) : filtered.map((bank) => {

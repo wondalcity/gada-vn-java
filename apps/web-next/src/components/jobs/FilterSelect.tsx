@@ -44,14 +44,19 @@ export function FilterSelect({
       if (portal?.contains(e.target as Node)) return
       setOpen(false)
     }
-    function handleClose() { setOpen(false) }
+    function handleClose(e: Event) {
+      const portal = document.getElementById('filter-select-portal')
+      if (portal?.contains(e.target as Node)) return
+      setOpen(false)
+    }
+    function handleResize() { setOpen(false) }
     document.addEventListener('mousedown', handleClick)
-    window.addEventListener('scroll', handleClose, true)
-    window.addEventListener('resize', handleClose)
+    window.addEventListener('scroll', handleClose as EventListener, true)
+    window.addEventListener('resize', handleResize)
     return () => {
       document.removeEventListener('mousedown', handleClick)
-      window.removeEventListener('scroll', handleClose, true)
-      window.removeEventListener('resize', handleClose)
+      window.removeEventListener('scroll', handleClose as EventListener, true)
+      window.removeEventListener('resize', handleResize)
     }
   }, [open])
 

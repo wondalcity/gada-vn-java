@@ -37,7 +37,8 @@ class SiteController(
             district = body["district"] as? String,
             lat = (body["lat"] as? Number)?.toDouble(),
             lng = (body["lng"] as? Number)?.toDouble(),
-            siteType = body["siteType"] as? String
+            siteType = body["siteType"] as? String,
+            companyId = body["companyId"] as? String
         )
         return ok(result)
     }
@@ -70,7 +71,8 @@ class SiteController(
             lat = (body["lat"] as? Number)?.toDouble(),
             lng = (body["lng"] as? Number)?.toDouble(),
             siteType = body["siteType"] as? String,
-            status = body["status"] as? String
+            status = body["status"] as? String,
+            companyId = body["companyId"] as? String
         )
         return ok(result)
     }

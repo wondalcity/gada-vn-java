@@ -6,21 +6,26 @@ import vn.gada.api.common.database.DatabaseService
 import vn.gada.api.common.exception.BadRequestException
 import vn.gada.api.common.exception.ForbiddenException
 import vn.gada.api.common.exception.NotFoundException
+import vn.gada.api.files.FileService
 
 private const val MAX_IMAGES = 10
 
 @Repository
 class SiteRepository(
     private val db: DatabaseService,
+    private val fileService: FileService,
     @Value("\${gada.aws.cdn-domain:}") private val cdnDomain: String
 ) {
 
     private fun toImageUrl(key: String?): String? {
         if (key == null) return null
         if (key.startsWith("http://") || key.startsWith("https://") || key.startsWith("data:")) return key
-        if (cdnDomain.isBlank()) return null
-        val base = if (cdnDomain.startsWith("http")) cdnDomain else "https://$cdnDomain"
-        return "$base/$key"
+        if (cdnDomain.isNotBlank()) {
+            val base = if (cdnDomain.startsWith("http")) cdnDomain else "https://$cdnDomain"
+            return "$base/$key"
+        }
+        // No CDN domain configured — generate a presigned GET URL as fallback
+        return fileService.toPublicUrl(key)
     }
 
     @Suppress("UNCHECKED_CAST")
@@ -43,6 +48,8 @@ class SiteRepository(
             "coverImageIdx" to validCoverIdx,
             "imageUrls" to imageUrls,
             "jobCount" to ((r["job_count"] as? Number)?.toInt() ?: 0),
+            "companyId" to r["company_id"],
+            "companyName" to r["company_name"],
             "createdAt" to r["created_at"],
             "updatedAt" to r["updated_at"]
         )
@@ -61,11 +68,13 @@ class SiteRepository(
         val managerId = getManagerId(userId)
         val rows = db.queryForList(
             """SELECT s.*,
+                      cc.name AS company_name,
                       COUNT(j.id) FILTER (WHERE j.status = 'OPEN') AS job_count
                FROM app.construction_sites s
                LEFT JOIN app.jobs j ON j.site_id = s.id
+               LEFT JOIN app.construction_companies cc ON cc.id = s.company_id
                WHERE s.manager_id = ?
-               GROUP BY s.id
+               GROUP BY s.id, cc.name
                ORDER BY s.created_at DESC""",
             managerId
         )
@@ -76,11 +85,13 @@ class SiteRepository(
         val managerId = getManagerId(userId)
         val rows = db.queryForList(
             """SELECT s.*,
+                      cc.name AS company_name,
                       COUNT(j.id) FILTER (WHERE j.status = 'OPEN') AS job_count
                FROM app.construction_sites s
                LEFT JOIN app.jobs j ON j.site_id = s.id
+               LEFT JOIN app.construction_companies cc ON cc.id = s.company_id
                WHERE s.id = ? AND s.manager_id = ?
-               GROUP BY s.id""",
+               GROUP BY s.id, cc.name""",
             siteId, managerId
         )
         if (rows.isEmpty()) throw NotFoundException("Site not found")
@@ -95,17 +106,24 @@ class SiteRepository(
         district: String?,
         lat: Double?,
         lng: Double?,
-        siteType: String?
+        siteType: String?,
+        companyId: String? = null
     ): Map<String, Any?> {
         val managerId = getManagerId(userId)
         val rows = db.queryForList(
             """INSERT INTO app.construction_sites
-                 (manager_id, name, address, province, district, lat, lng, site_type)
-               VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-               RETURNING *""",
-            managerId, name, address, province, district, lat, lng, siteType
+                 (manager_id, name, address, province, district, lat, lng, site_type, company_id)
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+               RETURNING *, NULL::text AS company_name""",
+            managerId, name, address, province, district, lat, lng, siteType,
+            if (companyId.isNullOrBlank()) null else companyId
         )
         val row = rows.first().toMutableMap()
+        // Fetch company name if linked
+        if (companyId != null) {
+            val co = db.queryForList("SELECT name FROM app.construction_companies WHERE id = ?", companyId)
+            row["company_name"] = co.firstOrNull()?.get("name")
+        }
         row["job_count"] = 0
         return mapSite(row)
     }
@@ -120,26 +138,37 @@ class SiteRepository(
         lat: Double?,
         lng: Double?,
         siteType: String?,
-        status: String?
+        status: String?,
+        companyId: String? = null
     ): Map<String, Any?> {
         val managerId = getManagerId(userId)
         val rows = db.queryForListRaw(
             """UPDATE app.construction_sites SET
-                 name      = COALESCE(?, name),
-                 address   = COALESCE(?, address),
-                 province  = COALESCE(?, province),
-                 district  = COALESCE(?, district),
-                 lat       = COALESCE(?, lat),
-                 lng       = COALESCE(?, lng),
-                 site_type = COALESCE(?, site_type),
-                 status    = COALESCE(?, status),
+                 name       = COALESCE(?, name),
+                 address    = COALESCE(?, address),
+                 province   = COALESCE(?, province),
+                 district   = COALESCE(?, district),
+                 lat        = COALESCE(?, lat),
+                 lng        = COALESCE(?, lng),
+                 site_type  = COALESCE(?, site_type),
+                 status     = COALESCE(?, status),
+                 company_id = CASE WHEN ? IS NOT NULL THEN ?::UUID ELSE company_id END,
                  updated_at = NOW()
                WHERE id = ? AND manager_id = ?
                RETURNING *""",
-            name, address, province, district, lat, lng, siteType, status, siteId, managerId
+            name, address, province, district, lat, lng, siteType, status,
+            companyId, companyId, siteId, managerId
         )
         if (rows.isEmpty()) throw NotFoundException("Site not found")
         val row = rows.first().toMutableMap()
+        // Fetch company name
+        val effectiveCompanyId = row["company_id"] as? String
+        if (effectiveCompanyId != null) {
+            val co = db.queryForList("SELECT name FROM app.construction_companies WHERE id = ?", effectiveCompanyId)
+            row["company_name"] = co.firstOrNull()?.get("name")
+        } else {
+            row["company_name"] = null
+        }
         row["job_count"] = 0
         return mapSite(row)
     }

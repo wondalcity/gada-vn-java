@@ -2,7 +2,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import {
   View, Text, ScrollView, TouchableOpacity, StyleSheet,
-  TextInput, Alert, ActivityIndicator, Image, KeyboardAvoidingView, Platform, Modal,
+  TextInput, Alert, ActivityIndicator, Image, KeyboardAvoidingView, Platform, Modal, FlatList,
 } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { useRouter } from 'expo-router';
@@ -196,6 +196,46 @@ function BasicSection({ profile, onSaved }: { profile: WorkerProfile; onSaved: (
   );
 }
 
+// ── Vietnam Bank List ────────────────────────────────────────────────────────
+
+const VN_BANKS = [
+  { code: 'VCB',     name: 'Vietcombank',       fullName: 'Ngân hàng TMCP Ngoại thương Việt Nam' },
+  { code: 'CTG',     name: 'VietinBank',         fullName: 'Ngân hàng TMCP Công thương Việt Nam' },
+  { code: 'BIDV',    name: 'BIDV',               fullName: 'Ngân hàng TMCP Đầu tư và Phát triển Việt Nam' },
+  { code: 'AGR',     name: 'Agribank',           fullName: 'Ngân hàng Nông nghiệp và Phát triển Nông thôn' },
+  { code: 'MBB',     name: 'MB Bank',            fullName: 'Ngân hàng TMCP Quân đội' },
+  { code: 'TCB',     name: 'Techcombank',        fullName: 'Ngân hàng TMCP Kỹ thương Việt Nam' },
+  { code: 'ACB',     name: 'ACB',                fullName: 'Ngân hàng TMCP Á Châu' },
+  { code: 'VPB',     name: 'VPBank',             fullName: 'Ngân hàng TMCP Việt Nam Thịnh Vượng' },
+  { code: 'HDB',     name: 'HDBank',             fullName: 'Ngân hàng TMCP Phát triển TP. Hồ Chí Minh' },
+  { code: 'SHB',     name: 'SHB',                fullName: 'Ngân hàng TMCP Sài Gòn - Hà Nội' },
+  { code: 'TPB',     name: 'TPBank',             fullName: 'Ngân hàng TMCP Tiên Phong' },
+  { code: 'STB',     name: 'Sacombank',          fullName: 'Ngân hàng TMCP Sài Gòn Thương Tín' },
+  { code: 'VIB',     name: 'VIB',                fullName: 'Ngân hàng TMCP Quốc Tế Việt Nam' },
+  { code: 'OCB',     name: 'OCB',                fullName: 'Ngân hàng TMCP Phương Đông' },
+  { code: 'MSB',     name: 'MSB',                fullName: 'Ngân hàng TMCP Hàng Hải Việt Nam' },
+  { code: 'SEAB',    name: 'SeABank',            fullName: 'Ngân hàng TMCP Đông Nam Á' },
+  { code: 'EIB',     name: 'Eximbank',           fullName: 'Ngân hàng TMCP Xuất Nhập Khẩu Việt Nam' },
+  { code: 'NCB',     name: 'NCB',                fullName: 'Ngân hàng TMCP Quốc Dân' },
+  { code: 'PVC',     name: 'PVcomBank',          fullName: 'Ngân hàng TMCP Đại chúng Việt Nam' },
+  { code: 'ABB',     name: 'ABBank',             fullName: 'Ngân hàng TMCP An Bình' },
+  { code: 'LPB',     name: 'LienVietPostBank',   fullName: 'Ngân hàng TMCP Bưu điện Liên Việt' },
+  { code: 'BVB',     name: 'BaoViet Bank',       fullName: 'Ngân hàng TMCP Bảo Việt' },
+  { code: 'KLB',     name: 'KienlongBank',       fullName: 'Ngân hàng TMCP Kiên Long' },
+  { code: 'NAB',     name: 'NamABank',           fullName: 'Ngân hàng TMCP Nam Á' },
+  { code: 'VBB',     name: 'VietBank',           fullName: 'Ngân hàng TMCP Việt Nam Thương Tín' },
+  { code: 'SGB',     name: 'Saigonbank',         fullName: 'Ngân hàng TMCP Sài Gòn Công Thương' },
+  { code: 'BANVIET', name: 'BVBank',             fullName: 'Ngân hàng TMCP Bản Việt' },
+  { code: 'GPB',     name: 'GPBank',             fullName: 'Ngân hàng TM TNHH MTV Dầu khí toàn cầu' },
+  { code: 'OJB',     name: 'OceanBank',          fullName: 'Ngân hàng TM TNHH MTV Đại Dương' },
+  { code: 'COOP',    name: 'Co-opBank',          fullName: 'Ngân hàng Hợp tác xã Việt Nam' },
+  { code: 'WOO',     name: 'Woori Bank',         fullName: 'Ngân hàng Woori Việt Nam' },
+  { code: 'SHINHAN', name: 'Shinhan Bank',       fullName: 'Ngân hàng Shinhan Việt Nam' },
+  { code: 'KBHN',    name: 'KB Kookmin Bank',    fullName: 'Ngân hàng KB Kookmin Việt Nam' },
+  { code: 'HSBC',    name: 'HSBC',               fullName: 'Ngân hàng HSBC Việt Nam' },
+  { code: 'SCBVN',   name: 'Standard Chartered', fullName: 'Ngân hàng Standard Chartered Việt Nam' },
+];
+
 // ── Bank Section ──────────────────────────────────────────────────────────────
 
 function BankSection({ profile, onSaved }: { profile: WorkerProfile; onSaved: (p: Partial<WorkerProfile>) => void }) {
@@ -204,6 +244,8 @@ function BankSection({ profile, onSaved }: { profile: WorkerProfile; onSaved: (p
   const [accountNumber, setAccountNumber] = useState(profile.bank_account_number ?? '');
   const [bookUrl, setBookUrl] = useState<string | null>(profile.bank_book_url);
   const [saving, setSaving] = useState(false);
+  const [bankSheetVisible, setBankSheetVisible] = useState(false);
+  const [bankSearch, setBankSearch] = useState('');
 
   async function handlePickBook() {
     const dataUrl = await pickImage();
@@ -234,10 +276,84 @@ function BankSection({ profile, onSaved }: { profile: WorkerProfile; onSaved: (p
     } finally { setSaving(false); }
   }
 
+  const filteredBanks = bankSearch.trim()
+    ? VN_BANKS.filter(b =>
+        b.name.toLowerCase().includes(bankSearch.toLowerCase()) ||
+        b.fullName.toLowerCase().includes(bankSearch.toLowerCase()) ||
+        b.code.toLowerCase().includes(bankSearch.toLowerCase())
+      )
+    : VN_BANKS;
+
   return (
     <View style={sec.body}>
       <FieldLabel label={t('worker.field_bank_name')} />
-      <TextInput style={s.input} value={bankName} onChangeText={setBankName} placeholder="예: Vietcombank, BIDV" placeholderTextColor="#C0C4CF" />
+
+      {/* Bank picker button */}
+      <TouchableOpacity
+        style={[s.input, s.bankSelectBtn]}
+        onPress={() => { setBankSearch(''); setBankSheetVisible(true); }}
+        activeOpacity={0.7}
+      >
+        <Text style={bankName ? s.bankSelectText : s.bankSelectPlaceholder}>
+          {bankName || '은행을 선택해주세요'}
+        </Text>
+        <Text style={s.bankSelectChevron}>▾</Text>
+      </TouchableOpacity>
+
+      {/* Bank picker bottom sheet */}
+      <Modal
+        visible={bankSheetVisible}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setBankSheetVisible(false)}
+      >
+        <TouchableOpacity
+          style={s.modalOverlay}
+          activeOpacity={1}
+          onPress={() => setBankSheetVisible(false)}
+        >
+          <View style={s.bankSheet} onStartShouldSetResponder={() => true}>
+            <View style={s.bankSheetHandle} />
+            <Text style={s.modalTitle}>은행 선택</Text>
+
+            {/* Search input */}
+            <TextInput
+              style={s.bankSearchInput}
+              value={bankSearch}
+              onChangeText={setBankSearch}
+              placeholder="은행 검색..."
+              placeholderTextColor="#C0C4CF"
+              autoCorrect={false}
+            />
+
+            <FlatList
+              data={filteredBanks}
+              keyExtractor={b => b.code}
+              style={s.bankList}
+              keyboardShouldPersistTaps="handled"
+              renderItem={({ item }) => {
+                const selected = bankName === item.name;
+                return (
+                  <TouchableOpacity
+                    style={[s.bankItem, selected && s.bankItemActive]}
+                    onPress={() => { setBankName(item.name); setBankSheetVisible(false); }}
+                    activeOpacity={0.7}
+                  >
+                    <View style={{ flex: 1 }}>
+                      <Text style={[s.bankItemName, selected && s.bankItemNameActive]}>{item.name}</Text>
+                      <Text style={s.bankItemFull} numberOfLines={1}>{item.fullName}</Text>
+                    </View>
+                    {selected && <Text style={s.bankItemCheck}>✓</Text>}
+                  </TouchableOpacity>
+                );
+              }}
+              ListEmptyComponent={
+                <Text style={s.bankEmptyText}>검색 결과가 없습니다</Text>
+              }
+            />
+          </View>
+        </TouchableOpacity>
+      </Modal>
 
       <FieldLabel label={t('worker.field_account_number')} />
       <TextInput style={s.input} value={accountNumber} onChangeText={setAccountNumber} placeholder={t('worker.field_account_number_placeholder')} placeholderTextColor="#C0C4CF" keyboardType="numeric" />
@@ -652,4 +768,20 @@ const s = StyleSheet.create({
   langLabel: { fontSize: 15, fontWeight: '600', color: '#25282A', flex: 1 },
   langLabelActive: { color: '#0669F7' },
   langCheck: { fontSize: 16, color: '#0669F7', fontWeight: '700' },
+  // Bank picker
+  bankSelectBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  bankSelectText: { fontSize: 14, color: '#25282A', flex: 1 },
+  bankSelectPlaceholder: { fontSize: 14, color: '#C0C4CF', flex: 1 },
+  bankSelectChevron: { fontSize: 14, color: '#98A2B2' },
+  bankSheet: { backgroundColor: '#fff', borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 20, paddingBottom: 40, maxHeight: '80%' },
+  bankSheetHandle: { width: 40, height: 4, borderRadius: 2, backgroundColor: '#E5E7EB', alignSelf: 'center', marginBottom: 16 },
+  bankSearchInput: { backgroundColor: '#F9FAFB', borderRadius: 10, borderWidth: 1, borderColor: '#EFF1F5', paddingHorizontal: 12, paddingVertical: 10, fontSize: 14, color: '#25282A', marginBottom: 8 },
+  bankList: { maxHeight: 400 },
+  bankItem: { flexDirection: 'row', alignItems: 'center', paddingVertical: 12, paddingHorizontal: 4, borderBottomWidth: 0.5, borderColor: '#F2F4F5' },
+  bankItemActive: { backgroundColor: '#EFF5FF', borderRadius: 8, paddingHorizontal: 8, marginHorizontal: -4 },
+  bankItemName: { fontSize: 14, fontWeight: '600', color: '#25282A' },
+  bankItemNameActive: { color: '#0669F7' },
+  bankItemFull: { fontSize: 11, color: '#98A2B2', marginTop: 1 },
+  bankItemCheck: { fontSize: 14, color: '#0669F7', fontWeight: '700', marginLeft: 8 },
+  bankEmptyText: { textAlign: 'center', color: '#98A2B2', fontSize: 14, paddingVertical: 24 },
 });

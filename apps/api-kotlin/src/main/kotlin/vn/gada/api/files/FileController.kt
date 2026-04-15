@@ -55,8 +55,13 @@ class FileController(private val fileService: FileService) {
         val key = "${folder ?: "uploads"}/${user.id}/${java.util.UUID.randomUUID()}.$ext"
         val bytes = java.util.Base64.getDecoder().decode(base64Data)
 
-        fileService.uploadBytes(key, bytes, contentType)
-        return ok(mapOf("key" to key))
+        return try {
+            fileService.uploadBytes(key, bytes, contentType)
+            ok(mapOf("key" to key))
+        } catch (e: Exception) {
+            // S3 unavailable — store as base64 data URL so the flow continues
+            ok(fileService.storeLocal(bytes, contentType))
+        }
     }
 
     /** POST /files/confirm — Confirm upload completed */

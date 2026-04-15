@@ -120,6 +120,14 @@ export default function SiteForm({ mode, initialData, siteId, locale, idToken }:
   const [siteType, setSiteType] = React.useState(initialData?.siteType ?? '')
   const [status, setStatus] = React.useState<SiteStatus>(initialData?.status ?? 'ACTIVE')
 
+  // Company state
+  const [companyId, setCompanyId] = React.useState<string>((initialData as any)?.companyId ?? '')
+  const [companies, setCompanies] = React.useState<{ id: string; name: string }[]>([])
+  const [showNewCompany, setShowNewCompany] = React.useState(false)
+  const [newCompanyName, setNewCompanyName] = React.useState('')
+  const [newCompanyPhone, setNewCompanyPhone] = React.useState('')
+  const [savingCompany, setSavingCompany] = React.useState(false)
+
   // Edit mode: uploaded image URLs + cover index
   const [images, setImages] = React.useState<string[]>(initialData?.imageUrls ?? [])
   const [coverIdx, setCoverIdx] = React.useState<number>(
@@ -139,6 +147,39 @@ export default function SiteForm({ mode, initialData, siteId, locale, idToken }:
   const addressInputRef = React.useRef<HTMLInputElement>(null)
   const autocompleteRef = React.useRef<google.maps.places.Autocomplete | null>(null)
   const addressPickedFromMapRef = React.useRef(false)
+
+  // Load company list for dropdown
+  React.useEffect(() => {
+    fetch(`${API_BASE}/manager/companies`, {
+      headers: { Authorization: `Bearer ${idToken}` },
+    })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((res) => { if (res?.data) setCompanies(res.data) })
+      .catch(() => undefined)
+  }, [idToken])
+
+  async function handleCreateCompany() {
+    if (!newCompanyName.trim()) return
+    setSavingCompany(true)
+    try {
+      const res = await fetch(`${API_BASE}/manager/companies`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${idToken}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: newCompanyName.trim(), contactPhone: newCompanyPhone.trim() || undefined }),
+      })
+      if (!res.ok) throw new Error()
+      const { data: co } = await res.json()
+      setCompanies((prev) => [...prev, co])
+      setCompanyId(co.id)
+      setShowNewCompany(false)
+      setNewCompanyName('')
+      setNewCompanyPhone('')
+    } catch {
+      // ignore — user can retry
+    } finally {
+      setSavingCompany(false)
+    }
+  }
 
   // Clean up object URLs on unmount
   React.useEffect(() => {
@@ -309,6 +350,7 @@ export default function SiteForm({ mode, initialData, siteId, locale, idToken }:
         lng,
         siteType: siteType || undefined,
         status,
+        companyId: companyId || undefined,
       }
 
       const apiPayload: Record<string, unknown> = { ...payload }
@@ -459,6 +501,64 @@ export default function SiteForm({ mode, initialData, siteId, locale, idToken }:
             />
           </div>
         )}
+
+        {/* Company (건설사) selection */}
+        <div>
+          <label className={labelClass}>건설사</label>
+          <CustomSelect
+            value={companyId}
+            onChange={setCompanyId}
+            options={[
+              { value: '', label: '선택 안 함' },
+              ...companies.map((c) => ({ value: c.id, label: c.name })),
+            ]}
+            placeholder="건설사 선택"
+          />
+          <button
+            type="button"
+            onClick={() => setShowNewCompany((v) => !v)}
+            className="mt-2 text-xs text-[#0669F7] hover:underline"
+          >
+            + 새 건설사 등록
+          </button>
+
+          {showNewCompany && (
+            <div className="mt-2 p-4 rounded-2xl border border-[#EFF1F5] bg-[#F9FAFB] space-y-3">
+              <p className="text-xs font-semibold text-[#25282A]">새 건설사 등록</p>
+              <input
+                type="text"
+                value={newCompanyName}
+                onChange={(e) => setNewCompanyName(e.target.value)}
+                placeholder="건설사명 *"
+                className={inputClass}
+              />
+              <input
+                type="text"
+                value={newCompanyPhone}
+                onChange={(e) => setNewCompanyPhone(e.target.value)}
+                placeholder="담당자 연락처 (선택)"
+                className={inputClass}
+              />
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={handleCreateCompany}
+                  disabled={savingCompany || !newCompanyName.trim()}
+                  className="px-4 py-2 rounded-full bg-[#0669F7] text-white text-xs font-medium disabled:opacity-40 hover:bg-[#0557D4] transition-colors"
+                >
+                  {savingCompany ? '등록 중...' : '등록'}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => { setShowNewCompany(false); setNewCompanyName(''); setNewCompanyPhone('') }}
+                  className="px-4 py-2 rounded-full border border-[#EFF1F5] text-[#25282A] text-xs font-medium hover:bg-[#F2F4F5] transition-colors"
+                >
+                  취소
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* ── Image section (both create and edit modes) ────────────────────── */}
