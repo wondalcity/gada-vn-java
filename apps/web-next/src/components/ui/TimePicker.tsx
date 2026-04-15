@@ -1,6 +1,8 @@
 'use client'
 
 import * as React from 'react'
+import { createPortal } from 'react-dom'
+import { useTranslations } from 'next-intl'
 
 export interface TimePickerProps {
   value: string        // 'HH:MM' 24h or ''
@@ -27,12 +29,6 @@ function to24h(period: 'AM' | 'PM', hour: string, minute: string): string {
   if (period === 'AM' && h === 12) h = 0
   else if (period === 'PM' && h !== 12) h += 12
   return `${String(h).padStart(2, '0')}:${minute}`
-}
-
-function displayTime(value: string): string {
-  if (!value) return ''
-  const { period, hour, minute } = parse(value)
-  return `${period === 'AM' ? '오전' : '오후'} ${hour}:${minute}`
 }
 
 // Scrollable column with auto-scroll to selected item
@@ -94,24 +90,32 @@ function Column({
 export function TimePicker({
   value,
   onChange,
-  placeholder = '시간 선택',
+  placeholder,
   className = '',
   disabled = false,
 }: TimePickerProps) {
+  const t = useTranslations('common.time_picker')
   const [open, setOpen] = React.useState(false)
+  const [mounted, setMounted] = React.useState(false)
   const containerRef = React.useRef<HTMLDivElement>(null)
+  const portalRef = React.useRef<HTMLDivElement>(null)
   const [fixedTop, setFixedTop] = React.useState(0)
   const [fixedLeft, setFixedLeft] = React.useState(0)
 
   const { period, hour, minute } = parse(value)
 
+  React.useEffect(() => {
+    setMounted(true)
+  }, [])
+
   // Close on outside click, scroll, or resize
   React.useEffect(() => {
     if (!open) return
     function handleClick(e: MouseEvent) {
-      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
-        const picker = document.getElementById('timepicker-portal')
-        if (picker && picker.contains(e.target as Node)) return
+      const target = e.target as Node
+      const insideContainer = containerRef.current?.contains(target)
+      const insidePortal = portalRef.current?.contains(target)
+      if (!insideContainer && !insidePortal) {
         setOpen(false)
       }
     }
@@ -143,6 +147,11 @@ export function TimePicker({
         Math.abs(parseInt(m) - parseInt(minute)) < Math.abs(parseInt(best) - parseInt(minute)) ? m : best
       , MINUTES[0])
 
+  // i18n-aware display value
+  const amLabel = t('am')
+  const pmLabel = t('pm')
+  const displayValue = value ? `${period === 'AM' ? amLabel : pmLabel} ${hour}:${minute}` : ''
+
   const inputBase = `w-full px-3 py-2.5 rounded-2xl border text-sm bg-white flex items-center justify-between cursor-pointer transition-colors ${
     disabled ? 'border-[#EFF1F5] bg-[#F2F4F5] cursor-not-allowed text-[#98A2B2]' : 'border-[#EFF1F5] text-[#25282A] hover:border-[#0669F7]'
   } ${open ? 'border-[#0669F7] ring-2 ring-[#0669F7]/10' : ''} ${className}`
@@ -163,6 +172,69 @@ export function TimePicker({
     setOpen(v => !v)
   }
 
+  const portalContent = (
+    <div
+      ref={portalRef}
+      role="dialog"
+      className="bg-white rounded-2xl shadow-2xl border border-[#EFF1F5] overflow-hidden"
+      style={{ position: 'fixed', top: fixedTop, left: fixedLeft, zIndex: 9999, width: 240 }}
+    >
+      {/* Header */}
+      <div className="flex items-center justify-between px-4 pt-3 pb-2 border-b border-[#EFF1F5]">
+        <span className="text-sm font-semibold text-[#25282A]">{t('title')}</span>
+        <button
+          type="button"
+          onClick={() => setOpen(false)}
+          className="text-xs font-medium text-[#0669F7] hover:underline"
+        >
+          {t('confirm')}
+        </button>
+      </div>
+
+      {/* 3 columns */}
+      <div className="flex relative" style={{ height: 220 }}>
+        {/* Center highlight bar */}
+        <div
+          className="pointer-events-none absolute left-0 right-0 bg-[#F2F4F5] rounded-xl mx-2"
+          style={{ top: '50%', transform: 'translateY(-50%)', height: 44 }}
+        />
+
+        {/* AM/PM */}
+        <div className="flex-1 border-r border-[#EFF1F5]">
+          <Column
+            items={['AM', 'PM']}
+            selected={period}
+            onSelect={(v) => setPeriod(v as 'AM' | 'PM')}
+            renderLabel={(v) => v === 'AM' ? amLabel : pmLabel}
+          />
+        </div>
+
+        {/* Hours */}
+        <div className="flex-1 border-r border-[#EFF1F5]">
+          <Column items={HOURS} selected={hour} onSelect={setHour} />
+        </div>
+
+        {/* Minutes */}
+        <div className="flex-1">
+          <Column items={MINUTES} selected={nearestMinute} onSelect={setMinute} />
+        </div>
+      </div>
+
+      {/* Clear */}
+      {value && (
+        <div className="border-t border-[#EFF1F5] px-4 py-2 flex justify-end">
+          <button
+            type="button"
+            onClick={() => { onChange(''); setOpen(false) }}
+            className="text-xs text-[#98A2B2] hover:text-[#ED1C24] transition-colors"
+          >
+            {t('clear')}
+          </button>
+        </div>
+      )}
+    </div>
+  )
+
   return (
     <div ref={containerRef} className="relative w-full">
       <button
@@ -174,75 +246,14 @@ export function TimePicker({
         aria-expanded={open}
       >
         <span className={value ? 'text-[#25282A]' : 'text-[#98A2B2]'}>
-          {value ? displayTime(value) : placeholder}
+          {value ? displayValue : (placeholder ?? t('title'))}
         </span>
         <svg className={`w-4 h-4 shrink-0 transition-colors ${open ? 'text-[#0669F7]' : 'text-[#98A2B2]'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
         </svg>
       </button>
 
-      {open && (
-        <div
-          id="timepicker-portal"
-          role="dialog"
-          className="bg-white rounded-2xl shadow-2xl border border-[#EFF1F5] overflow-hidden"
-          style={{ position: 'fixed', top: fixedTop, left: fixedLeft, zIndex: 9999, width: 240 }}
-        >
-          {/* Header */}
-          <div className="flex items-center justify-between px-4 pt-3 pb-2 border-b border-[#EFF1F5]">
-            <span className="text-sm font-semibold text-[#25282A]">시간 선택</span>
-            <button
-              type="button"
-              onClick={() => setOpen(false)}
-              className="text-xs font-medium text-[#0669F7] hover:underline"
-            >
-              확인
-            </button>
-          </div>
-
-          {/* 3 columns */}
-          <div className="flex relative" style={{ height: 220 }}>
-            {/* Center highlight bar */}
-            <div
-              className="pointer-events-none absolute left-0 right-0 bg-[#F2F4F5] rounded-xl mx-2"
-              style={{ top: '50%', transform: 'translateY(-50%)', height: 44 }}
-            />
-
-            {/* AM/PM */}
-            <div className="flex-1 border-r border-[#EFF1F5]">
-              <Column
-                items={['AM', 'PM']}
-                selected={period}
-                onSelect={(v) => setPeriod(v as 'AM' | 'PM')}
-                renderLabel={(v) => v === 'AM' ? '오전' : '오후'}
-              />
-            </div>
-
-            {/* Hours */}
-            <div className="flex-1 border-r border-[#EFF1F5]">
-              <Column items={HOURS} selected={hour} onSelect={setHour} />
-            </div>
-
-            {/* Minutes */}
-            <div className="flex-1">
-              <Column items={MINUTES} selected={nearestMinute} onSelect={setMinute} />
-            </div>
-          </div>
-
-          {/* Clear */}
-          {value && (
-            <div className="border-t border-[#EFF1F5] px-4 py-2 flex justify-end">
-              <button
-                type="button"
-                onClick={() => { onChange(''); setOpen(false) }}
-                className="text-xs text-[#98A2B2] hover:text-[#ED1C24] transition-colors"
-              >
-                초기화
-              </button>
-            </div>
-          )}
-        </div>
-      )}
+      {open && mounted && createPortal(portalContent, document.body)}
     </div>
   )
 }

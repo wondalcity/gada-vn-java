@@ -291,6 +291,7 @@ export default function JobForm({
                 onChange={setWorkDate}
                 min={today}
                 placeholder={t('work_date_placeholder')}
+                locale={locale}
               />
             </div>
 
@@ -302,6 +303,7 @@ export default function JobForm({
                 onChange={setExpiresAt}
                 max={workDate || undefined}
                 placeholder={t('deadline_placeholder')}
+                locale={locale}
               />
               <p className="mt-1 text-xs text-[#98A2B2]">{t('deadline_hint')}</p>
             </div>

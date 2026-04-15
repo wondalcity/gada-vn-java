@@ -110,5 +110,20 @@
     "site_picker_title": "Select a Site",
     "site_picker_hint": "Choose the site for this job listing",
     "site_picker_empty": "No sites registered yet"
+  },
+  "search_modal": {
+    "title": "Job Search",
+    "close": "Close",
+    "clear_input": "Clear input",
+    "placeholder": "Search by job title or site name...",
+    "recent": "Recent searches",
+    "filters_title": "Filters",
+    "province_label": "Region",
+    "all_provinces": "All regions",
+    "site_label": "Site",
+    "all_sites": "All sites",
+    "status_label": "Job Status",
+    "reset": "Reset",
+    "search": "Search"
   }
 }

@@ -110,5 +110,20 @@
     "site_picker_title": "Chọn công trình",
     "site_picker_hint": "Chọn công trình để đăng tin tuyển dụng",
     "site_picker_empty": "Chưa có công trình nào"
+  },
+  "search_modal": {
+    "title": "Tìm kiếm công việc",
+    "close": "Đóng",
+    "clear_input": "Xóa nhập liệu",
+    "placeholder": "Tìm theo tên công việc hoặc công trường...",
+    "recent": "Tìm kiếm gần đây",
+    "filters_title": "Bộ lọc nâng cao",
+    "province_label": "Khu vực",
+    "all_provinces": "Tất cả khu vực",
+    "site_label": "Công trường",
+    "all_sites": "Tất cả công trường",
+    "status_label": "Trạng thái tuyển dụng",
+    "reset": "Đặt lại",
+    "search": "Tìm kiếm"
   }
 }

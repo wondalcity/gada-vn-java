@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState, useCallback } from 'react'
 import { useRouter } from '@/i18n/navigation'
 import { useSearchParams } from 'next/navigation'
+import { useTranslations } from 'next-intl'
 import { getSessionCookie } from '@/lib/auth/session'
 import type { Site, SiteStatus } from '@/types/manager-site-job'
 
@@ -41,11 +42,6 @@ interface SiteSummary {
 
 type JobStatusFilter = 'ALL' | 'OPEN' | 'FILLED' | 'COMPLETED' | 'CANCELLED'
 
-interface StatusPill {
-  label: string
-  value: JobStatusFilter
-}
-
 // ---------------------------------------------------------------------------
 // Constants
 // ---------------------------------------------------------------------------
@@ -54,14 +50,6 @@ const API_BASE = '/api/v1'
 
 const HISTORY_KEY = 'gada_manager_search_history'
 const HISTORY_MAX = 5
-
-const STATUS_PILLS: StatusPill[] = [
-  { label: '전체', value: 'ALL' },
-  { label: '모집중', value: 'OPEN' },
-  { label: '마감', value: 'FILLED' },
-  { label: '완료', value: 'COMPLETED' },
-  { label: '취소', value: 'CANCELLED' },
-]
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -109,6 +97,8 @@ export default function ManagerSearchModal({
 }: ManagerSearchModalProps) {
   const router = useRouter()
   const searchParams = useSearchParams()
+  const t = useTranslations('manager.search_modal')
+  const tJobs = useTranslations('manager.jobs_page')
 
   // --- form state ---
   const [keyword, setKeyword] = useState('')
@@ -125,6 +115,14 @@ export default function ManagerSearchModal({
   const inputRef = useRef<HTMLInputElement>(null)
   const overlayRef = useRef<HTMLDivElement>(null)
 
+  const STATUS_PILLS: { label: string; value: JobStatusFilter }[] = [
+    { label: tJobs('tab_all'),       value: 'ALL' },
+    { label: tJobs('tab_open'),      value: 'OPEN' },
+    { label: tJobs('tab_filled'),    value: 'FILLED' },
+    { label: tJobs('tab_completed'), value: 'COMPLETED' },
+    { label: tJobs('tab_cancelled'), value: 'CANCELLED' },
+  ]
+
   // Pre-fill from URL params when modal opens
   useEffect(() => {
     if (!open) return
@@ -139,7 +137,6 @@ export default function ManagerSearchModal({
   // Auto-focus input on open
   useEffect(() => {
     if (open) {
-      // Small delay to ensure transition has started
       const id = setTimeout(() => inputRef.current?.focus(), 80)
       return () => clearTimeout(id)
     }
@@ -266,7 +263,7 @@ export default function ManagerSearchModal({
       style={{ backgroundColor: 'rgba(0,0,0,0.45)', backdropFilter: 'blur(4px)' }}
       aria-modal="true"
       role="dialog"
-      aria-label="일자리 검색"
+      aria-label={t('title')}
     >
       {/* Modal panel */}
       <div
@@ -288,11 +285,11 @@ export default function ManagerSearchModal({
           <div className="absolute top-2.5 left-1/2 -translate-x-1/2 w-10 h-1 rounded-full bg-[#EFF1F5] sm:hidden" />
 
           <h2 className="text-[17px] font-semibold" style={{ color: '#25282A' }}>
-            일자리 검색
+            {t('title')}
           </h2>
           <button
             onClick={onClose}
-            aria-label="닫기"
+            aria-label={t('close')}
             className="flex items-center justify-center w-8 h-8 rounded-full hover:bg-[#F2F4F5] transition-colors"
           >
             <IconX size={20} color="#25282A" />
@@ -313,14 +310,14 @@ export default function ManagerSearchModal({
               value={keyword}
               onChange={(e) => setKeyword(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleSubmit()}
-              placeholder="공고명 또는 현장명 검색..."
+              placeholder={t('placeholder')}
               className="flex-1 bg-transparent outline-none text-[15px] placeholder:text-[#98A2B2]"
               style={{ color: '#25282A' }}
             />
             {keyword && (
               <button
                 onClick={() => setKeyword('')}
-                aria-label="입력 지우기"
+                aria-label={t('clear_input')}
                 className="shrink-0"
               >
                 <IconX size={16} color="#98A2B2" />
@@ -332,7 +329,7 @@ export default function ManagerSearchModal({
           {showHistory && (
             <div className="mt-3">
               <p className="text-xs font-medium mb-2" style={{ color: '#98A2B2' }}>
-                최근 검색
+                {t('recent')}
               </p>
               <div className="flex flex-wrap gap-2">
                 {history.map((kw) => (
@@ -365,7 +362,7 @@ export default function ManagerSearchModal({
           {/* ── Filters ── */}
           <div className="mt-5">
             <p className="text-[13px] font-semibold mb-3" style={{ color: '#98A2B2' }}>
-              상세 조건
+              {t('filters_title')}
             </p>
 
             <div className="flex flex-col gap-3">
@@ -375,7 +372,7 @@ export default function ManagerSearchModal({
                   className="block text-[13px] font-medium mb-1.5"
                   style={{ color: '#25282A' }}
                 >
-                  지역
+                  {t('province_label')}
                 </label>
                 <select
                   value={province}
@@ -387,7 +384,7 @@ export default function ManagerSearchModal({
                     color: province ? '#25282A' : '#98A2B2',
                   }}
                 >
-                  <option value="">전체 지역</option>
+                  <option value="">{t('all_provinces')}</option>
                   {provinces.map((p) => (
                     <option key={p.code} value={p.code}>
                       {p.nameVi}
@@ -403,7 +400,7 @@ export default function ManagerSearchModal({
                     className="block text-[13px] font-medium mb-1.5"
                     style={{ color: '#25282A' }}
                   >
-                    현장
+                    {t('site_label')}
                   </label>
                   <select
                     value={siteId}
@@ -415,7 +412,7 @@ export default function ManagerSearchModal({
                       color: siteId ? '#25282A' : '#98A2B2',
                     }}
                   >
-                    <option value="">전체 현장</option>
+                    <option value="">{t('all_sites')}</option>
                     {sites.map((s) => (
                       <option key={s.id} value={s.id}>
                         {s.name}
@@ -431,7 +428,7 @@ export default function ManagerSearchModal({
                   className="block text-[13px] font-medium mb-1.5"
                   style={{ color: '#25282A' }}
                 >
-                  공고 상태
+                  {t('status_label')}
                 </label>
                 <div className="flex flex-wrap gap-2">
                   {STATUS_PILLS.map((pill) => {
@@ -475,14 +472,14 @@ export default function ManagerSearchModal({
             className="shrink-0 text-[14px] font-medium px-4 py-2.5 rounded-full transition-colors hover:bg-[#F2F4F5]"
             style={{ color: '#98A2B2' }}
           >
-            초기화
+            {t('reset')}
           </button>
           <button
             onClick={handleSubmit}
             className="flex-1 rounded-full py-3 text-[15px] font-semibold text-white transition-opacity active:opacity-80"
             style={{ background: '#0669F7' }}
           >
-            검색하기
+            {t('search')}
           </button>
         </div>
       </div>

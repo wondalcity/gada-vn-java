@@ -90,6 +90,7 @@ function CustomSelect({ value, onChange, options, placeholder }: CustomSelectPro
 // ── Main form ────────────────────────────────────────────────────────────────
 export default function SiteForm({ mode, initialData, siteId, locale, idToken }: SiteFormProps) {
   const router = useRouter()
+  const t = useTranslations('common.manager_site_form')
   const tType = useTranslations('common.site_type_labels')
   const tStatus = useTranslations('common.site_status')
 
@@ -209,7 +210,7 @@ export default function SiteForm({ mode, initialData, siteId, locale, idToken }:
       headers: { Authorization: `Bearer ${idToken}`, 'Content-Type': 'application/json' },
       body: JSON.stringify({ dataUrl, folder: 'sites' }),
     })
-    if (!uploadRes.ok) throw new Error('이미지 업로드 실패')
+    if (!uploadRes.ok) throw new Error(t('error_image_upload'))
     const { data: uploadData } = await uploadRes.json()
 
     // Register S3 key with site
@@ -220,7 +221,7 @@ export default function SiteForm({ mode, initialData, siteId, locale, idToken }:
     })
     if (!res.ok) {
       const body = await res.json().catch(() => ({}))
-      throw new Error(body?.message ?? '이미지 등록 실패')
+      throw new Error(body?.message ?? t('error_image_register'))
     }
     const { data } = await res.json()
     setImages(data.imageUrls)
@@ -237,7 +238,7 @@ export default function SiteForm({ mode, initialData, siteId, locale, idToken }:
         await uploadOneFile(siteId, file)
       }
     } catch (e) {
-      setError(e instanceof Error ? e.message : '이미지 업로드에 실패했습니다.')
+      setError(e instanceof Error ? e.message : t('error_image_upload_failed'))
     } finally {
       setIsUploading(false)
     }
@@ -250,7 +251,7 @@ export default function SiteForm({ mode, initialData, siteId, locale, idToken }:
       method: 'DELETE',
       headers: { Authorization: `Bearer ${idToken}` },
     })
-    if (!res.ok) throw new Error('이미지 삭제 실패')
+    if (!res.ok) throw new Error(t('error_image_delete'))
     const { data } = await res.json()
     setImages(data.imageUrls)
     setCoverIdx(data.coverImageIdx)
@@ -264,7 +265,7 @@ export default function SiteForm({ mode, initialData, siteId, locale, idToken }:
       headers: { Authorization: `Bearer ${idToken}`, 'Content-Type': 'application/json' },
       body: JSON.stringify({ index: idx }),
     })
-    if (!res.ok) throw new Error('대표 이미지 변경 실패')
+    if (!res.ok) throw new Error(t('error_cover_change'))
     const { data } = await res.json()
     setCoverIdx(data.coverImageIdx)
   }
@@ -292,9 +293,9 @@ export default function SiteForm({ mode, initialData, siteId, locale, idToken }:
     e.preventDefault()
     setError(null)
 
-    if (!name.trim()) { setError('현장 이름을 입력해주세요.'); return }
-    if (!address.trim()) { setError('주소를 입력해주세요.'); return }
-    if (!province.trim() && !addressPickedFromMapRef.current) { setError('성/시를 입력해주세요.'); return }
+    if (!name.trim()) { setError(t('error_no_name')); return }
+    if (!address.trim()) { setError(t('error_no_address')); return }
+    if (!province.trim() && !addressPickedFromMapRef.current) { setError(t('error_no_province')); return }
 
     setIsSaving(true)
     try {
@@ -339,7 +340,7 @@ export default function SiteForm({ mode, initialData, siteId, locale, idToken }:
         router.push(`/manager/sites/${siteId}`)
       }
     } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : '저장에 실패했습니다.')
+      setError(e instanceof Error ? e.message : t('error_save'))
     } finally {
       setIsSaving(false)
     }
@@ -354,13 +355,13 @@ export default function SiteForm({ mode, initialData, siteId, locale, idToken }:
         {/* Site Name (Korean) */}
         <div>
           <label className={labelClass}>
-            현장 이름 (한국어) <span className="text-[#ED1C24]">*</span>
+            {t('name_ko_label')} <span className="text-[#ED1C24]">*</span>
           </label>
           <input
             type="text"
             value={name}
             onChange={(e) => setName(e.target.value)}
-            placeholder="예: 하노이 아파트 신축 현장"
+            placeholder={t('name_ko_placeholder')}
             className={inputClass}
             required
           />
@@ -369,14 +370,14 @@ export default function SiteForm({ mode, initialData, siteId, locale, idToken }:
         {/* Site Name (Vietnamese) */}
         <div>
           <label className={labelClass}>
-            현장 이름 (베트남어)
-            <span className="ml-1 text-xs font-normal text-[#98A2B2]">근로자에게 표시됩니다</span>
+            {t('name_vi_label')}
+            <span className="ml-1 text-xs font-normal text-[#98A2B2]">{t('shown_to_workers')}</span>
           </label>
           <input
             type="text"
             value={nameVi}
             onChange={(e) => setNameVi(e.target.value)}
-            placeholder="예: Công trường căn hộ Hà Nội"
+            placeholder={t('name_vi_placeholder')}
             className={inputClass}
           />
         </div>
@@ -384,14 +385,14 @@ export default function SiteForm({ mode, initialData, siteId, locale, idToken }:
         {/* Address */}
         <div>
           <label className={labelClass}>
-            주소 <span className="text-[#ED1C24]">*</span>
+            {t('address_label')} <span className="text-[#ED1C24]">*</span>
           </label>
           {mapsError ? (
             <input
               type="text"
               value={address}
               onChange={(e) => setAddress(e.target.value)}
-              placeholder="주소를 입력해주세요"
+              placeholder={t('address_placeholder')}
               className={inputClass}
             />
           ) : (
@@ -400,13 +401,13 @@ export default function SiteForm({ mode, initialData, siteId, locale, idToken }:
               type="text"
               defaultValue={address}
               onChange={(e) => setAddress(e.target.value)}
-              placeholder="주소를 검색해주세요"
+              placeholder={t('address_search_placeholder')}
               className={inputClass}
             />
           )}
           {lat && lng && !mapsError && (
             <div className="mt-2 p-3 rounded-2xl bg-[#E6F0FE] border border-[#B3D9FF] text-xs text-[#0669F7]">
-              선택된 주소: {address}{lat && lng && ` (${lat.toFixed(5)}, ${lng.toFixed(5)})`}
+              {t('address_selected')} {address}{lat && lng && ` (${lat.toFixed(5)}, ${lng.toFixed(5)})`}
             </div>
           )}
         </div>
@@ -414,7 +415,7 @@ export default function SiteForm({ mode, initialData, siteId, locale, idToken }:
         {/* Province */}
         <div>
           <label className={labelClass}>
-            성/시 <span className="text-[#ED1C24]">*</span>
+            {t('province_label')} <span className="text-[#ED1C24]">*</span>
           </label>
           <input
             type="text"
@@ -427,7 +428,7 @@ export default function SiteForm({ mode, initialData, siteId, locale, idToken }:
 
         {/* District */}
         <div>
-          <label className={labelClass}>구/현</label>
+          <label className={labelClass}>{t('district_label')}</label>
           <input
             type="text"
             value={district}
@@ -439,19 +440,18 @@ export default function SiteForm({ mode, initialData, siteId, locale, idToken }:
 
         {/* Site Type — custom dropdown */}
         <div>
-          <label className={labelClass}>현장 유형</label>
+          <label className={labelClass}>{t('site_type_label')}</label>
           <CustomSelect
             value={siteType}
             onChange={setSiteType}
             options={SITE_TYPE_OPTIONS}
-            placeholder="유형 선택"
           />
         </div>
 
         {/* Status — custom dropdown (edit only) */}
         {mode === 'edit' && (
           <div>
-            <label className={labelClass}>상태</label>
+            <label className={labelClass}>{t('status_label')}</label>
             <CustomSelect
               value={status}
               onChange={(v) => setStatus(v as SiteStatus)}
@@ -464,8 +464,8 @@ export default function SiteForm({ mode, initialData, siteId, locale, idToken }:
       {/* ── Image section (both create and edit modes) ────────────────────── */}
       <div className="bg-white rounded-2xl shadow-sm border border-[#EFF1F5] p-5">
         <div className="flex items-center justify-between mb-3">
-          <label className={`${labelClass} mb-0`}>현장 이미지</label>
-          <span className="text-xs text-[#98A2B2]">최대 10장</span>
+          <label className={`${labelClass} mb-0`}>{t('images_label')}</label>
+          <span className="text-xs text-[#98A2B2]">{t('images_max')}</span>
         </div>
 
         {mode === 'create' ? (
@@ -502,7 +502,7 @@ export default function SiteForm({ mode, initialData, siteId, locale, idToken }:
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
                 </svg>
-                이미지 추가
+                {t('image_add')}
               </button>
             )}
 
@@ -515,8 +515,8 @@ export default function SiteForm({ mode, initialData, siteId, locale, idToken }:
               onChange={handlePendingFileChange}
             />
             <p className="mt-1.5 text-xs text-[#98A2B2]">
-              {pendingPreviews.length}/10장
-              {pendingPreviews.length > 0 && ' · 저장 시 자동으로 업로드됩니다'}
+              {t('image_count', { count: pendingPreviews.length })}
+              {pendingPreviews.length > 0 && ` · ${t('image_upload_hint')}`}
             </p>
           </div>
         ) : (
@@ -545,7 +545,7 @@ export default function SiteForm({ mode, initialData, siteId, locale, idToken }:
           onClick={() => router.back()}
           className="px-5 py-2.5 rounded-full border border-[#EFF1F5] text-[#25282A] font-medium text-sm hover:bg-[#F2F4F5] transition-colors"
         >
-          취소
+          {t('cancel')}
         </button>
         <button
           type="submit"
@@ -553,8 +553,8 @@ export default function SiteForm({ mode, initialData, siteId, locale, idToken }:
           className="px-5 py-2.5 rounded-full bg-[#0669F7] text-white font-medium text-sm hover:bg-[#0557D4] disabled:opacity-40 transition-colors"
         >
           {isSaving
-            ? (pendingFiles.length > 0 && mode === 'create' ? `저장 중... (이미지 업로드 포함)` : '저장 중...')
-            : '저장'}
+            ? (pendingFiles.length > 0 && mode === 'create' ? t('saving_with_images') : t('saving'))
+            : t('save')}
         </button>
       </div>
     </form>
