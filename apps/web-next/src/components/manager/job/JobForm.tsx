@@ -394,7 +394,7 @@ export default function JobForm({
           </AccordionSection>
 
           {/* Requirements */}
-          <AccordionSection title={t('section_requirements')} defaultOpen={false}>
+          <AccordionSection title={t('section_requirements')}>
             <div>
               <label className={labelClass}>{t('min_exp_label')}</label>
               <input
