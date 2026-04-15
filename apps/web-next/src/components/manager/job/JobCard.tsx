@@ -33,7 +33,7 @@ export default function JobCard({ job, locale, showSite = false }: JobCardProps)
     { key: 'insurance', label: '보험' },
   ] as const
 
-  const activeBenefits = benefits.filter((b) => job.benefits[b.key])
+  const activeBenefits = benefits.filter((b) => job.benefits?.[b.key])
 
   return (
     <Link href={`/manager/jobs/${job.id}`} className="press-effect block group">

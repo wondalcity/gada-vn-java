@@ -126,16 +126,30 @@ class JobRepository(
     }
 
     fun update(id: String, managerId: String, data: Map<String, Any?>): Map<String, Any?>? {
+        val benefitsJson = data["benefits"]?.let { objectMapper.writeValueAsString(it) }
+        val requirementsJson = data["requirements"]?.let { objectMapper.writeValueAsString(it) }
         val rows = db.queryForListRaw(
             """UPDATE app.jobs SET
-                title = COALESCE(?, title),
-                description = COALESCE(?, description),
-                daily_wage = COALESCE(?, daily_wage),
-                slots_total = COALESCE(?, slots_total),
-                updated_at = NOW()
+                title        = COALESCE(?, title),
+                description  = COALESCE(?, description),
+                trade_id     = COALESCE(?, trade_id),
+                work_date    = COALESCE(CAST(? AS date), work_date),
+                start_time   = COALESCE(CAST(? AS time), start_time),
+                end_time     = COALESCE(CAST(? AS time), end_time),
+                daily_wage   = COALESCE(?, daily_wage),
+                benefits     = COALESCE(CAST(? AS jsonb), benefits),
+                requirements = COALESCE(CAST(? AS jsonb), requirements),
+                slots_total  = COALESCE(?, slots_total),
+                expires_at   = COALESCE(CAST(? AS timestamptz), expires_at),
+                status       = COALESCE(?, status),
+                updated_at   = NOW()
                WHERE id = ? AND manager_id = ?
                RETURNING *""",
-            data["title"], data["description"], data["dailyWage"], data["slotsTotal"],
+            data["title"], data["description"], data["tradeId"],
+            data["workDate"], data["startTime"], data["endTime"],
+            data["dailyWage"],
+            benefitsJson, requirementsJson,
+            data["slotsTotal"], data["expiresAt"], data["status"],
             id, managerId
         )
         return rows.firstOrNull()

@@ -300,6 +300,43 @@ class ManagerJobController(
         ))
     }
 
+    /** GET /manager/applications — All applications across all manager's jobs */
+    @GetMapping("/applications")
+    fun listAllApplications(@AuthenticationPrincipal user: AuthUser?): ResponseEntity<Map<String, Any?>> {
+        val u = requireManager(user)
+        val rows = db.queryForList(
+            """SELECT a.id, a.status, a.applied_at,
+                      j.id AS job_id, j.title AS job_title, j.work_date,
+                      wp.id AS worker_id, wp.full_name AS worker_name,
+                      u.phone AS worker_phone,
+                      t.name_ko AS trade_name
+               FROM app.job_applications a
+               JOIN app.jobs j ON a.job_id = j.id
+               JOIN app.manager_profiles mp ON j.manager_id = mp.id
+               JOIN app.worker_profiles wp ON a.worker_id = wp.id
+               JOIN auth.users u ON wp.user_id = u.id
+               LEFT JOIN ref.construction_trades t ON t.id = wp.primary_trade_id
+               WHERE mp.user_id = ? AND a.status != 'WITHDRAWN'
+               ORDER BY a.applied_at DESC""",
+            u.id
+        )
+        val result = rows.map { r ->
+            mapOf(
+                "id" to r["id"],
+                "status" to r["status"],
+                "appliedAt" to r["applied_at"],
+                "jobId" to r["job_id"],
+                "jobTitle" to r["job_title"],
+                "workDate" to r["work_date"],
+                "workerId" to r["worker_id"],
+                "workerName" to (r["worker_name"] ?: ""),
+                "workerPhone" to (r["worker_phone"] ?: ""),
+                "workerTrades" to if (r["trade_name"] != null) listOf(r["trade_name"]) else emptyList<String>()
+            )
+        }
+        return ok(result)
+    }
+
     /** PATCH /manager/applications/:id/accept */
     @PatchMapping("/applications/{id}/accept")
     fun acceptApplication(
@@ -308,11 +345,12 @@ class ManagerJobController(
     ): ResponseEntity<Map<String, Any?>> {
         val u = requireManager(user)
         val updated = applicationService.hire(id, u.id) ?: return ok(null)
+        // Increment slots_filled when a worker is accepted
         val rows = db.queryForList(
-            """SELECT j.slots_total, j.slots_filled, j.status
+            """UPDATE app.jobs j SET slots_filled = slots_filled + 1
                FROM app.job_applications a
-               JOIN app.jobs j ON a.job_id = j.id
-               WHERE a.id = ?""",
+               WHERE a.id = ? AND j.id = a.job_id
+               RETURNING j.slots_total, j.slots_filled, j.status""",
             id
         )
         val r = rows.firstOrNull()

@@ -36,6 +36,29 @@ class FileController(private val fileService: FileService) {
         return ok(fileService.storeLocal(file.bytes, contentType))
     }
 
+    /** POST /files/upload-base64 — Upload a file encoded as a data URL (server → S3, no CORS) */
+    @PostMapping("/upload-base64")
+    fun uploadBase64(
+        @AuthenticationPrincipal user: AuthUser?,
+        @RequestBody body: Map<String, Any?>
+    ): ResponseEntity<Map<String, Any?>> {
+        if (user == null) throw UnauthorizedException("Unauthorized")
+        val dataUrl = body["dataUrl"] as? String ?: throw BadRequestException("dataUrl is required")
+        val folder = body["folder"] as? String
+
+        // Parse data URL: data:<mime>;base64,<data>
+        val match = Regex("^data:([^;]+);base64,(.+)$").find(dataUrl)
+            ?: throw BadRequestException("Invalid data URL format")
+        val contentType = match.groupValues[1]
+        val base64Data = match.groupValues[2]
+        val ext = contentType.substringAfterLast('/', "").substringAfterLast('+', "").ifBlank { "jpg" }
+        val key = "${folder ?: "uploads"}/${user.id}/${java.util.UUID.randomUUID()}.$ext"
+        val bytes = java.util.Base64.getDecoder().decode(base64Data)
+
+        fileService.uploadBytes(key, bytes, contentType)
+        return ok(mapOf("key" to key))
+    }
+
     /** POST /files/confirm — Confirm upload completed */
     @PostMapping("/confirm")
     fun confirmUpload(
