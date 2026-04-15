@@ -576,6 +576,8 @@
     "pm": "CH",
     "title": "Chọn giờ",
     "confirm": "Xong",
-    "clear": "Xóa"
+    "clear": "Xóa",
+    "hour_label": "Giờ",
+    "minute_label": "Phút"
   }
 }

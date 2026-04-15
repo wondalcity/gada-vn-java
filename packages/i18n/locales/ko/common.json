@@ -576,6 +576,8 @@
     "pm": "오후",
     "title": "시간 선택",
     "confirm": "확인",
-    "clear": "초기화"
+    "clear": "초기화",
+    "hour_label": "시",
+    "minute_label": "분"
   }
 }

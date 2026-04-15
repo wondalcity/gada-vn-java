@@ -576,6 +576,8 @@
     "pm": "PM",
     "title": "Select Time",
     "confirm": "Done",
-    "clear": "Clear"
+    "clear": "Clear",
+    "hour_label": "Hour",
+    "minute_label": "Minute"
   }
 }
