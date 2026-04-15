@@ -8,7 +8,7 @@ INSERT INTO ref.construction_trades (code, name_ko, name_vi, name_en) VALUES
     ('ELECTRICAL', '전기', 'Điện', 'Electrical'),
     ('PAINTING', '도장', 'Sơn', 'Painting'),
     ('TILING', '타일', 'Ốp lát', 'Tiling'),
-    ('WELDING', '용접', '하Hàn xì', 'Welding'),
+    ('WELDING', '용접', 'Hàn xì', 'Welding'),
     ('EXCAVATION', '굴착', 'Đào đắp', 'Excavation'),
     ('SCAFFOLDING', '비계', 'Giàn giáo', 'Scaffolding'),
     ('ROOFING', '지붕', 'Mái', 'Roofing'),

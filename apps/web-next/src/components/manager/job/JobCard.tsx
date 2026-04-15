@@ -2,6 +2,7 @@
 
 import * as React from 'react'
 import { Link } from '@/i18n/navigation'
+import { useTranslations } from 'next-intl'
 import type { Job } from '@/types/manager-site-job'
 import StatusBadge from '@/components/manager/StatusBadge'
 import { formatDate } from '@/lib/utils/date'
@@ -17,6 +18,7 @@ function formatVND(amount: number) {
 }
 
 export default function JobCard({ job, locale, showSite = false }: JobCardProps) {
+  const t = useTranslations('manager')
   const fillPercent = job.slotsTotal > 0 ? Math.round((job.slotsFilled / job.slotsTotal) * 100) : 0
 
   const benefits = [
@@ -58,7 +60,7 @@ export default function JobCard({ job, locale, showSite = false }: JobCardProps)
         <div className="mb-3">
           <div className="flex items-center justify-between text-xs mb-1.5">
             <span className="text-[#98A2B2] font-medium">
-              {job.slotsFilled}/{job.slotsTotal}명 고용됨
+              {t('jobs_page.slots_hired', { filled: job.slotsFilled, total: job.slotsTotal })}
             </span>
             <span className="text-[#25282A] font-bold">{fillPercent}%</span>
           </div>

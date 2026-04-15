@@ -275,7 +275,7 @@ class SiteRepository(
 
     fun getJobs(siteId: String, userId: String): List<Map<String, Any?>> {
         val managerId = getManagerId(userId)
-        return db.queryForList(
+        val rows = db.queryForList(
             """SELECT j.id, j.title, j.work_date, j.daily_wage, j.slots_total, j.slots_filled,
                       j.status, j.slug, j.published_at, j.created_at, j.updated_at
                FROM app.jobs j
@@ -284,5 +284,20 @@ class SiteRepository(
                ORDER BY j.work_date DESC""",
             siteId, managerId
         )
+        return rows.map { r ->
+            mapOf(
+                "id"          to r["id"],
+                "title"       to r["title"],
+                "workDate"    to r["work_date"],
+                "dailyWage"   to (r["daily_wage"] as? Number)?.toLong(),
+                "slotsTotal"  to (r["slots_total"] as? Number)?.toInt(),
+                "slotsFilled" to (r["slots_filled"] as? Number)?.toInt(),
+                "status"      to r["status"],
+                "slug"        to r["slug"],
+                "publishedAt" to r["published_at"],
+                "createdAt"   to r["created_at"],
+                "updatedAt"   to r["updated_at"]
+            )
+        }
     }
 }

@@ -33,16 +33,17 @@ class ManagerCompanyController(
         @AuthenticationPrincipal user: AuthUser?,
         @RequestBody body: Map<String, Any?>
     ): ResponseEntity<Map<String, Any?>> {
-        requireManager(user)
+        val u = requireManager(user)
         val name = body["name"] as? String ?: throw BadRequestException("name is required")
         val row = db.queryForList(
-            """INSERT INTO app.construction_companies (name, contact_name, contact_phone, business_reg_no)
-               VALUES (?, ?, ?, ?)
+            """INSERT INTO app.construction_companies (name, contact_name, contact_phone, business_reg_no, created_by_user_id)
+               VALUES (?, ?, ?, ?, ?)
                RETURNING id, name, business_reg_no, contact_name, contact_phone""",
             name,
             body["contactName"] as? String,
             body["contactPhone"] as? String,
-            body["businessRegNo"] as? String
+            body["businessRegNo"] as? String,
+            u.id
         ).first()
         return ok(row)
     }

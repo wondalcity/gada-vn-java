@@ -369,6 +369,7 @@
     "view_contract": "View Contract",
     "download": "Download",
     "create_contract": "Create Contract",
+    "write_contract": "Sign Contract",
     "creating_contract": "Creating...",
     "contract_created": "Contract created successfully.",
     "contract_create_error": "Error creating contract.",

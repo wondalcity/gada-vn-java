@@ -109,7 +109,9 @@
     "empty_cta": "Đăng tin tuyển dụng đầu tiên",
     "site_picker_title": "Chọn công trình",
     "site_picker_hint": "Chọn công trình để đăng tin tuyển dụng",
-    "site_picker_empty": "Chưa có công trình nào"
+    "site_picker_empty": "Chưa có công trình nào",
+    "slots_hired": "Đã tuyển {filled}/{total} người",
+    "add_job": "Thêm tin tuyển dụng"
   },
   "search_modal": {
     "title": "Tìm kiếm công việc",

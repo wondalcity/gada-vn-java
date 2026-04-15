@@ -109,7 +109,9 @@
     "empty_cta": "Post Your First Job",
     "site_picker_title": "Select a Site",
     "site_picker_hint": "Choose the site for this job listing",
-    "site_picker_empty": "No sites registered yet"
+    "site_picker_empty": "No sites registered yet",
+    "slots_hired": "{filled}/{total} hired",
+    "add_job": "Add Job"
   },
   "search_modal": {
     "title": "Job Search",

@@ -369,6 +369,7 @@
     "view_contract": "Xem hợp đồng",
     "download": "Tải xuống",
     "create_contract": "Tạo hợp đồng",
+    "write_contract": "Ký hợp đồng",
     "creating_contract": "Đang tạo...",
     "contract_created": "Hợp đồng đã được tạo.",
     "contract_create_error": "Lỗi khi tạo hợp đồng.",

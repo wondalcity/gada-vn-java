@@ -190,7 +190,14 @@ class ContractRepository(
         contractHtml: String,
         companySealS3Key: String? = null
     ): Map<String, Any?>? {
-        return if (companySealS3Key != null) {
+        // Idempotent: return existing contract if already created for this application
+        val existing = db.queryForList(
+            "SELECT * FROM app.contracts WHERE application_id = ?::uuid",
+            applicationId
+        ).firstOrNull()
+        if (existing != null) return existing
+
+        val contract = if (companySealS3Key != null) {
             db.queryForList(
                 """INSERT INTO app.contracts
                      (application_id, job_id, worker_id, manager_id, contract_html, status,
@@ -208,6 +215,16 @@ class ContractRepository(
                 applicationId, jobId, workerId, managerId, contractHtml
             ).firstOrNull()
         }
+
+        // Update application status to CONTRACTED once contract is created
+        if (contract != null) {
+            db.queryForList(
+                "UPDATE app.job_applications SET status = 'CONTRACTED' WHERE id = ?::uuid",
+                applicationId
+            )
+        }
+
+        return contract
     }
 
     fun managerSign(contractId: String, managerUserId: String, signatureS3Key: String): Map<String, Any?>? {

@@ -365,6 +365,21 @@ export default function AllJobsClient({ locale }: AllJobsClientProps) {
         </div>
       )}
 
+      {/* Header row: tab filter + Add Job button */}
+      <div className="flex items-center justify-between gap-2 mb-1">
+        <div />
+        <button
+          type="button"
+          onClick={() => setShowSitePicker(true)}
+          className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-[#0669F7] text-white font-medium text-sm hover:bg-[#0557D4] transition-colors shadow-sm shrink-0"
+        >
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+          </svg>
+          {t('jobs_page.add_job')}
+        </button>
+      </div>
+
       {/* Tab filter */}
       <div className="sticky top-0 z-10 bg-[#F2F4F5] -mx-4 px-4 pb-2">
         <div className="flex gap-1 overflow-x-auto scrollbar-hide">
@@ -416,18 +431,6 @@ export default function AllJobsClient({ locale }: AllJobsClientProps) {
           siteStatusLabels={siteStatusLabels}
         />
       )}
-
-      {/* FAB — new job */}
-      <button
-        type="button"
-        onClick={() => setShowSitePicker(true)}
-        className="fixed bottom-20 right-5 w-14 h-14 rounded-full bg-[#0669F7] shadow-lg flex items-center justify-center text-white z-40"
-        aria-label={t('jobs_page.empty_cta')}
-      >
-        <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-          <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
-        </svg>
-      </button>
 
       {/* Site picker modal */}
       {showSitePicker && (

@@ -21,6 +21,8 @@ interface Application {
   workerPhone: string
   workerTrades: string[]
   experienceYears?: number
+  contractId?: string
+  contractStatus?: string
 }
 
 type TabKey = 'all' | 'pending' | 'accepted' | 'contracted'
@@ -358,12 +360,21 @@ export default function ManagerHiresClient() {
                   )}
 
                   {app.status === 'CONTRACTED' && (
-                    <Link
-                      href={`/manager/hires/${app.id}` as never}
-                      className="block w-full py-1.5 rounded-full bg-[#E6F9E6] border border-[#86D98A] text-[#1A6B1A] font-medium text-xs text-center hover:bg-[#1A6B1A] hover:text-white transition-colors"
-                    >
-                      {t('manager_hires.view_contract')}
-                    </Link>
+                    app.contractStatus === 'FULLY_SIGNED' ? (
+                      <Link
+                        href={`/manager/hires/${app.id}` as never}
+                        className="block w-full py-1.5 rounded-full bg-[#E6F9E6] border border-[#86D98A] text-[#1A6B1A] font-medium text-xs text-center hover:bg-[#1A6B1A] hover:text-white transition-colors"
+                      >
+                        {t('manager_hires.view_contract')}
+                      </Link>
+                    ) : (
+                      <Link
+                        href={`/manager/hires/${app.id}` as never}
+                        className="block w-full py-1.5 rounded-full border border-[#0669F7] text-[#0669F7] font-medium text-xs text-center hover:bg-[#0669F7] hover:text-white transition-colors"
+                      >
+                        {t('manager_hires.write_contract')}
+                      </Link>
+                    )
                   )}
 
                   {app.status === 'REJECTED' && (

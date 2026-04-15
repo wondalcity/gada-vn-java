@@ -319,13 +319,15 @@ class ManagerJobController(
                       j.id AS job_id, j.title AS job_title, j.work_date,
                       wp.id AS worker_id, wp.full_name AS worker_name,
                       u.phone AS worker_phone,
-                      t.name_ko AS trade_name
+                      t.name_ko AS trade_name,
+                      c.id AS contract_id, c.status AS contract_status
                FROM app.job_applications a
                JOIN app.jobs j ON a.job_id = j.id
                JOIN app.manager_profiles mp ON j.manager_id = mp.id
                JOIN app.worker_profiles wp ON a.worker_id = wp.id
                JOIN auth.users u ON wp.user_id = u.id
                LEFT JOIN ref.construction_trades t ON t.id = wp.primary_trade_id
+               LEFT JOIN app.contracts c ON c.application_id = a.id
                WHERE mp.user_id = ? AND a.status != 'WITHDRAWN'
                ORDER BY a.applied_at DESC""",
             u.id
@@ -341,7 +343,9 @@ class ManagerJobController(
                 "workerId" to r["worker_id"],
                 "workerName" to (r["worker_name"] ?: ""),
                 "workerPhone" to (r["worker_phone"] ?: ""),
-                "workerTrades" to if (r["trade_name"] != null) listOf(r["trade_name"]) else emptyList<String>()
+                "workerTrades" to if (r["trade_name"] != null) listOf(r["trade_name"]) else emptyList<String>(),
+                "contractId" to r["contract_id"],
+                "contractStatus" to r["contract_status"]
             )
         }
         return ok(result)

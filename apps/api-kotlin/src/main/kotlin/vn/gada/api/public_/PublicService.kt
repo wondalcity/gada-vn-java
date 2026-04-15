@@ -300,13 +300,14 @@ class PublicService(
 
     fun getTrades(): List<Map<String, Any?>> {
         return db.queryForList(
-            "SELECT id, code, name_ko, name_vi FROM ref.construction_trades ORDER BY id"
+            "SELECT id, code, name_ko, name_vi, name_en FROM ref.construction_trades ORDER BY id"
         ).map { r ->
             mapOf(
                 "id" to r["id"],
                 "code" to r["code"],
                 "nameKo" to r["name_ko"],
-                "nameVi" to r["name_vi"]
+                "nameVi" to r["name_vi"],
+                "nameEn" to r["name_en"]
             )
         }
     }

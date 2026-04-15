@@ -369,6 +369,7 @@
     "view_contract": "계약서 보기",
     "download": "다운로드",
     "create_contract": "계약서 생성",
+    "write_contract": "계약서 작성",
     "creating_contract": "생성 중...",
     "contract_created": "계약서가 생성되었습니다.",
     "contract_create_error": "계약서 생성 중 오류가 발생했습니다.",
