@@ -95,7 +95,7 @@ export default function SettingsPage({ currentLocale, extraSections = [] }: Prop
 
   function handleLogout() {
     clearSessionCookie()
-    router.push(`/${currentLocale}/login` as never)
+    router.push('/login')
   }
 
   return (

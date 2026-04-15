@@ -2,7 +2,6 @@
 
 import { useEffect } from 'react'
 import { useRouter } from '@/i18n/navigation'
-import { useParams } from 'next/navigation'
 
 export default function PublicError({
   reset,
@@ -11,12 +10,10 @@ export default function PublicError({
   reset: () => void
 }) {
   const router = useRouter()
-  const params = useParams()
-  const locale = (params?.locale as string) ?? 'ko'
 
   useEffect(() => {
-    router.replace(`/${locale}`)
-  }, [locale, router])
+    router.replace('/')
+  }, [router])
 
   return (
     <div className="min-h-dvh flex flex-col items-center justify-center bg-[#F8F8FA] px-6 text-center">
@@ -35,7 +32,7 @@ export default function PublicError({
           다시 시도
         </button>
         <button
-          onClick={() => router.replace(`/${locale}`)}
+          onClick={() => router.replace('/')}
           className="px-5 py-2.5 rounded-2xl bg-[#0669F7] text-white text-sm font-medium hover:bg-[#0550C4] transition-colors"
         >
           메인으로 이동
