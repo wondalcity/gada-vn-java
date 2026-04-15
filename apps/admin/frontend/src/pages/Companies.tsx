@@ -32,6 +32,8 @@ interface Company {
   site_count: number
   created_at: string
   updated_at?: string
+  creator_name?: string
+  creator_phone?: string
 }
 
 
@@ -506,7 +508,7 @@ export default function Companies() {
           <table className="w-full min-w-[700px]">
             <thead className="bg-[#F2F4F5]">
               <tr>
-                {[t('companies.col_name'), t('companies.col_reg_no'), t('companies.col_contact'), t('companies.col_phone'), t('companies.col_sites'), t('companies.col_signature'), t('companies.col_registered'), ''].map((h) => (
+                {[t('companies.col_name'), t('companies.col_reg_no'), t('companies.col_contact'), t('companies.col_phone'), t('companies.col_sites'), t('companies.col_signature'), t('companies.col_creator'), t('companies.col_registered'), ''].map((h) => (
                   <th key={h} className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase whitespace-nowrap">{h}</th>
                 ))}
               </tr>
@@ -530,6 +532,14 @@ export default function Companies() {
                     ) : (
                       <span className="inline-flex items-center px-2 py-1 rounded-full bg-[#EFF1F5] text-[#98A2B2] text-xs">{t('common.not_registered')}</span>
                     )}
+                  </td>
+                  <td className="px-6 py-4 text-sm text-gray-600 whitespace-nowrap">
+                    {c.creator_name ? (
+                      <div>
+                        <div className="font-medium">{c.creator_name}</div>
+                        {c.creator_phone && <div className="text-xs text-gray-400">{formatPhone(c.creator_phone)}</div>}
+                      </div>
+                    ) : <span className="text-gray-300">-</span>}
                   </td>
                   <td className="px-6 py-4 text-sm text-gray-500 whitespace-nowrap">{fmtDateTime(c.created_at)}</td>
                   <td className="px-6 py-4 text-right whitespace-nowrap">
