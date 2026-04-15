@@ -3,6 +3,7 @@
 import * as React from 'react'
 import { useTranslations } from 'next-intl'
 import { useAuth } from '@/hooks/useAuth'
+import { formatDate } from '@/lib/utils/date'
 import { useRouter } from '@/components/navigation'
 import ConfirmModal from '@/components/manager/ConfirmModal'
 
@@ -33,10 +34,6 @@ const STATUS_CONFIG: Record<ApplicationStatus, { label: string; bg: string; text
   REJECTED:   { label: '거절됨',   bg: '#FFEBEE', text: '#B71C1C' },
   WITHDRAWN:  { label: '취소함',   bg: '#F5F5F5', text: '#616161' },
   CONTRACTED: { label: '계약 완료', bg: '#E3F2FD', text: '#0D47A1' },
-}
-
-function formatDate(d: string) {
-  return new Intl.DateTimeFormat('ko-KR', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'short' }).format(new Date(d))
 }
 
 function formatVND(n: number) {
@@ -174,7 +171,7 @@ export default function WorkerApplicationDetailClient({ id, locale }: { id: stri
 
       {/* Detail rows */}
       <div className="bg-white rounded-2xl border border-[#EFF1F5] shadow-sm px-4 mb-3">
-        <Row label={t('worker_applications.work_date')} value={formatDate(application.workDate)} />
+        <Row label={t('worker_applications.work_date')} value={formatDate(application.workDate, locale)} />
         {(application.startTime || application.endTime) && (
           <Row
             label={t('worker_applications.work_time')}
@@ -184,9 +181,9 @@ export default function WorkerApplicationDetailClient({ id, locale }: { id: stri
         <Row label={t('worker_applications.daily_wage')} value={
           <span className="text-[#0669F7] font-bold">{formatVND(application.dailyWage)}</span>
         } />
-        <Row label={t('worker_applications.applied_at_label')} value={formatDate(application.appliedAt)} />
+        <Row label={t('worker_applications.applied_at_label')} value={formatDate(application.appliedAt, locale)} />
         {application.reviewedAt && (
-          <Row label={t('worker_applications.reviewed_at')} value={formatDate(application.reviewedAt)} />
+          <Row label={t('worker_applications.reviewed_at')} value={formatDate(application.reviewedAt, locale)} />
         )}
       </div>
 

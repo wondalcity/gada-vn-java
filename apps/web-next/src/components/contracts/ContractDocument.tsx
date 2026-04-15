@@ -1,23 +1,11 @@
 'use client'
 
 import * as React from 'react'
+import { useLocale } from 'next-intl'
 import type { Contract } from '@/types/contract'
+import { formatDate, formatDateShort } from '@/lib/utils/date'
 
 // ── helpers ──────────────────────────────────────────────────────────────────
-
-function fmtDate(d?: string | null) {
-  if (!d) return '-'
-  const dt = new Date(d)
-  if (isNaN(dt.getTime())) return d
-  return dt.toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'short' })
-}
-
-function fmtShortDate(d?: string | null) {
-  if (!d) return '-'
-  const dt = new Date(d)
-  if (isNaN(dt.getTime())) return d
-  return `${dt.getFullYear()}년 ${dt.getMonth() + 1}월 ${dt.getDate()}일`
-}
 
 function fmtVND(n?: number | null) {
   if (n == null) return '-'
@@ -92,8 +80,9 @@ interface Props {
 }
 
 export function ContractDocument({ contract, documentRef, previewWorkerSigUrl, previewManagerSigUrl }: Props) {
+  const locale = useLocale()
   const contractNo = contract.id.slice(0, 8).toUpperCase()
-  const issuedDate = fmtShortDate(contract.createdAt)
+  const issuedDate = formatDateShort(contract.createdAt, locale)
 
   // Responsive scale: shrink to fit container width on mobile, max 1× on desktop
   const outerRef = React.useRef<HTMLDivElement>(null)
@@ -192,7 +181,7 @@ export function ContractDocument({ contract, documentRef, previewWorkerSigUrl, p
           {/* 근무 조건 */}
           <SectionHeader>■ 근무 조건</SectionHeader>
           <Row label="업무 내용" value={contract.jobTitle} />
-          <Row label="근무 일자" value={fmtDate(contract.workDate)} />
+          <Row label="근무 일자" value={formatDate(contract.workDate, locale)} />
           {(contract.startTime || contract.endTime) && (
             <Row
               label="근무 시간"
@@ -322,7 +311,7 @@ export function ContractDocument({ contract, documentRef, previewWorkerSigUrl, p
 
               {contract.workerSignedAt && (
                 <div style={{ fontSize: '10px', color: '#888', textAlign: 'center', marginTop: '4px' }}>
-                  서명일: {fmtShortDate(contract.workerSignedAt)}
+                  서명일: {formatDateShort(contract.workerSignedAt, locale)}
                 </div>
               )}
             </div>
@@ -376,7 +365,7 @@ export function ContractDocument({ contract, documentRef, previewWorkerSigUrl, p
 
               {contract.managerSignedAt && (previewManagerSigUrl ?? contract.companySigUrl ?? contract.managerSigUrl) && (
                 <div style={{ fontSize: '10px', color: '#888', textAlign: 'center', marginTop: '4px' }}>
-                  날인일: {fmtShortDate(contract.managerSignedAt)}
+                  날인일: {formatDateShort(contract.managerSignedAt, locale)}
                 </div>
               )}
             </div>

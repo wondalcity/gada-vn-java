@@ -1,7 +1,8 @@
 'use client'
 
 import * as React from 'react'
-import { useTranslations } from 'next-intl'
+import { useTranslations, useLocale } from 'next-intl'
+import { formatDate } from '@/lib/utils/date'
 import type { Applicant } from '@/types/application'
 import ConfirmModal from '@/components/manager/ConfirmModal'
 
@@ -15,14 +16,6 @@ interface Props {
   jobStatus: string
   slotsFilled: number
   slotsTotal: number
-}
-
-function formatDate(d: string): string {
-  return new Intl.DateTimeFormat('ko-KR', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-  }).format(new Date(d))
 }
 
 function formatExperienceMonths(months: number): { years: number; rem: number } {
@@ -45,6 +38,7 @@ export default function WorkerDetailModal({
   slotsTotal,
 }: Props) {
   const t = useTranslations('common')
+  const locale = useLocale()
   const [showRejectForm, setShowRejectForm] = React.useState(false)
   const [rejectNotes, setRejectNotes] = React.useState('')
   const [showCancelConfirm, setShowCancelConfirm] = React.useState(false)
@@ -176,7 +170,7 @@ export default function WorkerDetailModal({
           </div>
 
           {/* Applied date */}
-          <p className="text-xs text-[#98A2B2] mb-4">{t('manager_workers.applied_at', { date: formatDate(appliedAt) })}</p>
+          <p className="text-xs text-[#98A2B2] mb-4">{t('manager_workers.applied_at', { date: formatDate(appliedAt, locale) })}</p>
 
           {/* Notes (for rejected) */}
           {status === 'REJECTED' && notes && (

@@ -4,19 +4,12 @@ import * as React from 'react'
 import { Link } from '@/i18n/navigation'
 import type { Job } from '@/types/manager-site-job'
 import StatusBadge from '@/components/manager/StatusBadge'
+import { formatDate } from '@/lib/utils/date'
 
 interface JobCardProps {
   job: Job
   locale: string
   showSite?: boolean
-}
-
-const MONTHS = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC']
-function formatDate(dateStr: string, locale: string) {
-  const d = new Date(dateStr)
-  if (isNaN(d.getTime())) return dateStr
-  if (locale === 'ko') return `${d.getMonth() + 1}월 ${d.getDate()}일`
-  return `${String(d.getDate()).padStart(2, '0')}.${MONTHS[d.getMonth()]}.${d.getFullYear()}`
 }
 
 function formatVND(amount: number) {

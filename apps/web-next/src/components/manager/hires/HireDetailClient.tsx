@@ -3,6 +3,7 @@
 import * as React from 'react'
 import { Link, useRouter } from '@/i18n/navigation'
 import { useParams } from 'next/navigation'
+import { formatDate } from '@/lib/utils/date'
 import { getSessionCookie } from '@/lib/auth/session'
 import { apiClient } from '@/lib/api/client'
 import type { HireWithContract } from '@/types/contract'
@@ -11,12 +12,6 @@ import { CONTRACT_STATUS_LABELS, CONTRACT_STATUS_COLORS } from '@/types/contract
 
 function formatVND(n: number) {
   return new Intl.NumberFormat('ko-KR').format(n) + ' ₫'
-}
-
-function formatDate(d: string) {
-  return new Intl.DateTimeFormat('ko-KR', {
-    year: 'numeric', month: 'long', day: 'numeric', weekday: 'short',
-  }).format(new Date(d))
 }
 
 function InfoRow({ label, value }: { label: string; value: React.ReactNode }) {
@@ -148,9 +143,9 @@ export default function HireDetailClient({ hireId }: Props) {
           </Link>
         } />
         <InfoRow label="현장" value={hire.siteName} />
-        <InfoRow label="근무일" value={formatDate(hire.workDate)} />
+        <InfoRow label="근무일" value={formatDate(hire.workDate, locale)} />
         <InfoRow label="일당" value={<span className="text-[#0669F7] font-bold">{formatVND(hire.dailyWage)}</span>} />
-        {hire.reviewedAt && <InfoRow label="합격일" value={formatDate(hire.reviewedAt)} />}
+        {hire.reviewedAt && <InfoRow label="합격일" value={formatDate(hire.reviewedAt, locale)} />}
       </div>
 
       {/* Contract section */}
@@ -181,10 +176,10 @@ export default function HireDetailClient({ hireId }: Props) {
 
             <div className="text-xs text-[#98A2B2] space-y-1">
               {hire.contract.managerSignedAt && (
-                <p>관리자 서명: {formatDate(hire.contract.managerSignedAt)}</p>
+                <p>관리자 서명: {formatDate(hire.contract.managerSignedAt, locale)}</p>
               )}
               {hire.contract.workerSignedAt && (
-                <p>근로자 서명: {formatDate(hire.contract.workerSignedAt)}</p>
+                <p>근로자 서명: {formatDate(hire.contract.workerSignedAt, locale)}</p>
               )}
             </div>
           </div>

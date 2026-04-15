@@ -3,6 +3,7 @@
 import * as React from 'react'
 import { useTranslations } from 'next-intl'
 import { useAuth } from '@/hooks/useAuth'
+import { formatDate } from '@/lib/utils/date'
 import { useRouter } from '@/components/navigation'
 
 const API_BASE = '/api/v1'
@@ -32,10 +33,8 @@ const EMPTY_FORM: ExperienceForm = {
   description: '',
 }
 
-function formatDateRange(start: string, end: string | null): string {
-  const fmt = (d: string) =>
-    new Intl.DateTimeFormat('ko-KR', { year: 'numeric', month: 'short' }).format(new Date(d))
-  return end ? `${fmt(start)} ~ ${fmt(end)}` : `${fmt(start)} ~ 현재`
+function formatDateRange(start: string, end: string | null, locale: string): string {
+  return end ? `${formatDate(start, locale)} ~ ${formatDate(end, locale)}` : `${formatDate(start, locale)} ~ 현재`
 }
 
 function ChevronLeftIcon() {
@@ -346,7 +345,7 @@ export default function WorkerExperienceClient({ locale }: { locale: string }) {
                 <div className="min-w-0">
                   <p className="font-semibold text-[#25282A] text-sm truncate">{exp.companyName}</p>
                   <p className="text-sm text-[#7A7B7A] mt-0.5">{exp.role}</p>
-                  <p className="text-xs text-[#98A2B2] mt-1">{formatDateRange(exp.startDate, exp.endDate)}</p>
+                  <p className="text-xs text-[#98A2B2] mt-1">{formatDateRange(exp.startDate, exp.endDate, locale)}</p>
                   {exp.description && (
                     <p className="text-xs text-[#7A7B7A] mt-2 leading-relaxed">{exp.description}</p>
                   )}

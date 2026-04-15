@@ -3,6 +3,7 @@
 import * as React from 'react'
 import { Link } from '@/i18n/navigation'
 import { useTranslations } from 'next-intl'
+import { formatDate } from '@/lib/utils/date'
 import { getSessionCookie } from '@/lib/auth/session'
 import { apiClient } from '@/lib/api/client'
 import type { Hire } from '@/types/application'
@@ -15,15 +16,6 @@ interface HireWithContractId extends Hire {
 
 function formatVND(n: number): string {
   return new Intl.NumberFormat('ko-KR').format(n) + ' ₫'
-}
-
-function formatDate(d: string): string {
-  return new Intl.DateTimeFormat('ko-KR', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-    weekday: 'short',
-  }).format(new Date(d))
 }
 
 function BuildingIllustration() {
@@ -117,7 +109,7 @@ export default function WorkerHiresClient() {
 
               {/* Work date & time */}
               <p className="text-xs text-[#98A2B2] mt-1">
-                {formatDate(hire.workDate)}
+                {formatDate(hire.workDate, locale)}
                 {hire.startTime && hire.endTime && ` · ${hire.startTime}–${hire.endTime}`}
               </p>
 

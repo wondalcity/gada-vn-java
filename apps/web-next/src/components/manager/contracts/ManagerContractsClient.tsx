@@ -8,6 +8,7 @@ import { getSessionCookie } from '@/lib/auth/session'
 import { apiClient } from '@/lib/api/client'
 import { CONTRACT_STATUS_LABELS, CONTRACT_STATUS_COLORS } from '@/types/contract'
 import type { ContractStatus } from '@/types/contract'
+import { formatDate } from '@/lib/utils/date'
 
 interface ContractListItem {
   id: string
@@ -25,15 +26,6 @@ interface ContractListItem {
 
 function formatVND(n: number): string {
   return new Intl.NumberFormat('ko-KR').format(n) + ' ₫'
-}
-
-function formatDate(d: string): string {
-  return new Intl.DateTimeFormat('ko-KR', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-    weekday: 'short',
-  }).format(new Date(d))
 }
 
 function DocumentIllustration() {
@@ -150,7 +142,7 @@ export default function ManagerContractsClient() {
               <div className="border-t border-[#EFF1F5] pt-2 space-y-1 text-xs text-[#98A2B2]">
                 <p className="text-[#25282A] font-medium text-sm">{contract.job_title}</p>
                 <p>{contract.site_name}</p>
-                <p>{formatDate(contract.work_date)}</p>
+                <p>{formatDate(contract.work_date, locale)}</p>
                 <p className="text-base font-bold text-[#0669F7] mt-1">{formatVND(contract.daily_wage)}</p>
               </div>
 

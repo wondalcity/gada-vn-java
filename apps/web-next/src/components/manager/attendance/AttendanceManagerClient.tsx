@@ -3,6 +3,7 @@
 import * as React from 'react'
 import { useTranslations } from 'next-intl'
 import { getSessionCookie } from '@/lib/auth/session'
+import { formatDate } from '@/lib/utils/date'
 import type { RosterEntry, AttendanceStatus } from '@/types/attendance'
 import { STATUS_LABELS } from '@/lib/attendance'
 import AttendanceWorkerRow, { type DraftRecord } from './AttendanceWorkerRow'
@@ -12,15 +13,6 @@ const API_BASE = '/api/v1'
 interface Props {
   jobId: string
   locale: string
-}
-
-function formatDate(date: Date, locale: string): string {
-  return new Intl.DateTimeFormat(locale, {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-    weekday: 'short',
-  }).format(date)
 }
 
 function toDateString(date: Date): string {

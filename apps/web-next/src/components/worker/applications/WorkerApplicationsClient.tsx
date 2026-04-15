@@ -1,8 +1,9 @@
 'use client'
 
 import * as React from 'react'
-import { useTranslations } from 'next-intl'
+import { useTranslations, useLocale } from 'next-intl'
 import { useAuth } from '@/hooks/useAuth'
+import { formatDate } from '@/lib/utils/date'
 import { apiClient } from '@/lib/api/client'
 import type { WorkerApplication, ApplicationStatus } from '@/types/application'
 import ConfirmModal from '@/components/manager/ConfirmModal'
@@ -25,15 +26,6 @@ function formatVND(n: number): string {
   return new Intl.NumberFormat('ko-KR').format(n) + ' ₫'
 }
 
-function formatDate(d: string): string {
-  return new Intl.DateTimeFormat('ko-KR', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-    weekday: 'short',
-  }).format(new Date(d))
-}
-
 const STATUS_CLASS: Record<ApplicationStatus, string> = {
   PENDING: 'bg-[#FFF8E6] text-[#856404] border-[#F5D87D]',
   ACCEPTED: 'bg-[#E6F9E6] text-[#1A6B1A] border-[#86D98A]',
@@ -42,9 +34,11 @@ const STATUS_CLASS: Record<ApplicationStatus, string> = {
   CONTRACTED: 'bg-[#E6F0FE] text-[#0669F7] border-[#B3D9FF]',
 }
 
-export default function WorkerApplicationsClient({ locale }: { locale?: string }) {
+export default function WorkerApplicationsClient({ locale: localeProp }: { locale?: string }) {
   const { idToken } = useAuth()
   const t = useTranslations('common')
+  const localeFromHook = useLocale()
+  const locale = localeProp ?? localeFromHook
   const [applications, setApplications] = React.useState<WorkerApplication[]>([])
   const [activeTab, setActiveTab] = React.useState<TabKey>('all')
   const [isLoading, setIsLoading] = React.useState(true)
@@ -214,13 +208,13 @@ export default function WorkerApplicationsClient({ locale }: { locale?: string }
                     </div>
 
                     {/* Site & Date */}
-                    <p className="text-xs text-[#98A2B2]">{app.siteName} · {formatDate(app.workDate)}</p>
+                    <p className="text-xs text-[#98A2B2]">{app.siteName} · {formatDate(app.workDate, locale)}</p>
 
                     {/* Wage */}
                     <p className="text-sm font-semibold text-[#0669F7] mt-1">{formatVND(app.dailyWage)}</p>
 
                     {/* Applied date */}
-                    <p className="text-xs text-[#98A2B2] mt-1">{t('worker_applications.applied_at', { date: formatDate(app.appliedAt) })}</p>
+                    <p className="text-xs text-[#98A2B2] mt-1">{t('worker_applications.applied_at', { date: formatDate(app.appliedAt, locale) })}</p>
                   </div>
                 </div>
 

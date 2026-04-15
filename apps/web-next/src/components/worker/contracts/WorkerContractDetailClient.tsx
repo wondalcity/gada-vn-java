@@ -10,18 +10,10 @@ import { useSignatureCanvas } from '@/hooks/useSignatureCanvas'
 import type { Contract } from '@/types/contract'
 import { CONTRACT_STATUS_LABELS, CONTRACT_STATUS_COLORS } from '@/types/contract'
 import { ContractDocument, ContractDownloadButton } from '@/components/contracts/ContractDocument'
+import { formatDate } from '@/lib/utils/date'
 
 function formatVND(n: number): string {
   return new Intl.NumberFormat('ko-KR').format(n) + ' ₫'
-}
-
-function formatDate(d: string): string {
-  return new Date(d).toLocaleDateString('ko-KR', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-    weekday: 'short',
-  })
 }
 
 function SignaturePad({
@@ -513,7 +505,7 @@ export default function WorkerContractDetailClient({ contractId }: Props) {
           </div>
           <div className="flex justify-between">
             <span className="text-[#98A2B2]">{t('worker_contracts.info_work_date')}</span>
-            <span className="text-[#25282A] font-medium">{formatDate(contract.workDate)}</span>
+            <span className="text-[#25282A] font-medium">{formatDate(contract.workDate, locale)}</span>
           </div>
           <div className="flex justify-between">
             <span className="text-[#98A2B2]">{t('worker_contracts.info_daily_wage')}</span>

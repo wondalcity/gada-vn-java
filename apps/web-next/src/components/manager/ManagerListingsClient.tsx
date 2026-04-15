@@ -3,6 +3,7 @@
 import * as React from 'react'
 import { Link, useRouter } from '@/i18n/navigation'
 import { getSessionCookie } from '@/lib/auth/session'
+import { formatDate } from '@/lib/utils/date'
 
 const API_BASE = '/api/v1'
 
@@ -43,9 +44,6 @@ interface ManagerJob {
 
 function formatVnd(n: number) {
   return new Intl.NumberFormat('ko-KR').format(n) + ' ₫'
-}
-function formatDate(d: string) {
-  return new Date(d).toLocaleDateString('ko-KR', { month: 'short', day: 'numeric', weekday: 'short' })
 }
 
 const SITE_STATUS: Record<string, { label: string; bg: string; text: string }> = {
@@ -201,7 +199,7 @@ function JobPreviewCard({ job, locale }: { job: ManagerJob; locale: string }) {
 
         {/* Date & wage */}
         <div className="flex items-center justify-between text-xs text-[#98A2B2] mb-2">
-          <span>{formatDate(job.workDate)}</span>
+          <span>{formatDate(job.workDate, locale)}</span>
           <span className="font-bold text-[#25282A]">{formatVnd(job.dailyWage)}</span>
         </div>
 

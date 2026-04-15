@@ -4,6 +4,7 @@ import * as React from 'react'
 import { Link } from '@/i18n/navigation'
 import { fetchPublicJobs, type PublicJob } from '@/lib/api/public'
 import { getSessionCookie } from '@/lib/auth/session'
+import { formatDate } from '@/lib/utils/date'
 
 const API_BASE = '/api/v1'
 
@@ -29,10 +30,6 @@ const RADIUS_OPTIONS = [
 
 function formatWage(n: number) {
   return new Intl.NumberFormat('ko-KR').format(n) + ' ₫'
-}
-
-function formatDate(d: string) {
-  return new Intl.DateTimeFormat('ko-KR', { month: 'long', day: 'numeric', weekday: 'short' }).format(new Date(d))
 }
 
 export default function NearbyJobsSection({ locale }: Props) {
@@ -287,7 +284,7 @@ export default function NearbyJobsSection({ locale }: Props) {
               )}
               <div className="flex-1 min-w-0">
                 <p className="font-medium text-[#25282A] text-sm truncate">{job.titleKo}</p>
-                <p className="text-xs text-[#98A2B2] mt-0.5 truncate">{job.siteNameKo} · {formatDate(job.workDate)}</p>
+                <p className="text-xs text-[#98A2B2] mt-0.5 truncate">{job.siteNameKo} · {formatDate(job.workDate, locale)}</p>
                 <div className="flex items-center justify-between mt-1">
                   <p className="text-sm font-semibold text-[#0669F7]">{formatWage(job.dailyWage)}</p>
                   {job.distanceKm != null && (

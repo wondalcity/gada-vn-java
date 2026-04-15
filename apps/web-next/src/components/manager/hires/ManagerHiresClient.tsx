@@ -6,6 +6,7 @@ import { useParams } from 'next/navigation'
 import { useTranslations } from 'next-intl'
 import { getSessionCookie } from '@/lib/auth/session'
 import { apiClient } from '@/lib/api/client'
+import { formatDate } from '@/lib/utils/date'
 
 const API_BASE = '/api/v1'
 
@@ -23,15 +24,6 @@ interface Application {
 }
 
 type TabKey = 'all' | 'pending' | 'accepted' | 'contracted'
-
-function formatDate(d: string, locale: string): string {
-  return new Intl.DateTimeFormat(locale === 'vi' ? 'vi-VN' : locale === 'en' ? 'en-US' : 'ko-KR', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-    weekday: 'short',
-  }).format(new Date(d))
-}
 
 function PeopleIllustration() {
   return (

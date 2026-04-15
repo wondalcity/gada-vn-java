@@ -3,6 +3,7 @@
 import * as React from 'react'
 import { Link, useRouter } from '@/i18n/navigation'
 import { useTranslations } from 'next-intl'
+import { formatDate } from '@/lib/utils/date'
 import { getSessionCookie } from '@/lib/auth/session'
 import { apiClient } from '@/lib/api/client'
 import type { Job, JobStatus } from '@/types/manager-site-job'
@@ -13,15 +14,6 @@ import ShiftManager from './ShiftManager'
 interface JobDetailClientProps {
   jobId: string
   locale: string
-}
-
-function formatDate(dateStr: string) {
-  return new Intl.DateTimeFormat('ko-KR', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-    weekday: 'short',
-  }).format(new Date(dateStr))
 }
 
 function formatVND(amount: number) {
@@ -157,12 +149,12 @@ export default function JobDetailClient({ jobId, locale }: JobDetailClientProps)
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
           <div>
             <p className="text-[#98A2B2] text-xs mb-0.5">{t('manager_job_detail.work_date')}</p>
-            <p className="text-[#25282A] font-medium">{formatDate(job.workDate)}</p>
+            <p className="text-[#25282A] font-medium">{formatDate(job.workDate, locale)}</p>
           </div>
           {job.expiresAt && (
             <div>
               <p className="text-[#98A2B2] text-xs mb-0.5">{t('manager_job_detail.deadline')}</p>
-              <p className="text-[#25282A] font-medium">{formatDate(job.expiresAt)}</p>
+              <p className="text-[#25282A] font-medium">{formatDate(job.expiresAt, locale)}</p>
             </div>
           )}
           {(job.startTime || job.endTime) && (

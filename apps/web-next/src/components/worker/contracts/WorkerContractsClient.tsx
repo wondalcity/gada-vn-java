@@ -6,6 +6,7 @@ import { Link } from '@/i18n/navigation'
 import { useParams } from 'next/navigation'
 import { getSessionCookie } from '@/lib/auth/session'
 import { apiClient } from '@/lib/api/client'
+import { formatDate } from '@/lib/utils/date'
 
 interface ContractListItem {
   id: string
@@ -117,7 +118,7 @@ export default function WorkerContractsClient() {
             const needsSign = c.status === 'PENDING_WORKER_SIGN'
             const bg = STATUS_BG[c.status] ?? STATUS_BG.VOID
             const dot = STATUS_DOT[c.status] ?? STATUS_DOT.VOID
-            const fmtDate = new Date(c.workDate).toLocaleDateString(locale, { year: 'numeric', month: 'long', day: 'numeric', weekday: 'short' })
+            const fmtDate = formatDate(c.workDate, locale)
             return (
               <div
                 key={c.id}

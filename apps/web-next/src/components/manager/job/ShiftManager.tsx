@@ -1,7 +1,9 @@
 'use client'
 
 import * as React from 'react'
+import { useLocale } from 'next-intl'
 import { apiClient } from '@/lib/api/client'
+import { formatDate } from '@/lib/utils/date'
 import { DatePicker } from '@/components/ui/DatePicker'
 import type { JobShift } from '@/types/manager-site-job'
 import StatusBadge from '@/components/manager/StatusBadge'
@@ -11,15 +13,6 @@ interface ShiftManagerProps {
   jobId: string
   initialShifts: JobShift[]
   idToken: string
-}
-
-function formatDate(dateStr: string) {
-  return new Intl.DateTimeFormat('ko-KR', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-    weekday: 'short',
-  }).format(new Date(dateStr))
 }
 
 // Returns array of weekday dates (Mon-Sat) between start and end inclusive
@@ -39,6 +32,7 @@ function getWeekdays(startStr: string, endStr: string): string[] {
 }
 
 export default function ShiftManager({ jobId, initialShifts, idToken }: ShiftManagerProps) {
+  const locale = useLocale()
   const [shifts, setShifts] = React.useState<JobShift[]>(
     [...initialShifts].sort((a, b) => a.workDate.localeCompare(b.workDate))
   )
@@ -284,7 +278,7 @@ export default function ShiftManager({ jobId, initialShifts, idToken }: ShiftMan
               className="flex items-center justify-between py-2 border-b border-[#EFF1F5] last:border-0"
             >
               <div className="flex items-center gap-3">
-                <span className="text-sm text-[#25282A]">{formatDate(shift.workDate)}</span>
+                <span className="text-sm text-[#25282A]">{formatDate(shift.workDate, locale)}</span>
                 <StatusBadge status={shift.status} />
               </div>
               {shift.status === 'OPEN' && (
