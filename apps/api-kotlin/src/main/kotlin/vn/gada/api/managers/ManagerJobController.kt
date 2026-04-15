@@ -37,15 +37,16 @@ class ManagerJobController(
         val rows = db.queryForList(
             """SELECT
                  j.id, j.slug, j.title, j.work_date, j.daily_wage, j.currency,
-                 j.slots_total, j.slots_filled, j.status, j.created_at, j.updated_at,
+                 j.slots_total, j.status, j.created_at, j.updated_at,
                  s.id AS site_id, s.name AS site_name,
                  s.image_s3_keys, s.cover_image_idx,
-                 COUNT(a.id) FILTER (WHERE a.status = 'PENDING')  AS pending_count,
-                 COUNT(a.id) FILTER (WHERE a.status = 'ACCEPTED') AS accepted_count
+                 COUNT(a.id) FILTER (WHERE a.status = 'PENDING')   AS pending_count,
+                 COUNT(a.id) FILTER (WHERE a.status = 'ACCEPTED')  AS accepted_count,
+                 COUNT(a.id) FILTER (WHERE a.status IN ('PENDING', 'ACCEPTED', 'CONTRACTED')) AS active_count
                FROM app.jobs j
                JOIN app.construction_sites s ON j.site_id = s.id
                JOIN app.manager_profiles mp ON j.manager_id = mp.id
-               LEFT JOIN app.job_applications a ON a.job_id = j.id AND a.status != 'WITHDRAWN'
+               LEFT JOIN app.job_applications a ON a.job_id = j.id AND a.status NOT IN ('REJECTED', 'WITHDRAWN')
                WHERE mp.user_id = ?
                GROUP BY j.id, s.id
                ORDER BY j.created_at DESC""",
@@ -66,7 +67,7 @@ class ManagerJobController(
                 "dailyWage" to (r["daily_wage"] as? Number)?.toDouble(),
                 "currency" to (r["currency"] ?: "VND"),
                 "slotsTotal" to (r["slots_total"] as? Number)?.toInt(),
-                "slotsFilled" to (r["slots_filled"] as? Number)?.toInt(),
+                "slotsFilled" to ((r["active_count"] as? Number)?.toInt() ?: 0),
                 "status" to r["status"],
                 "createdAt" to r["created_at"],
                 "updatedAt" to r["updated_at"],
@@ -118,19 +119,20 @@ class ManagerJobController(
             """SELECT
                  j.id, j.slug, j.title, j.description, j.trade_id,
                  j.work_date, j.start_time, j.end_time, j.daily_wage, j.currency,
-                 j.benefits, j.requirements, j.slots_total, j.slots_filled,
+                 j.benefits, j.requirements, j.slots_total,
                  j.status, j.published_at, j.expires_at, j.created_at, j.updated_at,
                  s.id AS site_id, s.name AS site_name,
                  s.image_s3_keys, s.cover_image_idx,
                  t.name_ko AS trade_name,
-                 COUNT(a.id) FILTER (WHERE a.status = 'PENDING')  AS pending_count,
-                 COUNT(a.id) FILTER (WHERE a.status = 'ACCEPTED') AS accepted_count,
-                 COUNT(a.id) FILTER (WHERE a.status = 'REJECTED') AS rejected_count
+                 COUNT(a.id) FILTER (WHERE a.status = 'PENDING')   AS pending_count,
+                 COUNT(a.id) FILTER (WHERE a.status = 'ACCEPTED')  AS accepted_count,
+                 COUNT(a.id) FILTER (WHERE a.status = 'REJECTED')  AS rejected_count,
+                 COUNT(a.id) FILTER (WHERE a.status IN ('PENDING', 'ACCEPTED', 'CONTRACTED')) AS active_count
                FROM app.jobs j
                JOIN app.construction_sites s ON j.site_id = s.id
                JOIN app.manager_profiles mp ON j.manager_id = mp.id
                LEFT JOIN ref.construction_trades t ON j.trade_id = t.id
-               LEFT JOIN app.job_applications a ON a.job_id = j.id AND a.status != 'WITHDRAWN'
+               LEFT JOIN app.job_applications a ON a.job_id = j.id AND a.status NOT IN ('REJECTED', 'WITHDRAWN')
                WHERE j.id = ? AND mp.user_id = ?
                GROUP BY j.id, s.id, t.id""",
             id, u.id
@@ -176,7 +178,7 @@ class ManagerJobController(
                 )
             },
             "slotsTotal" to (r["slots_total"] as? Number)?.toInt(),
-            "slotsFilled" to (r["slots_filled"] as? Number)?.toInt(),
+            "slotsFilled" to ((r["active_count"] as? Number)?.toInt() ?: 0),
             "status" to r["status"],
             "publishedAt" to r["published_at"],
             "expiresAt" to r["expires_at"],
@@ -345,18 +347,21 @@ class ManagerJobController(
     ): ResponseEntity<Map<String, Any?>> {
         val u = requireManager(user)
         val updated = applicationService.hire(id, u.id) ?: return ok(null)
-        // Increment slots_filled when a worker is accepted
+        // Return active applicant count (PENDING+ACCEPTED+CONTRACTED) as slotsFilled
         val rows = db.queryForList(
-            """UPDATE app.jobs j SET slots_filled = slots_filled + 1
-               FROM app.job_applications a
-               WHERE a.id = ? AND j.id = a.job_id
-               RETURNING j.slots_total, j.slots_filled, j.status""",
+            """SELECT j.slots_total, j.status,
+                      COUNT(a.id) FILTER (WHERE a.status IN ('PENDING', 'ACCEPTED', 'CONTRACTED')) AS active_count
+               FROM app.job_applications a2
+               JOIN app.jobs j ON j.id = a2.job_id
+               LEFT JOIN app.job_applications a ON a.job_id = j.id AND a.status NOT IN ('REJECTED', 'WITHDRAWN')
+               WHERE a2.id = ?
+               GROUP BY j.id""",
             id
         )
         val r = rows.firstOrNull()
         return ok(updated + mapOf(
             "slotsTotal" to ((r?.get("slots_total") as? Number)?.toInt()),
-            "slotsFilled" to ((r?.get("slots_filled") as? Number)?.toInt()),
+            "slotsFilled" to ((r?.get("active_count") as? Number)?.toInt() ?: 0),
             "jobStatus" to r?.get("status")
         ))
     }

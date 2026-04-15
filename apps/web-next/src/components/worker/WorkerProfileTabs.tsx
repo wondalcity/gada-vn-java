@@ -1039,6 +1039,7 @@ function VietnamBankSelect({ value, onChange }: { value: string; onChange: (v: s
   const [fixedTop, setFixedTop] = React.useState(0)
   const [fixedLeft, setFixedLeft] = React.useState(0)
   const [dropW, setDropW] = React.useState(280)
+  const [maxListH, setMaxListH] = React.useState(240)
 
   const filtered = search.trim()
     ? VN_BANKS.filter((b) =>
@@ -1078,14 +1079,15 @@ function VietnamBankSelect({ value, onChange }: { value: string; onChange: (v: s
   function openDropdown() {
     if (containerRef.current) {
       const rect = containerRef.current.getBoundingClientRect()
-      const dropH = 340
       const w = Math.max(rect.width, 280)
       const spaceBelow = window.innerHeight - rect.bottom - 8
-      const top = spaceBelow >= dropH ? rect.bottom + 4 : Math.max(8, rect.top - dropH - 4)
+      // Always open downward; clamp list height to fit available space (56px = search bar)
+      const listH = Math.max(120, Math.min(240, spaceBelow - 56))
       const left = Math.max(8, Math.min(rect.left, window.innerWidth - w - 8))
-      setFixedTop(top)
+      setFixedTop(rect.bottom + 4)
       setFixedLeft(left)
       setDropW(w)
+      setMaxListH(listH)
     }
     setOpen(true)
   }
@@ -1131,7 +1133,7 @@ function VietnamBankSelect({ value, onChange }: { value: string; onChange: (v: s
               />
             </div>
           </div>
-          <div className="max-h-64 overflow-y-auto">
+          <div style={{ maxHeight: maxListH, overflowY: 'scroll' }}>
             {filtered.length === 0 ? (
               <p className="text-center text-sm text-[#98A2B2] py-6">검색 결과가 없습니다</p>
             ) : filtered.map((bank) => {

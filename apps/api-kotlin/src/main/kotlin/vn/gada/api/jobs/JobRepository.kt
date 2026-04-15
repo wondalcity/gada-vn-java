@@ -81,13 +81,18 @@ class JobRepository(
 
     fun findById(id: String): Map<String, Any?>? {
         val rows = db.queryForList(
-            """SELECT j.*, s.name as site_name, s.address, s.province, s.lat, s.lng
+            """SELECT j.*, s.name as site_name, s.address, s.province, s.lat, s.lng,
+                      (SELECT COUNT(*) FROM app.job_applications a
+                       WHERE a.job_id = j.id AND a.status IN ('PENDING', 'ACCEPTED', 'CONTRACTED')
+                      ) AS active_applicant_count
                FROM app.jobs j
                JOIN app.construction_sites s ON j.site_id = s.id
                WHERE j.id = ?""",
             id
         )
-        return rows.firstOrNull()
+        return rows.firstOrNull()?.let { r ->
+            r + mapOf("slots_filled" to ((r["active_applicant_count"] as? Number)?.toInt() ?: 0))
+        }
     }
 
     fun getManagerIdByUserId(userId: String): String {

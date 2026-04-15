@@ -6,6 +6,7 @@ import { useRouter, usePathname } from '@/i18n/navigation'
 import { useSearchParams } from 'next/navigation'
 import { getSessionCookie } from '@/lib/auth/session'
 import type { Province, Trade } from '@/lib/api/public'
+import { FilterSelect } from './FilterSelect'
 
 const API_BASE = '/api/v1'
 
@@ -181,6 +182,19 @@ export function MobileJobFilters({
     ? (locale === 'vi' ? selectedTradeObj.nameVi : locale === 'en' ? (selectedTradeObj.nameEn || selectedTradeObj.nameKo) : selectedTradeObj.nameKo)
     : undefined
 
+  const provinceOptions = React.useMemo(() => [
+    { value: '', label: t('listing.filter.all_provinces') },
+    ...provinces.map(p => ({ value: p.slug, label: p.nameVi })),
+  ], [provinces, t])
+
+  const tradeOptions = React.useMemo(() => [
+    { value: '', label: t('listing.filter.all_trades') },
+    ...trades.map(tr => ({
+      value: String(tr.id),
+      label: locale === 'vi' ? tr.nameVi : locale === 'en' ? (tr.nameEn || tr.nameKo) : tr.nameKo,
+    })),
+  ], [trades, locale, t])
+
   return (
     <>
       {/* ── Sticky filter bar ─────────────────────────────────────────── */}
@@ -297,33 +311,25 @@ export function MobileJobFilters({
               {/* Province */}
               <div>
                 <label className="block text-sm font-semibold text-[#25282A] mb-2">{t('listing.filter.province')}</label>
-                <select
+                <FilterSelect
                   value={selectedProvince ?? ''}
-                  onChange={e => updateParam('province', e.target.value || undefined)}
-                  className="w-full px-3 py-2.5 text-sm border border-[#DDDDDD] rounded-xl bg-white focus:outline-none focus:border-[#0669F7] appearance-none"
-                >
-                  <option value="">{t('listing.filter.all_provinces')}</option>
-                  {provinces.map(p => (
-                    <option key={p.slug} value={p.slug}>{p.nameVi}</option>
-                  ))}
-                </select>
+                  options={provinceOptions}
+                  placeholder={t('listing.filter.all_provinces')}
+                  onChange={v => updateParam('province', v || undefined)}
+                  searchable
+                  searchPlaceholder="지역 검색..."
+                />
               </div>
 
               {/* Trade */}
               <div>
                 <label className="block text-sm font-semibold text-[#25282A] mb-2">{t('listing.filter.trade')}</label>
-                <select
-                  value={selectedTrade ?? ''}
-                  onChange={e => updateParam('trade', e.target.value || undefined)}
-                  className="w-full px-3 py-2.5 text-sm border border-[#DDDDDD] rounded-xl bg-white focus:outline-none focus:border-[#0669F7] appearance-none"
-                >
-                  <option value="">{t('listing.filter.all_trades')}</option>
-                  {trades.map(tr => (
-                    <option key={tr.id} value={String(tr.id)}>
-                      {locale === 'vi' ? tr.nameVi : locale === 'en' ? (tr.nameEn || tr.nameKo) : tr.nameKo}
-                    </option>
-                  ))}
-                </select>
+                <FilterSelect
+                  value={String(selectedTrade ?? '')}
+                  options={tradeOptions}
+                  placeholder={t('listing.filter.all_trades')}
+                  onChange={v => updateParam('trade', v || undefined)}
+                />
               </div>
 
               {/* Status */}
