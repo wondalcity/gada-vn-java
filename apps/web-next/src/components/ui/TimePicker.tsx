@@ -11,7 +11,11 @@ export interface TimePickerProps {
   disabled?: boolean
 }
 
-const HOURS = Array.from({ length: 12 }, (_, i) => String(i + 1).padStart(2, '0'))
+const ITEM_H = 44
+const VISIBLE = 5   // number of items visible in each column
+
+const PERIODS = ['AM', 'PM'] as const
+const HOURS   = Array.from({ length: 12 }, (_, i) => String(i + 1).padStart(2, '0'))
 const MINUTES = Array.from({ length: 12 }, (_, i) => String(i * 5).padStart(2, '0'))
 
 function parse(value: string): { period: 'AM' | 'PM'; hour: string; minute: string } {
@@ -30,6 +34,140 @@ function to24h(period: 'AM' | 'PM', hour: string, minute: string): string {
   return `${String(h).padStart(2, '0')}:${minute}`
 }
 
+// ── Drum Column ───────────────────────────────────────────────────────────────
+
+interface ColumnProps {
+  items: readonly string[]
+  selected: string
+  onSelect: (v: string) => void
+  renderLabel?: (v: string) => string
+  width?: number
+}
+
+function Column({ items, selected, onSelect, renderLabel, width }: ColumnProps) {
+  const containerRef = React.useRef<HTMLDivElement>(null)
+  const isProgRef   = React.useRef(false)   // true while we're scrolling programmatically
+  const timerRef    = React.useRef<ReturnType<typeof setTimeout>>()
+
+  const scrollTo = React.useCallback((item: string, instant = false) => {
+    const el = containerRef.current
+    if (!el) return
+    const idx = items.indexOf(item)
+    if (idx < 0) return
+    isProgRef.current = true
+    el.scrollTop = idx * ITEM_H
+    if (!instant) {
+      // smooth re-center after a brief paint
+      requestAnimationFrame(() => {
+        if (el) el.scrollTo({ top: idx * ITEM_H, behavior: 'smooth' })
+      })
+    }
+    setTimeout(() => { isProgRef.current = false }, 400)
+  }, [items])
+
+  // Scroll to selected on open (instant so the panel starts correctly positioned)
+  const initialized = React.useRef(false)
+  React.useEffect(() => {
+    initialized.current = false
+  }, [])  // reset when component mounts
+  React.useLayoutEffect(() => {
+    if (!initialized.current) {
+      initialized.current = true
+      scrollTo(selected, true)
+    }
+  })
+
+  // When selected changes externally (parent state), smooth-scroll
+  const prevSelected = React.useRef(selected)
+  React.useEffect(() => {
+    if (prevSelected.current !== selected) {
+      prevSelected.current = selected
+      scrollTo(selected)
+    }
+  }, [selected, scrollTo])
+
+  // Detect scroll-stop → pick centered item
+  const handleScroll = React.useCallback(() => {
+    if (isProgRef.current) return
+    if (timerRef.current) clearTimeout(timerRef.current)
+    timerRef.current = setTimeout(() => {
+      const el = containerRef.current
+      if (!el) return
+      const raw = el.scrollTop / ITEM_H
+      const idx = Math.round(raw)
+      const clamped = Math.max(0, Math.min(items.length - 1, idx))
+      const newItem = items[clamped]
+      // Snap to clean position
+      isProgRef.current = true
+      el.scrollTo({ top: clamped * ITEM_H, behavior: 'smooth' })
+      setTimeout(() => { isProgRef.current = false }, 400)
+      if (newItem !== selected) onSelect(newItem)
+    }, 120)
+  }, [items, selected, onSelect])
+
+  const colH = ITEM_H * VISIBLE
+
+  return (
+    <div className="relative overflow-hidden flex-1" style={{ height: colH, width }}>
+      {/* Top fade — dims items above selection */}
+      <div
+        className="pointer-events-none absolute inset-x-0 top-0 z-10"
+        style={{
+          height: ITEM_H * 2,
+          background: 'linear-gradient(to bottom, rgba(255,255,255,0.92) 0%, rgba(255,255,255,0.3) 100%)',
+        }}
+      />
+      {/* Center highlight band */}
+      <div
+        className="pointer-events-none absolute inset-x-0 z-10 border-y border-[#E5E7EB]"
+        style={{ top: ITEM_H * 2, height: ITEM_H, background: 'rgba(239,241,245,0.7)' }}
+      />
+      {/* Bottom fade */}
+      <div
+        className="pointer-events-none absolute inset-x-0 bottom-0 z-10"
+        style={{
+          height: ITEM_H * 2,
+          background: 'linear-gradient(to top, rgba(255,255,255,0.92) 0%, rgba(255,255,255,0.3) 100%)',
+        }}
+      />
+
+      {/* Scrollable list */}
+      <div
+        ref={containerRef}
+        onScroll={handleScroll}
+        className="absolute inset-0 overflow-y-scroll scrollbar-hide"
+        style={{ scrollSnapType: 'y mandatory' }}
+      >
+        {/* Top spacer: 2 invisible items so first item can center */}
+        <div style={{ height: ITEM_H * 2 }} aria-hidden="true" />
+
+        {items.map((item) => {
+          const isSel = item === selected
+          return (
+            <div
+              key={item}
+              onClick={() => { onSelect(item); scrollTo(item) }}
+              style={{ height: ITEM_H, scrollSnapAlign: 'center' }}
+              className={`relative z-20 flex items-center justify-center cursor-pointer select-none transition-all duration-150 ${
+                isSel
+                  ? 'text-[#0669F7] font-bold text-lg'
+                  : 'text-[#9CA3AF] font-normal text-base'
+              }`}
+            >
+              {renderLabel ? renderLabel(item) : item}
+            </div>
+          )
+        })}
+
+        {/* Bottom spacer */}
+        <div style={{ height: ITEM_H * 2 }} aria-hidden="true" />
+      </div>
+    </div>
+  )
+}
+
+// ── TimePicker ────────────────────────────────────────────────────────────────
+
 export function TimePicker({
   value,
   onChange,
@@ -40,7 +178,7 @@ export function TimePicker({
   const t = useTranslations('common.time_picker')
   const [open, setOpen] = React.useState(false)
   const containerRef = React.useRef<HTMLDivElement>(null)
-  const [fixedTop, setFixedTop] = React.useState(0)
+  const [fixedTop, setFixedTop]   = React.useState(0)
   const [fixedLeft, setFixedLeft] = React.useState(0)
 
   const { period, hour, minute } = parse(value)
@@ -51,7 +189,7 @@ export function TimePicker({
         Math.abs(parseInt(m) - parseInt(minute)) < Math.abs(parseInt(best) - parseInt(minute)) ? m : best
       , MINUTES[0])
 
-  // Close on outside click, scroll, or resize — same pattern as DatePicker
+  // Close on outside click / scroll / resize — same pattern as DatePicker
   React.useEffect(() => {
     if (!open) return
     function handleClick(e: MouseEvent) {
@@ -76,12 +214,10 @@ export function TimePicker({
     if (disabled) return
     if (containerRef.current) {
       const rect = containerRef.current.getBoundingClientRect()
-      const pickerH = 340
-      const pickerW = 280
+      const pickerH = 310
+      const pickerW = 252
       const spaceBelow = window.innerHeight - rect.bottom - 8
-      const top = spaceBelow >= pickerH
-        ? rect.bottom + 6
-        : Math.max(8, rect.top - pickerH - 6)
+      const top  = spaceBelow >= pickerH ? rect.bottom + 6 : Math.max(8, rect.top - pickerH - 6)
       const left = Math.max(8, Math.min(rect.left, window.innerWidth - pickerW - 16))
       setFixedTop(top)
       setFixedLeft(left)
@@ -91,17 +227,22 @@ export function TimePicker({
 
   const amLabel = t('am')
   const pmLabel = t('pm')
-  const displayValue = value ? `${period === 'AM' ? amLabel : pmLabel} ${hour}:${nearestMinute}` : ''
+  const displayValue = value
+    ? `${period === 'AM' ? amLabel : pmLabel} ${hour}:${nearestMinute}`
+    : ''
 
-  const inputBase = `w-full px-3 py-2.5 rounded-2xl border text-sm bg-white flex items-center justify-between cursor-pointer transition-colors ${
+  const inputBase = [
+    'w-full px-3 py-2.5 rounded-2xl border text-sm bg-white flex items-center justify-between transition-colors',
     disabled
       ? 'border-[#EFF1F5] bg-[#F2F4F5] cursor-not-allowed text-[#98A2B2]'
-      : 'border-[#EFF1F5] text-[#25282A] hover:border-[#0669F7]'
-  } ${open ? 'border-[#0669F7] ring-2 ring-[#0669F7]/10' : ''} ${className}`
+      : 'border-[#EFF1F5] text-[#25282A] hover:border-[#0669F7] cursor-pointer',
+    open ? 'border-[#0669F7] ring-2 ring-[#0669F7]/10' : '',
+    className,
+  ].join(' ')
 
   return (
     <div ref={containerRef} className="relative w-full">
-      {/* Trigger button */}
+      {/* Trigger */}
       <button
         type="button"
         onClick={openPicker}
@@ -115,105 +256,71 @@ export function TimePicker({
         </span>
         <svg
           className={`w-4 h-4 shrink-0 transition-colors ${open ? 'text-[#0669F7]' : 'text-[#98A2B2]'}`}
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
+          fill="none" stroke="currentColor" viewBox="0 0 24 24"
         >
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8}
             d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
         </svg>
       </button>
 
-      {/* Dropdown — fixed position to escape overflow:hidden parents, same as DatePicker */}
+      {/* Dropdown — inline fixed, same as DatePicker (no createPortal) */}
       {open && (
         <div
           id="timepicker-portal"
           role="dialog"
           aria-modal="true"
           className="bg-white rounded-2xl shadow-2xl border border-[#EFF1F5] overflow-hidden"
-          style={{ position: 'fixed', top: fixedTop, left: fixedLeft, zIndex: 9999, width: 280 }}
+          style={{ position: 'fixed', top: fixedTop, left: fixedLeft, zIndex: 9999, width: 252 }}
         >
           {/* Header */}
-          <div className="flex items-center justify-between px-4 pt-3 pb-2 border-b border-[#EFF1F5]">
+          <div className="flex items-center justify-between px-4 py-3 border-b border-[#EFF1F5]">
             <span className="text-sm font-semibold text-[#25282A]">{t('title')}</span>
             <button
               type="button"
               onClick={() => setOpen(false)}
-              className="text-xs font-medium text-[#0669F7] hover:underline"
+              className="text-sm font-semibold text-[#0669F7] hover:opacity-70 transition-opacity"
             >
               {t('confirm')}
             </button>
           </div>
 
-          <div className="p-3 space-y-3">
-            {/* AM / PM toggle */}
-            <div className="grid grid-cols-2 gap-2">
-              {(['AM', 'PM'] as const).map((p) => (
-                <button
-                  key={p}
-                  type="button"
-                  onClick={() => onChange(to24h(p, hour, nearestMinute))}
-                  className={`py-2 rounded-xl text-sm font-semibold transition-all ${
-                    period === p
-                      ? 'bg-[#0669F7] text-white shadow-sm'
-                      : 'bg-[#F2F4F5] text-[#25282A] hover:bg-[#E6F0FE] hover:text-[#0669F7]'
-                  }`}
-                >
-                  {p === 'AM' ? amLabel : pmLabel}
-                </button>
-              ))}
-            </div>
-
-            {/* Hour grid */}
-            <div>
-              <p className="text-xs font-medium text-[#98A2B2] mb-1.5">{t('hour_label')}</p>
-              <div className="grid grid-cols-6 gap-1">
-                {HOURS.map((h) => (
-                  <button
-                    key={h}
-                    type="button"
-                    onClick={() => onChange(to24h(period, h, nearestMinute))}
-                    className={`py-2 rounded-lg text-sm font-medium transition-all ${
-                      hour === h
-                        ? 'bg-[#0669F7] text-white shadow-sm'
-                        : 'text-[#25282A] hover:bg-[#F2F4F5]'
-                    }`}
-                  >
-                    {h}
-                  </button>
-                ))}
+          {/* Column headers */}
+          <div className="flex border-b border-[#EFF1F5] divide-x divide-[#EFF1F5]">
+            {[t('am') + '/' + t('pm'), t('hour_label'), t('minute_label')].map((label) => (
+              <div key={label} className="flex-1 text-center text-[10px] font-medium text-[#9CA3AF] py-1">
+                {label}
               </div>
-            </div>
-
-            {/* Minute grid */}
-            <div>
-              <p className="text-xs font-medium text-[#98A2B2] mb-1.5">{t('minute_label')}</p>
-              <div className="grid grid-cols-6 gap-1">
-                {MINUTES.map((m) => (
-                  <button
-                    key={m}
-                    type="button"
-                    onClick={() => onChange(to24h(period, hour, m))}
-                    className={`py-2 rounded-lg text-sm font-medium transition-all ${
-                      nearestMinute === m
-                        ? 'bg-[#0669F7] text-white shadow-sm'
-                        : 'text-[#25282A] hover:bg-[#F2F4F5]'
-                    }`}
-                  >
-                    :{m}
-                  </button>
-                ))}
-              </div>
-            </div>
+            ))}
           </div>
 
-          {/* Clear button */}
+          {/* 3 drum columns */}
+          <div className="flex divide-x divide-[#EFF1F5]">
+            <Column
+              items={PERIODS}
+              selected={period}
+              onSelect={(p) => onChange(to24h(p as 'AM' | 'PM', hour, nearestMinute))}
+              renderLabel={(v) => v === 'AM' ? amLabel : pmLabel}
+            />
+            <Column
+              items={HOURS}
+              selected={hour}
+              onSelect={(h) => onChange(to24h(period, h, nearestMinute))}
+            />
+            <Column
+              items={MINUTES}
+              selected={nearestMinute}
+              onSelect={(m) => onChange(to24h(period, hour, m))}
+              renderLabel={(m) => `:${m}`}
+            />
+          </div>
+
+          {/* Footer */}
           {value && (
-            <div className="border-t border-[#EFF1F5] px-4 py-2 flex justify-end">
+            <div className="border-t border-[#EFF1F5] px-4 py-2.5 flex justify-end">
               <button
                 type="button"
                 onClick={() => { onChange(''); setOpen(false) }}
-                className="text-xs text-[#98A2B2] hover:text-[#ED1C24] transition-colors"
+                className="text-xs text-[#9CA3AF] hover:text-[#ED1C24] transition-colors"
               >
                 {t('clear')}
               </button>
