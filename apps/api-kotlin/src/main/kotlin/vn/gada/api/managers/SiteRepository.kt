@@ -152,12 +152,12 @@ class SiteRepository(
                  lng        = COALESCE(?, lng),
                  site_type  = COALESCE(?, site_type),
                  status     = COALESCE(?, status),
-                 company_id = CASE WHEN ? IS NOT NULL THEN ?::UUID ELSE company_id END,
+                 company_id = COALESCE(?::uuid, company_id),
                  updated_at = NOW()
                WHERE id = ? AND manager_id = ?
                RETURNING *""",
             name, address, province, district, lat, lng, siteType, status,
-            companyId, companyId, siteId, managerId
+            companyId, siteId, managerId
         )
         if (rows.isEmpty()) throw NotFoundException("Site not found")
         val row = rows.first().toMutableMap()
