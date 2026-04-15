@@ -1,5 +1,6 @@
 package vn.gada.api.managers
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.ResponseEntity
 import org.springframework.security.core.annotation.AuthenticationPrincipal
@@ -19,8 +20,18 @@ class ManagerJobController(
     private val applicationService: ApplicationService,
     private val attendanceService: AttendanceService,
     private val jobRepo: JobRepository,
+    private val objectMapper: ObjectMapper,
     @Value("\${gada.aws.cdn-domain:}") private val cdnDomain: String
 ) {
+
+    /** Parse a JSONB value (returned as String by DatabaseService) into a Map. */
+    @Suppress("UNCHECKED_CAST")
+    private fun parseJsonb(v: Any?): Map<String, Any?> = when (v) {
+        null -> emptyMap()
+        is Map<*, *> -> v as Map<String, Any?>
+        is String -> try { objectMapper.readValue(v, Map::class.java) as Map<String, Any?> } catch (_: Exception) { emptyMap() }
+        else -> emptyMap()
+    }
 
     private fun toImageUrl(key: String?): String? {
         if (key == null) return null
@@ -145,11 +156,8 @@ class ManagerJobController(
         val coverIdx = (r["cover_image_idx"] as? Number)?.toInt() ?: 0
         val imageUrls = imageKeys.mapNotNull { toImageUrl(it) }
 
-        @Suppress("UNCHECKED_CAST")
-        val benefits = (r["benefits"] as? Map<String, Boolean>) ?: emptyMap()
-
-        @Suppress("UNCHECKED_CAST")
-        val reqRaw = r["requirements"] as? Map<String, Any?>
+        val benefits = parseJsonb(r["benefits"])
+        val reqRaw = parseJsonb(r["requirements"]).takeIf { it.isNotEmpty() }
 
         return ok(mapOf(
             "id" to r["id"],
@@ -166,10 +174,10 @@ class ManagerJobController(
             "dailyWage" to (r["daily_wage"] as? Number)?.toDouble(),
             "currency" to (r["currency"] ?: "VND"),
             "benefits" to mapOf(
-                "meals" to (benefits["meals"] ?: false),
-                "transport" to (benefits["transport"] ?: false),
-                "accommodation" to (benefits["accommodation"] ?: false),
-                "insurance" to (benefits["insurance"] ?: false)
+                "meals" to (benefits["meals"] == true),
+                "transport" to (benefits["transport"] == true),
+                "accommodation" to (benefits["accommodation"] == true),
+                "insurance" to (benefits["insurance"] == true)
             ),
             "requirements" to reqRaw?.let { req ->
                 mapOf(
