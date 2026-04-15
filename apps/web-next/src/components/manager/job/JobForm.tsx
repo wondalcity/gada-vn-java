@@ -13,6 +13,14 @@ interface Trade {
   id: number
   name: string
   nameKo?: string
+  nameVi?: string
+  nameEn?: string
+}
+
+function getTradeName(tr: Trade, locale: string): string {
+  if (locale === 'vi') return tr.nameVi ?? tr.nameKo ?? tr.name
+  if (locale === 'en') return tr.nameEn ?? tr.nameKo ?? tr.name
+  return tr.nameKo ?? tr.name
 }
 
 interface JobFormProps {
@@ -90,20 +98,32 @@ export default function JobForm({
   const [isSaving, setIsSaving] = React.useState(false)
   const [error, setError] = React.useState<string | null>(null)
 
-  // Load trades
+  // Load trades — update tradeSearch to locale-appropriate name after load
   React.useEffect(() => {
     apiClient<Trade[]>('/public/trades', { token: idToken })
-      .then((res) => setTrades(res.data))
+      .then((res) => {
+        setTrades(res.data)
+        if (initialData?.tradeId) {
+          const found = res.data.find((tr) => tr.id === initialData.tradeId)
+          if (found) setTradeSearch(getTradeName(found, locale))
+        }
+      })
       .catch(() => {})
-  }, [idToken])
+  }, [idToken]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  const filteredTrades = trades.filter((tr) =>
-    (tr.nameKo ?? tr.name).toLowerCase().includes(tradeSearch.toLowerCase())
-  ).slice(0, 20)
+  const filteredTrades = trades.filter((tr) => {
+    const search = tradeSearch.toLowerCase()
+    return (
+      (tr.nameKo ?? '').toLowerCase().includes(search) ||
+      (tr.nameVi ?? '').toLowerCase().includes(search) ||
+      (tr.nameEn ?? '').toLowerCase().includes(search) ||
+      tr.name.toLowerCase().includes(search)
+    )
+  }).slice(0, 20)
 
   function selectTrade(tr: Trade) {
     setTradeId(tr.id)
-    setTradeSearch(tr.nameKo ?? tr.name)
+    setTradeSearch(getTradeName(tr, locale))
     setShowTradeDropdown(false)
   }
 
@@ -236,7 +256,7 @@ export default function JobForm({
                       onMouseDown={() => selectTrade(tr)}
                       className="w-full text-left px-3 py-2 text-sm text-[#25282A] hover:bg-[#F2F4F5]"
                     >
-                      {tr.nameKo ?? tr.name}
+                      {getTradeName(tr, locale)}
                     </button>
                   ))}
                 </div>

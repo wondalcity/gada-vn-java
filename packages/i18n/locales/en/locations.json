@@ -22,7 +22,13 @@
     "vietnam": "Vietnam"
   },
   "province": {
-    "view_jobs": "View Jobs"
+    "view_jobs": "View Jobs",
+    "hero_title": "{nameVi} Construction Jobs",
+    "hero_desc": "Browse daily construction site jobs in {nameVi} ({nameEn}).",
+    "job_count": "{total} jobs",
+    "all_trades": "All",
+    "no_jobs": "No job listings in this region yet.",
+    "breadcrumb_label": "{nameVi} Construction Jobs"
   },
   "other_regions": "Browse other regions",
   "view_all_jobs": "All Job Listings →",

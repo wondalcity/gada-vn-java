@@ -22,7 +22,13 @@
     "vietnam": "Việt Nam"
   },
   "province": {
-    "view_jobs": "Xem việc làm"
+    "view_jobs": "Xem việc làm",
+    "hero_title": "Việc làm xây dựng tại {nameVi}",
+    "hero_desc": "Tìm kiếm việc làm tại các công trình xây dựng ở {nameVi} ({nameEn}).",
+    "job_count": "{total} việc làm",
+    "all_trades": "Tất cả",
+    "no_jobs": "Hiện chưa có tin tuyển dụng ở khu vực này.",
+    "breadcrumb_label": "Việc làm xây dựng tại {nameVi}"
   },
   "other_regions": "Xem việc làm khu vực khác",
   "view_all_jobs": "Tất cả tin tuyển dụng →",
