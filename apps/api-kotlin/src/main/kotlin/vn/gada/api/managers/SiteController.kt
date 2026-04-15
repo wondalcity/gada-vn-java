@@ -38,7 +38,7 @@ class SiteController(
             lat = (body["lat"] as? Number)?.toDouble(),
             lng = (body["lng"] as? Number)?.toDouble(),
             siteType = body["siteType"] as? String,
-            companyId = body["companyId"] as? String
+            companyId = (body["companyId"] as? String)?.takeIf { it.isNotBlank() }
         )
         return ok(result)
     }

@@ -1063,12 +1063,14 @@ function VietnamBankSelect({ value, onChange }: { value: string; onChange: (v: s
       if (portal?.contains(e.target as Node)) return
       setOpen(false)
     }
+    function handleResize() { setOpen(false) }
     document.addEventListener('mousedown', handleClick)
     window.addEventListener('scroll', handleClose as EventListener, true)
-    window.addEventListener('resize', () => setOpen(false))
+    window.addEventListener('resize', handleResize)
     return () => {
       document.removeEventListener('mousedown', handleClick)
       window.removeEventListener('scroll', handleClose as EventListener, true)
+      window.removeEventListener('resize', handleResize)
     }
   }, [open])
 
