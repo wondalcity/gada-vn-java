@@ -37,7 +37,10 @@
       "geo_error_denied": "위치 권한이 거부되었습니다. 브라우저 설정에서 허용해주세요.",
       "geo_error_unavailable": "현재 위치를 확인할 수 없습니다. 잠시 후 다시 시도해주세요.",
       "active_location": "위치 필터 중",
-      "clear_location_aria": "위치 필터 제거"
+      "clear_location_aria": "위치 필터 제거",
+      "wage_range": "일당 범위",
+      "apply_wage": "노임 필터 적용",
+      "reset_wage": "노임 초기화"
     },
     "sort": {
       "latest": "최신순",

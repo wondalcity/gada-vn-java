@@ -18,7 +18,9 @@ class PublicController(private val publicService: PublicService) {
         @RequestParam(required = false) lat: String?,
         @RequestParam(required = false) lng: String?,
         @RequestParam(required = false) radiusKm: String?,
-        @RequestParam(required = false) statusFilter: String?
+        @RequestParam(required = false) statusFilter: String?,
+        @RequestParam(required = false) minWage: String?,
+        @RequestParam(required = false) maxWage: String?
     ): ResponseEntity<Map<String, Any?>> {
         val validStatuses = setOf("CLOSING_SOON", "CLOSED")
         val parsedStatus = if (statusFilter != null && validStatuses.contains(statusFilter)) statusFilter else null
@@ -31,10 +33,18 @@ class PublicController(private val publicService: PublicService) {
             "lat" to lat?.toDoubleOrNull(),
             "lng" to lng?.toDoubleOrNull(),
             "radiusKm" to radiusKm?.let { minOf(200.0, it.toDoubleOrNull() ?: 50.0) },
-            "statusFilter" to parsedStatus
+            "statusFilter" to parsedStatus,
+            "minWage" to minWage?.toLongOrNull(),
+            "maxWage" to maxWage?.toLongOrNull()
         )
 
         return ok(publicService.listJobs(params))
+    }
+
+    /** GET /public/wage-stats */
+    @GetMapping("/wage-stats")
+    fun getWageStats(): ResponseEntity<Map<String, Any?>> {
+        return ok(publicService.getWageStats())
     }
 
     /** GET /public/jobs/:slug */

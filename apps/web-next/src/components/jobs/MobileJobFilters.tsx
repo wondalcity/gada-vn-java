@@ -5,7 +5,7 @@ import { useTranslations, useLocale } from 'next-intl'
 import { useRouter, usePathname } from '@/i18n/navigation'
 import { useSearchParams } from 'next/navigation'
 import { getSessionCookie } from '@/lib/auth/session'
-import type { Province, Trade } from '@/lib/api/public'
+import type { Province, Trade, WageStats } from '@/lib/api/public'
 import { FilterSelect } from './FilterSelect'
 
 const API_BASE = '/api/v1'
@@ -27,8 +27,88 @@ interface Props {
   selectedLng?: number
   selectedRadius?: number
   selectedStatus?: string
+  selectedMinWage?: number
+  selectedMaxWage?: number
+  wageStats?: WageStats
   totalJobs: number
   viewToggle?: React.ReactNode
+}
+
+function formatVndShort(n: number) {
+  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(n % 1_000_000 === 0 ? 0 : 1)}M`
+  if (n >= 1_000) return `${Math.round(n / 1_000)}K`
+  return String(n)
+}
+
+function WageRangeSlider({
+  min,
+  max,
+  valueMin,
+  valueMax,
+  onChange,
+}: {
+  min: number
+  max: number
+  valueMin: number
+  valueMax: number
+  onChange: (min: number, max: number) => void
+}) {
+  const gap = Math.max(10_000, Math.round((max - min) / 20))
+  const pct = (v: number) => max === min ? 0 : ((v - min) / (max - min)) * 100
+
+  return (
+    <div className="px-1">
+      <div className="flex justify-between text-sm font-semibold text-[#25282A] mb-3">
+        <span>{formatVndShort(valueMin)} ₫</span>
+        <span>{formatVndShort(valueMax)} ₫</span>
+      </div>
+      <div className="relative h-6 flex items-center">
+        <div className="absolute left-0 right-0 h-1.5 bg-[#EFF1F5] rounded-full" />
+        <div
+          className="absolute h-1.5 bg-[#0669F7] rounded-full"
+          style={{ left: `${pct(valueMin)}%`, right: `${100 - pct(valueMax)}%` }}
+        />
+        <input
+          type="range"
+          min={min}
+          max={max}
+          step={10000}
+          value={valueMin}
+          onChange={e => {
+            const v = Math.min(Number(e.target.value), valueMax - gap)
+            onChange(v, valueMax)
+          }}
+          className="absolute w-full h-6 opacity-0 cursor-pointer"
+          style={{ zIndex: valueMin > max - gap ? 5 : 3 }}
+        />
+        <input
+          type="range"
+          min={min}
+          max={max}
+          step={10000}
+          value={valueMax}
+          onChange={e => {
+            const v = Math.max(Number(e.target.value), valueMin + gap)
+            onChange(valueMin, v)
+          }}
+          className="absolute w-full h-6 opacity-0 cursor-pointer"
+          style={{ zIndex: 4 }}
+        />
+        <div
+          className="absolute w-5 h-5 rounded-full bg-white border-2 border-[#0669F7] shadow pointer-events-none"
+          style={{ left: `calc(${pct(valueMin)}% - 10px)`, zIndex: 6 }}
+        />
+        <div
+          className="absolute w-5 h-5 rounded-full bg-white border-2 border-[#0669F7] shadow pointer-events-none"
+          style={{ left: `calc(${pct(valueMax)}% - 10px)`, zIndex: 6 }}
+        />
+      </div>
+      <div className="flex justify-between text-[11px] text-[#98A2B2] mt-2">
+        <span>{formatVndShort(min)} ₫</span>
+        <span>{formatVndShort(max)} ₫</span>
+      </div>
+    </div>
+  )
 }
 
 const STATUS_DOT_COLORS = {
@@ -66,6 +146,9 @@ export function MobileJobFilters({
   selectedLng,
   selectedRadius = 30,
   selectedStatus,
+  selectedMinWage,
+  selectedMaxWage,
+  wageStats,
   totalJobs,
   viewToggle,
 }: Props) {
@@ -89,11 +172,24 @@ export function MobileJobFilters({
 
   const geoActive = selectedLat != null && selectedLng != null
 
+  const wageMin = wageStats?.minWage ?? 0
+  const wageMax = wageStats?.maxWage ?? 0
+  const hasWageRange = wageMax > wageMin
+  const [localMinWage, setLocalMinWage] = React.useState(selectedMinWage ?? wageMin)
+  const [localMaxWage, setLocalMaxWage] = React.useState(selectedMaxWage ?? wageMax)
+  const wageFilterActive = selectedMinWage != null || selectedMaxWage != null
+
+  React.useEffect(() => {
+    setLocalMinWage(selectedMinWage ?? wageMin)
+    setLocalMaxWage(selectedMaxWage ?? wageMax)
+  }, [selectedMinWage, selectedMaxWage, wageMin, wageMax])
+
   const activeFilterCount = [
     selectedProvince,
     selectedTrade,
     geoActive ? 'geo' : null,
     selectedStatus,
+    wageFilterActive ? 'wage' : null,
   ].filter(Boolean).length
 
   React.useEffect(() => {
@@ -152,7 +248,19 @@ export function MobileJobFilters({
 
   function clearAll() {
     setActiveLabel('')
+    setLocalMinWage(wageMin)
+    setLocalMaxWage(wageMax)
     router.push(pathname as never)
+  }
+
+  function applyWageFilter(minV: number, maxV: number) {
+    const atMin = minV <= wageMin
+    const atMax = maxV >= wageMax
+    const params = buildParams({
+      minWage: atMin ? undefined : String(minV),
+      maxWage: atMax ? undefined : String(maxV),
+    })
+    router.push(`${pathname}?${params.toString()}` as never)
   }
 
   function useGPS() {
@@ -263,6 +371,17 @@ export function MobileJobFilters({
                 onRemove={() => updateParam('status', undefined)}
               />
             )}
+            {wageFilterActive && (
+              <FilterChip
+                label={`${formatVndShort(selectedMinWage ?? wageMin)}~${formatVndShort(selectedMaxWage ?? wageMax)} ₫`}
+                onRemove={() => {
+                  setLocalMinWage(wageMin)
+                  setLocalMaxWage(wageMax)
+                  const params = buildParams({ minWage: undefined, maxWage: undefined })
+                  router.push(`${pathname}?${params.toString()}` as never)
+                }}
+              />
+            )}
             <button
               type="button"
               onClick={clearAll}
@@ -353,6 +472,45 @@ export function MobileJobFilters({
                   ))}
                 </div>
               </div>
+
+              {/* Wage range */}
+              {hasWageRange && (
+                <div>
+                  <label className="block text-sm font-semibold text-[#25282A] mb-3">{t('listing.filter.wage_range')}</label>
+                  <WageRangeSlider
+                    min={wageMin}
+                    max={wageMax}
+                    valueMin={localMinWage}
+                    valueMax={localMaxWage}
+                    onChange={(minV, maxV) => {
+                      setLocalMinWage(minV)
+                      setLocalMaxWage(maxV)
+                    }}
+                  />
+                  <div className="flex gap-2 mt-3">
+                    {wageFilterActive && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setLocalMinWage(wageMin)
+                          setLocalMaxWage(wageMax)
+                          applyWageFilter(wageMin, wageMax)
+                        }}
+                        className="flex-1 py-2.5 rounded-xl text-sm border border-[#DDDDDD] text-[#7A7B7A] font-medium"
+                      >
+                        {t('listing.filter.reset_wage')}
+                      </button>
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => applyWageFilter(localMinWage, localMaxWage)}
+                      className="flex-1 py-2.5 rounded-xl text-sm bg-[#0669F7] text-white font-semibold"
+                    >
+                      {t('listing.filter.apply_wage')}
+                    </button>
+                  </div>
+                </div>
+              )}
 
               {/* Location */}
               <div>

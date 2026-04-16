@@ -82,6 +82,18 @@ class PublicService(
             binds.add(site)
         }
 
+        val minWage = params["minWage"]?.let { (it as? Number)?.toLong() }
+        if (minWage != null) {
+            whereParts.add("j.daily_wage >= ?")
+            binds.add(minWage)
+        }
+
+        val maxWage = params["maxWage"]?.let { (it as? Number)?.toLong() }
+        if (maxWage != null) {
+            whereParts.add("j.daily_wage <= ?")
+            binds.add(maxWage)
+        }
+
         val where = whereParts.joinToString(" AND ")
         val distanceExpr = if (useGeo)
             "ROUND((ST_Distance(s.location::geography, ST_SetSRID(ST_MakePoint(?, ?), 4326)::geography) / 1000)::numeric, 1) AS distance_km,"
@@ -288,6 +300,21 @@ class PublicService(
             "lng" to (r["lng"] as? Number)?.toDouble(),
             "managerCompany" to r["company_name"],
             "activeJobCount" to ((r["active_job_count"] as? Number)?.toInt() ?: 0)
+        )
+    }
+
+    fun getWageStats(): Map<String, Any?> {
+        val rows = db.queryForList(
+            """SELECT
+                COALESCE(MIN(j.daily_wage), 0) AS min_wage,
+                COALESCE(MAX(j.daily_wage), 0) AS max_wage
+              FROM app.jobs j
+              WHERE j.status = 'OPEN' AND (j.expires_at IS NULL OR j.expires_at > NOW())"""
+        )
+        val r = rows.firstOrNull() ?: return mapOf("minWage" to 0, "maxWage" to 0)
+        return mapOf(
+            "minWage" to (r["min_wage"] as? Number)?.toLong() ?: 0L,
+            "maxWage" to (r["max_wage"] as? Number)?.toLong() ?: 0L
         )
     }
 

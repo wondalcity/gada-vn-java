@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useTranslations } from 'next-intl'
 import dynamic from 'next/dynamic'
-import type { PublicJob, Province, Trade } from '@/lib/api/public'
+import type { PublicJob, Province, Trade, WageStats } from '@/lib/api/public'
 import { MobileJobFilters } from './MobileJobFilters'
 import { JobFilters } from './JobFilters'
 import { JobCard } from './JobCard'
@@ -48,6 +48,9 @@ interface Props {
   selectedLng?: number
   selectedRadius?: number
   selectedStatus?: string
+  selectedMinWage?: number
+  selectedMaxWage?: number
+  wageStats?: WageStats
   paginationParams: Record<string, string>
   geoActive: boolean
   emptyMessage: string
@@ -74,6 +77,9 @@ export function WorkerJobsClient({
   selectedLng,
   selectedRadius = 30,
   selectedStatus,
+  selectedMinWage,
+  selectedMaxWage,
+  wageStats,
   paginationParams,
   geoActive,
   emptyMessage,
@@ -155,6 +161,9 @@ export function WorkerJobsClient({
       selectedLng={selectedLng}
       selectedRadius={selectedRadius}
       selectedStatus={selectedStatus}
+      selectedMinWage={selectedMinWage}
+      selectedMaxWage={selectedMaxWage}
+      wageStats={wageStats}
       locale={locale}
     />
   )
@@ -196,6 +205,9 @@ export function WorkerJobsClient({
               selectedLng={selectedLng}
               selectedRadius={selectedRadius}
               selectedStatus={selectedStatus}
+              selectedMinWage={selectedMinWage}
+              selectedMaxWage={selectedMaxWage}
+              wageStats={wageStats}
               totalJobs={total}
               viewToggle={viewToggle}
             />

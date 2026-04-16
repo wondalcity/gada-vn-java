@@ -103,6 +103,25 @@ export interface PublicJobsResponse {
   trades?: Trade[]
 }
 
+export interface WageStats {
+  minWage: number
+  maxWage: number
+}
+
+export async function fetchWageStats(): Promise<WageStats> {
+  try {
+    const res = await fetch(`${BASE}/public/wage-stats`, {
+      next: { revalidate: 300, tags: ['WAGE_STATS'] },
+      signal: AbortSignal.timeout(5000),
+    })
+    if (!res.ok) return { minWage: 0, maxWage: 0 }
+    const json = await res.json()
+    return json.data ?? { minWage: 0, maxWage: 0 }
+  } catch {
+    return { minWage: 0, maxWage: 0 }
+  }
+}
+
 export async function fetchPublicJobs(params: {
   provinceSlug?: string
   tradeId?: number
@@ -114,6 +133,8 @@ export async function fetchPublicJobs(params: {
   radiusKm?: number
   statusFilter?: string
   q?: string
+  minWage?: number
+  maxWage?: number
 }): Promise<PublicJobsResponse> {
   const qs = new URLSearchParams()
   if (params.q)              qs.set('q', params.q)
@@ -126,8 +147,10 @@ export async function fetchPublicJobs(params: {
   if (params.lng != null)    qs.set('lng', String(params.lng))
   if (params.radiusKm)       qs.set('radiusKm', String(params.radiusKm))
   if (params.statusFilter)   qs.set('statusFilter', params.statusFilter)
-  const cacheOptions = params.lat != null || params.q
-    ? { cache: 'no-store' as const }  // geo/search results skip CDN cache
+  if (params.minWage != null) qs.set('minWage', String(params.minWage))
+  if (params.maxWage != null) qs.set('maxWage', String(params.maxWage))
+  const cacheOptions = params.lat != null || params.q || params.minWage != null || params.maxWage != null
+    ? { cache: 'no-store' as const }  // geo/search/wage filter results skip CDN cache
     : { next: { revalidate: 60, tags: ['JOBS_LISTING'] as string[] } }
   try {
     const res = await fetch(`${BASE}/public/jobs?${qs}`, {

@@ -5,7 +5,7 @@ import { useRouter, usePathname } from '@/i18n/navigation'
 import { useSearchParams } from 'next/navigation'
 import { useTranslations } from 'next-intl'
 import { getSessionCookie } from '@/lib/auth/session'
-import type { Province, Trade } from '@/lib/api/public'
+import type { Province, Trade, WageStats } from '@/lib/api/public'
 import { FilterSelect } from './FilterSelect'
 
 const API_BASE = '/api/v1'
@@ -28,7 +28,99 @@ interface Props {
   selectedLng?: number
   selectedRadius?: number
   selectedStatus?: string
+  selectedMinWage?: number
+  selectedMaxWage?: number
+  wageStats?: WageStats
   locale: string
+}
+
+function formatVndShort(n: number) {
+  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(n % 1_000_000 === 0 ? 0 : 1)}M`
+  if (n >= 1_000) return `${Math.round(n / 1_000)}K`
+  return String(n)
+}
+
+function WageRangeSlider({
+  min,
+  max,
+  valueMin,
+  valueMax,
+  onChange,
+}: {
+  min: number
+  max: number
+  valueMin: number
+  valueMax: number
+  onChange: (min: number, max: number) => void
+}) {
+  const rangeMin = min
+  const rangeMax = max
+  const gap = Math.max(10_000, Math.round((rangeMax - rangeMin) / 20))
+
+  const pct = (v: number) => rangeMax === rangeMin ? 0 : ((v - rangeMin) / (rangeMax - rangeMin)) * 100
+
+  return (
+    <div className="px-1">
+      {/* Labels */}
+      <div className="flex justify-between text-xs font-semibold text-[#25282A] mb-3">
+        <span>{formatVndShort(valueMin)} ₫</span>
+        <span>{formatVndShort(valueMax)} ₫</span>
+      </div>
+      {/* Track + thumbs */}
+      <div className="relative h-5 flex items-center">
+        {/* Background track */}
+        <div className="absolute left-0 right-0 h-1.5 bg-[#EFF1F5] rounded-full" />
+        {/* Active range */}
+        <div
+          className="absolute h-1.5 bg-[#0669F7] rounded-full"
+          style={{ left: `${pct(valueMin)}%`, right: `${100 - pct(valueMax)}%` }}
+        />
+        {/* Min thumb */}
+        <input
+          type="range"
+          min={rangeMin}
+          max={rangeMax}
+          step={10000}
+          value={valueMin}
+          onChange={e => {
+            const v = Math.min(Number(e.target.value), valueMax - gap)
+            onChange(v, valueMax)
+          }}
+          className="absolute w-full h-5 opacity-0 cursor-pointer"
+          style={{ zIndex: valueMin > rangeMax - gap ? 5 : 3 }}
+        />
+        {/* Max thumb */}
+        <input
+          type="range"
+          min={rangeMin}
+          max={rangeMax}
+          step={10000}
+          value={valueMax}
+          onChange={e => {
+            const v = Math.max(Number(e.target.value), valueMin + gap)
+            onChange(valueMin, v)
+          }}
+          className="absolute w-full h-5 opacity-0 cursor-pointer"
+          style={{ zIndex: 4 }}
+        />
+        {/* Visual thumb min */}
+        <div
+          className="absolute w-4 h-4 rounded-full bg-white border-2 border-[#0669F7] shadow-sm pointer-events-none"
+          style={{ left: `calc(${pct(valueMin)}% - 8px)`, zIndex: 6 }}
+        />
+        {/* Visual thumb max */}
+        <div
+          className="absolute w-4 h-4 rounded-full bg-white border-2 border-[#0669F7] shadow-sm pointer-events-none"
+          style={{ left: `calc(${pct(valueMax)}% - 8px)`, zIndex: 6 }}
+        />
+      </div>
+      {/* Range labels */}
+      <div className="flex justify-between text-[10px] text-[#98A2B2] mt-2">
+        <span>{formatVndShort(rangeMin)} ₫</span>
+        <span>{formatVndShort(rangeMax)} ₫</span>
+      </div>
+    </div>
+  )
 }
 
 const STATUS_VALUES = [
@@ -48,6 +140,9 @@ export function JobFilters({
   selectedLng,
   selectedRadius = 30,
   selectedStatus,
+  selectedMinWage,
+  selectedMaxWage,
+  wageStats,
   locale: _locale,
 }: Props) {
   const t = useTranslations('jobs')
@@ -62,6 +157,18 @@ export function JobFilters({
   const [activeLabel, setActiveLabel] = React.useState(() =>
     selectedLat != null ? t('listing.filter.use_location') : ''
   )
+
+  // Wage slider local state (tracks before committing to URL)
+  const wageMin = wageStats?.minWage ?? 0
+  const wageMax = wageStats?.maxWage ?? 0
+  const hasWageRange = wageMax > wageMin
+  const [localMinWage, setLocalMinWage] = React.useState(selectedMinWage ?? wageMin)
+  const [localMaxWage, setLocalMaxWage] = React.useState(selectedMaxWage ?? wageMax)
+  // Keep local state in sync when URL params change (e.g. filters reset)
+  React.useEffect(() => {
+    setLocalMinWage(selectedMinWage ?? wageMin)
+    setLocalMaxWage(selectedMaxWage ?? wageMax)
+  }, [selectedMinWage, selectedMaxWage, wageMin, wageMax])
 
   const geoActive = selectedLat != null && selectedLng != null
 
@@ -114,6 +221,8 @@ export function JobFilters({
 
   function clearFilters() {
     setActiveLabel('')
+    setLocalMinWage(wageMin)
+    setLocalMaxWage(wageMax)
     router.push(pathname as any)
   }
 
@@ -145,7 +254,18 @@ export function JobFilters({
     )
   }
 
-  const hasFilters = !!selectedProvince || !!selectedTrade || geoActive || !!selectedStatus
+  const wageFilterActive = selectedMinWage != null || selectedMaxWage != null
+  const hasFilters = !!selectedProvince || !!selectedTrade || geoActive || !!selectedStatus || wageFilterActive
+
+  function applyWageFilter(minV: number, maxV: number) {
+    const atMin = minV <= wageMin
+    const atMax = maxV >= wageMax
+    const params = buildParams({
+      minWage: atMin ? undefined : String(minV),
+      maxWage: atMax ? undefined : String(maxV),
+    })
+    router.push((`${pathname}?${params.toString()}`) as any)
+  }
 
   const provinceOptions = React.useMemo(() => [
     { value: '', label: t('listing.filter.all_provinces') },
@@ -209,6 +329,44 @@ export function JobFilters({
           ))}
         </div>
       </div>
+
+      {/* Wage range filter */}
+      {hasWageRange && (
+        <div>
+          <label className="block text-xs font-medium text-[#98A2B2] mb-3">{t('listing.filter.wage_range')}</label>
+          <WageRangeSlider
+            min={wageMin}
+            max={wageMax}
+            valueMin={localMinWage}
+            valueMax={localMaxWage}
+            onChange={(minV, maxV) => {
+              setLocalMinWage(minV)
+              setLocalMaxWage(maxV)
+            }}
+          />
+          {/* Apply button */}
+          <button
+            type="button"
+            onClick={() => applyWageFilter(localMinWage, localMaxWage)}
+            className="mt-3 w-full py-1.5 rounded-lg text-xs font-semibold bg-[#0669F7] text-white hover:bg-[#0557D4] transition-colors"
+          >
+            {t('listing.filter.apply_wage')}
+          </button>
+          {wageFilterActive && (
+            <button
+              type="button"
+              onClick={() => {
+                setLocalMinWage(wageMin)
+                setLocalMaxWage(wageMax)
+                applyWageFilter(wageMin, wageMax)
+              }}
+              className="mt-1.5 w-full text-xs text-[#98A2B2] hover:text-[#25282A] underline"
+            >
+              {t('listing.filter.reset_wage')}
+            </button>
+          )}
+        </div>
+      )}
 
       {/* Location filter */}
       <div>
