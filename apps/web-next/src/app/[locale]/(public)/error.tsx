@@ -1,6 +1,5 @@
 'use client'
 
-import { useEffect } from 'react'
 import { useRouter } from '@/i18n/navigation'
 
 export default function PublicError({
@@ -10,10 +9,6 @@ export default function PublicError({
   reset: () => void
 }) {
   const router = useRouter()
-
-  useEffect(() => {
-    router.replace('/')
-  }, [router])
 
   return (
     <div className="min-h-dvh flex flex-col items-center justify-center bg-[#F8F8FA] px-6 text-center">

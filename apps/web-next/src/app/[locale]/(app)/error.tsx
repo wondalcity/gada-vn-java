@@ -1,6 +1,5 @@
 'use client'
 
-import { useEffect } from 'react'
 import { useRouter } from '@/i18n/navigation'
 
 export default function AppError({
@@ -12,10 +11,6 @@ export default function AppError({
 }) {
   const router = useRouter()
 
-  useEffect(() => {
-    router.replace('/')
-  }, [router])
-
   return (
     <div className="min-h-dvh flex flex-col items-center justify-center bg-[#F8F8FA] px-6 text-center">
       <div className="w-16 h-16 rounded-full bg-[#FDE8EE] flex items-center justify-center mb-4">
@@ -24,7 +19,7 @@ export default function AppError({
         </svg>
       </div>
       <h1 className="text-lg font-bold text-[#25282A] mb-1">페이지를 불러올 수 없습니다</h1>
-      <p className="text-sm text-[#98A2B2] mb-6">메인 화면으로 이동 중...</p>
+      <p className="text-sm text-[#98A2B2] mb-6">일시적인 오류가 발생했습니다. 다시 시도해 주세요.</p>
       <div className="flex gap-3">
         <button
           onClick={reset}

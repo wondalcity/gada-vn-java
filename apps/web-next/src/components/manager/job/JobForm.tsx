@@ -18,9 +18,9 @@ interface Trade {
 }
 
 function getTradeName(tr: Trade, locale: string): string {
-  if (locale === 'vi') return tr.nameVi ?? tr.nameKo ?? tr.name
-  if (locale === 'en') return tr.nameEn ?? tr.nameKo ?? tr.name
-  return tr.nameKo ?? tr.name
+  if (locale === 'vi') return tr.nameVi ?? tr.nameKo ?? tr.name ?? ''
+  if (locale === 'en') return tr.nameEn ?? tr.nameKo ?? tr.name ?? ''
+  return tr.nameKo ?? tr.name ?? ''
 }
 
 interface JobFormProps {
@@ -112,12 +112,12 @@ export default function JobForm({
   }, [idToken]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const filteredTrades = trades.filter((tr) => {
-    const search = tradeSearch.toLowerCase()
+    const search = (tradeSearch ?? '').toLowerCase()
     return (
       (tr.nameKo ?? '').toLowerCase().includes(search) ||
       (tr.nameVi ?? '').toLowerCase().includes(search) ||
       (tr.nameEn ?? '').toLowerCase().includes(search) ||
-      tr.name.toLowerCase().includes(search)
+      (tr.name ?? '').toLowerCase().includes(search)
     )
   }).slice(0, 20)
 
