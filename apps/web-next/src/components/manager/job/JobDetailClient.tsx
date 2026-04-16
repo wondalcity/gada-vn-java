@@ -140,6 +140,33 @@ export default function JobDetailClient({ jobId, locale }: JobDetailClientProps)
         <StatusBadge status={job.status} />
       </div>
 
+      {/* Applicants Summary — top priority for manager */}
+      <div className="bg-white rounded-2xl shadow-sm border border-[#EFF1F5] p-5 mb-4">
+        <div className="flex items-center justify-between mb-3">
+          <h3 className="text-sm font-semibold text-[#25282A]">{t('manager_job_detail.applicants_title')}</h3>
+          <Link
+            href={`/manager/jobs/${jobId}/applicants`}
+            className="text-xs text-[#0669F7] font-medium"
+          >
+            {t('manager_job_detail.view_all')}
+          </Link>
+        </div>
+        <div className="flex gap-4 text-center">
+          <div className="flex-1">
+            <p className="text-2xl font-bold text-[#856404]">{job.applicationCount.pending}</p>
+            <p className="text-xs text-[#98A2B2] mt-0.5">{t('manager_job_detail.pending_count')}</p>
+          </div>
+          <div className="flex-1">
+            <p className="text-2xl font-bold text-[#1A6B1A]">{job.applicationCount.accepted}</p>
+            <p className="text-xs text-[#98A2B2] mt-0.5">{t('manager_job_detail.accepted_count')}</p>
+          </div>
+          <div className="flex-1">
+            <p className="text-2xl font-bold text-[#ED1C24]">{job.applicationCount.rejected}</p>
+            <p className="text-xs text-[#98A2B2] mt-0.5">{t('manager_job_detail.rejected_count')}</p>
+          </div>
+        </div>
+      </div>
+
       {/* Image Gallery */}
       {allImages.length > 0 && (
         <div className="flex gap-2 overflow-x-auto pb-2 mb-4">
@@ -306,33 +333,6 @@ export default function JobDetailClient({ jobId, locale }: JobDetailClientProps)
           >
             {t('manager_job_detail.delete')}
           </button>
-        </div>
-      </div>
-
-      {/* Applicants Summary */}
-      <div className="bg-white rounded-2xl shadow-sm border border-[#EFF1F5] p-5 mb-4">
-        <div className="flex items-center justify-between mb-3">
-          <h3 className="text-sm font-semibold text-[#25282A]">{t('manager_job_detail.applicants_title')}</h3>
-          <Link
-            href={`/manager/jobs/${jobId}/applicants`}
-            className="text-xs text-[#0669F7] font-medium"
-          >
-            {t('manager_job_detail.view_all')}
-          </Link>
-        </div>
-        <div className="flex gap-4 text-center">
-          <div className="flex-1">
-            <p className="text-2xl font-bold text-[#856404]">{job.applicationCount.pending}</p>
-            <p className="text-xs text-[#98A2B2] mt-0.5">{t('manager_job_detail.pending_count')}</p>
-          </div>
-          <div className="flex-1">
-            <p className="text-2xl font-bold text-[#1A6B1A]">{job.applicationCount.accepted}</p>
-            <p className="text-xs text-[#98A2B2] mt-0.5">{t('manager_job_detail.accepted_count')}</p>
-          </div>
-          <div className="flex-1">
-            <p className="text-2xl font-bold text-[#ED1C24]">{job.applicationCount.rejected}</p>
-            <p className="text-xs text-[#98A2B2] mt-0.5">{t('manager_job_detail.rejected_count')}</p>
-          </div>
         </div>
       </div>
 
