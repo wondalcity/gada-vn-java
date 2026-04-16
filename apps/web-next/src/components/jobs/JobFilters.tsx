@@ -53,71 +53,85 @@ function WageRangeSlider({
   valueMax: number
   onChange: (min: number, max: number) => void
 }) {
-  const rangeMin = min
-  const rangeMax = max
-  const gap = Math.max(10_000, Math.round((rangeMax - rangeMin) / 20))
+  const trackRef = React.useRef<HTMLDivElement>(null)
+  const draggingRef = React.useRef<'min' | 'max' | null>(null)
+  // Keep latest state accessible inside window event handlers without re-registering
+  const latestRef = React.useRef({ valueMin, valueMax, onChange })
+  latestRef.current = { valueMin, valueMax, onChange }
 
-  const pct = (v: number) => rangeMax === rangeMin ? 0 : ((v - rangeMin) / (rangeMax - rangeMin)) * 100
+  const step = 10_000
+  const gap = Math.max(step, Math.round((max - min) / 20))
+  const pct = (v: number) => max === min ? 0 : ((v - min) / (max - min)) * 100
+
+  function posToValue(clientX: number): number {
+    const rect = trackRef.current!.getBoundingClientRect()
+    const ratio = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width))
+    return Math.round((min + ratio * (max - min)) / step) * step
+  }
+
+  function applyDragAt(clientX: number) {
+    const v = posToValue(clientX)
+    const { valueMin: vMin, valueMax: vMax, onChange: cb } = latestRef.current
+    if (draggingRef.current === 'min') {
+      cb(Math.min(Math.max(v, min), vMax - gap), vMax)
+    } else if (draggingRef.current === 'max') {
+      cb(vMin, Math.max(Math.min(v, max), vMin + gap))
+    }
+  }
+
+  function startDrag(clientX: number) {
+    const v = posToValue(clientX)
+    const { valueMin: vMin, valueMax: vMax } = latestRef.current
+    draggingRef.current = Math.abs(v - vMin) <= Math.abs(v - vMax) ? 'min' : 'max'
+    applyDragAt(clientX)
+  }
+
+  React.useEffect(() => {
+    function onMouseMove(e: MouseEvent) { if (draggingRef.current) applyDragAt(e.clientX) }
+    function onMouseUp() { draggingRef.current = null }
+    function onTouchMove(e: TouchEvent) { if (draggingRef.current && e.touches[0]) applyDragAt(e.touches[0].clientX) }
+    function onTouchEnd() { draggingRef.current = null }
+    window.addEventListener('mousemove', onMouseMove)
+    window.addEventListener('mouseup', onMouseUp)
+    window.addEventListener('touchmove', onTouchMove, { passive: true })
+    window.addEventListener('touchend', onTouchEnd)
+    return () => {
+      window.removeEventListener('mousemove', onMouseMove)
+      window.removeEventListener('mouseup', onMouseUp)
+      window.removeEventListener('touchmove', onTouchMove)
+      window.removeEventListener('touchend', onTouchEnd)
+    }
+  }, [min, max, gap]) // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <div className="px-1">
-      {/* Labels */}
       <div className="flex justify-between text-xs font-semibold text-[#25282A] mb-3">
         <span>{formatVndShort(valueMin)} ₫</span>
         <span>{formatVndShort(valueMax)} ₫</span>
       </div>
-      {/* Track + thumbs */}
-      <div className="relative h-5 flex items-center">
-        {/* Background track */}
+      <div
+        ref={trackRef}
+        className="relative h-5 flex items-center cursor-pointer select-none"
+        onMouseDown={e => startDrag(e.clientX)}
+        onTouchStart={e => { if (e.touches[0]) startDrag(e.touches[0].clientX) }}
+      >
         <div className="absolute left-0 right-0 h-1.5 bg-[#EFF1F5] rounded-full" />
-        {/* Active range */}
         <div
           className="absolute h-1.5 bg-[#0669F7] rounded-full"
           style={{ left: `${pct(valueMin)}%`, right: `${100 - pct(valueMax)}%` }}
         />
-        {/* Min thumb */}
-        <input
-          type="range"
-          min={rangeMin}
-          max={rangeMax}
-          step={10000}
-          value={valueMin}
-          onChange={e => {
-            const v = Math.min(Number(e.target.value), valueMax - gap)
-            onChange(v, valueMax)
-          }}
-          className="absolute w-full h-5 opacity-0 cursor-pointer"
-          style={{ zIndex: valueMin > rangeMax - gap ? 5 : 3 }}
-        />
-        {/* Max thumb */}
-        <input
-          type="range"
-          min={rangeMin}
-          max={rangeMax}
-          step={10000}
-          value={valueMax}
-          onChange={e => {
-            const v = Math.max(Number(e.target.value), valueMin + gap)
-            onChange(valueMin, v)
-          }}
-          className="absolute w-full h-5 opacity-0 cursor-pointer"
-          style={{ zIndex: 4 }}
-        />
-        {/* Visual thumb min */}
         <div
-          className="absolute w-4 h-4 rounded-full bg-white border-2 border-[#0669F7] shadow-sm pointer-events-none"
-          style={{ left: `calc(${pct(valueMin)}% - 8px)`, zIndex: 6 }}
+          className="absolute w-4 h-4 rounded-full bg-white border-2 border-[#0669F7] shadow-sm"
+          style={{ left: `calc(${pct(valueMin)}% - 8px)` }}
         />
-        {/* Visual thumb max */}
         <div
-          className="absolute w-4 h-4 rounded-full bg-white border-2 border-[#0669F7] shadow-sm pointer-events-none"
-          style={{ left: `calc(${pct(valueMax)}% - 8px)`, zIndex: 6 }}
+          className="absolute w-4 h-4 rounded-full bg-white border-2 border-[#0669F7] shadow-sm"
+          style={{ left: `calc(${pct(valueMax)}% - 8px)` }}
         />
       </div>
-      {/* Range labels */}
       <div className="flex justify-between text-[10px] text-[#98A2B2] mt-2">
-        <span>{formatVndShort(rangeMin)} ₫</span>
-        <span>{formatVndShort(rangeMax)} ₫</span>
+        <span>{formatVndShort(min)} ₫</span>
+        <span>{formatVndShort(max)} ₫</span>
       </div>
     </div>
   )
