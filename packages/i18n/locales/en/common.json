@@ -379,7 +379,10 @@
     "error_load": "Unable to load applicants.",
     "retry": "Retry",
     "processing": "Processing...",
-    "action_error": "An error occurred."
+    "action_error": "An error occurred.",
+    "regenerate_contract": "Regenerate Contract",
+    "view_worker_detail": "View Profile",
+    "job_detail_btn": "View Posting"
   },
   "manager_contracts": {
     "title": "Contract Management",

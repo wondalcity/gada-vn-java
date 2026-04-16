@@ -369,6 +369,7 @@
     "view_contract": "Xem hợp đồng",
     "download": "Tải xuống",
     "create_contract": "Tạo hợp đồng",
+    "regenerate_contract": "Tạo lại hợp đồng",
     "write_contract": "Ký hợp đồng",
     "creating_contract": "Đang tạo...",
     "contract_created": "Hợp đồng đã được tạo.",
@@ -379,7 +380,9 @@
     "error_load": "Không thể tải danh sách ứng viên.",
     "retry": "Thử lại",
     "processing": "Đang xử lý...",
-    "action_error": "Đã xảy ra lỗi."
+    "action_error": "Đã xảy ra lỗi.",
+    "view_worker_detail": "Xem hồ sơ",
+    "job_detail_btn": "Xem tin tuyển dụng"
   },
   "manager_contracts": {
     "title": "Quản lý hợp đồng",
