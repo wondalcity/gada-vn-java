@@ -311,11 +311,10 @@ class PublicService(
               FROM app.jobs j
               WHERE j.status = 'OPEN' AND (j.expires_at IS NULL OR j.expires_at > NOW())"""
         )
-        val r = rows.firstOrNull() ?: return mapOf<String, Any?>("minWage" to 0L, "maxWage" to 0L)
-        return mapOf<String, Any?>(
-            "minWage" to (r["min_wage"] as? Number)?.toLong() ?: 0L,
-            "maxWage" to (r["max_wage"] as? Number)?.toLong() ?: 0L
-        )
+        val r = rows.firstOrNull()
+        val minWage: Any? = (r?.get("min_wage") as? Number)?.toLong() ?: 0L
+        val maxWage: Any? = (r?.get("max_wage") as? Number)?.toLong() ?: 0L
+        return mapOf("minWage" to minWage, "maxWage" to maxWage)
     }
 
     fun getProvinces(): List<Map<String, Any?>> {
