@@ -40,7 +40,7 @@ export class PublicService {
     lat?: number;
     lng?: number;
     radiusKm?: number;
-    statusFilter?: 'OPEN' | 'ALMOST_FULL' | 'FILLED';
+    statusFilter?: 'CLOSING_SOON' | 'CLOSED';
   }) {
     const page = Math.max(1, params.page ?? 1);
     const limit = Math.min(50, params.limit ?? 20);
@@ -49,13 +49,18 @@ export class PublicService {
     const radiusKm = params.radiusKm ?? 50;
 
     let baseWhere: string;
-    if (params.statusFilter === 'ALMOST_FULL') {
-      baseWhere = `j.status = 'OPEN' AND j.work_date >= CURRENT_DATE
-        AND CAST(j.slots_filled AS FLOAT) / NULLIF(j.slots_total, 0) >= 0.8`;
-    } else if (params.statusFilter === 'FILLED') {
-      baseWhere = `j.status = 'FILLED'`;
+    if (params.statusFilter === 'CLOSING_SOON') {
+      // 마감임박: OPEN jobs with expires_at within the next 72 hours
+      baseWhere = `j.status = 'OPEN'
+        AND j.expires_at IS NOT NULL
+        AND j.expires_at > NOW()
+        AND j.expires_at <= NOW() + INTERVAL '72 hours'`;
+    } else if (params.statusFilter === 'CLOSED') {
+      // 모집마감: deadline has passed OR manually closed by admin/manager
+      baseWhere = `(j.status != 'OPEN' OR (j.expires_at IS NOT NULL AND j.expires_at <= NOW()))`;
     } else {
-      baseWhere = `j.status = 'OPEN' AND j.work_date >= CURRENT_DATE`;
+      // 모집중 (default): OPEN jobs within their deadline, or no deadline set
+      baseWhere = `j.status = 'OPEN' AND (j.expires_at IS NULL OR j.expires_at > NOW())`;
     }
     let where = baseWhere;
     const binds: unknown[] = [];
@@ -110,7 +115,7 @@ export class PublicService {
         j.id, j.slug, j.title, j.trade_id,
         j.work_date, j.start_time, j.end_time,
         j.daily_wage, j.slots_total, j.slots_filled,
-        j.status, j.published_at,
+        j.status, j.published_at, j.expires_at,
         s.id             AS site_id,
         s.name           AS site_name,
         s.address,
@@ -344,6 +349,7 @@ export class PublicService {
       slotsTotal: r.slots_total,
       slotsFilled: r.slots_filled,
       status: r.status,
+      expiresAt: r.expires_at ?? undefined,
       coverImageUrl: toCoverImageUrl(siteImageKeys, siteCoverIdx),
       publishedAt: r.published_at,
       siteLat: r.site_lat ? parseFloat(r.site_lat as string) : undefined,

@@ -32,9 +32,9 @@ interface Props {
 }
 
 const STATUS_DOT_COLORS = {
-  '':           'bg-[#00C800]',
-  'ALMOST_FULL': 'bg-[#FFC72C]',
-  'FILLED':     'bg-[#7A7B7A]',
+  '':             'bg-[#00C800]',
+  'CLOSING_SOON': 'bg-[#FFC72C]',
+  'CLOSED':       'bg-[#7A7B7A]',
 } as const
 
 const RADIUS_OPTIONS = [10, 30, 50, 100]
@@ -73,8 +73,8 @@ export function MobileJobFilters({
   const locale = useLocale()
   const statusOptions = [
     { value: '',             label: t('listing.filter.status_open'),         dotColor: STATUS_DOT_COLORS[''] },
-    { value: 'ALMOST_FULL',  label: t('listing.filter.status_closing_soon'),  dotColor: STATUS_DOT_COLORS['ALMOST_FULL'] },
-    { value: 'FILLED',       label: t('listing.filter.status_closed'),        dotColor: STATUS_DOT_COLORS['FILLED'] },
+    { value: 'CLOSING_SOON', label: t('listing.filter.status_closing_soon'), dotColor: STATUS_DOT_COLORS['CLOSING_SOON'] },
+    { value: 'CLOSED',       label: t('listing.filter.status_closed'),       dotColor: STATUS_DOT_COLORS['CLOSED'] },
   ]
   const router = useRouter()
   const pathname = usePathname()

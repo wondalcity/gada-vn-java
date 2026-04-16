@@ -181,7 +181,23 @@
       "location_saving": "Đang lưu...",
       "location_saved": "✓ Đã lưu làm vị trí tìm việc",
       "saved_locations_title": "Vị trí đã lưu",
-      "default_location_label": "Nhà"
+      "default_location_label": "Nhà",
+      "error_label_required": "Vui lòng nhập tên địa chỉ.",
+      "error_address_required": "Vui lòng tìm kiếm và chọn địa chỉ từ danh sách.",
+      "error_save": "Đã xảy ra lỗi khi lưu.",
+      "default_badge": "Mặc định",
+      "delete_aria": "Xóa",
+      "empty": "Chưa có địa chỉ nào được lưu.",
+      "add_form_title": "Thêm địa chỉ mới",
+      "label_name": "Tên địa chỉ",
+      "label_name_placeholder": "VD: Nhà, Công ty, Công trường",
+      "address_label": "Địa chỉ",
+      "address_search_placeholder": "Tìm kiếm địa chỉ và chọn từ danh sách",
+      "add_button": "Thêm địa chỉ",
+      "cancel": "Hủy",
+      "save": "Lưu",
+      "saving": "Đang lưu...",
+      "hint": "Địa chỉ đã lưu sẽ được dùng để tìm việc làm gần bạn. (tối đa {max} địa chỉ)"
     },
     "bank": {
       "bank_name_label": "Tên ngân hàng",
@@ -194,7 +210,10 @@
       "privacy_notice": "Thông tin tài khoản chỉ được sử dụng để thanh toán lương.",
       "upload_fail": "Lưu ảnh sổ ngân hàng thất bại",
       "save_fail": "Lưu thất bại",
-      "save_error": "Đã xảy ra lỗi khi lưu"
+      "save_error": "Đã xảy ra lỗi khi lưu",
+      "bank_select_placeholder": "Chọn ngân hàng",
+      "bank_search_placeholder": "Tìm kiếm ngân hàng...",
+      "bank_no_results": "Không tìm thấy kết quả"
     },
     "id": {
       "section_title": "Đăng ký CCCD/Hộ chiếu",

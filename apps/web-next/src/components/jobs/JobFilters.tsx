@@ -32,9 +32,9 @@ interface Props {
 }
 
 const STATUS_VALUES = [
-  { value: '',            dotColor: 'bg-[#00C800]', key: 'listing.filter.status_open' },
-  { value: 'ALMOST_FULL', dotColor: 'bg-[#FFC72C]', key: 'listing.filter.status_closing_soon' },
-  { value: 'FILLED',      dotColor: 'bg-[#7A7B7A]', key: 'listing.filter.status_closed' },
+  { value: '',              dotColor: 'bg-[#00C800]', key: 'listing.filter.status_open' },
+  { value: 'CLOSING_SOON',  dotColor: 'bg-[#FFC72C]', key: 'listing.filter.status_closing_soon' },
+  { value: 'CLOSED',        dotColor: 'bg-[#7A7B7A]', key: 'listing.filter.status_closed' },
 ] as const
 
 const RADIUS_OPTIONS = [10, 30, 50, 100]

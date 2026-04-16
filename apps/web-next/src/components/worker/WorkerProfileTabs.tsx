@@ -581,7 +581,7 @@ function BasicTab({ profile, onSaved, locale }: { profile: WorkerProfile; onSave
 
 // ── Experience Tab ───────────────────────────────────────────────────────────
 
-function ExperienceTab({ profile, onSaved }: { profile: WorkerProfile; onSaved: (p: Partial<WorkerProfile>) => void }) {
+function ExperienceTab({ profile, onSaved, locale }: { profile: WorkerProfile; onSaved: (p: Partial<WorkerProfile>) => void; locale: string }) {
   const t = useTranslations('worker')
   const [trades, setTrades] = React.useState<Trade[]>([])
   const [loading, setLoading] = React.useState(true)
@@ -670,7 +670,7 @@ function ExperienceTab({ profile, onSaved }: { profile: WorkerProfile; onSaved: 
             .map(tr => (
               <div key={tr.id} className="flex items-center gap-2 p-2.5 bg-[#E6F0FE] border border-[#0669F7] rounded-lg">
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-[#0669F7] truncate">{tr.nameKo}</p>
+                  <p className="text-sm font-medium text-[#0669F7] truncate">{locale === 'vi' ? tr.nameVi : tr.nameKo}</p>
                 </div>
                 <div className="flex items-center gap-1 shrink-0">
                   <input
@@ -705,8 +705,8 @@ function ExperienceTab({ profile, onSaved }: { profile: WorkerProfile; onSaved: 
                   <button type="button" onClick={() => toggleTrade(tr.id)}
                     className={`w-full flex items-center justify-between px-4 py-3 text-left hover:bg-[#F2F4F5] border-b border-[#EFF1F5] last:border-0 ${isSelected ? 'bg-[#E6F0FE]' : ''}`}>
                     <div>
-                      <p className={`text-sm font-medium ${isSelected ? 'text-[#0669F7]' : 'text-[#25282A]'}`}>{tr.nameKo}</p>
-                      <p className="text-xs text-[#98A2B2]">{tr.nameVi}</p>
+                      <p className={`text-sm font-medium ${isSelected ? 'text-[#0669F7]' : 'text-[#25282A]'}`}>{locale === 'vi' ? tr.nameVi : tr.nameKo}</p>
+                      <p className="text-xs text-[#98A2B2]">{locale === 'vi' ? tr.nameKo : tr.nameVi}</p>
                     </div>
                     {isSelected && <svg className="w-5 h-5 text-[#0669F7]" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>}
                   </button>
@@ -821,9 +821,9 @@ function AddressTab({ profile, onSaved }: { profile: WorkerProfile; onSaved: (p:
 
   async function handleAdd() {
     if (!token) return
-    if (!addLabel.trim()) { setAddError('주소 명칭을 입력해주세요.'); return }
+    if (!addLabel.trim()) { setAddError(t('profile_tabs.address.error_label_required')); return }
     const finalAddress = addAddress || addProvince || null
-    if (!finalAddress) { setAddError('주소를 검색하고 목록에서 선택해주세요.'); return }
+    if (!finalAddress) { setAddError(t('profile_tabs.address.error_address_required')); return }
     setAddError('')
     setSaving(true)
     try {
@@ -840,7 +840,7 @@ function AddressTab({ profile, onSaved }: { profile: WorkerProfile; onSaved: (p:
       })
       const json = await res.json()
       if (!res.ok) {
-        setAddError(json?.message ?? '저장 중 오류가 발생했습니다.')
+        setAddError(json?.message ?? t('profile_tabs.address.error_save'))
         return
       }
       const loc: SavedLocation = json.data
@@ -848,7 +848,7 @@ function AddressTab({ profile, onSaved }: { profile: WorkerProfile; onSaved: (p:
       resetAddForm()
       setShowAddForm(false)
     } catch {
-      setAddError('저장 중 오류가 발생했습니다.')
+      setAddError(t('profile_tabs.address.error_save'))
     } finally {
       setSaving(false)
     }
@@ -874,7 +874,7 @@ function AddressTab({ profile, onSaved }: { profile: WorkerProfile; onSaved: (p:
                 <div className="flex items-center gap-2 mb-0.5">
                   <span className="text-sm font-semibold text-[#25282A]">{loc.label}</span>
                   {loc.is_default && (
-                    <span className="text-[10px] font-bold text-[#0669F7] bg-[#E6F0FE] px-1.5 py-0.5 rounded-full">기본</span>
+                    <span className="text-[10px] font-bold text-[#0669F7] bg-[#E6F0FE] px-1.5 py-0.5 rounded-full">{t('profile_tabs.address.default_badge')}</span>
                   )}
                 </div>
                 <p className="text-sm text-[#98A2B2] leading-snug truncate">{loc.address ?? '-'}</p>
@@ -883,7 +883,7 @@ function AddressTab({ profile, onSaved }: { profile: WorkerProfile; onSaved: (p:
                 type="button"
                 onClick={() => handleDelete(loc)}
                 className="shrink-0 w-8 h-8 flex items-center justify-center rounded-full hover:bg-[#FFECEC] text-[#98A2B2] hover:text-[#ED1C24] transition-colors"
-                aria-label="삭제"
+                aria-label={t('profile_tabs.address.delete_aria')}
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -903,29 +903,29 @@ function AddressTab({ profile, onSaved }: { profile: WorkerProfile; onSaved: (p:
               <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z" />
             </svg>
           </div>
-          <p className="text-sm text-[#98A2B2] mb-3">저장된 주소가 없습니다.</p>
+          <p className="text-sm text-[#98A2B2] mb-3">{t('profile_tabs.address.empty')}</p>
         </div>
       )}
 
       {/* Add form */}
       {showAddForm && (
         <div className="border border-[#EFF1F5] rounded-xl p-4 space-y-3 bg-white">
-          <p className="text-sm font-semibold text-[#25282A]">새 주소 추가</p>
-          <Field label="주소 명칭">
+          <p className="text-sm font-semibold text-[#25282A]">{t('profile_tabs.address.add_form_title')}</p>
+          <Field label={t('profile_tabs.address.label_name')}>
             <input
               type="text"
               value={addLabel}
               onChange={e => setAddLabel(e.target.value)}
-              placeholder="예: 집, 회사, 현장"
+              placeholder={t('profile_tabs.address.label_name_placeholder')}
               className={inputCls}
             />
           </Field>
-          <Field label={mapsLoaded ? '주소 검색' : '주소'}>
+          <Field label={mapsLoaded ? t('profile_tabs.address.search_label') : t('profile_tabs.address.address_label')}>
             {!mapsError ? (
               <input
                 ref={addInputRef}
                 type="text"
-                placeholder={mapsLoaded ? '주소를 검색하고 목록에서 선택하세요' : '지도 로딩 중...'}
+                placeholder={mapsLoaded ? t('profile_tabs.address.address_search_placeholder') : t('profile_tabs.address.maps_loading')}
                 disabled={!mapsLoaded}
                 onChange={() => { setAddAddress(''); setAddLat(null); setAddLng(null) }}
                 className={`${inputCls} disabled:bg-[#F2F4F5]`}
@@ -956,7 +956,7 @@ function AddressTab({ profile, onSaved }: { profile: WorkerProfile; onSaved: (p:
               disabled={saving}
               className="flex-1 h-11 rounded-full border border-[#EFF1F5] text-[#98A2B2] font-medium text-sm hover:bg-[#F2F4F5] disabled:opacity-40 transition-colors"
             >
-              취소
+              {t('profile_tabs.address.cancel')}
             </button>
             <button
               type="button"
@@ -964,7 +964,7 @@ function AddressTab({ profile, onSaved }: { profile: WorkerProfile; onSaved: (p:
               disabled={saving}
               className="flex-1 h-11 rounded-full bg-[#0669F7] text-white font-semibold text-sm disabled:opacity-40 hover:bg-[#0557D4] transition-colors"
             >
-              {saving ? '저장 중...' : '저장'}
+              {saving ? t('profile_tabs.address.saving') : t('profile_tabs.address.save')}
             </button>
           </div>
         </div>
@@ -980,12 +980,12 @@ function AddressTab({ profile, onSaved }: { profile: WorkerProfile; onSaved: (p:
           <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
           </svg>
-          주소 추가
+          {t('profile_tabs.address.add_button')}
         </button>
       )}
 
       {savedLocations.length > 0 && (
-        <p className="text-xs text-[#98A2B2] pt-1">저장된 주소는 일자리 목록에서 주변 공고 검색에 사용됩니다. (최대 {MAX_LOCATIONS}개)</p>
+        <p className="text-xs text-[#98A2B2] pt-1">{t('profile_tabs.address.hint', { max: MAX_LOCATIONS })}</p>
       )}
     </div>
   )
@@ -1032,6 +1032,7 @@ const VN_BANKS = [
 ] as const
 
 function VietnamBankSelect({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+  const t = useTranslations('worker')
   const [open, setOpen] = React.useState(false)
   const [search, setSearch] = React.useState('')
   const containerRef = React.useRef<HTMLDivElement>(null)
@@ -1109,7 +1110,7 @@ function VietnamBankSelect({ value, onChange }: { value: string; onChange: (v: s
           value ? 'text-[#25282A]' : 'text-[#98A2B2]',
         ].join(' ')}
       >
-        <span>{value || '은행을 선택해주세요'}</span>
+        <span>{value || t('profile_tabs.bank.bank_select_placeholder')}</span>
         <svg className={`w-4 h-4 shrink-0 transition-transform ${open ? 'rotate-180 text-[#0669F7]' : 'text-[#98A2B2]'}`}
           fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
@@ -1134,14 +1135,14 @@ function VietnamBankSelect({ value, onChange }: { value: string; onChange: (v: s
                 type="text"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                placeholder="은행 검색..."
+                placeholder={t('profile_tabs.bank.bank_search_placeholder')}
                 className="w-full pl-9 pr-3 py-2 rounded-lg border border-[#EFF1F5] text-sm text-[#25282A] placeholder-[#98A2B2] focus:outline-none focus:border-[#0669F7]"
               />
             </div>
           </div>
           <div style={{ maxHeight: maxListH, overflowY: 'auto' }}>
             {filtered.length === 0 ? (
-              <p className="text-center text-sm text-[#98A2B2] py-6">검색 결과가 없습니다</p>
+              <p className="text-center text-sm text-[#98A2B2] py-6">{t('profile_tabs.bank.bank_no_results')}</p>
             ) : filtered.map((bank) => {
               const isSel = value === bank.name
               return (
@@ -1844,7 +1845,7 @@ export default function WorkerProfileTabs({ locale }: { locale: string }) {
         )}
         <div className="bg-white rounded-2xl border border-[#EFF1F5] shadow-sm p-5 md:p-8">
           {activeTab === 'basic'      && <BasicTab profile={profile} onSaved={handleSaved} locale={locale} />}
-          {activeTab === 'experience' && <ExperienceTab profile={profile} onSaved={handleSaved} />}
+          {activeTab === 'experience' && <ExperienceTab profile={profile} onSaved={handleSaved} locale={locale} />}
           {activeTab === 'address'    && <AddressTab profile={profile} onSaved={handleSaved} />}
           {activeTab === 'bank'       && <BankTab profile={profile} onSaved={handleSaved} />}
           {activeTab === 'id'         && <IdTab profile={profile} onSaved={handleSaved} />}

@@ -181,7 +181,23 @@
       "location_saving": "저장 중...",
       "location_saved": "✓ 일자리 검색 위치로 저장되었습니다",
       "saved_locations_title": "저장된 검색 위치",
-      "default_location_label": "집"
+      "default_location_label": "집",
+      "error_label_required": "주소 명칭을 입력해주세요.",
+      "error_address_required": "주소를 검색하고 목록에서 선택해주세요.",
+      "error_save": "저장 중 오류가 발생했습니다.",
+      "default_badge": "기본",
+      "delete_aria": "삭제",
+      "empty": "저장된 주소가 없습니다.",
+      "add_form_title": "새 주소 추가",
+      "label_name": "주소 명칭",
+      "label_name_placeholder": "예: 집, 회사, 현장",
+      "address_label": "주소",
+      "address_search_placeholder": "주소를 검색하고 목록에서 선택하세요",
+      "add_button": "주소 추가",
+      "cancel": "취소",
+      "save": "저장",
+      "saving": "저장 중...",
+      "hint": "저장된 주소는 일자리 목록에서 주변 공고 검색에 사용됩니다. (최대 {max}개)"
     },
     "bank": {
       "bank_name_label": "은행명",
@@ -194,7 +210,10 @@
       "privacy_notice": "계좌 정보는 급여 지급 및 정산 시에만 사용됩니다.",
       "upload_fail": "통장사본 저장에 실패했습니다",
       "save_fail": "저장에 실패했습니다",
-      "save_error": "저장 중 오류가 발생했습니다"
+      "save_error": "저장 중 오류가 발생했습니다",
+      "bank_select_placeholder": "은행을 선택해주세요",
+      "bank_search_placeholder": "은행 검색...",
+      "bank_no_results": "검색 결과가 없습니다"
     },
     "id": {
       "section_title": "신분증 등록",

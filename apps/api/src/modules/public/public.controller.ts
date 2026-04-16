@@ -17,7 +17,7 @@ export class PublicController {
     @Query('radiusKm') radiusKm?: string,
     @Query('statusFilter') statusFilter?: string,
   ) {
-    const validStatus = ['OPEN', 'ALMOST_FULL', 'FILLED'] as const;
+    const validStatus = ['CLOSING_SOON', 'CLOSED'] as const;
     const parsedStatus = validStatus.includes(statusFilter as typeof validStatus[number])
       ? (statusFilter as typeof validStatus[number])
       : undefined;
