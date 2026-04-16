@@ -43,9 +43,15 @@ class PublicService(
         val statusFilter = params["statusFilter"] as? String
 
         val baseWhere = when (statusFilter) {
-            "ALMOST_FULL" -> "j.status = 'OPEN' AND j.work_date >= CURRENT_DATE AND CAST(j.slots_filled AS FLOAT) / NULLIF(j.slots_total, 0) >= 0.8"
-            "FILLED" -> "j.status = 'FILLED'"
-            else -> "j.status = 'OPEN' AND j.work_date >= CURRENT_DATE"
+            // 마감임박: OPEN + expires_at within 72 hours
+            "CLOSING_SOON" -> """j.status = 'OPEN'
+                AND j.expires_at IS NOT NULL
+                AND j.expires_at > NOW()
+                AND j.expires_at <= NOW() + INTERVAL '72 hours'"""
+            // 모집마감: deadline passed OR manually closed by admin/manager
+            "CLOSED" -> "(j.status != 'OPEN' OR (j.expires_at IS NOT NULL AND j.expires_at <= NOW()))"
+            // 모집중 (default): OPEN jobs within their deadline, or no deadline set
+            else -> "j.status = 'OPEN' AND (j.expires_at IS NULL OR j.expires_at > NOW())"
         }
 
         val binds = mutableListOf<Any?>()
@@ -91,7 +97,7 @@ class PublicService(
               j.id, j.slug, j.title, j.trade_id,
               j.work_date, j.start_time, j.end_time,
               j.daily_wage, j.slots_total, j.slots_filled,
-              j.status, j.published_at,
+              j.status, j.published_at, j.expires_at,
               s.id             AS site_id,
               s.name           AS site_name,
               s.address,
@@ -335,6 +341,7 @@ class PublicService(
             "slotsTotal" to r["slots_total"],
             "slotsFilled" to r["slots_filled"],
             "status" to r["status"],
+            "expiresAt" to r["expires_at"],
             "coverImageUrl" to toCoverImageUrl(siteImageKeys, siteCoverIdx),
             "publishedAt" to r["published_at"],
             "siteLat" to (r["site_lat"] as? Number)?.toDouble(),

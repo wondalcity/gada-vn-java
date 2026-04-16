@@ -20,7 +20,7 @@ class PublicController(private val publicService: PublicService) {
         @RequestParam(required = false) radiusKm: String?,
         @RequestParam(required = false) statusFilter: String?
     ): ResponseEntity<Map<String, Any?>> {
-        val validStatuses = setOf("OPEN", "ALMOST_FULL", "FILLED")
+        val validStatuses = setOf("CLOSING_SOON", "CLOSED")
         val parsedStatus = if (statusFilter != null && validStatuses.contains(statusFilter)) statusFilter else null
 
         val params = mapOf<String, Any?>(
