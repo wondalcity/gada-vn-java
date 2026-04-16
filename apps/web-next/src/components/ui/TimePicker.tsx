@@ -66,10 +66,10 @@ function Column({ items, selected, onSelect, renderLabel, width }: ColumnProps) 
   }, [items])
 
   // Scroll to selected on open (instant so the panel starts correctly positioned)
+  // initialized stays true after first mount — do NOT reset it, otherwise the first
+  // re-render (e.g. after the user selects a value) would trigger scrollTo again,
+  // firing a scroll event that the window listener catches and closes the picker.
   const initialized = React.useRef(false)
-  React.useEffect(() => {
-    initialized.current = false
-  }, [])  // reset when component mounts
   React.useLayoutEffect(() => {
     if (!initialized.current) {
       initialized.current = true
@@ -199,7 +199,13 @@ export function TimePicker({
         setOpen(false)
       }
     }
-    function handleClose() { setOpen(false) }
+    function handleClose(e: Event) {
+      // Ignore scroll events that originate from inside the picker itself
+      // (the drum columns scroll programmatically when a value is selected)
+      const picker = document.getElementById('timepicker-portal')
+      if (picker && e.target instanceof Node && picker.contains(e.target)) return
+      setOpen(false)
+    }
     document.addEventListener('mousedown', handleClick)
     window.addEventListener('scroll', handleClose, true)
     window.addEventListener('resize', handleClose)
