@@ -48,6 +48,7 @@ export interface PublicJob {
   slotsTotal: number
   slotsFilled: number
   status: 'OPEN' | 'FILLED' | 'CANCELLED' | 'COMPLETED'
+  expiresAt?: string
   coverImageUrl?: string
   publishedAt: string
   distanceKm?: number

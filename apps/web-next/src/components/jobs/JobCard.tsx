@@ -1,10 +1,11 @@
 'use client'
 
+import * as React from 'react'
 import { useTranslations } from 'next-intl'
 import { Link } from '@/components/navigation'
 import type { PublicJob } from '@/lib/api/public'
 import { formatDateShort } from '@/lib/utils/date'
-import { pickTradeImage } from '@/lib/utils/dummyImages'
+import { pickTradeImage, DUMMY_CONSTRUCTION_IMAGES } from '@/lib/utils/dummyImages'
 
 interface Props {
   job: PublicJob
@@ -27,6 +28,8 @@ const STATUS_COLORS = {
 
 export function JobCard({ job, locale, basePath = '/jobs', onWagePress }: Props) {
   const t = useTranslations('jobs')
+  const tradeFallback = pickTradeImage(job.tradeNameKo, String(job.id))
+  const [imgSrc, setImgSrc] = React.useState(job.coverImageUrl ?? tradeFallback)
 
   const statusColors = STATUS_COLORS[job.status as keyof typeof STATUS_COLORS] ?? STATUS_COLORS.OPEN
   const statusLabel = (() => {
@@ -44,7 +47,13 @@ export function JobCard({ job, locale, basePath = '/jobs', onWagePress }: Props)
     : 0
 
   const remaining = job.slotsTotal - job.slotsFilled
-  const isAlmostFull = remaining <= 2 && remaining > 0 && job.status === 'OPEN'
+
+  // 마감임박: expires_at within 72 hours (mirrors server-side CLOSING_SOON filter)
+  const isClosingSoon = job.status === 'OPEN' && job.expiresAt != null && (() => {
+    const exp = new Date(job.expiresAt!).getTime()
+    const now = Date.now()
+    return exp > now && exp <= now + 72 * 60 * 60 * 1000
+  })()
 
   return (
     <Link
@@ -55,10 +64,16 @@ export function JobCard({ job, locale, basePath = '/jobs', onWagePress }: Props)
       {/* Cover image — 1:1 */}
       <div className="relative w-full overflow-hidden bg-[#25282A] shrink-0" style={{ aspectRatio: '1/1' }}>
         <img
-          src={job.coverImageUrl ?? pickTradeImage(job.tradeNameKo, String(job.id))}
+          src={imgSrc}
           alt={job.titleKo}
           loading="lazy"
           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+          onError={() => {
+            // coverImageUrl broken → try trade fallback
+            if (imgSrc !== tradeFallback) { setImgSrc(tradeFallback); return }
+            // trade fallback also broken → use first reliable construction image
+            setImgSrc(DUMMY_CONSTRUCTION_IMAGES[0])
+          }}
         />
 
         {/* Status badge — top right */}
@@ -70,8 +85,8 @@ export function JobCard({ job, locale, basePath = '/jobs', onWagePress }: Props)
           {statusLabel}
         </span>
 
-        {/* Almost full warning */}
-        {isAlmostFull && (
+        {/* Closing soon warning */}
+        {isClosingSoon && (
           <span className="absolute top-2.5 left-2.5 text-xs font-bold px-2.5 py-1 rounded-full"
             style={{ background: '#FFF3CD', color: '#856404' }}
           >
