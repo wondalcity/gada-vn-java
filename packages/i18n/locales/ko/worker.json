@@ -235,6 +235,8 @@
       "save_error": "저장 중 오류가 발생했습니다",
       "upload_fail": "업로드 실패",
       "photo_select": "사진 선택",
+      "view_full": "전체보기",
+      "delete": "삭제",
       "status_verified": "인증완료",
       "status_pending": "검토중",
       "status_none": "미등록"
@@ -246,6 +248,9 @@
       "overwrite_hint": "아래에 새 서명을 입력하면 덮어쓰기됩니다.",
       "draw_hint": "손가락이나 마우스로 서명하세요",
       "clear": "지우기",
+      "view_full": "전체보기",
+      "delete": "삭제",
+      "deleting": "삭제 중...",
       "save": "저장",
       "saving": "저장 중...",
       "error_empty": "서명을 입력해주세요.",

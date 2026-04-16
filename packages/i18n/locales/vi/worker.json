@@ -235,6 +235,8 @@
       "save_error": "Đã xảy ra lỗi khi lưu",
       "upload_fail": "Tải lên thất bại",
       "photo_select": "Chọn ảnh",
+      "view_full": "Xem toàn bộ",
+      "delete": "Xóa",
       "status_verified": "Đã xác minh",
       "status_pending": "Đang xét duyệt",
       "status_none": "Chưa đăng ký"
@@ -246,6 +248,9 @@
       "overwrite_hint": "Nhập chữ ký mới bên dưới để ghi đè.",
       "draw_hint": "Ký bằng ngón tay hoặc chuột",
       "clear": "Xóa",
+      "view_full": "Xem toàn bộ",
+      "delete": "Xóa",
+      "deleting": "Đang xóa...",
       "save": "Lưu",
       "saving": "Đang lưu...",
       "error_empty": "Vui lòng nhập chữ ký.",

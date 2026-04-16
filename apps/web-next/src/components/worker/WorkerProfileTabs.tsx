@@ -262,7 +262,7 @@ function UploadZone({
             onClick={() => setViewingFull(true)}
             className="flex-1 text-xs py-1.5 rounded-lg border border-[#EFF1F5] bg-white text-[#25282A] hover:border-[#0669F7] hover:text-[#0669F7] transition-colors"
           >
-            전체보기
+            {t('profile_tabs.id.view_full')}
           </button>
           {onDelete && (
             <button
@@ -270,7 +270,7 @@ function UploadZone({
               onClick={onDelete}
               className="flex-1 text-xs py-1.5 rounded-lg border border-[#EFF1F5] bg-white text-[#ED1C24] hover:border-[#ED1C24] transition-colors"
             >
-              삭제
+              {t('profile_tabs.id.delete')}
             </button>
           )}
         </div>
@@ -706,7 +706,6 @@ function ExperienceTab({ profile, onSaved, locale }: { profile: WorkerProfile; o
                     className={`w-full flex items-center justify-between px-4 py-3 text-left hover:bg-[#F2F4F5] border-b border-[#EFF1F5] last:border-0 ${isSelected ? 'bg-[#E6F0FE]' : ''}`}>
                     <div>
                       <p className={`text-sm font-medium ${isSelected ? 'text-[#0669F7]' : 'text-[#25282A]'}`}>{locale === 'vi' ? tr.nameVi : tr.nameKo}</p>
-                      <p className="text-xs text-[#98A2B2]">{locale === 'vi' ? tr.nameKo : tr.nameVi}</p>
                     </div>
                     {isSelected && <svg className="w-5 h-5 text-[#0669F7]" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>}
                   </button>
@@ -1540,7 +1539,7 @@ function SignatureTab({ profile, onSaved }: { profile: WorkerProfile; onSaved: (
               onClick={() => setViewingFull(true)}
               className="flex-1 text-xs py-1.5 rounded-lg border border-[#EFF1F5] bg-white text-[#25282A] hover:border-[#0669F7] hover:text-[#0669F7] transition-colors"
             >
-              전체보기
+              {t('profile_tabs.signature.view_full')}
             </button>
             <button
               type="button"
@@ -1548,7 +1547,7 @@ function SignatureTab({ profile, onSaved }: { profile: WorkerProfile; onSaved: (
               disabled={saving}
               className="flex-1 text-xs py-1.5 rounded-lg border border-[#EFF1F5] bg-white text-[#ED1C24] hover:border-[#ED1C24] transition-colors disabled:opacity-40"
             >
-              {saving ? '삭제 중...' : '삭제'}
+              {saving ? t('profile_tabs.signature.deleting') : t('profile_tabs.signature.delete')}
             </button>
           </div>
           <p className="text-xs text-[#98A2B2] mt-1">{t('profile_tabs.signature.overwrite_hint')}</p>

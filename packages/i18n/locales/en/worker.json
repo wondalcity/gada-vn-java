@@ -181,7 +181,23 @@
       "location_saving": "Saving...",
       "location_saved": "✓ Saved as job search location",
       "saved_locations_title": "Saved Locations",
-      "default_location_label": "Home"
+      "default_location_label": "Home",
+      "error_label_required": "Please enter an address name.",
+      "error_address_required": "Please search and select an address from the list.",
+      "error_save": "An error occurred while saving.",
+      "default_badge": "Default",
+      "delete_aria": "Delete",
+      "empty": "No saved addresses.",
+      "add_form_title": "Add New Address",
+      "label_name": "Address Name",
+      "label_name_placeholder": "e.g. Home, Office, Worksite",
+      "address_label": "Address",
+      "address_search_placeholder": "Search and select an address from the list",
+      "add_button": "Add Address",
+      "cancel": "Cancel",
+      "save": "Save",
+      "saving": "Saving...",
+      "hint": "Saved addresses are used to find nearby jobs. (max {max})"
     },
     "bank": {
       "bank_name_label": "Bank Name",
@@ -194,7 +210,10 @@
       "privacy_notice": "Bank information is used only for salary payments.",
       "upload_fail": "Failed to save bank book photo",
       "save_fail": "Failed to save",
-      "save_error": "An error occurred while saving"
+      "save_error": "An error occurred while saving",
+      "bank_select_placeholder": "Select a bank",
+      "bank_search_placeholder": "Search banks...",
+      "bank_no_results": "No results found"
     },
     "id": {
       "section_title": "ID Document Registration",
@@ -216,6 +235,8 @@
       "save_error": "An error occurred while saving",
       "upload_fail": "Upload failed",
       "photo_select": "Select Photo",
+      "view_full": "View Full",
+      "delete": "Delete",
       "status_verified": "Verified",
       "status_pending": "Under Review",
       "status_none": "Not Registered"
@@ -227,6 +248,9 @@
       "overwrite_hint": "Drawing a new signature below will overwrite the current one.",
       "draw_hint": "Sign with your finger or mouse",
       "clear": "Clear",
+      "view_full": "View Full",
+      "delete": "Delete",
+      "deleting": "Deleting...",
       "save": "Save",
       "saving": "Saving...",
       "error_empty": "Please draw a signature.",

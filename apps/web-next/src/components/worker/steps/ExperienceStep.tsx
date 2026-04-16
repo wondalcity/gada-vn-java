@@ -1,6 +1,7 @@
 'use client'
 
 import * as React from 'react'
+import { useParams } from 'next/navigation'
 import { ProfileDraft, Trade } from '@/types/worker-profile'
 
 interface ExperienceStepProps {
@@ -30,6 +31,10 @@ function TradeSkeleton() {
 }
 
 export default function ExperienceStep({ draft, onChange, onNext, isSaving }: ExperienceStepProps) {
+  const params = useParams()
+  const locale = (params?.locale as string) ?? 'ko'
+  const tradeName = (t: Trade) => locale === 'vi' ? t.nameVi : t.nameKo
+
   const [trades, setTrades] = React.useState<Trade[]>([])
   const [isLoadingTrades, setIsLoadingTrades] = React.useState(true)
   const [searchQuery, setSearchQuery] = React.useState('')
@@ -54,7 +59,7 @@ export default function ExperienceStep({ draft, onChange, onNext, isSaving }: Ex
   const filteredTrades = React.useMemo(() => {
     if (!searchQuery.trim()) return trades
     const q = searchQuery.trim().toLowerCase()
-    return trades.filter((t) => t.nameKo.toLowerCase().includes(q))
+    return trades.filter((t) => tradeName(t).toLowerCase().includes(q))
   }, [trades, searchQuery])
 
   const selectedTrade = trades.find((t) => t.id === draft.primaryTradeId)
@@ -73,8 +78,7 @@ export default function ExperienceStep({ draft, onChange, onNext, isSaving }: Ex
             <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
           </svg>
           <div>
-            <p className="text-sm font-medium text-[#0669F7]">{selectedTrade.nameKo}</p>
-            <p className="text-xs text-[#98A2B2]">{selectedTrade.nameVi}</p>
+            <p className="text-sm font-medium text-[#0669F7]">{tradeName(selectedTrade)}</p>
           </div>
         </div>
       )}
@@ -120,9 +124,8 @@ export default function ExperienceStep({ draft, onChange, onNext, isSaving }: Ex
                   >
                     <div>
                       <p className={`text-sm font-medium ${isSelected ? 'text-[#0669F7]' : 'text-[#25282A]'}`}>
-                        {trade.nameKo}
+                        {tradeName(trade)}
                       </p>
-                      <p className="text-xs text-[#98A2B2]">{trade.nameVi}</p>
                     </div>
                     {isSelected && (
                       <svg className="w-4 h-4 text-[#0669F7] flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
