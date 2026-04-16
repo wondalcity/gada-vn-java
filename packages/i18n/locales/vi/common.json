@@ -432,7 +432,9 @@
     "fullscreen_alt": "Ảnh toàn màn hình",
     "load_error": "Tải thất bại",
     "status_change_error": "Thay đổi trạng thái thất bại",
-    "delete_error": "Xóa thất bại"
+    "delete_error": "Xóa thất bại",
+    "copy_job": "Sao chép tin",
+    "copy_error": "Đã xảy ra lỗi khi sao chép tin tuyển dụng."
   },
   "manager_site_detail": {
     "demo_notice": "Dữ liệu demo",
@@ -487,6 +489,7 @@
   },
   "manager_job_form": {
     "create_title": "Đăng tin tuyển dụng mới",
+    "copy_title": "Sao chép tin tuyển dụng",
     "edit_title": "Chỉnh sửa tin tuyển dụng",
     "section_basic": "Thông tin cơ bản",
     "section_schedule": "Lịch làm việc",

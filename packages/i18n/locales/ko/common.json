@@ -432,7 +432,9 @@
     "fullscreen_alt": "전체 화면 이미지",
     "load_error": "불러오기 실패",
     "status_change_error": "상태 변경 실패",
-    "delete_error": "삭제 실패"
+    "delete_error": "삭제 실패",
+    "copy_job": "공고 복사",
+    "copy_error": "공고 복사 중 오류가 발생했습니다."
   },
   "manager_site_detail": {
     "demo_notice": "데모 데이터",
@@ -487,6 +489,7 @@
   },
   "manager_job_form": {
     "create_title": "새 일자리 등록",
+    "copy_title": "공고 복사",
     "edit_title": "일자리 수정",
     "section_basic": "기본 정보",
     "section_schedule": "일정",

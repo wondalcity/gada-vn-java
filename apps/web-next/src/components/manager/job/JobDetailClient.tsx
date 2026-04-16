@@ -9,7 +9,6 @@ import { apiClient } from '@/lib/api/client'
 import type { Job, JobStatus } from '@/types/manager-site-job'
 import StatusBadge from '@/components/manager/StatusBadge'
 import ConfirmModal from '@/components/manager/ConfirmModal'
-import ShiftManager from './ShiftManager'
 
 interface JobDetailClientProps {
   jobId: string
@@ -45,6 +44,7 @@ export default function JobDetailClient({ jobId, locale }: JobDetailClientProps)
   const [showCancelModal, setShowCancelModal] = React.useState(false)
   const [showDeleteModal, setShowDeleteModal] = React.useState(false)
   const [isActioning, setIsActioning] = React.useState(false)
+  const [isCopying, setIsCopying] = React.useState(false)
 
   React.useEffect(() => {
     if (!idToken) {
@@ -71,6 +71,17 @@ export default function JobDetailClient({ jobId, locale }: JobDetailClientProps)
       alert(e instanceof Error ? e.message : t('manager_job_detail.status_change_error'))
     } finally {
       setIsActioning(false)
+    }
+  }
+
+  async function handleCopy() {
+    if (!job) return
+    setIsCopying(true)
+    try {
+      router.push((`/manager/sites/${job.siteId}/jobs/new?copyFrom=${jobId}`) as any)
+    } catch {
+      alert(t('manager_job_detail.copy_error'))
+      setIsCopying(false)
     }
   }
 
@@ -249,6 +260,14 @@ export default function JobDetailClient({ jobId, locale }: JobDetailClientProps)
             {t('manager_job_detail.edit')}
           </Link>
 
+          <button
+            onClick={handleCopy}
+            disabled={isCopying}
+            className="px-5 py-2.5 rounded-full border border-[#EFF1F5] text-[#25282A] font-medium text-sm disabled:opacity-40 hover:border-[#0669F7] hover:text-[#0669F7] transition-colors"
+          >
+            {t('manager_job_detail.copy_job')}
+          </button>
+
           {/* Status-specific actions */}
           {job.status === 'OPEN' && (
             <>
@@ -316,15 +335,6 @@ export default function JobDetailClient({ jobId, locale }: JobDetailClientProps)
           </div>
         </div>
       </div>
-
-      {/* Shift Manager */}
-      {idToken && (
-        <ShiftManager
-          jobId={jobId}
-          initialShifts={job.shifts ?? []}
-          idToken={idToken}
-        />
-      )}
 
       {/* Lightbox */}
       {lightboxIdx !== null && (
