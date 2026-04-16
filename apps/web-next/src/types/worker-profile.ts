@@ -8,6 +8,7 @@ export interface Trade {
   code: string
   nameKo: string
   nameVi: string
+  nameEn?: string
 }
 
 export interface ProfileDraft {

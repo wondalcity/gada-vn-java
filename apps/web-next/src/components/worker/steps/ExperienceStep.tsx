@@ -33,7 +33,7 @@ function TradeSkeleton() {
 export default function ExperienceStep({ draft, onChange, onNext, isSaving }: ExperienceStepProps) {
   const params = useParams()
   const locale = (params?.locale as string) ?? 'ko'
-  const tradeName = (t: Trade) => locale === 'vi' ? t.nameVi : t.nameKo
+  const tradeName = (t: Trade) => locale === 'vi' ? t.nameVi : locale === 'en' ? (t.nameEn ?? t.nameKo) : t.nameKo
 
   const [trades, setTrades] = React.useState<Trade[]>([])
   const [isLoadingTrades, setIsLoadingTrades] = React.useState(true)

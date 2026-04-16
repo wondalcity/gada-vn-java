@@ -670,7 +670,7 @@ function ExperienceTab({ profile, onSaved, locale }: { profile: WorkerProfile; o
             .map(tr => (
               <div key={tr.id} className="flex items-center gap-2 p-2.5 bg-[#E6F0FE] border border-[#0669F7] rounded-lg">
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-[#0669F7] truncate">{locale === 'vi' ? tr.nameVi : tr.nameKo}</p>
+                  <p className="text-sm font-medium text-[#0669F7] truncate">{locale === 'vi' ? tr.nameVi : locale === 'en' ? (tr.nameEn ?? tr.nameKo) : tr.nameKo}</p>
                 </div>
                 <div className="flex items-center gap-1 shrink-0">
                   <input
@@ -705,7 +705,7 @@ function ExperienceTab({ profile, onSaved, locale }: { profile: WorkerProfile; o
                   <button type="button" onClick={() => toggleTrade(tr.id)}
                     className={`w-full flex items-center justify-between px-4 py-3 text-left hover:bg-[#F2F4F5] border-b border-[#EFF1F5] last:border-0 ${isSelected ? 'bg-[#E6F0FE]' : ''}`}>
                     <div>
-                      <p className={`text-sm font-medium ${isSelected ? 'text-[#0669F7]' : 'text-[#25282A]'}`}>{locale === 'vi' ? tr.nameVi : tr.nameKo}</p>
+                      <p className={`text-sm font-medium ${isSelected ? 'text-[#0669F7]' : 'text-[#25282A]'}`}>{locale === 'vi' ? tr.nameVi : locale === 'en' ? (tr.nameEn ?? tr.nameKo) : tr.nameKo}</p>
                     </div>
                     {isSelected && <svg className="w-5 h-5 text-[#0669F7]" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>}
                   </button>
