@@ -2,4 +2,7 @@
 # Gradle build outputs
 .gradle/
 build/
-!src/main/resources/static/.gitkeep
+
+# Frontend build output — generated at Docker build time, never commit
+src/main/resources/static/assets/
+src/main/resources/static/index.html
