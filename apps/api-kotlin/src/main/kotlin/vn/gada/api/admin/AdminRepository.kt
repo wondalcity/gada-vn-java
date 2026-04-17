@@ -695,19 +695,21 @@ class AdminRepository(
 
     fun searchCompaniesPaginated(search: String, page: Int, limit: Int): List<Map<String, Any?>> {
         val offset = (page - 1) * limit
+        // Join through auth.users to bridge TEXT firebase_uid → UUID manager_profiles.user_id
         val base = """SELECT cc.*,
                       COUNT(cs.id) AS site_count,
-                      mp.display_name  AS creator_name,
-                      mp.phone         AS creator_phone
+                      mp.representative_name AS creator_name,
+                      mp.contact_phone       AS creator_phone
                FROM app.construction_companies cc
                LEFT JOIN app.construction_sites cs ON cs.company_id = cc.id
-               LEFT JOIN app.manager_profiles mp ON mp.user_id = cc.created_by_user_id"""
+               LEFT JOIN auth.users au ON au.firebase_uid = cc.created_by_user_id
+               LEFT JOIN app.manager_profiles mp ON mp.user_id = au.id"""
         val rows = if (search.isBlank()) {
-            db.queryForList("$base GROUP BY cc.id, mp.display_name, mp.phone ORDER BY cc.created_at DESC LIMIT ? OFFSET ?", limit, offset)
+            db.queryForList("$base GROUP BY cc.id, mp.representative_name, mp.contact_phone ORDER BY cc.created_at DESC LIMIT ? OFFSET ?", limit, offset)
         } else {
             val like = "%$search%"
             db.queryForList(
-                "$base WHERE (cc.name ILIKE ? OR cc.business_reg_no ILIKE ? OR cc.contact_name ILIKE ?) GROUP BY cc.id, mp.display_name, mp.phone ORDER BY cc.created_at DESC LIMIT ? OFFSET ?",
+                "$base WHERE (cc.name ILIKE ? OR cc.business_reg_no ILIKE ? OR cc.contact_name ILIKE ?) GROUP BY cc.id, mp.representative_name, mp.contact_phone ORDER BY cc.created_at DESC LIMIT ? OFFSET ?",
                 like, like, like, limit, offset)
         }
         return rows.map { row -> row + mapOf("signature_url" to toUrl(row["signature_s3_key"] as? String)) }
