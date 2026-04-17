@@ -211,7 +211,7 @@ class AdminRepository(
             db.queryForList("$baseSelect ORDER BY wp.created_at DESC LIMIT ? OFFSET ?", limit, offset)
         } else {
             db.queryForList(
-                "$baseSelect AND (wp.full_name ILIKE ? OR u.phone ILIKE ? OR u.email ILIKE ?) ORDER BY wp.created_at DESC LIMIT ? OFFSET ?",
+                "$baseSelect AND (unaccent(wp.full_name) ILIKE unaccent(?) OR u.phone ILIKE ? OR u.email ILIKE ?) ORDER BY wp.created_at DESC LIMIT ? OFFSET ?",
                 like, like, like, limit, offset
             )
         }
@@ -263,7 +263,7 @@ class AdminRepository(
                 """SELECT COUNT(*) as count FROM app.worker_profiles wp
                    JOIN auth.users u ON wp.user_id = u.id
                    WHERE u.status != 'DELETED'
-                     AND (wp.full_name ILIKE ? OR u.phone ILIKE ? OR u.email ILIKE ?)""",
+                     AND (unaccent(wp.full_name) ILIKE unaccent(?) OR u.phone ILIKE ? OR u.email ILIKE ?)""",
                 like, like, like
             )
         }
