@@ -22,7 +22,7 @@ function toCdnUrl(urlOrKey: string | null): string | null {
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
-interface Trade { id: number; nameKo: string; nameVi: string }
+interface Trade { id: number; nameKo: string; nameVi: string; nameEn?: string }
 interface TradeSkill { trade_id: number; years: number; name_ko: string; name_vi: string }
 
 interface WorkerProfile {
