@@ -308,8 +308,7 @@ class PublicService(
             """SELECT
                 COALESCE(MIN(j.daily_wage), 0) AS min_wage,
                 COALESCE(MAX(j.daily_wage), 0) AS max_wage
-              FROM app.jobs j
-              WHERE j.status = 'OPEN' AND (j.expires_at IS NULL OR j.expires_at > NOW())"""
+              FROM app.jobs j"""
         )
         val r = rows.firstOrNull()
         val minWage: Any? = (r?.get("min_wage") as? Number)?.toLong() ?: 0L
