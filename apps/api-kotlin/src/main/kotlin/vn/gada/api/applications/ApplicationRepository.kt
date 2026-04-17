@@ -94,13 +94,28 @@ class ApplicationRepository(private val db: DatabaseService) {
         )
     }
 
-    fun create(userId: String, jobId: String): Map<String, Any?>? {
-        return db.queryForList(
-            """INSERT INTO app.job_applications (worker_id, job_id, status, applied_at)
-               SELECT wp.id, ?, 'PENDING', NOW()
+    fun create(userId: String, jobId: String, notes: String? = null): Map<String, Any?>? {
+        val row = db.queryForList(
+            """INSERT INTO app.job_applications (worker_id, job_id, status, notes, applied_at)
+               SELECT wp.id, ?, 'PENDING', ?, NOW()
                FROM app.worker_profiles wp WHERE wp.user_id = ?
-               RETURNING *""",
-            jobId, userId
+               RETURNING id, status, notes, applied_at""",
+            jobId, notes, userId
+        ).firstOrNull() ?: return null
+        // Map DB status 'PENDING' → 'APPLIED' for the worker-facing response
+        return row + mapOf("status" to "APPLIED")
+    }
+
+    fun updateNote(id: String, userId: String, notes: String): Map<String, Any?>? {
+        return db.queryForList(
+            """UPDATE app.job_applications a
+               SET notes = ?, updated_at = NOW()
+               FROM app.worker_profiles wp
+               WHERE a.id = ?::uuid
+                 AND a.worker_id = wp.id
+                 AND wp.user_id = ?
+               RETURNING a.id, a.status, a.notes""",
+            notes, id, userId
         ).firstOrNull()
     }
 
@@ -136,13 +151,21 @@ class ApplicationRepository(private val db: DatabaseService) {
     }
 
     fun findByWorkerAndJobForWorker(workerUserId: String, jobId: String): Map<String, Any?>? {
-        return db.queryForList(
+        val row = db.queryForList(
             """SELECT a.id AS "applicationId", a.status, a.notes
                FROM app.job_applications a
                JOIN app.worker_profiles wp ON a.worker_id = wp.id
                WHERE wp.user_id = ? AND a.job_id = ?""",
             workerUserId, jobId
-        ).firstOrNull()
+        ).firstOrNull() ?: return null
+        // Map DB internal statuses to worker-facing status names
+        val mappedStatus = when (row["status"] as? String) {
+            "PENDING"    -> "APPLIED"
+            "ACCEPTED"   -> "HIRED"
+            "CONTRACTED" -> "COMPLETED"
+            else         -> row["status"]
+        }
+        return row + mapOf("status" to mappedStatus)
     }
 
     fun findByManagerUserId(managerUserId: String): List<Map<String, Any?>> {

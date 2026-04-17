@@ -19,7 +19,22 @@ class ApplicationController(private val applicationService: ApplicationService) 
         @RequestBody(required = false) body: Map<String, Any?>?
     ): ResponseEntity<Map<String, Any?>> {
         val u = requireWorker(user)
-        return ok(applicationService.apply(u.id, jobId))
+        val notes = body?.get("notes") as? String
+        val result = applicationService.apply(u.id, jobId, notes)
+        return ResponseEntity.status(HttpStatus.CREATED)
+            .body(mapOf("statusCode" to 201, "data" to result))
+    }
+
+    /** PUT /applications/:id/note — Worker updates their application note */
+    @PutMapping("/applications/{id}/note")
+    fun updateApplicationNote(
+        @PathVariable id: String,
+        @AuthenticationPrincipal user: AuthUser?,
+        @RequestBody body: Map<String, Any?>
+    ): ResponseEntity<Map<String, Any?>> {
+        val u = requireWorker(user)
+        val notes = body["notes"] as? String ?: ""
+        return ok(applicationService.updateNote(id, u.id, notes))
     }
 
     /** GET /applications/for-manager — Manager fetches accepted/contracted applications with contract info */

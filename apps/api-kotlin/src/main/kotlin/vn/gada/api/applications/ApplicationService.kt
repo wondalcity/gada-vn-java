@@ -21,10 +21,15 @@ class ApplicationService(
             ?: throw NotFoundException("Application $id not found or cannot be withdrawn")
     }
 
-    fun apply(userId: String, jobId: String): Map<String, Any?>? {
+    fun apply(userId: String, jobId: String, notes: String? = null): Map<String, Any?>? {
         val existing = repo.findByWorkerAndJob(userId, jobId)
         if (existing != null) throw ConflictException("Already applied to this job")
-        return repo.create(userId, jobId)
+        return repo.create(userId, jobId, notes)
+    }
+
+    fun updateNote(id: String, userId: String, notes: String): Map<String, Any?> {
+        return repo.updateNote(id, userId, notes)
+            ?: throw NotFoundException("Application $id not found")
     }
 
     fun findByWorker(userId: String, page: Int, limit: Int): List<Map<String, Any?>> {
