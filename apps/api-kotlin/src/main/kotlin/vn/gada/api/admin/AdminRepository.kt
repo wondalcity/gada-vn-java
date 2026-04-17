@@ -299,7 +299,7 @@ class AdminRepository(
         val profileParams = mutableListOf<Any?>()
 
         nonBlank(body["fullName"] ?: body["full_name"])?.let { profileClauses.add("full_name = ?"); profileParams.add(it) }
-        nonBlank(body["dateOfBirth"] ?: body["date_of_birth"])?.let { profileClauses.add("date_of_birth = ?"); profileParams.add(it) }
+        nonBlank(body["dateOfBirth"] ?: body["date_of_birth"])?.let { profileClauses.add("date_of_birth = CAST(? AS date)"); profileParams.add(it) }
         nonBlank(body["gender"])?.let { profileClauses.add("gender = ?"); profileParams.add(it) }
         nonBlank(body["bio"])?.let { profileClauses.add("bio = ?"); profileParams.add(it) }
         nonBlank(body["primaryTradeId"] ?: body["primary_trade_id"])?.let { profileClauses.add("primary_trade_id = ?"); profileParams.add(it) }
