@@ -1,7 +1,7 @@
 'use client'
 
 import * as React from 'react'
-import { useLocale } from 'next-intl'
+import { useLocale, useTranslations } from 'next-intl'
 import { apiClient } from '@/lib/api/client'
 import { formatDate } from '@/lib/utils/date'
 import { DatePicker } from '@/components/ui/DatePicker'
@@ -33,6 +33,7 @@ function getWeekdays(startStr: string, endStr: string): string[] {
 
 export default function ShiftManager({ jobId, initialShifts, idToken }: ShiftManagerProps) {
   const locale = useLocale()
+  const t = useTranslations('manager')
   const [shifts, setShifts] = React.useState<JobShift[]>(
     [...initialShifts].sort((a, b) => a.workDate.localeCompare(b.workDate))
   )
@@ -89,7 +90,7 @@ export default function ShiftManager({ jobId, initialShifts, idToken }: ShiftMan
     } catch (e) {
       // Rollback
       setShifts((prev) => prev.filter((s) => s.id !== tempId))
-      setError(e instanceof Error ? e.message : '날짜 추가 실패')
+      setError(e instanceof Error ? e.message : t('shifts.error_add'))
     } finally {
       setIsAddingSingle(false)
     }
@@ -98,7 +99,7 @@ export default function ShiftManager({ jobId, initialShifts, idToken }: ShiftMan
   async function handleAddRange() {
     if (!rangeFrom || !rangeTo) return
     const dates = getWeekdays(rangeFrom, rangeTo)
-    if (dates.length === 0) { setError('선택 범위에 유효한 날짜가 없습니다 (일요일 제외)'); return }
+    if (dates.length === 0) { setError(t('shifts.error_no_dates')); return }
 
     setIsAddingRange(true)
     setError(null)
@@ -133,7 +134,7 @@ export default function ShiftManager({ jobId, initialShifts, idToken }: ShiftMan
     } catch (e) {
       const tempIds = new Set(tempShifts.map((t) => t.id))
       setShifts((prev) => prev.filter((s) => !tempIds.has(s.id)))
-      setError(e instanceof Error ? e.message : '날짜 추가 실패')
+      setError(e instanceof Error ? e.message : t('shifts.error_add'))
     } finally {
       setIsAddingRange(false)
     }
@@ -157,7 +158,7 @@ export default function ShiftManager({ jobId, initialShifts, idToken }: ShiftMan
     } catch (e) {
       // Rollback
       setShifts(prevShifts)
-      setError(e instanceof Error ? e.message : '취소 실패')
+      setError(e instanceof Error ? e.message : t('shifts.error_cancel'))
     } finally {
       setIsCancelling(false)
       setCancelShiftId(null)
@@ -167,21 +168,21 @@ export default function ShiftManager({ jobId, initialShifts, idToken }: ShiftMan
   return (
     <div className="bg-white rounded-2xl shadow-sm border border-[#EFF1F5] p-5">
       <div className="flex items-center justify-between mb-4">
-        <h3 className="text-sm font-semibold text-[#25282A]">일정 관리</h3>
+        <h3 className="text-sm font-semibold text-[#25282A]">{t('shifts.title')}</h3>
         <div className="flex gap-2">
           <button
             type="button"
             onClick={() => { setShowSingleAdd(!showSingleAdd); setShowRangeAdd(false) }}
             className="px-3 py-1.5 rounded-full border border-[#EFF1F5] text-[#25282A] font-medium text-xs"
           >
-            날짜 추가
+            {t('shifts.add_single')}
           </button>
           <button
             type="button"
             onClick={() => { setShowRangeAdd(!showRangeAdd); setShowSingleAdd(false) }}
             className="px-3 py-1.5 rounded-full border border-[#EFF1F5] text-[#25282A] font-medium text-xs"
           >
-            기간으로 추가
+            {t('shifts.add_range')}
           </button>
         </div>
       </div>
@@ -190,12 +191,12 @@ export default function ShiftManager({ jobId, initialShifts, idToken }: ShiftMan
       {showSingleAdd && (
         <div className="mb-4 p-3 bg-[#F2F4F5] rounded-2xl border border-[#EFF1F5] flex items-end gap-2">
           <div className="flex-1">
-            <label className="block text-xs font-medium text-[#25282A] mb-1">날짜 선택</label>
+            <label className="block text-xs font-medium text-[#25282A] mb-1">{t('shifts.date_label')}</label>
             <DatePicker
               value={singleDate}
               onChange={setSingleDate}
               min={today}
-              placeholder="날짜 선택"
+              placeholder={t('shifts.date_placeholder')}
             />
           </div>
           <button
@@ -204,14 +205,14 @@ export default function ShiftManager({ jobId, initialShifts, idToken }: ShiftMan
             disabled={!singleDate || isAddingSingle}
             className="px-4 py-2 rounded-full bg-[#0669F7] text-white font-medium text-sm hover:bg-[#0557D4] disabled:opacity-40"
           >
-            {isAddingSingle ? '추가 중...' : '추가'}
+            {isAddingSingle ? t('shifts.adding') : t('shifts.add')}
           </button>
           <button
             type="button"
             onClick={() => setShowSingleAdd(false)}
             className="px-4 py-2 rounded-full border border-[#EFF1F5] text-[#25282A] font-medium text-sm"
           >
-            취소
+            {t('shifts.cancel')}
           </button>
         </div>
       )}
@@ -219,25 +220,25 @@ export default function ShiftManager({ jobId, initialShifts, idToken }: ShiftMan
       {/* Range add */}
       {showRangeAdd && (
         <div className="mb-4 p-3 bg-[#F2F4F5] rounded-2xl border border-[#EFF1F5] space-y-2">
-          <p className="text-xs text-[#98A2B2]">일요일을 제외한 평일+토요일이 추가됩니다</p>
+          <p className="text-xs text-[#98A2B2]">{t('shifts.range_hint')}</p>
           <div className="flex items-end gap-2">
             <div className="flex-1">
-              <label className="block text-xs font-medium text-[#25282A] mb-1">시작일</label>
+              <label className="block text-xs font-medium text-[#25282A] mb-1">{t('shifts.start_label')}</label>
               <DatePicker
                 value={rangeFrom}
                 onChange={setRangeFrom}
                 min={today}
-                placeholder="시작일"
+                placeholder={t('shifts.start_placeholder')}
               />
             </div>
             <span className="text-[#98A2B2] text-sm pb-2">~</span>
             <div className="flex-1">
-              <label className="block text-xs font-medium text-[#25282A] mb-1">종료일</label>
+              <label className="block text-xs font-medium text-[#25282A] mb-1">{t('shifts.end_label')}</label>
               <DatePicker
                 value={rangeTo}
                 onChange={setRangeTo}
                 min={rangeFrom || today}
-                placeholder="종료일"
+                placeholder={t('shifts.end_placeholder')}
               />
             </div>
           </div>
@@ -248,14 +249,14 @@ export default function ShiftManager({ jobId, initialShifts, idToken }: ShiftMan
               disabled={!rangeFrom || !rangeTo || isAddingRange}
               className="px-4 py-2 rounded-full bg-[#0669F7] text-white font-medium text-sm hover:bg-[#0557D4] disabled:opacity-40"
             >
-              {isAddingRange ? '추가 중...' : '추가'}
+              {isAddingRange ? t('shifts.adding') : t('shifts.add')}
             </button>
             <button
               type="button"
               onClick={() => setShowRangeAdd(false)}
               className="px-4 py-2 rounded-full border border-[#EFF1F5] text-[#25282A] font-medium text-sm"
             >
-              취소
+              {t('shifts.cancel')}
             </button>
           </div>
         </div>
@@ -269,7 +270,7 @@ export default function ShiftManager({ jobId, initialShifts, idToken }: ShiftMan
 
       {/* Shift list */}
       {shifts.length === 0 ? (
-        <p className="text-sm text-[#98A2B2] text-center py-6">등록된 일정이 없습니다</p>
+        <p className="text-sm text-[#98A2B2] text-center py-6">{t('shifts.empty')}</p>
       ) : (
         <div className="space-y-2">
           {shifts.map((shift) => (
@@ -287,7 +288,7 @@ export default function ShiftManager({ jobId, initialShifts, idToken }: ShiftMan
                   onClick={() => setCancelShiftId(shift.id)}
                   className="text-xs text-[#ED1C24] font-medium px-2 py-1 rounded-2xl hover:bg-[#FDE8EE]"
                 >
-                  취소
+                  {t('shifts.cancel_shift')}
                 </button>
               )}
             </div>
@@ -297,9 +298,9 @@ export default function ShiftManager({ jobId, initialShifts, idToken }: ShiftMan
 
       <ConfirmModal
         isOpen={cancelShiftId !== null}
-        title="일정 취소"
-        message="이 날짜의 일정을 취소하시겠습니까?"
-        confirmLabel="취소"
+        title={t('shifts.confirm_title')}
+        message={t('shifts.confirm_message')}
+        confirmLabel={t('shifts.confirm_label')}
         confirmVariant="danger"
         onConfirm={handleCancelShift}
         onCancel={() => setCancelShiftId(null)}

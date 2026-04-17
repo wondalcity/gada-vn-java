@@ -5,7 +5,7 @@ import { useTranslations } from 'next-intl'
 import { useSearchParams } from 'next/navigation'
 import { getSessionCookie } from '@/lib/auth/session'
 import type { WorkerAttendanceRecord, AttendanceStatus } from '@/types/attendance'
-import { STATUS_LABELS, STATUS_COLORS, formatHoursWorked } from '@/lib/attendance'
+import { STATUS_COLORS, formatHoursWorked } from '@/lib/attendance'
 
 const API_BASE = '/api/v1'
 
@@ -32,6 +32,14 @@ export default function WorkerAttendanceClient() {
     { key: 'ABSENT',   label: t('tab_absent') },
     { key: 'HALF_DAY', label: t('tab_half_day') },
   ]
+
+  // Translated status labels for badges — avoids hardcoded Korean from lib/attendance
+  const statusLabels: Record<string, string> = {
+    PENDING:  t('status_pending'),
+    ATTENDED: t('tab_attended'),
+    ABSENT:   t('tab_absent'),
+    HALF_DAY: t('tab_half_day'),
+  }
 
   const [records, setRecords] = React.useState<WorkerAttendanceRecord[]>([])
   const [isLoading, setIsLoading] = React.useState(true)
@@ -169,7 +177,7 @@ export default function WorkerAttendanceClient() {
             <p className="text-[#98A2B2] text-xs">
               {activeTab === 'all'
                 ? t('empty_hint')
-                : t('empty_status', { status: STATUS_LABELS[activeTab as AttendanceStatus] ?? activeTab })}
+                : t('empty_status', { status: TABS.find(tab => tab.key === activeTab)?.label ?? activeTab })}
             </p>
           </div>
         ) : (
@@ -188,7 +196,7 @@ export default function WorkerAttendanceClient() {
                         STATUS_COLORS[record.status],
                       ].join(' ')}
                     >
-                      {STATUS_LABELS[record.status]}
+                      {statusLabels[record.status] ?? record.status}
                     </span>
                   </div>
 

@@ -1,5 +1,6 @@
 package vn.gada.api.admin
 
+import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import org.springframework.stereotype.Repository
 import vn.gada.api.common.database.DatabaseService
 
@@ -9,7 +10,15 @@ class AdminRepository(
     private val fileService: vn.gada.api.files.FileService
 ) {
 
+    private val jsonMapper = jacksonObjectMapper()
     private fun toUrl(key: String?) = fileService.toPublicUrl(key)
+    private fun toJsonStr(value: Any?): String = when {
+        value == null -> "{}"
+        value is String -> value
+        else -> jsonMapper.writeValueAsString(value)
+    }
+    /** Returns null for blank strings so JDBC skips type-specific casts (e.g. DATE, INT) on empty input. */
+    private fun nonBlank(v: Any?): Any? = if (v is String && v.isBlank()) null else v
 
     // sanitize() is now handled by DatabaseService.coerceValue() for all queries.
     // Keep a no-op passthrough for call sites that still reference it.
@@ -289,17 +298,17 @@ class AdminRepository(
         val profileClauses = mutableListOf<String>()
         val profileParams = mutableListOf<Any?>()
 
-        (body["fullName"] ?: body["full_name"])?.let { profileClauses.add("full_name = ?"); profileParams.add(it) }
-        (body["dateOfBirth"] ?: body["date_of_birth"])?.let { profileClauses.add("date_of_birth = ?"); profileParams.add(it) }
-        body["gender"]?.let { profileClauses.add("gender = ?"); profileParams.add(it) }
-        body["bio"]?.let { profileClauses.add("bio = ?"); profileParams.add(it) }
-        (body["primaryTradeId"] ?: body["primary_trade_id"])?.let { profileClauses.add("primary_trade_id = ?"); profileParams.add(it) }
-        (body["experienceMonths"] ?: body["experience_months"])?.let { profileClauses.add("experience_months = ?"); profileParams.add(it) }
+        nonBlank(body["fullName"] ?: body["full_name"])?.let { profileClauses.add("full_name = ?"); profileParams.add(it) }
+        nonBlank(body["dateOfBirth"] ?: body["date_of_birth"])?.let { profileClauses.add("date_of_birth = ?"); profileParams.add(it) }
+        nonBlank(body["gender"])?.let { profileClauses.add("gender = ?"); profileParams.add(it) }
+        nonBlank(body["bio"])?.let { profileClauses.add("bio = ?"); profileParams.add(it) }
+        nonBlank(body["primaryTradeId"] ?: body["primary_trade_id"])?.let { profileClauses.add("primary_trade_id = ?"); profileParams.add(it) }
+        nonBlank(body["experienceMonths"] ?: body["experience_months"])?.let { profileClauses.add("experience_months = ?"); profileParams.add(it) }
         (body["profileComplete"] ?: body["profile_complete"])?.let { profileClauses.add("profile_complete = ?"); profileParams.add(it) }
         (body["idVerified"] ?: body["id_verified"])?.let { profileClauses.add("id_verified = ?"); profileParams.add(it) }
-        (body["idNumber"] ?: body["id_number"])?.let { profileClauses.add("id_number = ?"); profileParams.add(it) }
-        (body["bankName"] ?: body["bank_name"])?.let { profileClauses.add("bank_name = ?"); profileParams.add(it) }
-        (body["bankAccountNumber"] ?: body["bank_account_number"])?.let { profileClauses.add("bank_account_number = ?"); profileParams.add(it) }
+        nonBlank(body["idNumber"] ?: body["id_number"])?.let { profileClauses.add("id_number = ?"); profileParams.add(it) }
+        nonBlank(body["bankName"] ?: body["bank_name"])?.let { profileClauses.add("bank_name = ?"); profileParams.add(it) }
+        nonBlank(body["bankAccountNumber"] ?: body["bank_account_number"])?.let { profileClauses.add("bank_account_number = ?"); profileParams.add(it) }
 
         if (profileClauses.isNotEmpty()) {
             profileClauses.add("updated_at = NOW()")
@@ -471,13 +480,17 @@ class AdminRepository(
             "SELECT manager_id FROM app.construction_sites WHERE id = ?", siteId
         ).firstOrNull()?.get("manager_id") as? String
 
+        val benefitsJson = toJsonStr(body["benefits"])
+        val requirementsJson = toJsonStr(body["requirements"] ?: body["requirementsObj"])
         return db.queryForListRaw(
             """INSERT INTO app.jobs (site_id, manager_id, title, description, trade_id, work_date,
-                      start_time, end_time, daily_wage, slots_total, status, slug, published_at, created_at, updated_at)
-               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW(), NOW())
+                      start_time, end_time, daily_wage, slots_total, status, slug, benefits, requirements,
+                      published_at, created_at, updated_at)
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CAST(? AS jsonb), CAST(? AS jsonb), NOW(), NOW(), NOW())
                RETURNING *""",
             siteId, managerId, title, description, tradeId, workDate,
-            startTime, endTime, dailyWage, slotsTotal, status, slug
+            startTime, endTime, dailyWage, slotsTotal, status, slug,
+            benefitsJson, requirementsJson
         ).firstOrNull()
     }
 
@@ -495,6 +508,8 @@ class AdminRepository(
         (body["dailyWage"] ?: body["daily_wage"])?.let { setClauses.add("daily_wage = ?"); params.add(it) }
         (body["slotsTotal"] ?: body["slots_total"])?.let { setClauses.add("slots_total = ?"); params.add((it as Number).toInt()) }
         body["status"]?.let { setClauses.add("status = ?"); params.add(it) }
+        body["benefits"]?.let { setClauses.add("benefits = CAST(? AS jsonb)"); params.add(toJsonStr(it)) }
+        (body["requirements"] ?: body["requirementsObj"])?.let { setClauses.add("requirements = CAST(? AS jsonb)"); params.add(toJsonStr(it)) }
 
         if (setClauses.isEmpty()) return findJobById(id)
 

@@ -55,6 +55,7 @@
     "tab_attended": "Đi làm",
     "tab_absent": "Vắng mặt",
     "tab_half_day": "Nửa ngày",
+    "status_pending": "Chưa xác nhận",
     "load_error": "Không thể tải lịch sử làm việc",
     "retry": "Thử lại",
     "empty_title": "Không có lịch sử làm việc",
@@ -301,6 +302,23 @@
     "empty_title": "Bạn chưa ứng tuyển vị trí nào",
     "empty_subtitle": "Khám phá việc làm tại các công trình xây dựng Việt Nam",
     "browse_jobs": "Xem tin tuyển dụng"
+  },
+  "nearby_jobs": {
+    "heading": "Việc làm gần tôi",
+    "view_all": "Xem tất cả →",
+    "idle_title": "Tìm việc làm gần vị trí hiện tại",
+    "idle_desc": "Chúng tôi sẽ hiển thị các tin tuyển dụng đang mở trong bán kính bạn chọn",
+    "use_gps": "Dùng vị trí hiện tại",
+    "current_location": "Vị trí hiện tại",
+    "save_location": "+ Lưu vị trí",
+    "save_location_prompt": "Nhập tên cho vị trí này",
+    "save_location_placeholder": "Ví dụ: Nhà, Công trình",
+    "save_location_cancel": "Hủy",
+    "save_location_confirm": "Lưu",
+    "empty": "Không có tin tuyển dụng nào trong bán kính {radius}km",
+    "more": "Xem thêm {count} tin",
+    "denied": "Quyền truy cập vị trí bị từ chối. Vui lòng sử dụng địa chỉ đã lưu.",
+    "delete_aria": "Xóa"
   },
   "app_bar": {
     "back_aria": "Quay lại",

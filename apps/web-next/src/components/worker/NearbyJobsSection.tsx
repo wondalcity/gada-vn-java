@@ -1,6 +1,7 @@
 'use client'
 
 import * as React from 'react'
+import { useTranslations } from 'next-intl'
 import { Link } from '@/i18n/navigation'
 import { fetchPublicJobs, type PublicJob } from '@/lib/api/public'
 import { getSessionCookie } from '@/lib/auth/session'
@@ -33,6 +34,7 @@ function formatWage(n: number) {
 }
 
 export default function NearbyJobsSection({ locale }: Props) {
+  const t = useTranslations('worker')
   const [geoState, setGeoState] = React.useState<'idle' | 'requesting' | 'granted' | 'denied'>('idle')
   const [coords, setCoords] = React.useState<{ lat: number; lng: number } | null>(null)
   const [radiusKm, setRadiusKm] = React.useState(50)
@@ -40,6 +42,10 @@ export default function NearbyJobsSection({ locale }: Props) {
   const [loading, setLoading] = React.useState(false)
   const [savedLocations, setSavedLocations] = React.useState<SavedLocation[]>([])
   const [activeLocationId, setActiveLocationId] = React.useState<string | 'gps' | null>(null)
+
+  // Save location form state (replaces browser prompt)
+  const [showSaveForm, setShowSaveForm] = React.useState(false)
+  const [saveLabel, setSaveLabel] = React.useState('')
 
   // Load saved locations on mount
   React.useEffect(() => {
@@ -97,15 +103,14 @@ export default function NearbyJobsSection({ locale }: Props) {
   }
 
   async function saveCurrentLocation() {
+    if (!saveLabel.trim()) return
     const token = getSessionCookie()
     if (!token || !coords) return
-    const label = prompt('저장할 이름을 입력하세요 (예: 집, 현장)') ?? ''
-    if (!label.trim()) return
     try {
       const res = await fetch(`${API_BASE}/workers/saved-locations`, {
         method: 'POST',
         headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ label: label.trim(), lat: coords.lat, lng: coords.lng }),
+        body: JSON.stringify({ label: saveLabel.trim(), lat: coords.lat, lng: coords.lng }),
       })
       if (res.ok) {
         const body = await res.json()
@@ -120,6 +125,8 @@ export default function NearbyJobsSection({ locale }: Props) {
         }])
       }
     } catch { /* ignore */ }
+    setSaveLabel('')
+    setShowSaveForm(false)
   }
 
   async function deleteLocation(id: string) {
@@ -149,17 +156,17 @@ export default function NearbyJobsSection({ locale }: Props) {
   if (geoState === 'idle' && !coords) {
     return (
       <div className="mb-6">
-        <h2 className="text-base font-semibold text-[#25282A] mb-3">내 주변 일자리</h2>
+        <h2 className="text-base font-semibold text-[#25282A] mb-3">{t('nearby_jobs.heading')}</h2>
         <div className="bg-white rounded-2xl p-6 text-center">
           <div className="w-12 h-12 rounded-full bg-[#E6F0FE] flex items-center justify-center mx-auto mb-3"><svg className="w-6 h-6 text-[#0669F7]" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.8}><path strokeLinecap="round" strokeLinejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path strokeLinecap="round" strokeLinejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg></div>
-          <p className="text-sm text-[#25282A] font-medium mb-1">현재 위치로 가까운 일자리를 찾아보세요</p>
-          <p className="text-xs text-[#98A2B2] mb-4">위치 정보를 사용해 반경 내 공고를 보여드립니다</p>
+          <p className="text-sm text-[#25282A] font-medium mb-1">{t('nearby_jobs.idle_title')}</p>
+          <p className="text-xs text-[#98A2B2] mb-4">{t('nearby_jobs.idle_desc')}</p>
           <button
             type="button"
             onClick={requestGPS}
             className="px-5 py-2.5 rounded-full bg-[#0669F7] text-white hover:bg-[#0557D4] transition-colors text-sm font-medium"
           >
-            현재 위치 사용
+            {t('nearby_jobs.use_gps')}
           </button>
           {savedLocations.length > 0 && (
             <div className="mt-4 flex flex-wrap gap-2 justify-center">
@@ -183,9 +190,9 @@ export default function NearbyJobsSection({ locale }: Props) {
   return (
     <div className="mb-6">
       <div className="flex items-center justify-between mb-3">
-        <h2 className="text-base font-semibold text-[#25282A]">내 주변 일자리</h2>
+        <h2 className="text-base font-semibold text-[#25282A]">{t('nearby_jobs.heading')}</h2>
         <Link href={'/jobs'} className="text-sm text-[#0669F7] font-medium">
-          전체 보기 →
+          {t('nearby_jobs.view_all')}
         </Link>
       </div>
 
@@ -200,7 +207,7 @@ export default function NearbyJobsSection({ locale }: Props) {
               : 'bg-white text-[#25282A] border-[#EFF1F5] hover:bg-[#F2F4F5]'
           }`}
         >
-          현재 위치
+          {t('nearby_jobs.current_location')}
         </button>
         {savedLocations.map(loc => (
           <div key={loc.id} className="flex items-center shrink-0">
@@ -219,7 +226,7 @@ export default function NearbyJobsSection({ locale }: Props) {
               type="button"
               onClick={() => deleteLocation(loc.id)}
               className="ml-1 text-[#98A2B2] hover:text-[#ED1C24] text-xs"
-              title="삭제"
+              aria-label={t('nearby_jobs.delete_aria')}
             >
               ×
             </button>
@@ -228,10 +235,10 @@ export default function NearbyJobsSection({ locale }: Props) {
         {coords && activeLocationId === 'gps' && (
           <button
             type="button"
-            onClick={saveCurrentLocation}
+            onClick={() => setShowSaveForm(true)}
             className="shrink-0 px-3 py-1.5 rounded-full text-xs font-medium border border-dashed border-[#EFF1F5] text-[#98A2B2] hover:bg-[#F2F4F5] transition-colors"
           >
-            + 위치 저장
+            {t('nearby_jobs.save_location')}
           </button>
         )}
       </div>
@@ -261,7 +268,7 @@ export default function NearbyJobsSection({ locale }: Props) {
         </div>
       ) : jobs.length === 0 ? (
         <div className="bg-white rounded-2xl p-8 text-center">
-          <p className="text-[#98A2B2] text-sm">반경 {radiusKm}km 내 열린 공고가 없습니다</p>
+          <p className="text-[#98A2B2] text-sm">{t('nearby_jobs.empty', { radius: radiusKm })}</p>
         </div>
       ) : (
         <div className="space-y-2.5">
@@ -301,7 +308,7 @@ export default function NearbyJobsSection({ locale }: Props) {
               href={'/jobs'}
               className="block w-full py-3 text-center text-sm text-[#0669F7] font-medium border border-[#0669F7]/30 rounded-xl bg-white hover:bg-[#E6F0FE] transition-colors"
             >
-              {jobs.length - 5}개 더 보기
+              {t('nearby_jobs.more', { count: jobs.length - 5 })}
             </Link>
           )}
         </div>
@@ -309,8 +316,43 @@ export default function NearbyJobsSection({ locale }: Props) {
 
       {geoState === 'denied' && (
         <p className="text-xs text-[#98A2B2] mt-2 text-center">
-          위치 권한이 거부되었습니다. 저장된 주소를 사용하세요.
+          {t('nearby_jobs.denied')}
         </p>
+      )}
+
+      {/* Save location modal (replaces browser prompt) */}
+      {showSaveForm && (
+        <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl p-5 w-full max-w-sm shadow-xl">
+            <h3 className="text-sm font-semibold text-[#25282A] mb-3">{t('nearby_jobs.save_location_prompt')}</h3>
+            <input
+              type="text"
+              value={saveLabel}
+              onChange={(e) => setSaveLabel(e.target.value)}
+              placeholder={t('nearby_jobs.save_location_placeholder')}
+              className="w-full px-3 py-2.5 rounded-xl border border-[#EFF1F5] focus:outline-none focus:border-[#0669F7] text-sm text-[#25282A] mb-4"
+              autoFocus
+              onKeyDown={(e) => { if (e.key === 'Enter') saveCurrentLocation() }}
+            />
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => { setShowSaveForm(false); setSaveLabel('') }}
+                className="flex-1 py-2.5 rounded-full border border-[#EFF1F5] text-sm font-medium text-[#25282A] hover:bg-[#F2F4F5] transition-colors"
+              >
+                {t('nearby_jobs.save_location_cancel')}
+              </button>
+              <button
+                type="button"
+                onClick={saveCurrentLocation}
+                disabled={!saveLabel.trim()}
+                className="flex-1 py-2.5 rounded-full bg-[#0669F7] text-white text-sm font-medium disabled:opacity-40 hover:bg-[#0557D4] transition-colors"
+              >
+                {t('nearby_jobs.save_location_confirm')}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   )

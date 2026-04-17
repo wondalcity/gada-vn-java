@@ -1,7 +1,8 @@
 'use client'
 
 import * as React from 'react'
-import { Link, useRouter } from '@/i18n/navigation'
+import { useTranslations } from 'next-intl'
+import { Link } from '@/i18n/navigation'
 import { getSessionCookie } from '@/lib/auth/session'
 import { formatDate } from '@/lib/utils/date'
 
@@ -46,22 +47,28 @@ function formatVnd(n: number) {
   return new Intl.NumberFormat('ko-KR').format(n) + ' ₫'
 }
 
-const SITE_STATUS: Record<string, { label: string; bg: string; text: string }> = {
-  ACTIVE:    { label: '운영중',   bg: '#D1F3D3', text: '#024209' },
-  PAUSED:    { label: '일시중지', bg: '#FFF7DC', text: '#6B4C00' },
-  COMPLETED: { label: '완료',    bg: '#EFF1F5', text: '#595959' },
+const SITE_STATUS_STYLE: Record<string, { bg: string; text: string }> = {
+  ACTIVE:    { bg: '#D1F3D3', text: '#024209' },
+  PAUSED:    { bg: '#FFF7DC', text: '#6B4C00' },
+  COMPLETED: { bg: '#EFF1F5', text: '#595959' },
 }
-const JOB_STATUS: Record<string, { label: string; bg: string; text: string; dot: string }> = {
-  OPEN:      { label: '모집중',  bg: '#D1F3D3', text: '#024209', dot: '#00C800' },
-  FILLED:    { label: '마감',    bg: '#EFF1F5', text: '#595959', dot: '#B2B2B2' },
-  CANCELLED: { label: '취소',    bg: '#FFDCE0', text: '#540C0E', dot: '#ED1C24' },
-  COMPLETED: { label: '완료',    bg: '#EFF1F5', text: '#595959', dot: '#B2B2B2' },
+const JOB_STATUS_STYLE: Record<string, { bg: string; text: string; dot: string }> = {
+  OPEN:      { bg: '#D1F3D3', text: '#024209', dot: '#00C800' },
+  FILLED:    { bg: '#EFF1F5', text: '#595959', dot: '#B2B2B2' },
+  CANCELLED: { bg: '#FFDCE0', text: '#540C0E', dot: '#ED1C24' },
+  COMPLETED: { bg: '#EFF1F5', text: '#595959', dot: '#B2B2B2' },
 }
 
 // ── Site Card ──────────────────────────────────────────────────────────────────
 
 function SitePreviewCard({ site, locale }: { site: ManagerSite; locale: string }) {
-  const s = SITE_STATUS[site.status] ?? SITE_STATUS.ACTIVE
+  const t = useTranslations('manager')
+  const s = SITE_STATUS_STYLE[site.status] ?? SITE_STATUS_STYLE.ACTIVE
+  const siteStatusLabels: Record<string, string> = {
+    ACTIVE: t('listings.site_status_active'),
+    PAUSED: t('listings.site_status_paused'),
+    COMPLETED: t('listings.site_status_completed'),
+  }
   return (
     <div className="bg-white rounded border border-[#EFF1F5] overflow-hidden">
       {/* Cover image */}
@@ -81,12 +88,12 @@ function SitePreviewCard({ site, locale }: { site: ManagerSite; locale: string }
           className="absolute top-2 left-2 text-[10px] font-semibold px-2 py-0.5 rounded-full"
           style={{ background: s.bg, color: s.text }}
         >
-          {s.label}
+          {siteStatusLabels[site.status] ?? site.status}
         </span>
         {/* Job count */}
         {site.jobCount > 0 && (
           <span className="absolute top-2 right-2 bg-black/60 text-white text-[10px] font-medium px-2 py-0.5 rounded-full">
-            공고 {site.jobCount}개
+            {t('listings.job_count', { count: site.jobCount })}
           </span>
         )}
       </div>
@@ -106,31 +113,38 @@ function SitePreviewCard({ site, locale }: { site: ManagerSite; locale: string }
           href={`/manager/sites/${site.id}`}
           className="flex-1 py-2.5 text-xs font-medium text-[#98A2B2] text-center hover:bg-[#F2F4F5] transition-colors"
         >
-          상세보기
+          {t('listings.site_detail')}
         </Link>
         <div className="w-px bg-[#EFF1F5]" />
         <Link
           href={`/manager/sites/${site.id}/jobs/new`}
           className="flex-1 py-2.5 text-xs font-medium text-[#0669F7] text-center hover:bg-[#E6F0FE] transition-colors"
         >
-          + 공고 추가
+          {t('listings.site_add_job')}
         </Link>
         <div className="w-px bg-[#EFF1F5]" />
         <Link
           href={`/manager/sites/${site.id}/edit`}
           className="flex-1 py-2.5 text-xs font-medium text-[#98A2B2] text-center hover:bg-[#F2F4F5] transition-colors"
         >
-          수정
+          {t('listings.site_edit')}
         </Link>
       </div>
     </div>
   )
 }
 
-// ── Job Preview Card (근로자와 동일한 형식) ───────────────────────────────────
+// ── Job Preview Card ───────────────────────────────────────────────────────────
 
 function JobPreviewCard({ job, locale }: { job: ManagerJob; locale: string }) {
-  const s = JOB_STATUS[job.status] ?? JOB_STATUS.OPEN
+  const t = useTranslations('manager')
+  const s = JOB_STATUS_STYLE[job.status] ?? JOB_STATUS_STYLE.OPEN
+  const jobStatusLabels: Record<string, string> = {
+    OPEN: t('listings.job_status_open'),
+    FILLED: t('listings.job_status_filled'),
+    CANCELLED: t('listings.job_status_cancelled'),
+    COMPLETED: t('listings.job_status_completed'),
+  }
   const slotsProgress = job.slotsTotal > 0
     ? Math.min((job.slotsFilled / job.slotsTotal) * 100, 100)
     : 0
@@ -168,21 +182,21 @@ function JobPreviewCard({ job, locale }: { job: ManagerJob; locale: string }) {
             style={{ background: s.bg, color: s.text }}
           >
             <span className="w-1.5 h-1.5 rounded-full inline-block" style={{ background: s.dot }} />
-            {s.label}
+            {jobStatusLabels[job.status] ?? job.status}
           </span>
         </div>
 
         {/* Pending applications badge */}
         {hasPending && (
           <div className="absolute top-2 right-2 bg-[#ED1C24] text-white text-[10px] font-bold px-2 py-0.5 rounded-full">
-            대기 {job.applicationCount.pending}명
+            {t('listings.badge_pending', { count: job.applicationCount.pending })}
           </div>
         )}
 
         {/* Almost full warning */}
         {isAlmostFull && !hasPending && (
           <div className="absolute top-2 right-2 bg-[#FFC72C] text-[#25282A] text-[10px] font-bold px-2 py-0.5 rounded-full">
-            잔여 {remaining}자리
+            {t('listings.badge_remaining', { count: remaining })}
           </div>
         )}
       </div>
@@ -215,9 +229,9 @@ function JobPreviewCard({ job, locale }: { job: ManagerJob; locale: string }) {
             />
           </div>
           <div className="flex justify-between text-[10px] text-[#98A2B2]">
-            <span>채용 {job.slotsFilled}/{job.slotsTotal}명</span>
+            <span>{t('listings.slots', { filled: job.slotsFilled, total: job.slotsTotal })}</span>
             {job.applicationCount.accepted > 0 && (
-              <span className="text-[#1A6B1A]">확정 {job.applicationCount.accepted}명</span>
+              <span className="text-[#1A6B1A]">{t('listings.confirmed', { count: job.applicationCount.accepted })}</span>
             )}
           </div>
         </div>
@@ -254,6 +268,7 @@ function EmptyState({
 type Tab = 'sites' | 'jobs'
 
 export default function ManagerListingsClient({ locale }: { locale: string }) {
+  const t = useTranslations('manager')
   const [tab, setTab] = React.useState<Tab>('jobs')
   const [sites, setSites] = React.useState<ManagerSite[]>([])
   const [jobs, setJobs] = React.useState<ManagerJob[]>([])
@@ -276,8 +291,9 @@ export default function ManagerListingsClient({ locale }: { locale: string }) {
         setSites(sitesRes.data ?? sitesRes ?? [])
         setJobs(jobsRes.data ?? jobsRes ?? [])
       })
-      .catch(() => setError('데이터를 불러오지 못했습니다.'))
+      .catch(() => setError(t('listings.load_error')))
       .finally(() => setIsLoading(false))
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [idToken])
 
   // Filter stats
@@ -290,17 +306,17 @@ export default function ManagerListingsClient({ locale }: { locale: string }) {
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
         <div>
-          <h1 className="text-xl font-bold text-[#25282A]">내 현장·공고</h1>
-          <p className="text-xs text-[#98A2B2] mt-0.5">근로자에게 보이는 화면으로 미리볼 수 있습니다</p>
+          <h1 className="text-xl font-bold text-[#25282A]">{t('listings.title')}</h1>
+          <p className="text-xs text-[#98A2B2] mt-0.5">{t('listings.subtitle')}</p>
         </div>
       </div>
 
       {/* Quick stats */}
       <div className="grid grid-cols-3 gap-2 mb-4">
         {[
-          { label: '운영중 현장', value: activeSites, color: 'text-[#0669F7]' },
-          { label: '모집중 공고', value: openJobs, color: 'text-[#1A6B1A]' },
-          { label: '대기 지원자', value: pendingTotal, color: 'text-[#856404]' },
+          { label: t('listings.stat_active_sites'), value: activeSites, color: 'text-[#0669F7]' },
+          { label: t('listings.stat_open_jobs'), value: openJobs, color: 'text-[#1A6B1A]' },
+          { label: t('listings.stat_pending'), value: pendingTotal, color: 'text-[#856404]' },
         ].map((s) => (
           <div key={s.label} className="bg-white rounded border border-[#EFF1F5] p-3 text-center">
             <p className={`text-xl font-bold ${s.color}`}>{s.value}</p>
@@ -312,17 +328,19 @@ export default function ManagerListingsClient({ locale }: { locale: string }) {
       {/* Tabs + CTA */}
       <div className="flex items-center gap-3 mb-4">
         <div className="flex flex-1 bg-white rounded border border-[#EFF1F5] p-0.5">
-          {(['jobs', 'sites'] as Tab[]).map((t) => (
+          {(['jobs', 'sites'] as Tab[]).map((tabKey) => (
             <button
-              key={t}
-              onClick={() => setTab(t)}
+              key={tabKey}
+              onClick={() => setTab(tabKey)}
               className={`flex-1 py-2 text-sm font-medium rounded transition-colors ${
-                tab === t
+                tab === tabKey
                   ? 'bg-[#0669F7] text-white shadow-sm'
                   : 'text-[#98A2B2] hover:text-[#25282A]'
               }`}
             >
-              {t === 'jobs' ? `공고 (${jobs.length})` : `현장 (${sites.length})`}
+              {tabKey === 'jobs'
+                ? t('listings.tab_jobs', { count: jobs.length })
+                : t('listings.tab_sites', { count: sites.length })}
             </button>
           ))}
         </div>
@@ -336,7 +354,7 @@ export default function ManagerListingsClient({ locale }: { locale: string }) {
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
             </svg>
-            현장 추가
+            {t('listings.add_site')}
           </Link>
         ) : (
           <Link
@@ -346,7 +364,7 @@ export default function ManagerListingsClient({ locale }: { locale: string }) {
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
             </svg>
-            공고 추가
+            {t('listings.add_job')}
           </Link>
         )}
       </div>
@@ -371,9 +389,9 @@ export default function ManagerListingsClient({ locale }: { locale: string }) {
       ) : tab === 'jobs' ? (
         jobs.length === 0 ? (
           <EmptyState
-            title="등록된 공고가 없습니다"
-            desc="현장을 등록한 후 공고를 올려보세요"
-            ctaLabel="첫 현장 등록하기"
+            title={t('listings.empty_jobs_title')}
+            desc={t('listings.empty_jobs_desc')}
+            ctaLabel={t('listings.empty_jobs_cta')}
             ctaHref={'/manager/sites/new'}
           />
         ) : (
@@ -386,9 +404,9 @@ export default function ManagerListingsClient({ locale }: { locale: string }) {
       ) : (
         sites.length === 0 ? (
           <EmptyState
-            title="등록된 현장이 없습니다"
-            desc="첫 번째 건설 현장을 등록해보세요"
-            ctaLabel="현장 등록하기"
+            title={t('listings.empty_sites_title')}
+            desc={t('listings.empty_sites_desc')}
+            ctaLabel={t('listings.empty_sites_cta')}
             ctaHref={'/manager/sites/new'}
           />
         ) : (

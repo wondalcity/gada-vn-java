@@ -1,7 +1,7 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import { api } from '../lib/api'
-import { GadaSelect, GadaDateInput, GadaTimeInput } from '../components/ui/GadaFormControls'
+import { GadaDateInput, GadaSelect, GadaTimeInput } from '../components/ui/GadaFormControls'
 import { useAdminTranslation } from '../context/LanguageContext'
 import { tradeName as trdName } from '../lib/dateUtils'
 
@@ -23,14 +23,30 @@ export default function JobForm() {
     workDate: '', startTime: '', endTime: '',
     dailyWage: '', slotsTotal: '1', status: 'OPEN',
   })
+  const [benefits, setBenefits] = useState({ meals: false, transport: false, accommodation: false, insurance: false })
+  const [requirements, setRequirements] = useState({ minExperienceMonths: '', notes: '' })
+  const [siteSearch, setSiteSearch] = useState('')
+  const [showSiteDropdown, setShowSiteDropdown] = useState(false)
+  const siteDropdownRef = useRef<HTMLDivElement>(null)
+
+  // Close site dropdown on outside click
+  useEffect(() => {
+    function handleClick(e: MouseEvent) {
+      if (siteDropdownRef.current && !siteDropdownRef.current.contains(e.target as Node)) {
+        setShowSiteDropdown(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClick)
+    return () => document.removeEventListener('mousedown', handleClick)
+  }, [])
 
   useEffect(() => {
     Promise.all([
-      api.get<Site[]>('/admin/sites'),
+      api.get<Site[] | { data?: Site[] }>('/admin/sites'),
       api.get<Trade[]>('/admin/trades'),
       isEdit ? api.get<Record<string, unknown>>(`/admin/jobs/${id}`) : Promise.resolve(null),
     ]).then(([s, t, job]) => {
-      setSites(Array.isArray(s) ? s : [])
+      setSites(Array.isArray(s) ? s : (Array.isArray((s as { data?: Site[] }).data) ? (s as { data: Site[] }).data : []))
       setTrades(Array.isArray(t) ? t : [])
       if (job) {
         setForm({
@@ -44,6 +60,18 @@ export default function JobForm() {
           dailyWage: String(job.daily_wage ?? ''),
           slotsTotal: String(job.slots_total ?? '1'),
           status: String(job.status ?? 'OPEN'),
+        })
+        const rawBenefits = parseJobJsonField(job.benefits)
+        setBenefits({
+          meals: !!rawBenefits.meals,
+          transport: !!rawBenefits.transport,
+          accommodation: !!rawBenefits.accommodation,
+          insurance: !!rawBenefits.insurance,
+        })
+        const rawReqs = parseJobJsonField(job.requirements)
+        setRequirements({
+          minExperienceMonths: rawReqs.minExperienceMonths != null ? String(rawReqs.minExperienceMonths) : '',
+          notes: rawReqs.notes != null ? String(rawReqs.notes) : '',
         })
       }
     }).catch(console.error).finally(() => setLoading(false))
@@ -65,6 +93,11 @@ export default function JobForm() {
         dailyWage: Number(form.dailyWage),
         slotsTotal: Number(form.slotsTotal),
         status: isEdit ? form.status : undefined,
+        benefits: { meals: benefits.meals, transport: benefits.transport, accommodation: benefits.accommodation, insurance: benefits.insurance },
+        requirements: {
+          minExperienceMonths: requirements.minExperienceMonths ? Number(requirements.minExperienceMonths) : undefined,
+          notes: requirements.notes || undefined,
+        },
       }
       if (isEdit) {
         await api.put(`/admin/jobs/${id}`, payload)
@@ -92,10 +125,61 @@ export default function JobForm() {
 
       <form onSubmit={save} className="bg-white rounded-2xl shadow-sm p-6 space-y-4">
         <F label={t('jobs.form.field_site')}>
-          <GadaSelect required value={form.siteId} onChange={(e) => setForm({ ...form, siteId: e.target.value })}>
-            <option value="">{t('jobs.form.site_placeholder')}</option>
-            {sites.map((s) => <option key={s.id} value={s.id}>{s.name} {s.province ? `(${s.province})` : ''}</option>)}
-          </GadaSelect>
+          {/* Searchable site selector */}
+          <div className="relative" ref={siteDropdownRef}>
+            <button
+              type="button"
+              onClick={() => { setShowSiteDropdown(v => !v); setSiteSearch('') }}
+              className={`${IN} text-left flex items-center justify-between ${!form.siteId ? 'text-gray-400' : 'text-[#25282A]'}`}
+            >
+              <span className="truncate">
+                {form.siteId
+                  ? (() => { const s = sites.find(s => s.id === form.siteId); return s ? `${s.name}${s.province ? ` (${s.province})` : ''}` : t('jobs.form.site_placeholder') })()
+                  : t('jobs.form.site_placeholder')}
+              </span>
+              <svg className="w-4 h-4 text-gray-400 shrink-0 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+            </button>
+            {/* Hidden required input for form validation */}
+            <input type="text" required value={form.siteId} onChange={() => {}} className="sr-only" tabIndex={-1} />
+            {showSiteDropdown && (
+              <div className="absolute z-30 w-full mt-1 bg-white border border-[#EFF1F5] rounded-2xl shadow-lg overflow-hidden">
+                <div className="p-2 border-b border-[#EFF1F5]">
+                  <input
+                    autoFocus
+                    type="text"
+                    className="w-full px-3 py-1.5 text-sm border border-[#EFF1F5] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0669F7]"
+                    placeholder={t('jobs.form.site_search_placeholder')}
+                    value={siteSearch}
+                    onChange={(e) => setSiteSearch(e.target.value)}
+                  />
+                </div>
+                <div className="max-h-52 overflow-y-auto">
+                  {sites.filter(s =>
+                    s.name.toLowerCase().includes(siteSearch.toLowerCase()) ||
+                    (s.province ?? '').toLowerCase().includes(siteSearch.toLowerCase())
+                  ).map(s => (
+                    <button
+                      key={s.id}
+                      type="button"
+                      onClick={() => { setForm({ ...form, siteId: s.id }); setShowSiteDropdown(false); setSiteSearch('') }}
+                      className={`w-full text-left px-4 py-2.5 text-sm transition-colors ${
+                        form.siteId === s.id ? 'bg-[#E6F0FE] text-[#0669F7] font-medium' : 'text-[#25282A] hover:bg-[#F2F4F5]'
+                      }`}
+                    >
+                      <span className="font-medium">{s.name}</span>
+                      {s.province && <span className="text-gray-400 text-xs ml-1">({s.province})</span>}
+                    </button>
+                  ))}
+                  {sites.filter(s =>
+                    s.name.toLowerCase().includes(siteSearch.toLowerCase()) ||
+                    (s.province ?? '').toLowerCase().includes(siteSearch.toLowerCase())
+                  ).length === 0 && (
+                    <div className="px-4 py-4 text-sm text-gray-400 text-center">{t('jobs.form.site_no_results')}</div>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
         </F>
         <F label={t('jobs.form.field_title')}>
           <input required className={IN} value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} />
@@ -131,6 +215,54 @@ export default function JobForm() {
         <F label={t('jobs.form.field_description')}>
           <textarea className={IN + ' resize-none'} rows={3} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} />
         </F>
+
+        {/* Benefits */}
+        <div>
+          <p className="text-xs font-medium text-gray-500 mb-2">{t('jobs.form.field_benefits')}</p>
+          <div className="grid grid-cols-2 gap-2">
+            {([
+              ['meals',         t('jobs.form.benefit_meals')],
+              ['transport',     t('jobs.form.benefit_transport')],
+              ['accommodation', t('jobs.form.benefit_accommodation')],
+              ['insurance',     t('jobs.form.benefit_insurance')],
+            ] as const).map(([key, label]) => (
+              <label key={key} className="flex items-center gap-2 cursor-pointer select-none">
+                <input
+                  type="checkbox"
+                  checked={benefits[key]}
+                  onChange={(e) => setBenefits({ ...benefits, [key]: e.target.checked })}
+                  className="w-4 h-4 rounded border-[#EFF1F5] text-[#0669F7] accent-[#0669F7]"
+                />
+                <span className="text-sm text-gray-700">{label}</span>
+              </label>
+            ))}
+          </div>
+        </div>
+
+        {/* Requirements */}
+        <div className="space-y-3">
+          <p className="text-xs font-medium text-gray-500">{t('jobs.form.field_requirements')}</p>
+          <F label={t('jobs.form.field_min_experience')}>
+            <input
+              type="number"
+              min="0"
+              className={IN}
+              placeholder={t('jobs.form.field_min_experience_placeholder')}
+              value={requirements.minExperienceMonths}
+              onChange={(e) => setRequirements({ ...requirements, minExperienceMonths: e.target.value })}
+            />
+          </F>
+          <F label={t('jobs.form.field_requirement_notes')}>
+            <textarea
+              className={IN + ' resize-none'}
+              rows={2}
+              placeholder={t('jobs.form.field_requirement_notes_placeholder')}
+              value={requirements.notes}
+              onChange={(e) => setRequirements({ ...requirements, notes: e.target.value })}
+            />
+          </F>
+        </div>
+
         <button type="submit" disabled={saving} className="w-full bg-[#0669F7] hover:bg-[#0550C4] text-white font-semibold py-2.5 rounded-2xl transition-colors text-sm disabled:opacity-50">
           {saving ? t('jobs.form.saving') : isEdit ? t('jobs.form.save_edit') : t('jobs.form.save_new')}
         </button>
@@ -142,4 +274,11 @@ export default function JobForm() {
 const IN = 'w-full border border-[#EFF1F5] rounded-2xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#0669F7]'
 function F({ label, children }: { label: string; children: React.ReactNode }) {
   return <div><label className="block text-xs font-medium text-gray-500 mb-1">{label}</label>{children}</div>
+}
+
+function parseJobJsonField(raw: unknown): Record<string, unknown> {
+  if (!raw) return {}
+  if (typeof raw === 'object') return raw as Record<string, unknown>
+  if (typeof raw === 'string') { try { return JSON.parse(raw) } catch {} }
+  return {}
 }

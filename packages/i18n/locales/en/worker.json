@@ -55,6 +55,7 @@
     "tab_attended": "Attended",
     "tab_absent": "Absent",
     "tab_half_day": "Half Day",
+    "status_pending": "Pending",
     "load_error": "Unable to load work history",
     "retry": "Retry",
     "empty_title": "No work history",
@@ -301,6 +302,23 @@
     "empty_title": "No applications yet",
     "empty_subtitle": "Explore construction jobs in Vietnam",
     "browse_jobs": "Browse Jobs"
+  },
+  "nearby_jobs": {
+    "heading": "Jobs Near Me",
+    "view_all": "View All →",
+    "idle_title": "Find jobs near your current location",
+    "idle_desc": "We'll show you open jobs within your selected radius",
+    "use_gps": "Use Current Location",
+    "current_location": "Current Location",
+    "save_location": "+ Save Location",
+    "save_location_prompt": "Enter a name for this location",
+    "save_location_placeholder": "e.g. Home, Site",
+    "save_location_cancel": "Cancel",
+    "save_location_confirm": "Save",
+    "empty": "No open jobs within {radius}km",
+    "more": "Show {count} more",
+    "denied": "Location permission denied. Please use a saved address.",
+    "delete_aria": "Delete"
   },
   "app_bar": {
     "back_aria": "Go Back",

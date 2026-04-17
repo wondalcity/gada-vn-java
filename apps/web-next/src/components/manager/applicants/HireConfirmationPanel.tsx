@@ -1,6 +1,7 @@
 'use client'
 
 import * as React from 'react'
+import { useTranslations } from 'next-intl'
 import ConfirmModal from '@/components/manager/ConfirmModal'
 
 interface Props {
@@ -21,6 +22,7 @@ export default function HireConfirmationPanel({
   isConfirming,
   jobStatus,
 }: Props) {
+  const t = useTranslations('manager')
   const [showConfirm, setShowConfirm] = React.useState(false)
   const progress = slotsTotal > 0 ? Math.min((slotsFilled / slotsTotal) * 100, 100) : 0
 
@@ -32,7 +34,7 @@ export default function HireConfirmationPanel({
         <div className="max-w-[1760px] mx-auto flex items-center justify-between gap-4">
           <div className="flex-1 min-w-0">
             <p className="text-sm font-medium text-[#25282A]">
-              {acceptedCount}명 합격 처리됨 / {slotsTotal}명 모집
+              {t('hire_panel.accepted_status', { count: acceptedCount, total: slotsTotal })}
             </p>
             {/* Mini progress bar */}
             <div className="w-full bg-[#DDDDDD] rounded-full h-1.5 mt-1.5">
@@ -51,7 +53,7 @@ export default function HireConfirmationPanel({
                 disabled={isConfirming || acceptedCount === 0}
                 className="px-5 py-2.5 rounded-full bg-[#0669F7] text-white font-medium text-sm hover:bg-[#0557D4] disabled:opacity-40"
               >
-                선발 완료하기
+                {t('hire_panel.finalize')}
               </button>
             ) : (
               <button
@@ -59,7 +61,7 @@ export default function HireConfirmationPanel({
                 disabled
                 className="px-5 py-2.5 rounded-full bg-[#0669F7] text-white font-medium text-sm hover:bg-[#0557D4] disabled:opacity-40"
               >
-                모집이 완료되었습니다
+                {t('hire_panel.filled')}
               </button>
             )}
           </div>
@@ -68,9 +70,9 @@ export default function HireConfirmationPanel({
 
       <ConfirmModal
         isOpen={showConfirm}
-        title="선발 확정"
-        message={`현재까지 ${acceptedCount}명이 합격 처리되었습니다. 모집을 마감하고 확정하시겠습니까?`}
-        confirmLabel="확정하기"
+        title={t('hire_panel.confirm_title')}
+        message={t('hire_panel.confirm_message', { count: acceptedCount })}
+        confirmLabel={t('hire_panel.confirm_label')}
         confirmVariant="primary"
         onConfirm={async () => {
           await onConfirm()
