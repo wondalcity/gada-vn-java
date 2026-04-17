@@ -61,7 +61,7 @@ export interface PublicJobDetail extends PublicJob {
   descriptionKo?: string
   descriptionVi?: string
   benefits?: string[]
-  requirements?: string[]
+  requirementsObj?: { minExperienceMonths?: number; notes?: string }
   site: {
     slug: string
     nameKo: string

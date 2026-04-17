@@ -1,5 +1,6 @@
 package vn.gada.api.public_
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
 import vn.gada.api.common.database.DatabaseService
@@ -7,8 +8,17 @@ import vn.gada.api.common.database.DatabaseService
 @Service
 class PublicService(
     private val db: DatabaseService,
+    private val objectMapper: ObjectMapper,
     @Value("\${gada.aws.cdn-domain:}") private val cdnDomain: String
 ) {
+
+    /** Parse a JSONB column value (may arrive as String or already-deserialized Map). */
+    @Suppress("UNCHECKED_CAST")
+    private fun parseJsonb(v: Any?): Map<String, Any?> = when (v) {
+        is Map<*, *> -> v as Map<String, Any?>
+        is String -> try { objectMapper.readValue(v, Map::class.java) as Map<String, Any?> } catch (_: Exception) { emptyMap() }
+        else -> emptyMap()
+    }
 
     private fun toProvinceSlug(code: String): String = code.lowercase()
 
@@ -221,12 +231,10 @@ class PublicService(
             row["trade_id"], row["id"]
         )
 
-        @Suppress("UNCHECKED_CAST")
-        val benefitsMap = (row["benefits"] as? Map<String, Boolean>) ?: emptyMap()
-        val benefits = benefitsMap.entries.filter { it.value }.map { it.key }
+        val benefitsMap = parseJsonb(row["benefits"])
+        val benefits = benefitsMap.entries.filter { it.value == true }.map { it.key }
 
-        @Suppress("UNCHECKED_CAST")
-        val reqRaw = row["requirements"] as? Map<String, Any?>
+        val reqRaw = parseJsonb(row["requirements"]).takeIf { it.isNotEmpty() }
         val requirementsObj = reqRaw?.let { req ->
             mapOf(
                 "minExperienceMonths" to (req["minExperienceMonths"] ?: req["experience_months"]),
