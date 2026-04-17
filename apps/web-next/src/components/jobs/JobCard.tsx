@@ -31,16 +31,34 @@ export function JobCard({ job, locale, basePath = '/jobs', onWagePress }: Props)
   const tradeFallback = pickTradeImage(job.tradeNameKo, String(job.id))
   const [imgSrc, setImgSrc] = React.useState(job.coverImageUrl ?? tradeFallback)
 
-  const statusColors = STATUS_COLORS[job.status as keyof typeof STATUS_COLORS] ?? STATUS_COLORS.OPEN
-  const statusLabel = (() => {
-    switch (job.status) {
-      case 'OPEN':      return t('card.status.open')
-      case 'FILLED':    return t('card.status.filled')
-      case 'CANCELLED': return t('card.status.cancelled')
-      case 'COMPLETED': return t('card.status.completed')
-      default:          return t('card.status.open')
+  // A job is effectively expired when status=OPEN but the deadline or work date has passed
+  const isExpired = job.status === 'OPEN' && (() => {
+    const now = Date.now()
+    if (job.expiresAt != null && new Date(job.expiresAt).getTime() <= now) return true
+    // workDate is a YYYY-MM-DD string — treat as expired once the day is over (compare at day boundary)
+    if (job.workDate) {
+      const workDay = new Date(job.workDate + 'T00:00:00')
+      workDay.setDate(workDay.getDate() + 1) // expired after the work day ends
+      return workDay.getTime() <= now
     }
+    return false
   })()
+
+  const statusColors = isExpired
+    ? { bg: '#EFF1F5', text: '#98A2B2', dot: '#DBDFE9' }
+    : STATUS_COLORS[job.status as keyof typeof STATUS_COLORS] ?? STATUS_COLORS.OPEN
+
+  const statusLabel = isExpired
+    ? t('card.status.expired')
+    : (() => {
+        switch (job.status) {
+          case 'OPEN':      return t('card.status.open')
+          case 'FILLED':    return t('card.status.filled')
+          case 'CANCELLED': return t('card.status.cancelled')
+          case 'COMPLETED': return t('card.status.completed')
+          default:          return t('card.status.open')
+        }
+      })()
 
   const slotsProgress = job.slotsTotal > 0
     ? Math.min((job.slotsFilled / job.slotsTotal) * 100, 100)
@@ -48,8 +66,8 @@ export function JobCard({ job, locale, basePath = '/jobs', onWagePress }: Props)
 
   const remaining = job.slotsTotal - job.slotsFilled
 
-  // 마감임박: expires_at within 72 hours (mirrors server-side CLOSING_SOON filter)
-  const isClosingSoon = job.status === 'OPEN' && job.expiresAt != null && (() => {
+  // 마감임박: expires_at within 72 hours AND not yet expired
+  const isClosingSoon = !isExpired && job.status === 'OPEN' && job.expiresAt != null && (() => {
     const exp = new Date(job.expiresAt!).getTime()
     const now = Date.now()
     return exp > now && exp <= now + 72 * 60 * 60 * 1000

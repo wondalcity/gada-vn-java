@@ -67,7 +67,8 @@
       "open": "모집중",
       "filled": "마감",
       "cancelled": "취소",
-      "completed": "완료"
+      "completed": "완료",
+      "expired": "모집마감"
     },
     "closing_soon": "마감임박",
     "per_day": "/ 일",

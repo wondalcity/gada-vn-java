@@ -67,7 +67,8 @@
       "open": "Đang tuyển",
       "filled": "Đã đủ",
       "cancelled": "Đã hủy",
-      "completed": "Hoàn thành"
+      "completed": "Hoàn thành",
+      "expired": "Đã đóng"
     },
     "closing_soon": "Sắp hết hạn",
     "per_day": "/ ngày",

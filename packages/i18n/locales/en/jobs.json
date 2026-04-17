@@ -67,7 +67,8 @@
       "open": "Open",
       "filled": "Filled",
       "cancelled": "Cancelled",
-      "completed": "Completed"
+      "completed": "Completed",
+      "expired": "Closed"
     },
     "closing_soon": "Closing Soon",
     "per_day": "/ day",
