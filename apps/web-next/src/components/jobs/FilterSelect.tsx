@@ -5,6 +5,7 @@ import * as React from 'react'
 export interface FilterSelectOption {
   value: string
   label: string
+  pinned?: boolean
 }
 
 interface FilterSelectProps {
@@ -14,6 +15,7 @@ interface FilterSelectProps {
   onChange: (v: string) => void
   searchable?: boolean
   searchPlaceholder?: string
+  onTogglePin?: (value: string) => void
 }
 
 export function FilterSelect({
@@ -23,6 +25,7 @@ export function FilterSelect({
   onChange,
   searchable = false,
   searchPlaceholder = '검색...',
+  onTogglePin,
 }: FilterSelectProps) {
   const [open, setOpen] = React.useState(false)
   const [search, setSearch] = React.useState('')
@@ -32,9 +35,16 @@ export function FilterSelect({
   const [fixedLeft, setFixedLeft] = React.useState(0)
   const [dropdownWidth, setDropdownWidth] = React.useState(200)
 
-  const filtered = searchable && search.trim()
+  const isSearching = searchable && search.trim() !== ''
+
+  const filtered = isSearching
     ? options.filter(o => o.label.toLowerCase().includes(search.toLowerCase()))
     : options
+
+  // When not searching, split into pinned and regular
+  const pinnedFiltered = isSearching ? [] : filtered.filter(o => o.pinned && o.value !== '')
+  const regularFiltered = isSearching ? filtered : filtered.filter(o => !o.pinned || o.value === '')
+  const hasPinnedSection = pinnedFiltered.length > 0 && !isSearching
 
   React.useEffect(() => {
     if (!open) return
@@ -90,6 +100,52 @@ export function FilterSelect({
 
   const selectedLabel = options.find(o => o.value === value)?.label
 
+  function renderOption(opt: FilterSelectOption) {
+    const isSelected = value === opt.value
+    const showPin = onTogglePin && opt.value !== ''
+    return (
+      <button
+        key={opt.value || '__all__'}
+        type="button"
+        onClick={() => select(opt.value)}
+        className={[
+          'w-full text-left px-4 py-2.5 flex items-center justify-between gap-2 transition-colors border-b border-[#EFF1F5] last:border-0 text-sm group',
+          isSelected
+            ? 'bg-[#EEF4FF] text-[#0669F7] font-medium'
+            : 'text-[#25282A] hover:bg-[#F2F4F5]',
+        ].join(' ')}
+      >
+        <span className="truncate flex-1">{opt.label}</span>
+        <div className="flex items-center gap-1 shrink-0">
+          {isSelected && (
+            <svg className="w-4 h-4 text-[#0669F7]" fill="currentColor" viewBox="0 0 20 20">
+              <path
+                fillRule="evenodd"
+                d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                clipRule="evenodd"
+              />
+            </svg>
+          )}
+          {showPin && (
+            <span
+              role="button"
+              aria-label={opt.pinned ? '북마크 해제' : '북마크'}
+              onClick={(e) => { e.stopPropagation(); onTogglePin(opt.value) }}
+              className={[
+                'w-6 h-6 flex items-center justify-center rounded transition-opacity text-base leading-none',
+                opt.pinned
+                  ? 'opacity-100 text-[#0669F7]'
+                  : 'opacity-0 group-hover:opacity-60 text-[#98A2B2]',
+              ].join(' ')}
+            >
+              {opt.pinned ? '★' : '☆'}
+            </span>
+          )}
+        </div>
+      </button>
+    )
+  }
+
   return (
     <div ref={containerRef} className="relative w-full">
       <button
@@ -144,36 +200,31 @@ export function FilterSelect({
             </div>
           )}
           <div className="max-h-60 overflow-y-auto">
-            {filtered.length === 0 ? (
-              <p className="text-center text-sm text-[#98A2B2] py-6">검색 결과가 없습니다</p>
+            {isSearching ? (
+              filtered.length === 0 ? (
+                <p className="text-center text-sm text-[#98A2B2] py-6">검색 결과가 없습니다</p>
+              ) : (
+                filtered.map(opt => renderOption(opt))
+              )
             ) : (
-              filtered.map(opt => {
-                const isSelected = value === opt.value
-                return (
-                  <button
-                    key={opt.value || '__all__'}
-                    type="button"
-                    onClick={() => select(opt.value)}
-                    className={[
-                      'w-full text-left px-4 py-2.5 flex items-center justify-between gap-2 transition-colors border-b border-[#EFF1F5] last:border-0 text-sm',
-                      isSelected
-                        ? 'bg-[#EEF4FF] text-[#0669F7] font-medium'
-                        : 'text-[#25282A] hover:bg-[#F2F4F5]',
-                    ].join(' ')}
-                  >
-                    <span className="truncate">{opt.label}</span>
-                    {isSelected && (
-                      <svg className="w-4 h-4 shrink-0 text-[#0669F7]" fill="currentColor" viewBox="0 0 20 20">
-                        <path
-                          fillRule="evenodd"
-                          d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                          clipRule="evenodd"
-                        />
-                      </svg>
-                    )}
-                  </button>
-                )
-              })
+              <>
+                {/* Pinned section */}
+                {hasPinnedSection && (
+                  <>
+                    <div className="px-4 py-1.5 flex items-center gap-2">
+                      <span className="text-xs font-medium text-[#0669F7]">★ 즐겨찾는 지역</span>
+                    </div>
+                    {pinnedFiltered.map(opt => renderOption(opt))}
+                    <div className="h-px bg-[#EFF1F5] mx-2 my-1" />
+                  </>
+                )}
+                {/* Regular section */}
+                {regularFiltered.length === 0 ? (
+                  <p className="text-center text-sm text-[#98A2B2] py-6">검색 결과가 없습니다</p>
+                ) : (
+                  regularFiltered.map(opt => renderOption(opt))
+                )}
+              </>
             )}
           </div>
         </div>

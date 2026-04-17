@@ -281,10 +281,31 @@ export function JobFilters({
     router.push((`${pathname}?${params.toString()}`) as any)
   }
 
+  const [pinnedProvinces, setPinnedProvinces] = React.useState<string[]>([])
+
+  React.useEffect(() => {
+    try {
+      const stored = localStorage.getItem('gada_pinned_provinces')
+      if (stored) setPinnedProvinces(JSON.parse(stored))
+    } catch { /* ignore */ }
+  }, [])
+
+  function togglePinProvince(slug: string) {
+    setPinnedProvinces(prev => {
+      const next = prev.includes(slug) ? prev.filter(s => s !== slug) : [...prev, slug]
+      localStorage.setItem('gada_pinned_provinces', JSON.stringify(next))
+      return next
+    })
+  }
+
+  const sortedProvinces = React.useMemo(() =>
+    [...provinces].sort((a, b) => a.nameVi.localeCompare(b.nameVi, 'vi')),
+  [provinces])
+
   const provinceOptions = React.useMemo(() => [
     { value: '', label: t('listing.filter.all_provinces') },
-    ...provinces.map(p => ({ value: p.slug, label: p.nameVi })),
-  ], [provinces, t])
+    ...sortedProvinces.map(p => ({ value: p.slug, label: p.nameVi, pinned: pinnedProvinces.includes(p.slug) })),
+  ], [sortedProvinces, pinnedProvinces, t])
 
   const tradeOptions = React.useMemo(() => [
     { value: '', label: t('listing.filter.all_trades') },
@@ -307,6 +328,7 @@ export function JobFilters({
             onChange={v => updateParam('province', v || undefined)}
             searchable
             searchPlaceholder="지역 검색..."
+            onTogglePin={togglePinProvince}
           />
         </div>
 

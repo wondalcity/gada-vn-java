@@ -361,7 +361,7 @@ export default function JobDetailView({
 }: Props) {
   const t = useTranslations('jobs')
   const benefits = parseBenefits(job.benefits ?? job.benefitsObj)
-  const requirements = parseRequirements(job.requirements ?? job.requirementsObj)
+  const requirements = parseRequirements(job.requirementsObj)
 
   const dailyWage = job.dailyWage ?? job.wagePerDay ?? 0
   const workDate = job.workDate ?? job.startDate ?? ''
