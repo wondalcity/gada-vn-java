@@ -1,9 +1,10 @@
 'use client'
 
 import { useRouter } from '@/i18n/navigation'
-import { useState, useRef, useEffect, useId } from 'react'
+import { useState, useRef, useEffect, useId, useMemo } from 'react'
 import { useTranslations } from 'next-intl'
 import type { Province, Trade } from '@/lib/api/public'
+import { useAuth } from '@/hooks/useAuth'
 
 interface Props {
   provinces: Province[]
@@ -16,6 +17,7 @@ interface Props {
 interface SelectOption {
   value: string
   label: string
+  pinned?: boolean
 }
 
 interface CustomSelectProps {
@@ -24,14 +26,20 @@ interface CustomSelectProps {
   onChange: (v: string) => void
   placeholder: string
   mobileTitle: string
+  onTogglePin?: (value: string) => void
 }
 
-function CustomSelect({ options, value, onChange, placeholder, mobileTitle }: CustomSelectProps) {
+function CustomSelect({ options, value, onChange, placeholder, mobileTitle, onTogglePin }: CustomSelectProps) {
   const [open, setOpen] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
   const id = useId()
 
   const selectedLabel = options.find(o => o.value === value)?.label ?? ''
+
+  // Separate pinned and regular options (exclude the implicit "all" placeholder)
+  const pinnedOptions = options.filter(o => o.pinned && o.value !== '')
+  const regularOptions = options.filter(o => !o.pinned || o.value === '')
+  const hasPinned = pinnedOptions.length > 0
 
   // Close on outside click (desktop)
   useEffect(() => {
@@ -58,6 +66,79 @@ function CustomSelect({ options, value, onChange, placeholder, mobileTitle }: Cu
     return () => document.removeEventListener('keydown', onKey)
   }, [open])
 
+  function renderDesktopOption(opt: SelectOption) {
+    const isSelected = value === opt.value
+    const showPin = onTogglePin && opt.value !== ''
+    return (
+      <button
+        key={opt.value || '__all__'}
+        type="button"
+        role="option"
+        aria-selected={isSelected}
+        onClick={() => { onChange(opt.value); setOpen(false) }}
+        className={`w-full text-left px-4 py-3 text-sm transition-colors border-b border-[#F2F4F5] last:border-0 flex items-center justify-between gap-2 group ${
+          isSelected
+            ? 'bg-[#E6F0FE] text-[#0669F7] font-semibold'
+            : 'text-[#25282A] hover:bg-[#F2F4F5]'
+        }`}
+      >
+        <span className="flex-1 truncate">{opt.label}</span>
+        {showPin && (
+          <span
+            role="button"
+            aria-label={opt.pinned ? '북마크 해제' : '북마크'}
+            onClick={e => { e.stopPropagation(); onTogglePin(opt.value) }}
+            className={[
+              'w-5 h-5 flex items-center justify-center text-sm leading-none rounded shrink-0 transition-opacity',
+              opt.pinned ? 'opacity-100 text-[#0669F7]' : 'opacity-0 group-hover:opacity-50 text-[#98A2B2]',
+            ].join(' ')}
+          >
+            {opt.pinned ? '★' : '☆'}
+          </span>
+        )}
+      </button>
+    )
+  }
+
+  function renderMobileOption(opt: SelectOption) {
+    const isSelected = value === opt.value
+    const showPin = onTogglePin && opt.value !== ''
+    return (
+      <button
+        key={opt.value || '__all__'}
+        type="button"
+        onClick={() => { onChange(opt.value); setOpen(false) }}
+        className={`w-full flex items-center justify-between px-4 py-3.5 rounded-2xl text-sm font-medium transition-colors ${
+          isSelected
+            ? 'bg-[#E6F0FE] text-[#0669F7] border-2 border-[#0669F7]'
+            : 'bg-[#F2F4F5] text-[#25282A] border-2 border-transparent'
+        }`}
+      >
+        <span className="flex-1 truncate text-left">{opt.label}</span>
+        <div className="flex items-center gap-1.5 shrink-0">
+          {isSelected && (
+            <svg className="w-5 h-5 text-[#0669F7]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+            </svg>
+          )}
+          {showPin && (
+            <span
+              role="button"
+              aria-label={opt.pinned ? '북마크 해제' : '북마크'}
+              onClick={e => { e.stopPropagation(); onTogglePin(opt.value) }}
+              className={[
+                'w-6 h-6 flex items-center justify-center text-base leading-none rounded transition-opacity',
+                opt.pinned ? 'opacity-100 text-[#0669F7]' : 'opacity-40 text-[#98A2B2]',
+              ].join(' ')}
+            >
+              {opt.pinned ? '★' : '☆'}
+            </span>
+          )}
+        </div>
+      </button>
+    )
+  }
+
   return (
     <div ref={ref} className="relative flex-1">
       {/* Trigger */}
@@ -79,26 +160,25 @@ function CustomSelect({ options, value, onChange, placeholder, mobileTitle }: Cu
 
       {/* Desktop dropdown */}
       {open && (
-        <div className="hidden sm:block absolute top-full left-0 right-0 mt-1.5 bg-white rounded-2xl shadow-2xl border border-[#EFF1F5] z-[100] overflow-hidden max-h-64 overflow-y-auto"
+        <div
+          className="hidden sm:block absolute top-full left-0 right-0 mt-1.5 bg-white rounded-2xl shadow-2xl border border-[#EFF1F5] z-[100] overflow-hidden max-h-64 overflow-y-auto"
           role="listbox"
           style={{ boxShadow: '0 8px 32px rgba(0,0,0,0.15)' }}
         >
-          {[{ value: '', label: placeholder }, ...options].map(opt => (
-            <button
-              key={opt.value}
-              type="button"
-              role="option"
-              aria-selected={value === opt.value}
-              onClick={() => { onChange(opt.value); setOpen(false) }}
-              className={`w-full text-left px-4 py-3 text-sm transition-colors border-b border-[#F2F4F5] last:border-0 ${
-                value === opt.value
-                  ? 'bg-[#E6F0FE] text-[#0669F7] font-semibold'
-                  : 'text-[#25282A] hover:bg-[#F2F4F5]'
-              }`}
-            >
-              {opt.label}
-            </button>
-          ))}
+          {/* Pinned section */}
+          {hasPinned && (
+            <>
+              <div className="px-4 py-1.5">
+                <span className="text-xs font-medium text-[#0669F7]">★ 즐겨찾는 지역</span>
+              </div>
+              {pinnedOptions.map(opt => renderDesktopOption(opt))}
+              <div className="h-px bg-[#EFF1F5] mx-2" />
+            </>
+          )}
+          {/* Regular options (includes "all" placeholder) */}
+          {[{ value: '', label: placeholder }, ...regularOptions.filter(o => o.value !== '')].map(opt =>
+            renderDesktopOption(opt)
+          )}
         </div>
       )}
 
@@ -133,25 +213,18 @@ function CustomSelect({ options, value, onChange, placeholder, mobileTitle }: Cu
             </div>
             {/* Options */}
             <div className="overflow-y-auto flex-1 px-4 py-3 space-y-1.5">
-              {[{ value: '', label: placeholder }, ...options].map(opt => (
-                <button
-                  key={opt.value}
-                  type="button"
-                  onClick={() => { onChange(opt.value); setOpen(false) }}
-                  className={`w-full flex items-center justify-between px-4 py-3.5 rounded-2xl text-sm font-medium transition-colors ${
-                    value === opt.value
-                      ? 'bg-[#E6F0FE] text-[#0669F7] border-2 border-[#0669F7]'
-                      : 'bg-[#F2F4F5] text-[#25282A] border-2 border-transparent'
-                  }`}
-                >
-                  <span>{opt.label}</span>
-                  {value === opt.value && (
-                    <svg className="w-5 h-5 text-[#0669F7] shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                    </svg>
-                  )}
-                </button>
-              ))}
+              {/* Pinned section */}
+              {hasPinned && (
+                <>
+                  <p className="text-xs font-semibold text-[#0669F7] px-1 pb-1">★ 즐겨찾는 지역</p>
+                  {pinnedOptions.map(opt => renderMobileOption(opt))}
+                  <div className="h-px bg-[#EFF1F5] my-2" />
+                </>
+              )}
+              {/* Regular options */}
+              {[{ value: '', label: placeholder }, ...regularOptions.filter(o => o.value !== '')].map(opt =>
+                renderMobileOption(opt)
+              )}
             </div>
           </div>
         </div>
@@ -165,9 +238,28 @@ function CustomSelect({ options, value, onChange, placeholder, mobileTitle }: Cu
 export function SearchBar({ provinces, trades = [], locale }: Props) {
   const router = useRouter()
   const t = useTranslations('landing')
+  const { isLoggedIn } = useAuth()
   const [keyword, setKeyword] = useState('')
   const [selectedProvince, setSelectedProvince] = useState('')
   const [selectedTrade, setSelectedTrade] = useState('')
+
+  // Pinned provinces from localStorage — only loaded/used when logged in
+  const [pinnedProvinces, setPinnedProvinces] = useState<string[]>([])
+  useEffect(() => {
+    if (!isLoggedIn) { setPinnedProvinces([]); return }
+    try {
+      const stored = localStorage.getItem('gada_pinned_provinces')
+      if (stored) setPinnedProvinces(JSON.parse(stored))
+    } catch { /* ignore */ }
+  }, [isLoggedIn])
+
+  function togglePinProvince(slug: string) {
+    setPinnedProvinces(prev => {
+      const next = prev.includes(slug) ? prev.filter(s => s !== slug) : [...prev, slug]
+      localStorage.setItem('gada_pinned_provinces', JSON.stringify(next))
+      return next
+    })
+  }
 
   function handleSearch(e: React.FormEvent) {
     e.preventDefault()
@@ -179,10 +271,16 @@ export function SearchBar({ provinces, trades = [], locale }: Props) {
     router.push(`/jobs?${params.toString()}`)
   }
 
-  const provinceOptions: SelectOption[] = provinces.map(p => ({
-    value: p.slug,
-    label: p.nameVi,
-  }))
+  // Sort alphabetically, mark pinned items (only for logged-in users)
+  const provinceOptions: SelectOption[] = useMemo(() =>
+    [...provinces]
+      .sort((a, b) => a.nameVi.localeCompare(b.nameVi, 'vi'))
+      .map(p => ({
+        value: p.slug,
+        label: p.nameVi,
+        pinned: isLoggedIn ? pinnedProvinces.includes(p.slug) : false,
+      })),
+  [provinces, pinnedProvinces, isLoggedIn])
 
   const tradeOptions: SelectOption[] = trades.map(tr => ({
     value: String(tr.id),
@@ -215,6 +313,7 @@ export function SearchBar({ provinces, trades = [], locale }: Props) {
           onChange={setSelectedProvince}
           placeholder={t('hero.all_provinces')}
           mobileTitle={t('hero.all_provinces')}
+          onTogglePin={isLoggedIn ? togglePinProvince : undefined}
         />
         {trades.length > 0 && (
           <CustomSelect
