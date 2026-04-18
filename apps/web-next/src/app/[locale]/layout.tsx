@@ -2,7 +2,7 @@ import { notFound } from 'next/navigation'
 import { NextIntlClientProvider } from 'next-intl'
 import { getMessages } from 'next-intl/server'
 import { routing, type Locale } from '../../i18n/routing'
-import { AlertProvider } from '@/context/alert'
+import LocaleProviders from './LocaleProviders'
 
 interface LocaleLayoutProps {
   children: React.ReactNode
@@ -24,9 +24,9 @@ export default async function LocaleLayout({ children, params }: LocaleLayoutPro
 
   return (
     <NextIntlClientProvider messages={messages}>
-      <AlertProvider>
+      <LocaleProviders locale={locale}>
         {children}
-      </AlertProvider>
+      </LocaleProviders>
     </NextIntlClientProvider>
   )
 }

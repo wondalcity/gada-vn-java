@@ -1,6 +1,5 @@
 'use client'
 
-import { AuthProvider } from '@/hooks/useAuth'
 import { GlobalLoadingBar } from '@/components/ui/GlobalLoadingBar'
 
 interface Props {
@@ -8,11 +7,11 @@ interface Props {
   locale: string
 }
 
-export default function ManagerProviders({ children, locale }: Props) {
+export default function ManagerProviders({ children, locale: _locale }: Props) {
   return (
-    <AuthProvider locale={locale}>
+    <>
       <GlobalLoadingBar />
       {children}
-    </AuthProvider>
+    </>
   )
 }
