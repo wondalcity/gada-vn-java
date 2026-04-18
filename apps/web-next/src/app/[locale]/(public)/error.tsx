@@ -1,15 +1,11 @@
 'use client'
 
-import { useRouter } from '@/i18n/navigation'
-
 export default function PublicError({
   reset,
 }: {
   error: Error & { digest?: string }
   reset: () => void
 }) {
-  const router = useRouter()
-
   return (
     <div className="min-h-dvh flex flex-col items-center justify-center bg-[#F8F8FA] px-6 text-center">
       <div className="w-16 h-16 rounded-full bg-[#FDE8EE] flex items-center justify-center mb-4">
@@ -18,7 +14,7 @@ export default function PublicError({
         </svg>
       </div>
       <h1 className="text-lg font-bold text-[#25282A] mb-1">페이지를 불러올 수 없습니다</h1>
-      <p className="text-sm text-[#98A2B2] mb-6">메인 화면으로 이동 중...</p>
+      <p className="text-sm text-[#98A2B2] mb-6">일시적인 오류가 발생했습니다. 다시 시도해 주세요.</p>
       <div className="flex gap-3">
         <button
           onClick={reset}
@@ -27,7 +23,7 @@ export default function PublicError({
           다시 시도
         </button>
         <button
-          onClick={() => router.replace('/')}
+          onClick={() => { window.location.href = '/' }}
           className="px-5 py-2.5 rounded-2xl bg-[#0669F7] text-white text-sm font-medium hover:bg-[#0550C4] transition-colors"
         >
           메인으로 이동

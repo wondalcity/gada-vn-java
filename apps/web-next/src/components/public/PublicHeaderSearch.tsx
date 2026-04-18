@@ -1,7 +1,8 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useMemo } from 'react';
 import { useRouter } from '@/i18n/navigation';
+import { useAuth } from '@/hooks/useAuth';
 import { createPortal } from 'react-dom';
 
 const API_BASE = '/api/v1';
@@ -30,6 +31,7 @@ interface PublicHeaderSearchProps {
 interface SelectOption {
   value: string;
   label: string;
+  pinned?: boolean;
 }
 
 interface SearchSelectProps {
@@ -38,9 +40,10 @@ interface SearchSelectProps {
   options: SelectOption[];
   placeholder: string;
   title: string;
+  onTogglePin?: (value: string) => void;
 }
 
-function SearchSelect({ value, onChange, options, placeholder, title }: SearchSelectProps) {
+function SearchSelect({ value, onChange, options, placeholder, title, onTogglePin }: SearchSelectProps) {
   const [open, setOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [search, setSearch] = useState('');
@@ -51,9 +54,15 @@ function SearchSelect({ value, onChange, options, placeholder, title }: SearchSe
   useEffect(() => { setMounted(true); }, []);
 
   const selectedLabel = options.find((o) => o.value === value)?.label ?? '';
-  const filtered = search.trim()
+  const isSearching = search.trim() !== '';
+  const filtered = isSearching
     ? options.filter((o) => o.label.toLowerCase().includes(search.toLowerCase()))
     : options;
+
+  // When not searching, split into pinned and regular
+  const pinnedOptions = isSearching ? [] : filtered.filter(o => o.pinned && o.value !== '');
+  const regularOptions = isSearching ? filtered : filtered.filter(o => !o.pinned || o.value === '');
+  const hasPinned = pinnedOptions.length > 0 && !isSearching;
 
   const handleOpen = () => {
     const mobile = window.matchMedia('(max-width: 639px)').matches;
@@ -92,6 +101,82 @@ function SearchSelect({ value, onChange, options, placeholder, title }: SearchSe
     }
   }, [open, isMobile, options.length]);
 
+  function renderDesktopOption(o: SelectOption) {
+    const isSelected = value === o.value;
+    const showPin = onTogglePin && o.value !== '';
+    return (
+      <li key={o.value || '__all__'}>
+        <button
+          type="button"
+          onMouseDown={(e) => { e.preventDefault(); handleSelect(o.value); }}
+          className={`w-full flex items-center justify-between px-3 py-2 text-sm transition-colors group ${
+            isSelected ? 'text-[#0669F7] font-semibold bg-[#EEF4FF]' : 'text-[#25282A] hover:bg-[#F5F6F8]'
+          }`}
+        >
+          <span className="flex-1 truncate text-left">{o.label}</span>
+          <div className="flex items-center gap-1 shrink-0">
+            {isSelected && (
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" className="text-[#0669F7]">
+                <polyline points="20 6 9 17 4 12" />
+              </svg>
+            )}
+            {showPin && (
+              <span
+                role="button"
+                aria-label={o.pinned ? '북마크 해제' : '북마크'}
+                onMouseDown={(e) => { e.preventDefault(); e.stopPropagation(); onTogglePin(o.value); }}
+                className={[
+                  'w-5 h-5 flex items-center justify-center text-sm leading-none rounded transition-opacity',
+                  o.pinned ? 'opacity-100 text-[#0669F7]' : 'opacity-0 group-hover:opacity-50 text-[#98A2B2]',
+                ].join(' ')}
+              >
+                {o.pinned ? '★' : '☆'}
+              </span>
+            )}
+          </div>
+        </button>
+      </li>
+    );
+  }
+
+  function renderMobileOption(o: SelectOption) {
+    const isSelected = value === o.value;
+    const showPin = onTogglePin && o.value !== '';
+    return (
+      <li key={o.value || '__all__'}>
+        <button
+          type="button"
+          onClick={() => handleSelect(o.value)}
+          className={`w-full flex items-center justify-between px-4 py-3.5 rounded-2xl text-[15px] transition-colors ${
+            isSelected ? 'bg-[#EEF4FF] text-[#0669F7] font-semibold' : 'text-[#25282A] hover:bg-[#F5F6F8]'
+          }`}
+        >
+          <span className="flex-1 truncate text-left">{o.label}</span>
+          <div className="flex items-center gap-1.5 shrink-0">
+            {isSelected && (
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" className="text-[#0669F7]">
+                <polyline points="20 6 9 17 4 12" />
+              </svg>
+            )}
+            {showPin && (
+              <span
+                role="button"
+                aria-label={o.pinned ? '북마크 해제' : '북마크'}
+                onClick={(e) => { e.stopPropagation(); onTogglePin(o.value); }}
+                className={[
+                  'w-6 h-6 flex items-center justify-center text-base leading-none rounded transition-opacity',
+                  o.pinned ? 'opacity-100 text-[#0669F7]' : 'opacity-40 text-[#98A2B2]',
+                ].join(' ')}
+              >
+                {o.pinned ? '★' : '☆'}
+              </span>
+            )}
+          </div>
+        </button>
+      </li>
+    );
+  }
+
   // ── Desktop dropdown ─────────────────────────────────────────────────────────
   const desktopDropdown = open && !isMobile ? (
     <div className="absolute top-full left-0 mt-1 w-full min-w-[220px] bg-white border border-[#E5E7EB] rounded-xl shadow-xl z-50 overflow-hidden">
@@ -115,42 +200,27 @@ function SearchSelect({ value, onChange, options, placeholder, title }: SearchSe
         </div>
       )}
       <ul className="overflow-y-auto max-h-56 py-1">
-        <li>
-          <button
-            type="button"
-            onMouseDown={(e) => { e.preventDefault(); handleSelect(''); }}
-            className={`w-full flex items-center justify-between px-3 py-2 text-sm transition-colors ${
-              value === '' ? 'text-[#0669F7] font-semibold bg-[#EEF4FF]' : 'text-[#25282A] hover:bg-[#F5F6F8]'
-            }`}
-          >
-            <span>{placeholder}</span>
-            {value === '' && (
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" className="text-[#0669F7]">
-                <polyline points="20 6 9 17 4 12" />
-              </svg>
+        {isSearching ? (
+          <>
+            {filtered.length === 0 ? (
+              <li className="py-6 text-center text-xs text-[#98A2B2]">결과 없음</li>
+            ) : (
+              filtered.map(o => renderDesktopOption(o))
             )}
-          </button>
-        </li>
-        {filtered.map((o) => (
-          <li key={o.value}>
-            <button
-              type="button"
-              onMouseDown={(e) => { e.preventDefault(); handleSelect(o.value); }}
-              className={`w-full flex items-center justify-between px-3 py-2 text-sm transition-colors ${
-                value === o.value ? 'text-[#0669F7] font-semibold bg-[#EEF4FF]' : 'text-[#25282A] hover:bg-[#F5F6F8]'
-              }`}
-            >
-              <span>{o.label}</span>
-              {value === o.value && (
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" className="text-[#0669F7] shrink-0">
-                  <polyline points="20 6 9 17 4 12" />
-                </svg>
-              )}
-            </button>
-          </li>
-        ))}
-        {filtered.length === 0 && (
-          <li className="py-6 text-center text-xs text-[#98A2B2]">결과 없음</li>
+          </>
+        ) : (
+          <>
+            {hasPinned && (
+              <>
+                <li className="px-3 py-1">
+                  <span className="text-[10px] font-medium text-[#0669F7]">★ 즐겨찾는 지역</span>
+                </li>
+                {pinnedOptions.map(o => renderDesktopOption(o))}
+                <li className="h-px bg-[#F0F0F0] mx-2 my-1" />
+              </>
+            )}
+            {regularOptions.map(o => renderDesktopOption(o))}
+          </>
         )}
       </ul>
     </div>
@@ -193,38 +263,27 @@ function SearchSelect({ value, onChange, options, placeholder, title }: SearchSe
               </div>
             )}
             <ul className="overflow-y-auto flex-1 px-2 pb-6">
-              <li>
-                <button type="button" onClick={() => handleSelect('')}
-                  className={`w-full flex items-center justify-between px-4 py-3.5 rounded-2xl text-[15px] transition-colors ${
-                    value === '' ? 'bg-[#EEF4FF] text-[#0669F7] font-semibold' : 'text-[#25282A] hover:bg-[#F5F6F8]'
-                  }`}
-                >
-                  <span>{placeholder}</span>
-                  {value === '' && (
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" className="text-[#0669F7]">
-                      <polyline points="20 6 9 17 4 12" />
-                    </svg>
+              {isSearching ? (
+                <>
+                  {filtered.length === 0 ? (
+                    <li className="py-10 text-center text-[14px] text-[#98A2B2]">결과 없음</li>
+                  ) : (
+                    filtered.map(o => renderMobileOption(o))
                   )}
-                </button>
-              </li>
-              {filtered.map((o) => (
-                <li key={o.value}>
-                  <button type="button" onClick={() => handleSelect(o.value)}
-                    className={`w-full flex items-center justify-between px-4 py-3.5 rounded-2xl text-[15px] transition-colors ${
-                      value === o.value ? 'bg-[#EEF4FF] text-[#0669F7] font-semibold' : 'text-[#25282A] hover:bg-[#F5F6F8]'
-                    }`}
-                  >
-                    <span>{o.label}</span>
-                    {value === o.value && (
-                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" className="text-[#0669F7] shrink-0">
-                        <polyline points="20 6 9 17 4 12" />
-                      </svg>
-                    )}
-                  </button>
-                </li>
-              ))}
-              {filtered.length === 0 && (
-                <li className="py-10 text-center text-[14px] text-[#98A2B2]">결과 없음</li>
+                </>
+              ) : (
+                <>
+                  {hasPinned && (
+                    <>
+                      <li className="px-3 py-1.5">
+                        <span className="text-xs font-semibold text-[#0669F7]">★ 즐겨찾는 지역</span>
+                      </li>
+                      {pinnedOptions.map(o => renderMobileOption(o))}
+                      <li className="h-px bg-[#EFF1F5] mx-2 my-2" />
+                    </>
+                  )}
+                  {regularOptions.map(o => renderMobileOption(o))}
+                </>
               )}
             </ul>
           </div>
@@ -266,6 +325,7 @@ function SearchSelect({ value, onChange, options, placeholder, title }: SearchSe
 
 export default function PublicHeaderSearch({ locale, basePath = '/jobs' }: PublicHeaderSearchProps) {
   const router = useRouter();
+  const { isLoggedIn } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
   const [keyword, setKeyword] = useState('');
   const [province, setProvince] = useState('');
@@ -275,6 +335,24 @@ export default function PublicHeaderSearch({ locale, basePath = '/jobs' }: Publi
   const [dataFetched, setDataFetched] = useState(false);
   const panelRef = useRef<HTMLDivElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
+
+  // Pinned provinces — only for logged-in users
+  const [pinnedProvinces, setPinnedProvinces] = useState<string[]>([]);
+  useEffect(() => {
+    if (!isLoggedIn) { setPinnedProvinces([]); return; }
+    try {
+      const stored = localStorage.getItem('gada_pinned_provinces');
+      if (stored) setPinnedProvinces(JSON.parse(stored));
+    } catch { /* ignore */ }
+  }, [isLoggedIn]);
+
+  function togglePinProvince(slug: string) {
+    setPinnedProvinces(prev => {
+      const next = prev.includes(slug) ? prev.filter(s => s !== slug) : [...prev, slug];
+      localStorage.setItem('gada_pinned_provinces', JSON.stringify(next));
+      return next;
+    });
+  }
 
   const fetchData = async () => {
     if (dataFetched) return;
@@ -343,10 +421,17 @@ export default function PublicHeaderSearch({ locale, basePath = '/jobs' }: Publi
     };
   }, [isOpen]);
 
-  const provinceOptions: SelectOption[] = provinces.map((p) => ({
-    value: p.slug,
-    label: locale === 'en' ? p.nameEn : p.nameVi,
-  }));
+  // Sort provinces alphabetically, mark pinned (only when logged in)
+  const provinceOptions: SelectOption[] = useMemo(() => [
+    { value: '', label: '전체 지역' },
+    ...[...provinces]
+      .sort((a, b) => a.nameVi.localeCompare(b.nameVi, 'vi'))
+      .map(p => ({
+        value: p.slug,
+        label: locale === 'en' ? p.nameEn : p.nameVi,
+        pinned: isLoggedIn ? pinnedProvinces.includes(p.slug) : false,
+      })),
+  ], [provinces, pinnedProvinces, isLoggedIn, locale]);
 
   const tradeOptions: SelectOption[] = trades.map((t) => ({
     value: String(t.id),
@@ -415,6 +500,7 @@ export default function PublicHeaderSearch({ locale, basePath = '/jobs' }: Publi
                 options={provinceOptions}
                 placeholder="전체 지역"
                 title="지역 선택"
+                onTogglePin={isLoggedIn ? togglePinProvince : undefined}
               />
               <SearchSelect
                 value={trade}

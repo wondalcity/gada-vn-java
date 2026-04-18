@@ -28,12 +28,12 @@ interface ApplicationDetail {
   notes: string | null
 }
 
-const STATUS_CONFIG: Record<ApplicationStatus, { label: string; bg: string; text: string }> = {
-  PENDING:    { label: '검토 중',  bg: '#FFF8E1', text: '#B47A00' },
-  ACCEPTED:   { label: '수락됨',   bg: '#E8F5E9', text: '#1B5E20' },
-  REJECTED:   { label: '거절됨',   bg: '#FFEBEE', text: '#B71C1C' },
-  WITHDRAWN:  { label: '취소함',   bg: '#F5F5F5', text: '#616161' },
-  CONTRACTED: { label: '계약 완료', bg: '#E3F2FD', text: '#0D47A1' },
+const STATUS_COLORS: Record<ApplicationStatus, { bg: string; text: string }> = {
+  PENDING:    { bg: '#FFF8E1', text: '#B47A00' },
+  ACCEPTED:   { bg: '#E8F5E9', text: '#1B5E20' },
+  REJECTED:   { bg: '#FFEBEE', text: '#B71C1C' },
+  WITHDRAWN:  { bg: '#F5F5F5', text: '#616161' },
+  CONTRACTED: { bg: '#E3F2FD', text: '#0D47A1' },
 }
 
 function formatVND(n: number) {
@@ -72,6 +72,14 @@ export default function WorkerApplicationDetailClient({ id, locale }: { id: stri
   const [error, setError] = React.useState<string | null>(null)
   const [confirmWithdraw, setConfirmWithdraw] = React.useState(false)
   const [isWithdrawing, setIsWithdrawing] = React.useState(false)
+
+  const STATUS_CONFIG: Record<ApplicationStatus, { label: string; bg: string; text: string }> = {
+    PENDING:    { label: t('worker_applications.status_pending'),    ...STATUS_COLORS.PENDING },
+    ACCEPTED:   { label: t('worker_applications.status_accepted'),   ...STATUS_COLORS.ACCEPTED },
+    REJECTED:   { label: t('worker_applications.status_rejected'),   ...STATUS_COLORS.REJECTED },
+    WITHDRAWN:  { label: t('worker_applications.status_withdrawn'),  ...STATUS_COLORS.WITHDRAWN },
+    CONTRACTED: { label: t('worker_applications.status_contracted'), ...STATUS_COLORS.CONTRACTED },
+  }
 
   React.useEffect(() => {
     if (!idToken) { setIsLoading(false); return }

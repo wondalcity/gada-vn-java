@@ -49,26 +49,11 @@ const APP_STATUS_BADGE: Record<string, string> = {
   WITHDRAWN:  'bg-[#EFF1F5] text-[#98A2B2]',
 }
 
-const APP_STATUS_LABEL: Record<string, string> = {
-  PENDING:    '검토중',
-  ACCEPTED:   '합격',
-  CONTRACTED: '계약완료',
-  REJECTED:   '불합격',
-  WITHDRAWN:  '취소',
-}
-
 const CONTRACT_STATUS_BADGE: Record<string, string> = {
   PENDING_WORKER_SIGN:  'bg-yellow-100 text-yellow-700',
   PENDING_MANAGER_SIGN: 'bg-orange-100 text-orange-700',
   FULLY_SIGNED:         'bg-green-100 text-green-700',
   VOID:                 'bg-[#EFF1F5] text-[#98A2B2]',
-}
-
-const CONTRACT_STATUS_LABEL: Record<string, string> = {
-  PENDING_WORKER_SIGN:  '근로자 서명 대기',
-  PENDING_MANAGER_SIGN: '관리자 서명 대기',
-  FULLY_SIGNED:         '서명 완료',
-  VOID:                 '무효',
 }
 
 const ATTENDANCE_STATUS_BADGE: Record<string, string> = {
@@ -78,13 +63,6 @@ const ATTENDANCE_STATUS_BADGE: Record<string, string> = {
   PENDING:   'bg-[#EFF1F5] text-[#98A2B2]',
 }
 
-const ATTENDANCE_STATUS_LABEL: Record<string, string> = {
-  ATTENDED:  '출역',
-  ABSENT:    '결근',
-  HALF_DAY:  '반일',
-  PENDING:   '미확인',
-}
-
 const JOB_STATUS_BADGE: Record<string, string> = {
   OPEN:      'bg-green-100 text-green-700',
   FILLED:    'bg-blue-100 text-blue-700',
@@ -92,21 +70,15 @@ const JOB_STATUS_BADGE: Record<string, string> = {
   CANCELLED: 'bg-[#EFF1F5] text-[#98A2B2]',
 }
 
-const JOB_STATUS_LABEL: Record<string, string> = {
-  OPEN:      '모집 중',
-  FILLED:    '마감',
-  COMPLETED: '완료',
-  CANCELLED: '취소됨',
-}
-
-
-// ── Reject notes modal ────────────────────────────────────────────────────
+// ── Reject notes modal ────────────────────────────────────────────────
 function RejectModal({
   workerName,
+  t,
   onConfirm,
   onCancel,
 }: {
   workerName: string
+  t: (key: string) => string
   onConfirm: (notes: string) => void
   onCancel: () => void
 }) {
@@ -117,16 +89,15 @@ function RejectModal({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
       <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm p-6">
-        <h3 className="text-base font-bold text-gray-900 mb-1">불합격 처리</h3>
+        <h3 className="text-base font-bold text-gray-900 mb-1">{t('jobs.detail.reject_modal_title')}</h3>
         <p className="text-sm text-[#98A2B2] mb-4">
-          <span className="font-medium text-gray-700">{workerName}</span>님을 불합격 처리합니다.
-          사유를 입력하면 기록에 남습니다 (선택).
+          <span className="font-medium text-gray-700">{workerName}</span>{t('jobs.detail.reject_modal_body')}
         </p>
         <textarea
           ref={inputRef}
           value={notes}
           onChange={e => setNotes(e.target.value)}
-          placeholder="불합격 사유 (선택)"
+          placeholder={t('jobs.detail.reject_notes_placeholder')}
           className="w-full px-3 py-2.5 text-sm border border-[#EFF1F5] rounded-xl resize-none outline-none focus:ring-2 focus:ring-[#D81A48] focus:border-transparent"
           rows={3}
         />
@@ -135,13 +106,13 @@ function RejectModal({
             onClick={onCancel}
             className="flex-1 py-2.5 rounded-xl text-sm font-medium border border-[#EFF1F5] text-gray-600 hover:bg-[#F2F4F5] transition-colors"
           >
-            취소
+            {t('jobs.detail.cancel')}
           </button>
           <button
             onClick={() => onConfirm(notes)}
             className="flex-1 py-2.5 rounded-xl text-sm font-bold bg-[#D81A48] text-white hover:bg-red-700 transition-colors"
           >
-            불합격 처리
+            {t('jobs.detail.reject_confirm_btn')}
           </button>
         </div>
       </div>
@@ -149,12 +120,84 @@ function RejectModal({
   )
 }
 
+// ── Contract view modal ────────────────────────────────────────────────
+function ContractModal({
+  row,
+  t,
+  onClose,
+}: {
+  row: RosterRow
+  t: (key: string) => string
+  onClose: () => void
+}) {
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
+      <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm p-6">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-base font-bold text-gray-900">{t('jobs.detail.contract_modal_title')}</h3>
+          <button
+            onClick={onClose}
+            className="w-7 h-7 flex items-center justify-center rounded-full hover:bg-[#EFF1F5] text-[#7A7B7A]"
+          >
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+        <div className="space-y-3 text-sm">
+          <div className="flex items-start justify-between gap-2">
+            <span className="text-[#98A2B2] shrink-0">{t('jobs.detail.contract_modal_id')}</span>
+            <span className="text-[#25282A] font-mono text-xs text-right break-all">{row.contract_id}</span>
+          </div>
+          <div className="flex items-center justify-between gap-2">
+            <span className="text-[#98A2B2] shrink-0">{t('jobs.detail.contract_modal_status')}</span>
+            {row.contract_status && (
+              <span className={`px-2.5 py-1 text-xs rounded-full font-medium whitespace-nowrap ${CONTRACT_STATUS_BADGE[row.contract_status] ?? 'bg-[#EFF1F5] text-[#98A2B2]'}`}>
+                {CONTRACT_STATUS_LABEL(row.contract_status, t)}
+              </span>
+            )}
+          </div>
+          <div className="flex items-center justify-between gap-2">
+            <span className="text-[#98A2B2] shrink-0">{t('jobs.detail.contract_modal_worker_signed')}</span>
+            <span className={row.worker_signed_at ? 'text-green-700 font-medium' : 'text-[#98A2B2]'}>
+              {row.worker_signed_at ? fmtDateTime(row.worker_signed_at) : t('jobs.detail.contract_modal_not_signed')}
+            </span>
+          </div>
+          <div className="flex items-center justify-between gap-2">
+            <span className="text-[#98A2B2] shrink-0">{t('jobs.detail.contract_modal_manager_signed')}</span>
+            <span className={row.manager_signed_at ? 'text-green-700 font-medium' : 'text-[#98A2B2]'}>
+              {row.manager_signed_at ? fmtDateTime(row.manager_signed_at) : t('jobs.detail.contract_modal_not_signed')}
+            </span>
+          </div>
+        </div>
+        <button
+          onClick={onClose}
+          className="mt-5 w-full py-2.5 rounded-xl text-sm font-medium border border-[#EFF1F5] text-gray-600 hover:bg-[#F2F4F5] transition-colors"
+        >
+          {t('jobs.detail.contract_modal_close')}
+        </button>
+      </div>
+    </div>
+  )
+}
+
+function CONTRACT_STATUS_LABEL(status: string, t: (k: string) => string): string {
+  const map: Record<string, string> = {
+    PENDING_WORKER_SIGN:  t('jobs.detail.contract_pending_worker'),
+    PENDING_MANAGER_SIGN: t('jobs.detail.contract_pending_manager'),
+    FULLY_SIGNED:         t('jobs.detail.contract_fully_signed'),
+    VOID:                 t('jobs.detail.contract_void'),
+  }
+  return map[status] ?? status
+}
+
 // ── Action buttons per row ────────────────────────────────────────────────
 function ApplicationActions({
-  row, acting, onAccept, onReject, onReset,
+  row, acting, t, onAccept, onReject, onReset,
 }: {
   row: RosterRow
   acting: boolean
+  t: (key: string) => string
   onAccept: (id: string) => void
   onReject: (id: string, name: string) => void
   onReset: (id: string) => void
@@ -172,7 +215,7 @@ function ApplicationActions({
         <button
           disabled={acting}
           onClick={() => onAccept(row.application_id)}
-          title={'합격 처리'}
+          title={t('jobs.detail.act_accept')}
           className={`flex items-center gap-1 px-2.5 py-1 text-xs font-semibold rounded-lg bg-[#E6F0FE] text-[#0669F7] border border-[#C8D8FF] hover:bg-[#0669F7] hover:text-white transition-colors whitespace-nowrap ${disabledClass}`}
         >
           {acting ? (
@@ -185,21 +228,21 @@ function ApplicationActions({
               <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
             </svg>
           )}
-          합격
+          {t('jobs.detail.act_accept')}
         </button>
       )}
 
       {(status === 'PENDING' || status === 'ACCEPTED') && (
         <button
           disabled={acting}
-          onClick={() => onReject(row.application_id, row.worker_name)}
-          title={'불합격 처리'}
+          onClick={() => onReject(row.application_id, row.worker_name ?? '')}
+          title={t('jobs.detail.act_reject')}
           className={`flex items-center gap-1 px-2.5 py-1 text-xs font-semibold rounded-lg bg-[#FDE8EE] text-[#D81A48] border border-[#F4B0C0] hover:bg-[#D81A48] hover:text-white transition-colors whitespace-nowrap ${disabledClass}`}
         >
           <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
           </svg>
-          불합격
+          {t('jobs.detail.act_reject')}
         </button>
       )}
 
@@ -207,13 +250,13 @@ function ApplicationActions({
         <button
           disabled={acting}
           onClick={() => onReset(row.application_id)}
-          title={'검토중으로 되돌리기'}
+          title={t('jobs.detail.act_reset_title')}
           className={`flex items-center gap-1 px-2.5 py-1 text-xs font-medium rounded-lg bg-[#EFF1F5] text-[#98A2B2] border border-[#EFF1F5] hover:bg-gray-200 hover:text-gray-700 transition-colors whitespace-nowrap ${disabledClass}`}
         >
           <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
           </svg>
-          재검토
+          {t('jobs.detail.act_reset')}
         </button>
       )}
     </div>
@@ -222,7 +265,7 @@ function ApplicationActions({
 
 // ── Main page ─────────────────────────────────────────────────────────────
 export default function JobDetail() {
-  const { locale } = useAdminTranslation()
+  const { t, locale } = useAdminTranslation()
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
   const [job, setJob] = useState<Job | null>(null)
@@ -231,7 +274,31 @@ export default function JobDetail() {
   const [filter, setFilter] = useState<string>('ALL')
   const [actingId, setActingId] = useState<string | null>(null)
   const [rejectTarget, setRejectTarget] = useState<{ id: string; name: string } | null>(null)
+  const [contractRow, setContractRow] = useState<RosterRow | null>(null)
   const [toast, setToast] = useState<{ msg: string; type: 'success' | 'error' } | null>(null)
+
+  // Locale-dependent label maps (recomputed on locale change)
+  const APP_STATUS_LABEL: Record<string, string> = {
+    PENDING:    t('jobs.detail.app_pending'),
+    ACCEPTED:   t('jobs.detail.app_accepted'),
+    CONTRACTED: t('jobs.detail.app_contracted'),
+    REJECTED:   t('jobs.detail.app_rejected'),
+    WITHDRAWN:  t('jobs.detail.app_withdrawn'),
+  }
+
+  const ATTENDANCE_STATUS_LABEL: Record<string, string> = {
+    ATTENDED:  t('jobs.detail.att_attended'),
+    ABSENT:    t('jobs.detail.att_absent'),
+    HALF_DAY:  t('jobs.detail.att_half_day'),
+    PENDING:   t('jobs.detail.att_pending'),
+  }
+
+  const JOB_STATUS_LABEL: Record<string, string> = {
+    OPEN:      t('jobs.detail.job_open'),
+    FILLED:    t('jobs.detail.job_filled'),
+    COMPLETED: t('jobs.detail.job_completed'),
+    CANCELLED: t('jobs.detail.job_cancelled'),
+  }
 
   useEffect(() => {
     if (!id) return
@@ -266,10 +333,10 @@ export default function JobDetail() {
     patchRoster(applicationId, 'ACCEPTED')
     try {
       await api.put(`/admin/applications/${applicationId}/accept`, {})
-      showToast('합격 처리 완료', 'success')
+      showToast(t('jobs.detail.toast_accepted'), 'success')
     } catch (e: unknown) {
       if (prev) patchRoster(applicationId, prev)
-      showToast((e as Error).message ?? '처리 실패', 'error')
+      showToast((e as Error).message ?? t('jobs.detail.toast_error'), 'error')
     } finally {
       setActingId(null)
     }
@@ -284,10 +351,10 @@ export default function JobDetail() {
     patchRoster(applicationId, 'REJECTED', notes || undefined)
     try {
       await api.put(`/admin/applications/${applicationId}/reject`, { notes })
-      showToast('불합격 처리 완료', 'success')
+      showToast(t('jobs.detail.toast_rejected'), 'success')
     } catch (e: unknown) {
       if (prev) patchRoster(applicationId, prev)
-      showToast((e as Error).message ?? '처리 실패', 'error')
+      showToast((e as Error).message ?? t('jobs.detail.toast_error'), 'error')
     } finally {
       setActingId(null)
     }
@@ -299,21 +366,21 @@ export default function JobDetail() {
     patchRoster(applicationId, 'PENDING')
     try {
       await api.put(`/admin/applications/${applicationId}/reset`, {})
-      showToast('검토중으로 변경됨', 'success')
+      showToast(t('jobs.detail.toast_reset'), 'success')
     } catch (e: unknown) {
       if (prev) patchRoster(applicationId, prev)
-      showToast((e as Error).message ?? '처리 실패', 'error')
+      showToast((e as Error).message ?? t('jobs.detail.toast_error'), 'error')
     } finally {
       setActingId(null)
     }
   }
 
   const FILTERS = [
-    { key: 'ALL', label: '전체' },
-    { key: 'ACCEPTED', label: '합격' },
-    { key: 'CONTRACTED', label: '계약완료' },
-    { key: 'PENDING', label: '검토중' },
-    { key: 'REJECTED', label: '불합격' },
+    { key: 'ALL',      label: t('jobs.detail.filter_all') },
+    { key: 'ACCEPTED', label: t('jobs.detail.filter_accepted') },
+    { key: 'CONTRACTED', label: t('jobs.detail.filter_contracted') },
+    { key: 'PENDING',  label: t('jobs.detail.filter_pending') },
+    { key: 'REJECTED', label: t('jobs.detail.filter_rejected') },
   ]
 
   const filtered = filter === 'ALL'
@@ -345,8 +412,8 @@ export default function JobDetail() {
   if (!job) {
     return (
       <div className="p-8">
-        <button onClick={() => navigate('/jobs')} className="text-sm text-[#98A2B2] mb-4 hover:text-gray-700">← 일자리 목록으로</button>
-        <p className="text-[#D81A48] text-sm">일자리 정보를 불러올 수 없습니다</p>
+        <button onClick={() => navigate('/jobs')} className="text-sm text-[#98A2B2] mb-4 hover:text-gray-700">{t('jobs.detail.back')}</button>
+        <p className="text-[#D81A48] text-sm">{t('jobs.detail.not_found')}</p>
       </div>
     )
   }
@@ -357,8 +424,18 @@ export default function JobDetail() {
       {rejectTarget && (
         <RejectModal
           workerName={rejectTarget.name}
+          t={t}
           onConfirm={handleRejectConfirm}
           onCancel={() => setRejectTarget(null)}
+        />
+      )}
+
+      {/* Contract modal */}
+      {contractRow && (
+        <ContractModal
+          row={contractRow}
+          t={t}
+          onClose={() => setContractRow(null)}
         />
       )}
 
@@ -373,7 +450,7 @@ export default function JobDetail() {
 
       {/* Back */}
       <button onClick={() => navigate('/jobs')} className="flex items-center gap-1 text-sm text-[#98A2B2] hover:text-gray-700 mb-5">
-        ← 일자리 목록으로
+        {t('jobs.detail.back')}
       </button>
 
       {/* Job header */}
@@ -387,37 +464,37 @@ export default function JobDetail() {
             <span className={`px-3 py-1 text-xs rounded-full font-medium ${JOB_STATUS_BADGE[job.status] ?? 'bg-[#EFF1F5] text-[#98A2B2]'}`}>
               {JOB_STATUS_LABEL[job.status] ?? job.status}
             </span>
-            <Link to={`/jobs/${job.id}/edit`} className="px-3 py-1.5 text-xs border border-[#EFF1F5] rounded-xl text-gray-600 hover:bg-[#F2F4F5]">수정</Link>
+            <Link to={`/jobs/${job.id}/edit`} className="px-3 py-1.5 text-xs border border-[#EFF1F5] rounded-xl text-gray-600 hover:bg-[#F2F4F5]">{t('jobs.detail.edit')}</Link>
           </div>
         </div>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
           <div>
-            <span className="text-[#98A2B2] text-xs">근무일</span>
+            <span className="text-[#98A2B2] text-xs">{t('jobs.detail.field_work_date')}</span>
             <p className="font-medium text-gray-900 mt-0.5">{fmtDate(job.work_date, locale)}</p>
           </div>
           <div>
-            <span className="text-[#98A2B2] text-xs">일 노임</span>
+            <span className="text-[#98A2B2] text-xs">{t('jobs.detail.field_wage')}</span>
             <p className="font-medium text-[#0669F7] mt-0.5">₫{Number(job.daily_wage).toLocaleString()}</p>
           </div>
           <div>
-            <span className="text-[#98A2B2] text-xs">모집인원</span>
-            <p className="font-medium text-gray-900 mt-0.5">{job.slots_filled ?? 0} / {job.slots_total}명</p>
+            <span className="text-[#98A2B2] text-xs">{t('jobs.detail.field_slots')}</span>
+            <p className="font-medium text-gray-900 mt-0.5">{job.slots_filled ?? 0} / {job.slots_total}{locale === 'ko' ? '명' : ''}</p>
           </div>
           {(job.start_time || job.end_time) && (
             <div>
-              <span className="text-[#98A2B2] text-xs">근무시간</span>
+              <span className="text-[#98A2B2] text-xs">{t('jobs.detail.field_work_time')}</span>
               <p className="font-medium text-gray-900 mt-0.5">{job.start_time ?? '-'} ~ {job.end_time ?? '-'}</p>
             </div>
           )}
           {job.created_at && (
             <div>
-              <span className="text-[#98A2B2] text-xs">생성일</span>
+              <span className="text-[#98A2B2] text-xs">{t('jobs.detail.field_created_at')}</span>
               <p className="font-medium text-gray-900 mt-0.5">{fmtDateTime(job.created_at)}</p>
             </div>
           )}
           {job.updated_at && (
             <div>
-              <span className="text-[#98A2B2] text-xs">수정일</span>
+              <span className="text-[#98A2B2] text-xs">{t('jobs.detail.field_updated_at')}</span>
               <p className="font-medium text-gray-900 mt-0.5">{fmtDateTime(job.updated_at)}</p>
             </div>
           )}
@@ -427,12 +504,12 @@ export default function JobDetail() {
       {/* Stats */}
       <div className="grid grid-cols-3 md:grid-cols-6 gap-3 mb-5">
         {[
-          { label: '총 지원', value: stats.total,      color: 'text-gray-900' },
-          { label: '검토중', value: stats.pending,     color: 'text-yellow-600' },
-          { label: '합격',   value: stats.accepted,    color: 'text-[#0669F7]' },
-          { label: '계약',   value: stats.contracted,  color: 'text-green-600' },
-          { label: '출역',   value: stats.attended,    color: 'text-green-700' },
-          { label: '결근',   value: stats.absent,      color: 'text-[#D81A48]' },
+          { label: t('jobs.detail.stat_total'),      value: stats.total,      color: 'text-gray-900' },
+          { label: t('jobs.detail.stat_pending'),     value: stats.pending,     color: 'text-yellow-600' },
+          { label: t('jobs.detail.stat_accepted'),    value: stats.accepted,    color: 'text-[#0669F7]' },
+          { label: t('jobs.detail.stat_contracted'),  value: stats.contracted,  color: 'text-green-600' },
+          { label: t('jobs.detail.stat_attended'),    value: stats.attended,    color: 'text-green-700' },
+          { label: t('jobs.detail.stat_absent'),      value: stats.absent,      color: 'text-[#D81A48]' },
         ].map((s) => (
           <div key={s.label} className="bg-white rounded-2xl border border-[#EFF1F5] p-4 text-center">
             <p className="text-xs text-[#98A2B2] mb-1">{s.label}</p>
@@ -466,14 +543,22 @@ export default function JobDetail() {
         {filtered.length === 0 ? (
           <div className="py-16 text-center text-[#98A2B2]">
             <p className="text-3xl mb-2">📋</p>
-            <p className="text-sm">해당하는 지원자가 없습니다</p>
+            <p className="text-sm">{t('jobs.detail.empty')}</p>
           </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm min-w-[820px]">
               <thead className="bg-[#F2F4F5]">
                 <tr>
-                  {['근로자', '연락처', '지원 상태', '처리', '계약서', '출결', '비고'].map((h) => (
+                  {[
+                    t('jobs.detail.col_worker'),
+                    t('jobs.detail.col_phone'),
+                    t('jobs.detail.col_status'),
+                    t('jobs.detail.col_action'),
+                    t('jobs.detail.col_contract'),
+                    t('jobs.detail.col_attendance'),
+                    t('jobs.detail.col_notes'),
+                  ].map((h) => (
                     <th key={h} className="text-left px-5 py-3 text-xs font-medium text-gray-500 uppercase whitespace-nowrap">{h}</th>
                   ))}
                 </tr>
@@ -488,12 +573,12 @@ export default function JobDetail() {
                     <td className="px-5 py-4">
                       <div className="flex items-center gap-2">
                         <div className="w-8 h-8 rounded-full bg-[#0669F7] flex items-center justify-center text-white text-xs font-bold shrink-0">
-                          {row.worker_name.charAt(0).toUpperCase()}
+                          {(row.worker_name ?? '?').charAt(0).toUpperCase()}
                         </div>
                         <div>
                           <p className="font-medium text-gray-900">{row.worker_name}</p>
                           {row.id_verified && (
-                            <span className="text-[10px] text-green-600 font-medium">✓ 신분증 인증</span>
+                            <span className="text-[10px] text-green-600 font-medium">✓ {t('jobs.detail.id_verified')}</span>
                           )}
                         </div>
                       </div>
@@ -514,6 +599,7 @@ export default function JobDetail() {
                       <ApplicationActions
                         row={row}
                         acting={actingId === row.application_id}
+                        t={t}
                         onAccept={handleAccept}
                         onReject={(appId, name) => setRejectTarget({ id: appId, name })}
                         onReset={handleReset}
@@ -522,10 +608,21 @@ export default function JobDetail() {
 
                     {/* 계약서 */}
                     <td className="px-5 py-4">
-                      {row.contract_status ? (
-                        <span className={`px-2.5 py-1 text-xs rounded-full font-medium whitespace-nowrap ${CONTRACT_STATUS_BADGE[row.contract_status] ?? 'bg-[#EFF1F5] text-[#98A2B2]'}`}>
-                          {CONTRACT_STATUS_LABEL[row.contract_status] ?? row.contract_status}
-                        </span>
+                      {row.contract_id ? (
+                        <div className="flex flex-col gap-1">
+                          {row.contract_status && (
+                            <span className={`px-2.5 py-1 text-xs rounded-full font-medium whitespace-nowrap ${CONTRACT_STATUS_BADGE[row.contract_status] ?? 'bg-[#EFF1F5] text-[#98A2B2]'}`}>
+                              {CONTRACT_STATUS_LABEL(row.contract_status, t)}
+                            </span>
+                          )}
+                          <button
+                            type="button"
+                            onClick={() => setContractRow(row)}
+                            className="px-2.5 py-1 text-xs rounded-lg bg-[#EEF4FF] text-[#0669F7] border border-[#C8D8FF] hover:bg-[#0669F7] hover:text-white transition-colors whitespace-nowrap font-medium"
+                          >
+                            {t('jobs.detail.contract_view_btn')}
+                          </button>
+                        </div>
                       ) : (
                         <span className="text-xs text-[#98A2B2]">—</span>
                       )}
@@ -564,10 +661,10 @@ export default function JobDetail() {
 
       {/* Legend */}
       <div className="mt-4 flex flex-wrap gap-x-6 gap-y-1 text-xs text-[#98A2B2]">
-        <span>• 합격 버튼: PENDING / REJECTED 상태에서 사용 가능</span>
-        <span>• 불합격 버튼: PENDING / ACCEPTED 상태에서 사용 가능</span>
-        <span>• 재검토 버튼: ACCEPTED / REJECTED → PENDING 으로 되돌리기</span>
-        <span>• CONTRACTED(계약 생성 후)는 변경 불가</span>
+        <span>• {t('jobs.detail.hint_1')}</span>
+        <span>• {t('jobs.detail.hint_2')}</span>
+        <span>• {t('jobs.detail.hint_3')}</span>
+        <span>• {t('jobs.detail.hint_4')}</span>
       </div>
     </div>
   )
