@@ -382,7 +382,15 @@
     "action_error": "An error occurred.",
     "regenerate_contract": "Regenerate Contract",
     "view_worker_detail": "View Profile",
-    "job_detail_btn": "View Posting"
+    "job_detail_btn": "View Posting",
+    "field_phone": "Phone",
+    "field_trade": "Trade",
+    "field_experience": "Experience",
+    "exp_new": "New worker",
+    "exp_years": "{n} years",
+    "field_work_date": "Work Date",
+    "field_job": "Job Posting",
+    "close": "Close"
   },
   "manager_contracts": {
     "title": "Contract Management",

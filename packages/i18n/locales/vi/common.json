@@ -382,7 +382,15 @@
     "processing": "Đang xử lý...",
     "action_error": "Đã xảy ra lỗi.",
     "view_worker_detail": "Xem hồ sơ",
-    "job_detail_btn": "Xem tin tuyển dụng"
+    "job_detail_btn": "Xem tin tuyển dụng",
+    "field_phone": "Điện thoại",
+    "field_trade": "Ngành nghề",
+    "field_experience": "Kinh nghiệm",
+    "exp_new": "Người mới",
+    "exp_years": "{n} năm",
+    "field_work_date": "Ngày làm",
+    "field_job": "Tin tuyển dụng",
+    "close": "Đóng"
   },
   "manager_contracts": {
     "title": "Quản lý hợp đồng",

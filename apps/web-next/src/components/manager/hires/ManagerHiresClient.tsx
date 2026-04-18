@@ -109,7 +109,7 @@ function WorkerDetailModal({ app, locale, onClose }: WorkerDetailModalProps) {
         {/* Detail rows */}
         <div className="space-y-3 text-sm">
           <div className="flex items-center gap-3 py-2.5 border-b border-[#EFF1F5]">
-            <span className="text-[#98A2B2] w-20 flex-none">전화번호</span>
+            <span className="text-[#98A2B2] w-20 flex-none">{t('manager_hires.field_phone')}</span>
             <a href={`tel:${app.workerPhone}`} className="text-[#0669F7] font-medium">
               {app.workerPhone}
             </a>
@@ -117,7 +117,7 @@ function WorkerDetailModal({ app, locale, onClose }: WorkerDetailModalProps) {
 
           {app.workerTrades.length > 0 && (
             <div className="flex items-start gap-3 py-2.5 border-b border-[#EFF1F5]">
-              <span className="text-[#98A2B2] w-20 flex-none mt-0.5">직종</span>
+              <span className="text-[#98A2B2] w-20 flex-none mt-0.5">{t('manager_hires.field_trade')}</span>
               <div className="flex flex-wrap gap-1.5">
                 {app.workerTrades.map((trade) => (
                   <span
@@ -133,20 +133,22 @@ function WorkerDetailModal({ app, locale, onClose }: WorkerDetailModalProps) {
 
           {app.experienceYears !== undefined && (
             <div className="flex items-center gap-3 py-2.5 border-b border-[#EFF1F5]">
-              <span className="text-[#98A2B2] w-20 flex-none">경력</span>
+              <span className="text-[#98A2B2] w-20 flex-none">{t('manager_hires.field_experience')}</span>
               <span className="text-[#25282A] font-medium">
-                {app.experienceYears === 0 ? '신입' : `${app.experienceYears}년`}
+                {app.experienceYears === 0
+                  ? t('manager_hires.exp_new')
+                  : t('manager_hires.exp_years').replace('{n}', String(app.experienceYears))}
               </span>
             </div>
           )}
 
           <div className="flex items-center gap-3 py-2.5 border-b border-[#EFF1F5]">
-            <span className="text-[#98A2B2] w-20 flex-none">근무일</span>
+            <span className="text-[#98A2B2] w-20 flex-none">{t('manager_hires.field_work_date')}</span>
             <span className="text-[#25282A] font-medium">{formatDate(app.workDate, locale)}</span>
           </div>
 
           <div className="flex items-start gap-3 py-2.5">
-            <span className="text-[#98A2B2] w-20 flex-none mt-0.5">공고</span>
+            <span className="text-[#98A2B2] w-20 flex-none mt-0.5">{t('manager_hires.field_job')}</span>
             <Link
               href={`/manager/jobs/${app.jobId}` as never}
               className="text-[#0669F7] font-medium hover:underline flex-1"
@@ -163,7 +165,7 @@ function WorkerDetailModal({ app, locale, onClose }: WorkerDetailModalProps) {
           onClick={onClose}
           className="mt-5 w-full py-2.5 rounded-full bg-[#F2F4F5] text-[#25282A] font-medium text-sm hover:bg-[#E5E7EA] transition-colors"
         >
-          닫기
+          {t('manager_hires.close')}
         </button>
       </div>
     </div>
@@ -496,7 +498,7 @@ export default function ManagerHiresClient() {
                   {app.status === 'ACCEPTED' && (
                     isFullySigned ? (
                       <Link
-                        href={`/manager/hires/${app.id}` as never}
+                        href={`/manager/contracts/${app.contractId}` as never}
                         className="block w-full py-1.5 rounded-full bg-[#E6F9E6] border border-[#86D98A] text-[#1A6B1A] font-medium text-xs text-center hover:bg-[#1A6B1A] hover:text-white transition-colors"
                       >
                         {t('manager_hires.view_contract')}
@@ -518,7 +520,7 @@ export default function ManagerHiresClient() {
                   {app.status === 'CONTRACTED' && (
                     isFullySigned ? (
                       <Link
-                        href={`/manager/hires/${app.id}` as never}
+                        href={`/manager/contracts/${app.contractId}` as never}
                         className="block w-full py-1.5 rounded-full bg-[#E6F9E6] border border-[#86D98A] text-[#1A6B1A] font-medium text-xs text-center hover:bg-[#1A6B1A] hover:text-white transition-colors"
                       >
                         {t('manager_hires.view_contract')}

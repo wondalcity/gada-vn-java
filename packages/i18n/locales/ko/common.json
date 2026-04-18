@@ -382,7 +382,15 @@
     "processing": "처리 중...",
     "action_error": "오류가 발생했습니다.",
     "view_worker_detail": "프로필 보기",
-    "job_detail_btn": "공고 보기"
+    "job_detail_btn": "공고 보기",
+    "field_phone": "전화번호",
+    "field_trade": "직종",
+    "field_experience": "경력",
+    "exp_new": "신입",
+    "exp_years": "{n}년",
+    "field_work_date": "근무일",
+    "field_job": "공고",
+    "close": "닫기"
   },
   "manager_contracts": {
     "title": "계약서 관리",
