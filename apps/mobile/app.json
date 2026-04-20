@@ -15,7 +15,8 @@
     "assetBundlePatterns": ["**/*"],
     "ios": {
       "supportsTablet": false,
-      "bundleIdentifier": "com.gadavn.app",
+      "bundleIdentifier": "com.wondalcity.gadavn",
+      "buildNumber": "1",
       "infoPlist": {
         "NSLocationWhenInUseUsageDescription": "가다 VN needs your location to show nearby construction jobs.",
         "NSCameraUsageDescription": "Used to capture ID documents and profile photos.",
@@ -27,7 +28,8 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#FF6B2C"
       },
-      "package": "com.gadavn.app",
+      "package": "com.wondalcity.gadavn",
+      "versionCode": 1,
       "permissions": [
         "ACCESS_FINE_LOCATION",
         "ACCESS_COARSE_LOCATION",

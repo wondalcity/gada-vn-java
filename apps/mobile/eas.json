@@ -10,8 +10,8 @@
         "simulator": true
       },
       "env": {
-        "EXPO_PUBLIC_API_URL": "http://localhost:3001/v1",
-        "EXPO_PUBLIC_CDN_URL": "http://localhost:3001"
+        "EXPO_PUBLIC_API_URL": "http://localhost:7001/v1",
+        "EXPO_PUBLIC_CDN_URL": "http://localhost:7001"
       }
     },
     "preview": {
@@ -21,8 +21,8 @@
         "buildType": "apk"
       },
       "env": {
-        "EXPO_PUBLIC_API_URL": "https://api.staging.gadavn.com/v1",
-        "EXPO_PUBLIC_CDN_URL": "https://cdn.staging.gadavn.com"
+        "EXPO_PUBLIC_API_URL": "http://52.76.20.8/v1",
+        "EXPO_PUBLIC_CDN_URL": "http://52.76.20.8"
       }
     },
     "production": {
