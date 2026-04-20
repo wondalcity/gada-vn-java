@@ -110,13 +110,13 @@ export function WorkerAppBar({ locale, user, provinces = [] }: Props) {
         <div className="flex items-center gap-1">
           <a
             href="tel:+84568240240"
-            className="hidden md:flex items-center gap-1.5 text-xs text-[#98A2B2] hover:text-[#0669F7] transition-colors mr-2 whitespace-nowrap"
+            className="flex items-center justify-center w-9 h-9 rounded-full text-[#98A2B2] hover:text-[#0669F7] hover:bg-[#EFF1F5] transition-colors md:w-auto md:h-auto md:rounded-none md:hover:bg-transparent md:gap-1.5 md:text-xs md:mr-2"
             aria-label={t('app_bar.support_phone_aria')}
           >
-            <svg className="w-3.5 h-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <svg className="w-[18px] h-[18px] md:w-3.5 md:h-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
             </svg>
-            (+84) 568240240
+            <span className="hidden md:inline whitespace-nowrap">(+84) 568240240</span>
           </a>
           <LocaleSwitcher />
           <PublicHeaderSearch locale={locale} basePath="/worker/jobs" />
