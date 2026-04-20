@@ -323,6 +323,7 @@
   "app_bar": {
     "back_aria": "Quay lại",
     "notifications_aria": "Thông báo",
+    "support_phone_aria": "Điện thoại hỗ trợ",
     "login": "Đăng nhập",
     "jobs": "Danh sách việc làm",
     "pages": {

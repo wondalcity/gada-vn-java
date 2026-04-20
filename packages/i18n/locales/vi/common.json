@@ -82,6 +82,7 @@
     "login": "Đăng nhập",
     "search": "Tìm kiếm",
     "notifications": "Thông báo",
+    "support_phone_aria": "Điện thoại hỗ trợ",
     "page_new_job": "Đăng tin tuyển dụng",
     "page_edit_site": "Sửa công trường",
     "page_site_jobs": "Tin tuyển dụng công trường",
@@ -112,7 +113,12 @@
       "en": "English",
       "current_suffix": "(Hiện tại)"
     },
-    "logout": "Đăng xuất"
+    "logout": "Đăng xuất",
+    "support": {
+      "title": "Hỗ trợ khách hàng",
+      "phone": "(+84) 568240240",
+      "label": "Gọi hỗ trợ"
+    }
   },
   "worker_badge": {
     "worker": "Công nhân",

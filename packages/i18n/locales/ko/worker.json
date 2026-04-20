@@ -323,6 +323,7 @@
   "app_bar": {
     "back_aria": "뒤로가기",
     "notifications_aria": "알림",
+    "support_phone_aria": "고객센터 전화",
     "login": "로그인",
     "jobs": "일자리 목록",
     "pages": {

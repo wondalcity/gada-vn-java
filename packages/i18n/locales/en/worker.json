@@ -323,6 +323,7 @@
   "app_bar": {
     "back_aria": "Go Back",
     "notifications_aria": "Notifications",
+    "support_phone_aria": "Customer support phone",
     "login": "Log In",
     "jobs": "Job Listings",
     "pages": {

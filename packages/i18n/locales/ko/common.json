@@ -82,6 +82,7 @@
     "login": "로그인",
     "search": "검색",
     "notifications": "알림",
+    "support_phone_aria": "고객센터 전화",
     "page_new_job": "공고 등록",
     "page_edit_site": "현장 수정",
     "page_site_jobs": "현장 공고 목록",
@@ -112,7 +113,12 @@
       "en": "English",
       "current_suffix": "(현재)"
     },
-    "logout": "로그아웃"
+    "logout": "로그아웃",
+    "support": {
+      "title": "고객센터",
+      "phone": "(+84) 568240240",
+      "label": "전화 문의"
+    }
   },
   "worker_badge": {
     "worker": "근로자",
