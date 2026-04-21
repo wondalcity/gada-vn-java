@@ -3,24 +3,23 @@ import {
   View, Text, TextInput, TouchableOpacity,
   StyleSheet, Alert,
 } from 'react-native';
-import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useAuthStore } from '../../store/auth.store';
 
 export default function OtpScreen() {
   const { t } = useTranslation();
   const router = useRouter();
-  const { confirmationToken } = useLocalSearchParams<{ confirmationToken: string }>();
+  const { confirmationResult, setConfirmationResult } = useAuthStore();
   const [otp, setOtp] = useState('');
   const [loading, setLoading] = useState(false);
-  const { setUser } = useAuthStore();
 
   async function handleVerify() {
-    if (otp.length < 6) return;
+    if (otp.length < 6 || !confirmationResult) return;
     setLoading(true);
     try {
-      const confirmation = JSON.parse(confirmationToken);
-      await confirmation.confirm(otp);
+      await confirmationResult.confirm(otp);
+      setConfirmationResult(null);
       // Auth state listener in index.tsx will handle routing
     } catch {
       Alert.alert(t('common.error'), t('auth.otp_error'));

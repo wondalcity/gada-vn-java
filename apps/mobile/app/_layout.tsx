@@ -3,7 +3,10 @@ import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { useTranslation } from 'react-i18next';
+import * as SplashScreen from 'expo-splash-screen';
 import i18n, { getSavedLanguage } from '../lib/i18n';
+
+SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
   const { t } = useTranslation();
@@ -14,6 +17,7 @@ export default function RootLayout() {
         i18n.changeLanguage(lang);
       }
     });
+    SplashScreen.hideAsync();
   }, []);
 
   return (

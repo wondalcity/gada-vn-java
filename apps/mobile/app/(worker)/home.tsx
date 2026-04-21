@@ -84,10 +84,10 @@ export default function WorkerHomeScreen() {
 
   useEffect(() => {
     Promise.all([
-      api.get<{ provinces: Province[] }>('/provinces?limit=8', {}).catch(() => ({ provinces: [] })),
+      api.get<Province[]>('/public/provinces').catch(() => [] as Province[]),
       api.get<{ jobs: Job[]; total: number }>('/jobs?page=1&limit=6', {}).catch(() => ({ jobs: [], total: 0 })),
     ]).then(([pRes, jRes]) => {
-      const p = (pRes as any).provinces ?? (Array.isArray(pRes) ? pRes : []);
+      const p = Array.isArray(pRes) ? pRes : [];
       const j = (jRes as any).jobs ?? (Array.isArray(jRes) ? jRes : []);
       const total = (jRes as any).total ?? j.length;
       setProvinces(p.slice(0, 8));

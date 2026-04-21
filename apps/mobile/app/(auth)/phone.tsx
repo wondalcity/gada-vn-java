@@ -6,6 +6,7 @@ import {
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { signInWithPhoneOtp } from '../../lib/firebase';
+import { useAuthStore } from '../../store/auth.store';
 
 const COUNTRY_CODES = [
   { code: '+84', flag: '🇻🇳', label: 'VN' },
@@ -16,6 +17,7 @@ const COUNTRY_CODES = [
 export default function PhoneScreen() {
   const { t } = useTranslation();
   const router = useRouter();
+  const { setConfirmationResult } = useAuthStore();
   const [countryCode, setCountryCode] = useState('+84');
   const [phone, setPhone] = useState('');
   const [loading, setLoading] = useState(false);
@@ -25,7 +27,8 @@ export default function PhoneScreen() {
     setLoading(true);
     try {
       const confirmation = await signInWithPhoneOtp(`${countryCode}${phone}`);
-      router.push({ pathname: '/(auth)/otp', params: { confirmationToken: JSON.stringify(confirmation) } });
+      setConfirmationResult(confirmation);
+      router.push('/(auth)/otp');
     } catch (err) {
       Alert.alert(t('common.error'), t('auth.otp_send_fail'));
     } finally {

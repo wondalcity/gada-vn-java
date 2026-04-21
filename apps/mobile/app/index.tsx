@@ -9,7 +9,11 @@ export default function Index() {
   const { isAuthenticated, isLoading, role, isNew, setUser, setNew, clearUser } = useAuthStore();
 
   useEffect(() => {
+    // Safety timeout: if Firebase doesn't respond within 10s, clear loading state
+    const timeout = setTimeout(() => clearUser(), 10000);
+
     const unsubscribe = auth().onAuthStateChanged(async (firebaseUser) => {
+      clearTimeout(timeout);
       if (firebaseUser) {
         try {
           const result = await syncAuthToken();
@@ -25,7 +29,11 @@ export default function Index() {
         clearUser();
       }
     });
-    return unsubscribe;
+
+    return () => {
+      clearTimeout(timeout);
+      unsubscribe();
+    };
   }, []);
 
   if (isLoading) {
