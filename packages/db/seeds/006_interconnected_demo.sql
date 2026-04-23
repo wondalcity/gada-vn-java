@@ -24,6 +24,21 @@
 BEGIN;
 
 -- ─────────────────────────────────────────────────────────────
+-- 0. REMOVE CONFLICTING WORKERS FROM EARLIER SEEDS
+-- If seed 002 already inserted workers with these phones but
+-- different UUIDs, delete them so seed 006 can assign the
+-- canonical demo UUIDs needed for FK consistency.
+-- ─────────────────────────────────────────────────────────────
+
+DELETE FROM auth.users
+WHERE phone IN ('+84900000003', '+84900000004', '+84900000005')
+  AND id NOT IN (
+    '00000000-0000-0006-0000-000000000003',
+    '00000000-0000-0006-0000-000000000004',
+    '00000000-0000-0006-0000-000000000005'
+  );
+
+-- ─────────────────────────────────────────────────────────────
 -- 1. NEW AUTH USERS
 -- ─────────────────────────────────────────────────────────────
 
