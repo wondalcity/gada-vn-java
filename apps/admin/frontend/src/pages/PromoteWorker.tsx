@@ -33,7 +33,7 @@ interface WorkerDetail extends Worker {
 }
 
 export default function PromoteWorker() {
-  const { t } = useAdminTranslation()
+  const { t, locale } = useAdminTranslation()
   const [searchQuery, setSearchQuery] = useState('')
   const [searchResults, setSearchResults] = useState<Worker[]>([])
   const [searching, setSearching] = useState(false)
@@ -299,6 +299,7 @@ export default function PromoteWorker() {
                 <GadaDateInput
                   value={representativeDob}
                   onChange={(e) => setRepresentativeDob(e.target.value)}
+                  locale={locale}
                 />
               </div>
 

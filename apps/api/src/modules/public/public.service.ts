@@ -50,14 +50,18 @@ export class PublicService {
 
     let baseWhere: string;
     if (params.statusFilter === 'CLOSING_SOON') {
-      // 마감임박: OPEN jobs with expires_at within the next 72 hours
+      // 마감임박: OPEN jobs closing soon
+      // Uses expires_at if set; falls back to work_date within next 3 days
       baseWhere = `j.status = 'OPEN'
-        AND j.expires_at IS NOT NULL
-        AND j.expires_at > NOW()
-        AND j.expires_at <= NOW() + INTERVAL '72 hours'`;
+        AND (j.expires_at IS NULL OR j.expires_at > NOW())
+        AND (
+          (j.expires_at IS NOT NULL AND j.expires_at <= NOW() + INTERVAL '72 hours')
+          OR
+          (j.expires_at IS NULL AND j.work_date >= CURRENT_DATE AND j.work_date <= CURRENT_DATE + INTERVAL '3 days')
+        )`;
     } else if (params.statusFilter === 'CLOSED') {
-      // 모집마감: deadline has passed OR manually closed by admin/manager
-      baseWhere = `(j.status != 'OPEN' OR (j.expires_at IS NOT NULL AND j.expires_at <= NOW()))`;
+      // 모집마감: past work_date, deadline passed, or manually closed
+      baseWhere = `(j.status != 'OPEN' OR j.work_date < CURRENT_DATE OR (j.expires_at IS NOT NULL AND j.expires_at <= NOW()))`;
     } else {
       // 모집중 (default): OPEN jobs within their deadline, or no deadline set
       baseWhere = `j.status = 'OPEN' AND (j.expires_at IS NULL OR j.expires_at > NOW())`;

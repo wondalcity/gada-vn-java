@@ -387,7 +387,7 @@ export default function ManagerDetail() {
               <input className={INPUT} value={form.representative_name ?? ''} onChange={(e) => patch({ representative_name: e.target.value })} />
             </Field>
             <Field label={t('manager_detail.field_representative_dob')}>
-              <GadaDateInput value={form.representative_dob ?? ''} onChange={(e) => patch({ representative_dob: e.target.value })} />
+              <GadaDateInput value={form.representative_dob ?? ''} onChange={(e) => patch({ representative_dob: e.target.value })} locale={locale} />
             </Field>
             <Field label={t('manager_detail.field_representative_gender')}>
               <GadaSelect value={form.representative_gender ?? ''} onChange={(e) => patch({ representative_gender: e.target.value })}>

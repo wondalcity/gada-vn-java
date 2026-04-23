@@ -191,7 +191,7 @@ export default function JobForm() {
           </GadaSelect>
         </F>
         <F label={t('jobs.form.field_work_date')}>
-          <GadaDateInput required value={form.workDate} onChange={(e) => setForm({ ...form, workDate: e.target.value })} />
+          <GadaDateInput required value={form.workDate} onChange={(e) => setForm({ ...form, workDate: e.target.value })} locale={locale} />
         </F>
         <div className="grid grid-cols-2 gap-4">
           <F label={t('jobs.form.field_start_time')}><GadaTimeInput value={form.startTime} onChange={(e) => setForm({ ...form, startTime: e.target.value })} /></F>

@@ -329,7 +329,7 @@ export default function WorkerDetail() {
               <input className={INPUT} value={form.full_name ?? ''} onChange={(e) => patch({ full_name: e.target.value })} />
             </Field>
             <Field label={t('worker_detail.field_dob')}>
-              <GadaDateInput value={form.date_of_birth ?? ''} onChange={(e) => patch({ date_of_birth: e.target.value })} />
+              <GadaDateInput value={form.date_of_birth ?? ''} onChange={(e) => patch({ date_of_birth: e.target.value })} locale={locale} />
             </Field>
             <Field label={t('worker_detail.field_gender')}>
               <GadaSelect value={form.gender ?? ''} onChange={(e) => patch({ gender: e.target.value })}>

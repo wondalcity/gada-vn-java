@@ -35,9 +35,29 @@ export function GadaSelect({ className = '', children, ...props }: GadaSelectPro
 }
 
 // ── GadaDateInput ─────────────────────────────────────────────────────────────
-interface GadaDateInputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'type'> {}
 
-export function GadaDateInput({ className = '', ...props }: GadaDateInputProps) {
+const DATE_MONTHS = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC']
+
+function formatDisplayDate(value: string): string {
+  if (!value) return ''
+  const parts = value.split('-')
+  if (parts.length !== 3) return ''
+  const [year, month, day] = parts
+  const mIdx = parseInt(month, 10) - 1
+  if (mIdx < 0 || mIdx > 11 || !year || !day) return ''
+  return `${day}/${DATE_MONTHS[mIdx]}/${year}`
+}
+
+interface GadaDateInputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'type'> {
+  locale?: string
+}
+
+export function GadaDateInput({ className = '', locale = 'ko', value, ...props }: GadaDateInputProps) {
+  const showCustomDisplay = locale !== 'ko'
+  const displayValue = showCustomDisplay && typeof value === 'string' && value
+    ? formatDisplayDate(value)
+    : ''
+
   return (
     <div className="relative">
       <input
@@ -54,8 +74,17 @@ export function GadaDateInput({ className = '', ...props }: GadaDateInputProps) 
           '[&::-webkit-calendar-picker-indicator]:cursor-pointer ' +
           className
         }
+        style={showCustomDisplay ? { color: 'transparent' } : undefined}
+        value={value}
         {...props}
       />
+      {showCustomDisplay && (
+        <div className="pointer-events-none absolute inset-0 flex items-center px-3 pr-9">
+          <span className={`text-sm ${displayValue ? 'text-[#25282A]' : 'text-[#98A2B2]'}`}>
+            {displayValue || 'DD/MMM/YYYY'}
+          </span>
+        </div>
+      )}
       <div className="pointer-events-none absolute inset-y-0 right-3 flex items-center">
         <svg className="w-4 h-4 text-[#98A2B2]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
           <path strokeLinecap="round" strokeLinejoin="round"
