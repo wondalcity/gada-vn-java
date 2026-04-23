@@ -113,7 +113,7 @@ INSERT INTO app.worker_profiles (
     id, user_id, full_name, date_of_birth, gender,
     experience_months, primary_trade_id,
     current_province, id_number, id_verified,
-    phone, profile_complete
+    profile_complete
 ) VALUES
 
   -- Lê Văn Cường — verified, electrical
@@ -124,7 +124,7 @@ INSERT INTO app.worker_profiles (
     48,
     (SELECT id FROM ref.construction_trades WHERE code = 'ELECTRICAL' LIMIT 1),
     'DN', '012345678910', TRUE,
-    '+84900000003', TRUE
+    TRUE
   ),
 
   -- Phạm Quốc Dũng — verified, rebar
@@ -135,7 +135,7 @@ INSERT INTO app.worker_profiles (
     72,
     (SELECT id FROM ref.construction_trades WHERE code = 'REBAR' LIMIT 1),
     'HN', '029876543210', TRUE,
-    '+84900000004', TRUE
+    TRUE
   ),
 
   -- Hoàng Thị Mai — not verified, finishing
@@ -146,7 +146,7 @@ INSERT INTO app.worker_profiles (
     18,
     (SELECT id FROM ref.construction_trades WHERE code = 'FINISHING' LIMIT 1),
     'HCM', NULL, FALSE,
-    '+84900000005', FALSE
+    FALSE
   )
 
 ON CONFLICT (id) DO NOTHING;
