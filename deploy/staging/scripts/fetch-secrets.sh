@@ -14,6 +14,9 @@ SECRETS_DIR="$DEPLOY_DIR/secrets"
 DRY_RUN=false
 [[ "${1:-}" == "--dry-run" ]] && DRY_RUN=true
 
+log()  { echo "[$(date -u +%H:%M:%S)] $*"; }
+die()  { echo "[ERROR] $*" >&2; exit 1; }
+
 # ── Ensure IMDSv2 hop limit >= 2 so Docker containers can reach IMDS ──────────
 # Default hop_limit=1 blocks bridge-networked Docker containers from using
 # the EC2 instance profile credentials (needed for S3 uploads).
@@ -32,9 +35,6 @@ if [[ -n "$INSTANCE_ID" ]]; then
       --region "$REGION" > /dev/null
   fi
 fi
-
-log()  { echo "[$(date -u +%H:%M:%S)] $*"; }
-die()  { echo "[ERROR] $*" >&2; exit 1; }
 
 # Fetch a single secret string value
 secret() {
