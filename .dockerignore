@@ -1,0 +1,50 @@
+# ── node_modules (reinstalled inside Docker) ─────────────────────────────────
+**/node_modules
+**/.pnpm-store
+
+# ── Git & IDE ─────────────────────────────────────────────────────────────────
+.git
+.gitignore
+.github
+.vscode
+.idea
+*.iml
+
+# ── Next.js build output ──────────────────────────────────────────────────────
+apps/web-next/.next
+apps/web-next/out
+
+# ── Mobile app (not needed for web/api/admin builds) ─────────────────────────
+apps/mobile/android
+apps/mobile/ios
+apps/mobile/.expo
+apps/mobile/node_modules
+*.keystore
+*.p8
+*.p12
+*.pem
+
+# ── Secrets & env ─────────────────────────────────────────────────────────────
+.env
+.env.*
+!.env.example
+google-services.json
+GoogleService-Info.plist
+*-sa.json
+
+# ── Infra (CDK, not needed for app builds) ────────────────────────────────────
+infra/cdk.out
+infra/node_modules
+
+# ── Test / CI artifacts ───────────────────────────────────────────────────────
+coverage
+*.log
+*.tmp
+
+# ── OS artifacts ─────────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+
+# ── Misc ─────────────────────────────────────────────────────────────────────
+.claude
+!apps/web-next/public
