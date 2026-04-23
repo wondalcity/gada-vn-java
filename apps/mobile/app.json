@@ -29,13 +29,15 @@
         "backgroundColor": "#FF6B2C"
       },
       "package": "com.wondalcity.gadavn",
-      "versionCode": 3,
+      "versionCode": 4,
       "permissions": [
         "ACCESS_FINE_LOCATION",
         "ACCESS_COARSE_LOCATION",
         "CAMERA",
         "READ_EXTERNAL_STORAGE",
         "WRITE_EXTERNAL_STORAGE",
+        "READ_MEDIA_IMAGES",
+        "READ_MEDIA_VIDEO",
         "VIBRATE"
       ],
       "googleServicesFile": "./google-services.json"
