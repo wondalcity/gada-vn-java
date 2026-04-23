@@ -47,11 +47,6 @@ docker compose -f "$COMPOSE_FILE" build \
   --build-arg BUILDKIT_INLINE_CACHE=1 \
   --parallel
 
-# Tag images with SHA
-docker tag gada-api:latest   "gada-api:$IMAGE_TAG"
-docker tag gada-admin:latest "gada-admin:$IMAGE_TAG"
-docker tag gada-web:latest   "gada-web:$IMAGE_TAG"
-
 # ── 6. Rolling restart ────────────────────────────────────────────────────────
 log "Deploying services..."
 
