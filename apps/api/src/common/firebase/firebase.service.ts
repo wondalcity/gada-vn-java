@@ -7,13 +7,15 @@ export class FirebaseService implements OnModuleInit {
 
   onModuleInit() {
     if (admin.apps.length === 0) {
-      this.app = admin.initializeApp({
-        credential: admin.credential.cert({
-          projectId: process.env.FIREBASE_PROJECT_ID,
-          clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-          privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
-        }),
-      });
+      const serviceAccountPath = process.env.FIREBASE_SERVICE_ACCOUNT_PATH;
+      const credential = serviceAccountPath
+        ? admin.credential.cert(serviceAccountPath)
+        : admin.credential.cert({
+            projectId: process.env.FIREBASE_PROJECT_ID,
+            clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+            privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
+          });
+      this.app = admin.initializeApp({ credential });
     } else {
       this.app = admin.app();
     }
