@@ -35,8 +35,8 @@ services:
   # NestJS API
   api:
     build:
-      context: ./apps/api
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: apps/api/Dockerfile
       target: development
     container_name: gada-vn-api
     environment:
@@ -47,20 +47,18 @@ services:
     ports:
       - "3001:3001"
     volumes:
-      - ./apps/api/src:/app/src
-      - ./packages/core/src:/packages/core/src
+      - ./apps/api/src:/app/apps/api/src
     depends_on:
       postgres:
         condition: service_healthy
       redis:
         condition: service_healthy
-    command: nest start --watch
 
   # Next.js Web
   web:
     build:
-      context: ./apps/web
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: apps/web/Dockerfile
       target: development
     container_name: gada-vn-web
     environment:
@@ -70,9 +68,11 @@ services:
     ports:
       - "3000:3000"
     volumes:
-      - ./apps/web:/app
+      - ./apps/web:/app/apps/web
+      - ./packages/core:/app/packages/core
       - /app/node_modules
-      - /app/.next
+      - /app/apps/web/node_modules
+      - /app/apps/web/.next
     depends_on:
       - api
 
