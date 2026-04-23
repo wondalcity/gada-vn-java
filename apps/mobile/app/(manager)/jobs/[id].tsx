@@ -108,7 +108,15 @@ export default function ManagerJobDetailScreen() {
       refreshControl={<RefreshControl refreshing={false} onRefresh={load} colors={['#FF6B2C']} />}
       contentContainerStyle={styles.list}
       ListHeaderComponent={
-        <Text style={styles.header}>{t('jobs.applicants_header', { count: applications.length })}</Text>
+        <View style={styles.headerRow}>
+          <Text style={styles.header}>{t('jobs.applicants_header', { count: applications.length })}</Text>
+          <TouchableOpacity
+            style={styles.copyBtn}
+            onPress={() => router.push({ pathname: '/(manager)/jobs/create', params: { copyFrom: id } })}
+          >
+            <Text style={styles.copyBtnText}>{t('jobs.copy_job')}</Text>
+          </TouchableOpacity>
+        </View>
       }
       ListEmptyComponent={
         <View style={styles.empty}>
@@ -168,7 +176,14 @@ export default function ManagerJobDetailScreen() {
 const styles = StyleSheet.create({
   center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   list: { padding: 16, gap: 12 },
-  header: { fontSize: 18, fontWeight: '700', color: '#1A1A1A', marginBottom: 8 },
+  headerRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 },
+  header: { fontSize: 18, fontWeight: '700', color: '#1A1A1A' },
+  copyBtn: {
+    backgroundColor: '#FFF0EB', borderRadius: 10,
+    paddingHorizontal: 12, paddingVertical: 7,
+    borderWidth: 1, borderColor: '#FFD4C2',
+  },
+  copyBtnText: { fontSize: 13, fontWeight: '700', color: '#FF6B2C' },
   empty: { alignItems: 'center', paddingTop: 60 },
   emptyText: { color: '#999', fontSize: 15 },
   card: { backgroundColor: '#fff', borderRadius: 16, padding: 16, gap: 12 },

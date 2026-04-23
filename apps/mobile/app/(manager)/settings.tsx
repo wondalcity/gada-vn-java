@@ -1,4 +1,4 @@
-import { View, Text, TouchableOpacity, ScrollView, StyleSheet, Modal, Alert } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, StyleSheet, Modal, Alert, Linking } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -31,6 +31,17 @@ export default function ManagerSettings() {
         <Text style={styles.rowValue}>
           {SUPPORTED_LANGUAGES.find(l => l.code === i18n.language)?.flag ?? '🌐'} ›
         </Text>
+      </TouchableOpacity>
+
+      {/* Customer support phone */}
+      <TouchableOpacity
+        style={styles.row}
+        onPress={() => Linking.openURL('tel:+84568240240')}
+        activeOpacity={0.7}
+      >
+        <Text style={styles.rowIcon}>📞</Text>
+        <Text style={styles.rowLabel}>{t('profile.support_phone')}</Text>
+        <Text style={styles.rowValue}>{t('profile.support_phone_number')} ›</Text>
       </TouchableOpacity>
 
       {/* Logout */}

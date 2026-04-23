@@ -1,3 +1,8 @@
+---
+name: lead
+description: Use when tasks span multiple domains (API contracts, shared types, cross-agent PRs, architectural decisions). Also for changes to apps/api/openapi.yaml, packages/core/src/types/, turbo.json, or any file touching >1 agent's domain.
+---
+
 # Lead Agent — GADA VN
 
 ## Role

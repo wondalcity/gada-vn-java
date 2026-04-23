@@ -2,6 +2,7 @@ import { useEffect, useState, useCallback } from 'react';
 import {
   View, FlatList, Text, StyleSheet,
   ScrollView, TouchableOpacity, RefreshControl, Alert,
+  Modal, TextInput, KeyboardAvoidingView, Platform,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { ApiError } from '../../lib/api-client';
@@ -30,7 +31,38 @@ export default function WorkerJobFeed() {
   const [viewMode, setViewMode] = useState<ViewMode>('list');
   const [focusJobId, setFocusJobId] = useState<string | null>(null);
 
+  // Wage filter state
+  const [showWageFilter, setShowWageFilter] = useState(false);
+  const [wageMinInput, setWageMinInput] = useState('');
+  const [wageMaxInput, setWageMaxInput] = useState('');
+  const [appliedMin, setAppliedMin] = useState<number | null>(null);
+  const [appliedMax, setAppliedMax] = useState<number | null>(null);
+
+  const isFilterActive = appliedMin !== null || appliedMax !== null;
+
   const dates = getDatesAround(selectedDate);
+
+  function applyWageFilter() {
+    const min = wageMinInput ? parseInt(wageMinInput.replace(/,/g, ''), 10) : null;
+    const max = wageMaxInput ? parseInt(wageMaxInput.replace(/,/g, ''), 10) : null;
+    setAppliedMin(isNaN(min as number) ? null : min);
+    setAppliedMax(isNaN(max as number) ? null : max);
+    setShowWageFilter(false);
+  }
+
+  function resetWageFilter() {
+    setWageMinInput('');
+    setWageMaxInput('');
+    setAppliedMin(null);
+    setAppliedMax(null);
+    setShowWageFilter(false);
+  }
+
+  const filteredJobs = jobs.filter((job) => {
+    if (appliedMin !== null && job.dailyWage < appliedMin) return false;
+    if (appliedMax !== null && job.dailyWage > appliedMax) return false;
+    return true;
+  });
 
   const loadJobs = useCallback(async () => {
     setLoading(true);
@@ -69,7 +101,7 @@ export default function WorkerJobFeed() {
 
   return (
     <View style={styles.container}>
-      {/* ── Top bar: date slider + view toggle ── */}
+      {/* ── Top bar: date slider + filter + view toggle ── */}
       <View style={styles.topBar}>
         <ScrollView
           horizontal
@@ -90,8 +122,27 @@ export default function WorkerJobFeed() {
           ))}
         </ScrollView>
 
-        {/* List / Map toggle */}
+        {/* Wage filter button + List / Map toggle */}
         <View style={styles.viewToggle}>
+          <TouchableOpacity
+            style={[styles.toggleBtn, isFilterActive && styles.toggleBtnFilterActive]}
+            onPress={() => {
+              setWageMinInput(appliedMin ? String(appliedMin) : '');
+              setWageMaxInput(appliedMax ? String(appliedMax) : '');
+              setShowWageFilter(true);
+            }}
+            activeOpacity={0.8}
+          >
+            <View style={styles.toggleIcon}>
+              {[0, 1, 2].map((i) => (
+                <View key={i} style={[
+                  styles.filterIconLine,
+                  { width: 16 - i * 4 },
+                  isFilterActive && styles.filterIconLineActive,
+                ]} />
+              ))}
+            </View>
+          </TouchableOpacity>
           <TouchableOpacity
             style={[styles.toggleBtn, viewMode === 'list' && styles.toggleBtnActive]}
             onPress={() => setViewMode('list')}
@@ -120,10 +171,24 @@ export default function WorkerJobFeed() {
         </View>
       </View>
 
+      {/* ── Active filter indicator ── */}
+      {isFilterActive && (
+        <TouchableOpacity style={styles.filterBadge} onPress={resetWageFilter} activeOpacity={0.8}>
+          <Text style={styles.filterBadgeText}>
+            {appliedMin && appliedMax
+              ? `₫${(appliedMin / 1000).toFixed(0)}K – ₫${(appliedMax / 1000).toFixed(0)}K`
+              : appliedMin
+              ? `₫${(appliedMin / 1000).toFixed(0)}K 이상`
+              : `₫${(appliedMax! / 1000).toFixed(0)}K 이하`}
+          </Text>
+          <Text style={styles.filterBadgeClear}>✕</Text>
+        </TouchableOpacity>
+      )}
+
       {/* ── Content ── */}
       {viewMode === 'list' ? (
         <FlatList
-          data={jobs}
+          data={filteredJobs}
           keyExtractor={(item) => item.id}
           renderItem={({ item }) => (
             <JobCard
@@ -144,11 +209,64 @@ export default function WorkerJobFeed() {
         />
       ) : (
         <JobsMapView
-          jobs={jobs}
+          jobs={filteredJobs}
           focusJobId={focusJobId}
           onFocused={() => setFocusJobId(null)}
         />
       )}
+
+      {/* ── Wage Filter Modal ── */}
+      <Modal
+        visible={showWageFilter}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setShowWageFilter(false)}
+      >
+        <TouchableOpacity
+          style={styles.filterOverlay}
+          activeOpacity={1}
+          onPress={() => setShowWageFilter(false)}
+        >
+          <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+            <View style={styles.filterSheet} onStartShouldSetResponder={() => true}>
+              <Text style={styles.filterSheetTitle}>{t('jobs.wage_filter_title')}</Text>
+              <View style={styles.filterRow}>
+                <View style={styles.filterInputWrap}>
+                  <Text style={styles.filterInputLabel}>{t('jobs.wage_filter_min')}</Text>
+                  <TextInput
+                    style={styles.filterInput}
+                    value={wageMinInput}
+                    onChangeText={setWageMinInput}
+                    placeholder={t('jobs.wage_filter_placeholder')}
+                    placeholderTextColor="#B2B2B2"
+                    keyboardType="number-pad"
+                  />
+                </View>
+                <Text style={styles.filterSep}>–</Text>
+                <View style={styles.filterInputWrap}>
+                  <Text style={styles.filterInputLabel}>{t('jobs.wage_filter_max')}</Text>
+                  <TextInput
+                    style={styles.filterInput}
+                    value={wageMaxInput}
+                    onChangeText={setWageMaxInput}
+                    placeholder={t('jobs.wage_filter_placeholder')}
+                    placeholderTextColor="#B2B2B2"
+                    keyboardType="number-pad"
+                  />
+                </View>
+              </View>
+              <View style={styles.filterActions}>
+                <TouchableOpacity style={styles.filterResetBtn} onPress={resetWageFilter}>
+                  <Text style={styles.filterResetText}>{t('jobs.wage_filter_reset')}</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.filterApplyBtn} onPress={applyWageFilter}>
+                  <Text style={styles.filterApplyText}>{t('jobs.wage_filter_apply')}</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </KeyboardAvoidingView>
+        </TouchableOpacity>
+      </Modal>
     </View>
   );
 }
@@ -224,4 +342,65 @@ const styles = StyleSheet.create({
   list: { padding: 16, gap: 12 },
   empty: { alignItems: 'center', paddingTop: 60 },
   emptyText: { color: '#999', fontSize: 15 },
+
+  // Filter button active state
+  toggleBtnFilterActive: { backgroundColor: '#FFF0EB' },
+
+  // Filter icon (funnel shape via 3 lines of decreasing width)
+  filterIconLine: {
+    height: 2.5,
+    borderRadius: 2,
+    backgroundColor: '#B2B2B2',
+  },
+  filterIconLineActive: { backgroundColor: '#FF6B2C' },
+
+  // Active filter badge
+  filterBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FFF0EB',
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: '#FFD4C2',
+    paddingHorizontal: 16,
+    paddingVertical: 7,
+    gap: 6,
+  },
+  filterBadgeText: { fontSize: 12, color: '#FF6B2C', fontWeight: '600', flex: 1 },
+  filterBadgeClear: { fontSize: 13, color: '#FF6B2C', fontWeight: '700' },
+
+  // Filter bottom sheet
+  filterOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'flex-end' },
+  filterSheet: {
+    backgroundColor: '#fff',
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    padding: 24,
+    paddingBottom: 40,
+    gap: 16,
+  },
+  filterSheetTitle: { fontSize: 16, fontWeight: '700', color: '#25282A', textAlign: 'center' },
+  filterRow: { flexDirection: 'row', alignItems: 'flex-end', gap: 8 },
+  filterInputWrap: { flex: 1, gap: 4 },
+  filterInputLabel: { fontSize: 12, color: '#777', fontWeight: '500' },
+  filterInput: {
+    borderWidth: 1,
+    borderColor: '#E0E0E0',
+    borderRadius: 12,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    fontSize: 15,
+    color: '#25282A',
+  },
+  filterSep: { fontSize: 18, color: '#B2B2B2', marginBottom: 10 },
+  filterActions: { flexDirection: 'row', gap: 10, marginTop: 4 },
+  filterResetBtn: {
+    flex: 1, paddingVertical: 12, borderRadius: 12,
+    borderWidth: 1, borderColor: '#E0E0E0', alignItems: 'center',
+  },
+  filterResetText: { fontSize: 14, fontWeight: '600', color: '#666' },
+  filterApplyBtn: {
+    flex: 2, paddingVertical: 12, borderRadius: 12,
+    backgroundColor: '#FF6B2C', alignItems: 'center',
+  },
+  filterApplyText: { fontSize: 14, fontWeight: '700', color: '#fff' },
 });

@@ -63,8 +63,8 @@ function ChangePasswordModal({ onClose }: { onClose: () => void }) {
 
   if (success) {
     return (
-      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-        <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm p-6 text-center space-y-4">
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4" onClick={onClose}>
+        <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm p-6 text-center space-y-4" onClick={e => e.stopPropagation()}>
           <div className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center mx-auto">
             <svg className="w-6 h-6 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
           </div>
@@ -76,8 +76,8 @@ function ChangePasswordModal({ onClose }: { onClose: () => void }) {
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-      <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm p-6">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4" onClick={onClose}>
+      <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm p-6" onClick={e => e.stopPropagation()}>
         <h3 className="text-base font-bold text-gray-900 mb-4">{t('layout.pw_modal.title')}</h3>
         {error && <div className="bg-[#FDE8EE] border border-[#F4B0C0] text-[#D81A48] rounded-xl p-3 mb-3 text-sm">{error}</div>}
         <form onSubmit={handleSubmit} className="space-y-3">
@@ -113,8 +113,22 @@ export default function Layout() {
   const { t } = useAdminTranslation()
   const [showChangePw, setShowChangePw] = useState(false)
 
+  // Show a clean loading screen while auth state is resolving.
+  // This prevents the dark sidebar from flashing as a black overlay during
+  // the login → dashboard transition before the session is confirmed.
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-[#F2F4F5] flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-8 h-8 border-2 border-[#0669F7] border-t-transparent rounded-full animate-spin mx-auto mb-3" />
+          <p className="text-sm text-gray-400">{t('common.loading')}</p>
+        </div>
+      </div>
+    )
+  }
+
   // Redirect to login when session has expired
-  if (!loading && !user) {
+  if (!user) {
     return <Navigate to="/login" replace />
   }
 

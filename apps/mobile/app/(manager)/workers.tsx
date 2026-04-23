@@ -2,7 +2,7 @@ import { useEffect, useState, useCallback } from 'react';
 import {
   View, Text, FlatList, StyleSheet,
   TouchableOpacity, RefreshControl, ActivityIndicator,
-  Linking, Alert,
+  Linking, Alert, Modal,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
@@ -77,6 +77,7 @@ export default function ManagerWorkersScreen() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [activeFilter, setActiveFilter] = useState<ApplicationStatus | 'ALL'>('ALL');
+  const [selectedWorker, setSelectedWorker] = useState<WorkerApplication | null>(null);
 
   const loadApplications = useCallback(async () => {
     try {
@@ -173,8 +174,12 @@ export default function ManagerWorkersScreen() {
           const cfg = STATUS_CONFIG[item.status];
           return (
             <View style={styles.card}>
-              {/* Worker info header */}
-              <View style={styles.cardHeader}>
+              {/* Worker info header — tap to open detail modal */}
+              <TouchableOpacity
+                style={styles.cardHeader}
+                onPress={() => setSelectedWorker(item)}
+                activeOpacity={0.7}
+              >
                 <View style={styles.avatarCircle}>
                   <Text style={styles.avatarText}>
                     {item.workerName.charAt(0)}
@@ -187,7 +192,7 @@ export default function ManagerWorkersScreen() {
                 <View style={[styles.statusBadge, { backgroundColor: cfg.bg }]}>
                   <Text style={[styles.statusText, { color: cfg.text }]}>{cfg.label}</Text>
                 </View>
-              </View>
+              </TouchableOpacity>
 
               {/* Trade chips */}
               {item.workerTrades.length > 0 && (
@@ -247,6 +252,112 @@ export default function ManagerWorkersScreen() {
           );
         }}
       />
+
+      {/* ── Worker Detail Modal ── */}
+      {selectedWorker && (() => {
+        const w = selectedWorker;
+        const cfg = STATUS_CONFIG[w.status];
+        return (
+          <Modal
+            visible={!!selectedWorker}
+            transparent
+            animationType="slide"
+            onRequestClose={() => setSelectedWorker(null)}
+          >
+            <TouchableOpacity
+              style={styles.detailOverlay}
+              activeOpacity={1}
+              onPress={() => setSelectedWorker(null)}
+            >
+              <View style={styles.detailSheet} onStartShouldSetResponder={() => true}>
+                {/* Header */}
+                <View style={styles.detailHeader}>
+                  <Text style={styles.detailTitle}>{t('manager.worker_detail_title')}</Text>
+                  <TouchableOpacity onPress={() => setSelectedWorker(null)}>
+                    <Text style={styles.detailClose}>✕</Text>
+                  </TouchableOpacity>
+                </View>
+
+                {/* Avatar + name */}
+                <View style={styles.detailProfile}>
+                  <View style={styles.detailAvatar}>
+                    <Text style={styles.detailAvatarText}>{w.workerName.charAt(0)}</Text>
+                  </View>
+                  <Text style={styles.detailName}>{w.workerName}</Text>
+                  <View style={[styles.statusBadge, { backgroundColor: cfg.bg }]}>
+                    <Text style={[styles.statusText, { color: cfg.text }]}>{cfg.label}</Text>
+                  </View>
+                </View>
+
+                {/* Phone — tappable */}
+                <TouchableOpacity
+                  style={styles.detailPhoneRow}
+                  onPress={() => handleCall(w.workerPhone)}
+                  activeOpacity={0.7}
+                >
+                  <Text style={styles.detailPhoneIcon}>📞</Text>
+                  <Text style={styles.detailPhoneText}>{formatPhone(w.workerPhone)}</Text>
+                  <Text style={styles.detailPhoneArrow}>›</Text>
+                </TouchableOpacity>
+
+                {/* Trades + experience */}
+                {(w.workerTrades.length > 0 || w.experienceYears !== undefined) && (
+                  <View style={styles.chips}>
+                    {w.workerTrades.map((trade) => (
+                      <View key={trade} style={styles.chip}>
+                        <Text style={styles.chipText}>{trade}</Text>
+                      </View>
+                    ))}
+                    {w.experienceYears !== undefined && (
+                      <View style={styles.chip}>
+                        <Text style={styles.chipText}>{t('manager.worker_experience', { years: w.experienceYears })}</Text>
+                      </View>
+                    )}
+                  </View>
+                )}
+
+                {/* Job reference */}
+                <TouchableOpacity
+                  style={styles.jobRef}
+                  onPress={() => {
+                    setSelectedWorker(null);
+                    router.push({ pathname: '/(manager)/jobs/[id]', params: { id: w.jobId } });
+                  }}
+                >
+                  <Text style={styles.jobRefIcon}>🏗️</Text>
+                  <Text style={styles.jobRefText} numberOfLines={1}>
+                    {w.jobTitle} · {formatDate(w.workDate)}
+                  </Text>
+                  <Text style={styles.jobRefArrow}>›</Text>
+                </TouchableOpacity>
+
+                {/* Action buttons */}
+                <View style={styles.actions}>
+                  <TouchableOpacity style={styles.callBtn} onPress={() => handleCall(w.workerPhone)}>
+                    <Text style={styles.callBtnText}>{t('manager.worker_call_button')}</Text>
+                  </TouchableOpacity>
+                  {w.status === 'APPLIED' && (
+                    <>
+                      <TouchableOpacity
+                        style={styles.rejectBtn}
+                        onPress={() => { setSelectedWorker(null); handleReject(w.id); }}
+                      >
+                        <Text style={styles.rejectBtnText}>{t('manager.worker_reject_action')}</Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        style={styles.hireBtn}
+                        onPress={() => { setSelectedWorker(null); handleHire(w.id); }}
+                      >
+                        <Text style={styles.hireBtnText}>{t('manager.worker_hire_action')}</Text>
+                      </TouchableOpacity>
+                    </>
+                  )}
+                </View>
+              </View>
+            </TouchableOpacity>
+          </Modal>
+        );
+      })()}
     </View>
   );
 }
@@ -343,4 +454,35 @@ const styles = StyleSheet.create({
   empty: { alignItems: 'center', paddingTop: 80, gap: 12 },
   emptyIcon: { fontSize: 40 },
   emptyText: { ...Font.body3, color: Colors.onSurfaceVariant },
+
+  // Detail modal
+  detailOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' },
+  detailSheet: {
+    backgroundColor: Colors.surface,
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    padding: Spacing.lg,
+    paddingBottom: 36,
+    gap: Spacing.md,
+  },
+  detailHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  detailTitle: { ...Font.t3, color: Colors.onSurface },
+  detailClose: { fontSize: 18, color: Colors.onSurfaceVariant, padding: 4 },
+  detailProfile: { alignItems: 'center', gap: Spacing.sm, paddingVertical: Spacing.sm },
+  detailAvatar: {
+    width: 72, height: 72, borderRadius: 36,
+    backgroundColor: Colors.primaryContainer,
+    alignItems: 'center', justifyContent: 'center',
+  },
+  detailAvatarText: { fontSize: 28, fontWeight: '700', color: Colors.primary },
+  detailName: { ...Font.t2, color: Colors.onSurface },
+  detailPhoneRow: {
+    flexDirection: 'row', alignItems: 'center', gap: Spacing.sm,
+    backgroundColor: Colors.surfaceContainer,
+    borderRadius: Radius.xs,
+    padding: Spacing.md,
+  },
+  detailPhoneIcon: { fontSize: 16 },
+  detailPhoneText: { ...Font.body2, color: Colors.primary, flex: 1, fontWeight: '600' },
+  detailPhoneArrow: { fontSize: 16, color: Colors.onSurfaceVariant },
 });

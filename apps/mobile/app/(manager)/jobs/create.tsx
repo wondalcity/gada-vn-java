@@ -1,9 +1,9 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   View, Text, TextInput, TouchableOpacity,
   StyleSheet, ScrollView, Alert, ActivityIndicator, Switch,
 } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { api, ApiError } from '../../../lib/api-client';
 
@@ -14,9 +14,24 @@ interface Benefits {
   insurance: boolean;
 }
 
+interface SourceJob {
+  id: string;
+  title: string;
+  description?: string;
+  siteId?: string;
+  startTime?: string;
+  endTime?: string;
+  dailyWage: number;
+  slotsTotal: number;
+  benefits?: Partial<Benefits>;
+}
+
 export default function CreateJobScreen() {
   const { t } = useTranslation();
   const router = useRouter();
+  const { copyFrom } = useLocalSearchParams<{ copyFrom?: string }>();
+  const isCopyMode = !!copyFrom;
+
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [workDate, setWorkDate] = useState('');
@@ -29,6 +44,40 @@ export default function CreateJobScreen() {
     meals: false, transport: false, accommodation: false, insurance: false,
   });
   const [loading, setLoading] = useState(false);
+  const [prefilling, setPrefilling] = useState(isCopyMode);
+
+  // Pre-fill form from source job when copyFrom is provided
+  useEffect(() => {
+    if (!copyFrom) return;
+    api.get<SourceJob>(`/jobs/${copyFrom}`)
+      .then((job) => {
+        setTitle(job.title);
+        setDescription(job.description ?? '');
+        setStartTime(job.startTime ?? '08:00');
+        setEndTime(job.endTime ?? '17:00');
+        setDailyWage(String(job.dailyWage));
+        setSlotsTotal(String(job.slotsTotal));
+        setSiteId(job.siteId ?? '');
+        if (job.benefits) {
+          setBenefits({
+            meals: job.benefits.meals ?? false,
+            transport: job.benefits.transport ?? false,
+            accommodation: job.benefits.accommodation ?? false,
+            insurance: job.benefits.insurance ?? false,
+          });
+        }
+      })
+      .catch(() => Alert.alert(t('common.error'), t('jobs.copy_error')))
+      .finally(() => setPrefilling(false));
+  }, [copyFrom]);
+
+  if (prefilling) {
+    return (
+      <View style={styles.center}>
+        <ActivityIndicator size="large" color="#FF6B2C" />
+      </View>
+    );
+  }
 
   const isValid = title.trim().length > 0 && workDate.length === 10 && Number(dailyWage) > 0;
 
@@ -64,7 +113,9 @@ export default function CreateJobScreen() {
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      <Text style={styles.screenTitle}>{t('jobs.create_title')}</Text>
+      <Text style={styles.screenTitle}>
+        {isCopyMode ? t('jobs.copy_title') : t('jobs.create_title')}
+      </Text>
 
       <Text style={styles.label}>{t('jobs.field_title')}</Text>
       <TextInput style={styles.input} placeholder={t('jobs.field_title_placeholder')} value={title} onChangeText={setTitle} />
@@ -137,6 +188,7 @@ export default function CreateJobScreen() {
 }
 
 const styles = StyleSheet.create({
+  center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   container: { flex: 1, backgroundColor: '#fff' },
   content: { padding: 24, paddingBottom: 48 },
   screenTitle: { fontSize: 22, fontWeight: '800', color: '#1A1A1A', marginBottom: 24 },
