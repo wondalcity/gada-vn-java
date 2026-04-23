@@ -1,4 +1,4 @@
-name: Mobile Build (EAS)
+name: Mobile Build & Distribute
 
 on:
   push:
@@ -8,21 +8,13 @@ on:
       - 'packages/core/**'
   workflow_dispatch:
     inputs:
-      platform:
-        description: 'Platform'
-        required: true
-        default: 'android'
-        type: choice
-        options: [all, ios, android]
-      profile:
-        description: 'Build profile'
-        required: true
-        default: 'preview'
-        type: choice
-        options: [preview, production]
+      release_notes:
+        description: 'Release notes (optional)'
+        required: false
+        default: ''
 
 jobs:
-  build:
+  build-android:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -34,51 +26,46 @@ jobs:
           node-version: '20'
           cache: pnpm
 
-      - run: pnpm install --frozen-lockfile
-
-      - name: Setup EAS
-        uses: expo/expo-github-action@v8
+      - uses: actions/setup-java@v4
         with:
-          eas-version: latest
-          token: ${{ secrets.EXPO_TOKEN }}
+          java-version: '17'
+          distribution: 'temurin'
+          cache: gradle
 
-      - name: Determine build profile
-        id: profile
+      - name: Install JS dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Decode release keystore
         run: |
-          if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
-            PROFILE="${{ github.event.inputs.profile }}"
-            PLATFORM="${{ github.event.inputs.platform }}"
-          elif [ "${{ github.ref }}" == "refs/heads/main" ]; then
-            PROFILE="production"
-            PLATFORM="all"
-          else
-            PROFILE="preview"
-            PLATFORM="android"
-          fi
-          echo "build_profile=$PROFILE" >> $GITHUB_OUTPUT
-          echo "platform=$PLATFORM"     >> $GITHUB_OUTPUT
+          echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d \
+            > apps/mobile/android/gada-release.keystore
 
-      - name: Build
-        id: build
-        working-directory: apps/mobile
+      - name: Build release APK
+        working-directory: apps/mobile/android
+        env:
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
         run: |
-          eas build \
-            --platform ${{ steps.profile.outputs.platform }} \
-            --profile ${{ steps.profile.outputs.build_profile }} \
-            --non-interactive \
-            --json 2>/dev/null \
-            | tee /tmp/eas-build-output.json
-          APK_URL=$(jq -r '.[] | select(.platform == "ANDROID") | .artifacts.buildUrl // empty' /tmp/eas-build-output.json 2>/dev/null | head -1)
-          echo "apk_url=$APK_URL" >> $GITHUB_OUTPUT
+          chmod +x gradlew
+          ./gradlew assembleRelease --no-daemon
 
-      # ── Firebase App Distribution (preview builds only) ───────────────────
       - name: Upload to Firebase App Distribution
-        if: steps.profile.outputs.build_profile == 'preview' && steps.build.outputs.apk_url != ''
         env:
           FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
         run: |
-          curl -fsSL "${{ steps.build.outputs.apk_url }}" -o app-preview.apk
-          npx --yes firebase-tools appdistribution:distribute app-preview.apk \
+          NOTES="${{ github.event.inputs.release_notes }}"
+          if [ -z "$NOTES" ]; then
+            NOTES="Branch: ${{ github.ref_name }} | SHA: ${GITHUB_SHA::8}"
+          fi
+          npx --yes firebase-tools appdistribution:distribute \
+            apps/mobile/android/app/build/outputs/apk/release/app-release.apk \
             --app "1:359319234631:android:199915ce689bcad8c0a962" \
-            --release-notes "Branch: ${{ github.ref_name }} | SHA: ${{ github.sha }}" \
+            --release-notes "$NOTES" \
             --groups "internal-testers"
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-release-${{ github.sha }}
+          path: apps/mobile/android/app/build/outputs/apk/release/app-release.apk
+          retention-days: 14
