@@ -63,7 +63,7 @@ INSERT INTO auth.users (id, firebase_uid, phone, email, role, status) VALUES
    NULL,
    'WORKER', 'ACTIVE')
 
-ON CONFLICT (firebase_uid) DO NOTHING;
+ON CONFLICT DO NOTHING;
 
 -- ─────────────────────────────────────────────────────────────
 -- 2. NEW MANAGER PROFILES
