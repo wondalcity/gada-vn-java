@@ -32,7 +32,7 @@ if [[ -n "$INSTANCE_ID" ]]; then
       --instance-id "$INSTANCE_ID" \
       --http-put-response-hop-limit 2 \
       --http-tokens required \
-      --region "$REGION" > /dev/null
+      --region "$REGION" > /dev/null 2>&1 || log "Warning: could not set hop limit (IAM permission missing — skipping)"
   fi
 fi
 
