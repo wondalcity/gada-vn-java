@@ -1,0 +1,53 @@
+name: Quarterly DB Cleanup Reminder
+
+on:
+  schedule:
+    # 매 분기 1일 오전 9시 KST (00:00 UTC) — 1월, 4월, 7월, 10월
+    - cron: '0 0 1 1,4,7,10 *'
+  workflow_dispatch:
+
+jobs:
+  create-reminder-issue:
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+    steps:
+      - name: Create quarterly DB cleanup issue
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const today = new Date().toISOString().split('T')[0];
+            const quarter = Math.ceil((new Date().getMonth() + 1) / 3);
+            const year = new Date().getFullYear();
+
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: `[DB 정리 검토] ${year}년 Q${quarter} — 스테이징 DB 오래된 데이터 정리 여부 확인`,
+              body: [
+                '## 분기별 스테이징 DB 정리 검토',
+                '',
+                `**검토 시점:** ${today}`,
+                '',
+                '### 정리 전 반드시 확인하세요',
+                '- [ ] 최신 백업이 S3에 존재하는지 확인 (`s3://gada-vn-db-backups/staging/`)',
+                '- [ ] 삭제 대상이 씨드/더미 데이터인지, 실제 입력 데이터인지 구분',
+                '- [ ] 보존이 필요한 공고/현장/회원 데이터 목록 정리',
+                '',
+                '### 백업 복구 방법',
+                '```bash',
+                '# 최근 백업 목록 확인',
+                'aws s3 ls s3://gada-vn-db-backups/staging/ --recursive | sort | tail -10',
+                '',
+                '# 특정 백업 복구',
+                'aws s3 cp s3://gada-vn-db-backups/staging/<파일명>.dump /tmp/restore.dump',
+                'docker cp /tmp/restore.dump staging-postgres-1:/tmp/restore.dump',
+                'docker exec -e PGPASSWORD=*** staging-postgres-1 \\',
+                '  pg_restore -h 127.0.0.1 -U gada_app -d gada_staging \\',
+                '  --clean --if-exists /tmp/restore.dump',
+                '```',
+                '',
+                '> ⚠️ 데이터 삭제는 이 이슈에서 확인 후 진행하세요.',
+              ].join('\n'),
+              labels: ['db-maintenance', 'staging'],
+            });
