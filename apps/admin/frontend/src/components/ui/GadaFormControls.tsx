@@ -62,6 +62,7 @@ export function GadaDateInput({ className = '', locale = 'ko', value, ...props }
     <div className="relative">
       <input
         type="date"
+        lang={locale}
         className={
           `${BASE} pr-9 ` +
           // Stretch the native calendar-picker-indicator over the entire input

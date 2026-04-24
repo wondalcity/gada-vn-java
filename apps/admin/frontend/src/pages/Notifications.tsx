@@ -32,7 +32,7 @@ const STATUS_BADGE: Record<string, string> = {
 }
 
 export default function Notifications() {
-  const { t } = useAdminTranslation()
+  const { t, locale } = useAdminTranslation()
   const [schedules, setSchedules]         = useState<Schedule[]>([])
   const [flash, setFlash]                 = useState<{ type: 'success'|'scheduled'|'cancelled'|'error'; msg?: string } | null>(null)
   const [targetType, setTargetType]       = useState<TargetType>('role')
@@ -347,7 +347,7 @@ export default function Notifications() {
 
               {sendType === 'schedule' && (
                 <FN label={t('notifications.field_schedule_at')}>
-                  <input type="datetime-local" required className={IN}
+                  <input type="datetime-local" required lang={locale} className={IN}
                     value={form.scheduledAt}
                     onChange={e => setForm({ ...form, scheduledAt: e.target.value })} />
                 </FN>
