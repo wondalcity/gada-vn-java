@@ -16,7 +16,7 @@ const COUNTRY_CODES = [
   { code: '+61', flag: '🇦🇺', label: 'AU' },
 ];
 
-export default function PhoneScreen() {
+export default function SignupScreen() {
   const { t, i18n } = useTranslation();
   const router = useRouter();
   const { setConfirmationResult } = useAuthStore();
@@ -65,13 +65,16 @@ export default function PhoneScreen() {
           ))}
         </View>
 
-        {/* Logo */}
-        <View style={styles.logoArea}>
-          <Text style={styles.title}>{t('auth.gada_title')}</Text>
-          <Text style={styles.subtitle}>{t('auth.phone_start')}</Text>
+        {/* Hero */}
+        <View style={styles.heroArea}>
+          <View style={styles.logoBadge}>
+            <Text style={styles.logoText}>GADA VN</Text>
+          </View>
+          <Text style={styles.heroTitle}>{t('auth.signup_subtitle')}</Text>
+          <Text style={styles.heroDesc}>{t('auth.signup_desc')}</Text>
         </View>
 
-        {/* Country Code Selector */}
+        {/* Country Code */}
         <View style={styles.phoneRow}>
           {COUNTRY_CODES.map((c) => (
             <TouchableOpacity
@@ -97,7 +100,7 @@ export default function PhoneScreen() {
           maxLength={12}
         />
 
-        {/* Login Button */}
+        {/* Signup Button */}
         <TouchableOpacity
           style={[styles.button, (loading || !phone.trim()) && styles.buttonDisabled]}
           onPress={handleSendOtp}
@@ -105,15 +108,15 @@ export default function PhoneScreen() {
           activeOpacity={0.85}
         >
           <Text style={styles.buttonText}>
-            {loading ? t('common.loading') : t('auth.login')}
+            {loading ? t('common.loading') : t('auth.register')}
           </Text>
         </TouchableOpacity>
 
-        {/* Signup Link */}
-        <View style={styles.signupRow}>
-          <Text style={styles.signupHint}>{t('auth.no_account')}</Text>
-          <TouchableOpacity onPress={() => router.push('/(auth)/signup')} activeOpacity={0.7}>
-            <Text style={styles.signupLink}>{t('auth.go_signup')}</Text>
+        {/* Login Link */}
+        <View style={styles.loginRow}>
+          <Text style={styles.loginHint}>{t('auth.have_account')}</Text>
+          <TouchableOpacity onPress={() => router.back()} activeOpacity={0.7}>
+            <Text style={styles.loginLink}>{t('auth.go_login')}</Text>
           </TouchableOpacity>
         </View>
       </ScrollView>
@@ -139,9 +142,14 @@ const styles = StyleSheet.create({
   langLabel: { ...Font.caption, color: Colors.onSurfaceVariant, fontWeight: '500' },
   langLabelActive: { color: Colors.primary, fontWeight: '700' },
 
-  logoArea: { alignItems: 'center', marginBottom: Spacing.xl },
-  title: { ...Font.h1, color: Colors.primary, textAlign: 'center', marginBottom: Spacing.xs },
-  subtitle: { ...Font.body2, color: Colors.onSurfaceVariant, textAlign: 'center' },
+  heroArea: { alignItems: 'center', marginBottom: Spacing.lg },
+  logoBadge: {
+    backgroundColor: Colors.primary, borderRadius: Radius.md,
+    paddingHorizontal: Spacing.lg, paddingVertical: Spacing.sm, marginBottom: Spacing.md,
+  },
+  logoText: { ...Font.t3, color: Colors.onPrimary, fontWeight: '800', letterSpacing: 2 },
+  heroTitle: { ...Font.h3, color: Colors.onSurface, textAlign: 'center', marginBottom: Spacing.sm },
+  heroDesc: { ...Font.body3, color: Colors.onSurfaceVariant, textAlign: 'center', lineHeight: 22 },
 
   phoneRow: { flexDirection: 'row', gap: Spacing.sm },
   countryBtn: {
@@ -164,7 +172,7 @@ const styles = StyleSheet.create({
   buttonDisabled: { opacity: 0.5 },
   buttonText: { color: Colors.onPrimary, ...Font.t3 },
 
-  signupRow: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: 4, marginTop: Spacing.sm },
-  signupHint: { ...Font.body3, color: Colors.onSurfaceVariant },
-  signupLink: { ...Font.body3, color: Colors.primary, fontWeight: '700' },
+  loginRow: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: 4, marginTop: Spacing.sm },
+  loginHint: { ...Font.body3, color: Colors.onSurfaceVariant },
+  loginLink: { ...Font.body3, color: Colors.primary, fontWeight: '700' },
 });

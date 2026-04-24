@@ -1,65 +1,59 @@
 import { useState } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity,
-  ScrollView, Platform, Alert,
+  ScrollView, Alert,
 } from 'react-native';
 import { useRouter } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 import * as Location from 'expo-location';
 import * as ImagePicker from 'expo-image-picker';
 import * as Notifications from 'expo-notifications';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Colors, Radius, Spacing, Font } from '../../constants/theme';
 import { PERMISSIONS_DONE_KEY } from '../index';
 
-interface PermItem {
-  id: string;
-  icon: string;
-  title: string;
-  description: string;
-  required: boolean;
-  request: () => Promise<boolean>;
-}
-
-const PERMISSIONS: PermItem[] = [
-  {
-    id: 'location',
-    icon: '📍',
-    title: '위치',
-    description: '주변 건설 현장 및 구인 공고를 찾기 위해 위치 정보가 필요합니다.',
-    required: false,
-    request: async () => {
-      const { status } = await Location.requestForegroundPermissionsAsync();
-      return status === 'granted';
-    },
-  },
-  {
-    id: 'camera',
-    icon: '📷',
-    title: '카메라 및 사진',
-    description: '신분증 촬영 및 프로필 사진 업로드에 사용됩니다.',
-    required: true,
-    request: async () => {
-      const camRes = await ImagePicker.requestCameraPermissionsAsync();
-      const libRes = await ImagePicker.requestMediaLibraryPermissionsAsync();
-      return camRes.status === 'granted' || libRes.status === 'granted';
-    },
-  },
-  {
-    id: 'notifications',
-    icon: '🔔',
-    title: '알림',
-    description: '채용 확정, 계약서 도착 등 중요 알림을 받습니다.',
-    required: false,
-    request: async () => {
-      const { status } = await Notifications.requestPermissionsAsync();
-      return status === 'granted';
-    },
-  },
-];
-
 export default function PermissionsScreen() {
+  const { t } = useTranslation();
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [granted, setGranted] = useState<Record<string, boolean>>({});
+
+  const PERMISSIONS = [
+    {
+      id: 'location',
+      icon: '📍',
+      title: t('permissions.location_title'),
+      description: t('permissions.location_desc'),
+      required: false,
+      request: async () => {
+        const { status } = await Location.requestForegroundPermissionsAsync();
+        return status === 'granted';
+      },
+    },
+    {
+      id: 'camera',
+      icon: '📷',
+      title: t('permissions.camera_title'),
+      description: t('permissions.camera_desc'),
+      required: true,
+      request: async () => {
+        const camRes = await ImagePicker.requestCameraPermissionsAsync();
+        const libRes = await ImagePicker.requestMediaLibraryPermissionsAsync();
+        return camRes.status === 'granted' || libRes.status === 'granted';
+      },
+    },
+    {
+      id: 'notifications',
+      icon: '🔔',
+      title: t('permissions.notifications_title'),
+      description: t('permissions.notifications_desc'),
+      required: false,
+      request: async () => {
+        const { status } = await Notifications.requestPermissionsAsync();
+        return status === 'granted';
+      },
+    },
+  ];
 
   async function requestAll() {
     setLoading(true);
@@ -84,17 +78,13 @@ export default function PermissionsScreen() {
   return (
     <View style={styles.container}>
       <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
-        {/* Header */}
         <View style={styles.header}>
           <Text style={styles.appName}>GADA VN</Text>
-          <Text style={styles.title}>앱 사용을 위한{'\n'}권한 허용</Text>
-          <Text style={styles.subtitle}>
-            더 나은 서비스를 위해 아래 권한이 필요합니다.{'\n'}
-            언제든지 설정에서 변경할 수 있습니다.
-          </Text>
+          <Text style={styles.title}>{t('permissions.title')}</Text>
+          <Text style={styles.subtitle}>{t('permissions.subtitle1')}</Text>
+          <Text style={styles.subtitle}>{t('permissions.subtitle2')}</Text>
         </View>
 
-        {/* Permission Cards */}
         <View style={styles.cards}>
           {PERMISSIONS.map((perm) => (
             <View key={perm.id} style={styles.card}>
@@ -104,7 +94,7 @@ export default function PermissionsScreen() {
                   <Text style={styles.cardTitle}>{perm.title}</Text>
                   {perm.required && (
                     <View style={styles.requiredBadge}>
-                      <Text style={styles.requiredText}>필수</Text>
+                      <Text style={styles.requiredText}>{t('permissions.required_badge')}</Text>
                     </View>
                   )}
                 </View>
@@ -120,7 +110,6 @@ export default function PermissionsScreen() {
         </View>
       </ScrollView>
 
-      {/* Buttons */}
       <View style={styles.buttons}>
         <TouchableOpacity
           style={[styles.allowBtn, loading && styles.btnDisabled]}
@@ -129,7 +118,7 @@ export default function PermissionsScreen() {
           activeOpacity={0.85}
         >
           <Text style={styles.allowBtnText}>
-            {loading ? '권한 요청 중...' : '모두 허용하기'}
+            {loading ? t('permissions.requesting') : t('permissions.allow_all')}
           </Text>
         </TouchableOpacity>
 
@@ -139,7 +128,7 @@ export default function PermissionsScreen() {
           disabled={loading}
           activeOpacity={0.7}
         >
-          <Text style={styles.skipBtnText}>나중에 설정할게요</Text>
+          <Text style={styles.skipBtnText}>{t('permissions.skip')}</Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -147,39 +136,55 @@ export default function PermissionsScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#fff' },
-  scroll: { padding: 24, paddingBottom: 8 },
+  container: { flex: 1, backgroundColor: Colors.surface },
+  scroll: { padding: Spacing.xxl, paddingBottom: Spacing.sm },
 
-  header: { alignItems: 'center', marginBottom: 36, paddingTop: 40 },
-  appName: { fontSize: 14, fontWeight: '700', color: '#FF6B2C', letterSpacing: 2, marginBottom: 16 },
-  title: { fontSize: 26, fontWeight: '900', color: '#1A1A1A', textAlign: 'center', lineHeight: 36, marginBottom: 12 },
-  subtitle: { fontSize: 14, color: '#666', textAlign: 'center', lineHeight: 22 },
+  header: { alignItems: 'center', marginBottom: Spacing.xxxl, paddingTop: 40 },
+  appName: {
+    ...Font.caption,
+    fontWeight: '700',
+    color: Colors.primary,
+    letterSpacing: 2,
+    marginBottom: Spacing.lg,
+  },
+  title: {
+    ...Font.h3,
+    color: Colors.onSurface,
+    textAlign: 'center',
+    marginBottom: Spacing.sm,
+  },
+  subtitle: {
+    ...Font.body3,
+    color: Colors.onSurfaceVariant,
+    textAlign: 'center',
+    lineHeight: 22,
+  },
 
-  cards: { gap: 12 },
+  cards: { gap: Spacing.md },
   card: {
     flexDirection: 'row', alignItems: 'flex-start', gap: 14,
-    backgroundColor: '#F8F9FA', borderRadius: 16, padding: 18,
+    backgroundColor: Colors.surfaceDim, borderRadius: Radius.lg, padding: 18,
   },
   cardIcon: { fontSize: 28, width: 36, textAlign: 'center' },
   cardBody: { flex: 1, gap: 4 },
-  cardTitleRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  cardTitle: { fontSize: 15, fontWeight: '700', color: '#1A1A1A' },
+  cardTitleRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.sm },
+  cardTitle: { ...Font.t4, color: Colors.onSurface },
   requiredBadge: {
-    backgroundColor: '#FFF0EB', borderRadius: 6,
+    backgroundColor: Colors.primaryContainer, borderRadius: Radius.xs,
     paddingHorizontal: 6, paddingVertical: 2,
   },
-  requiredText: { fontSize: 10, fontWeight: '700', color: '#FF6B2C' },
-  cardDesc: { fontSize: 13, color: '#666', lineHeight: 19 },
-  grantedIcon: { fontSize: 18, fontWeight: '700', color: '#22C55E', alignSelf: 'center' },
-  deniedIcon: { color: '#EF4444' },
+  requiredText: { fontSize: 10, fontWeight: '700', color: Colors.primary },
+  cardDesc: { ...Font.caption, color: Colors.onSurfaceVariant, lineHeight: 19 },
+  grantedIcon: { fontSize: 18, fontWeight: '700', color: Colors.success, alignSelf: 'center' },
+  deniedIcon: { color: Colors.error },
 
-  buttons: { padding: 24, paddingTop: 12, gap: 10 },
+  buttons: { padding: Spacing.xxl, paddingTop: Spacing.md, gap: Spacing.sm },
   allowBtn: {
-    backgroundColor: '#FF6B2C', borderRadius: 14,
+    backgroundColor: Colors.primary, borderRadius: Radius.pill,
     paddingVertical: 16, alignItems: 'center',
   },
   btnDisabled: { opacity: 0.6 },
-  allowBtnText: { color: '#fff', fontSize: 16, fontWeight: '700' },
+  allowBtnText: { color: Colors.onPrimary, ...Font.t3 },
   skipBtn: { alignItems: 'center', paddingVertical: 10 },
-  skipBtnText: { fontSize: 14, color: '#999', fontWeight: '500' },
+  skipBtnText: { ...Font.body3, color: Colors.disabled },
 });

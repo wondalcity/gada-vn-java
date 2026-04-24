@@ -58,6 +58,14 @@ const ko = {
     mode_hint: '프로필에서 언제든 모드를 전환할 수 있습니다',
     gada_title: '가다 VN',
     phone_start: '전화번호로 시작하세요',
+    no_account: '계정이 없으신가요?',
+    go_signup: '회원가입',
+    have_account: '이미 계정이 있으신가요?',
+    go_login: '로그인',
+    signup_title: 'GADA VN',
+    signup_subtitle: '베트남 건설 현장\n일자리 플랫폼',
+    signup_desc: '전화번호로 빠르게 가입하고\n근처 일자리를 찾아보세요.',
+    lang_select: '언어 선택',
   },
   jobs: {
     apply_button: '지원하기',
@@ -335,6 +343,21 @@ const ko = {
     support_phone: '고객센터',
     support_phone_number: '+84 56 824 0240',
   },
+  permissions: {
+    title: '앱 사용을 위한\n권한 허용',
+    subtitle1: '더 나은 서비스를 위해 아래 권한이 필요합니다.',
+    subtitle2: '언제든지 설정에서 변경할 수 있습니다.',
+    allow_all: '모두 허용하기',
+    requesting: '권한 요청 중...',
+    skip: '나중에 설정할게요',
+    required_badge: '필수',
+    location_title: '위치',
+    location_desc: '주변 건설 현장 및 구인 공고를 찾기 위해 위치 정보가 필요합니다.',
+    camera_title: '카메라 및 사진',
+    camera_desc: '신분증 촬영 및 프로필 사진 업로드에 사용됩니다.',
+    notifications_title: '알림',
+    notifications_desc: '채용 확정, 계약서 도착 등 중요 알림을 받습니다.',
+  },
   notifications: {
     title: '알림',
     job_applied: '건설 현장 지원',
@@ -420,6 +443,14 @@ const vi = {
     mode_hint: 'Bạn có thể chuyển chế độ bất kỳ lúc nào trong hồ sơ',
     gada_title: 'GADA VN',
     phone_start: 'Bắt đầu bằng số điện thoại',
+    no_account: 'Chưa có tài khoản?',
+    go_signup: 'Đăng ký',
+    have_account: 'Đã có tài khoản?',
+    go_login: 'Đăng nhập',
+    signup_title: 'GADA VN',
+    signup_subtitle: 'Nền tảng việc làm\nxây dựng Việt Nam',
+    signup_desc: 'Đăng ký nhanh bằng số điện thoại\nvà tìm việc làm gần bạn.',
+    lang_select: 'Chọn ngôn ngữ',
   },
   jobs: {
     apply_button: 'Ứng tuyển',
@@ -697,6 +728,21 @@ const vi = {
     support_phone: 'Tổng đài hỗ trợ',
     support_phone_number: '+84 56 824 0240',
   },
+  permissions: {
+    title: 'Yêu cầu\nquyền truy cập',
+    subtitle1: 'Chúng tôi cần các quyền sau để cung cấp dịch vụ tốt hơn.',
+    subtitle2: 'Bạn có thể thay đổi trong Cài đặt bất kỳ lúc nào.',
+    allow_all: 'Cho phép tất cả',
+    requesting: 'Đang yêu cầu quyền...',
+    skip: 'Để sau',
+    required_badge: 'Bắt buộc',
+    location_title: 'Vị trí',
+    location_desc: 'Cần để tìm công trình và việc làm gần bạn.',
+    camera_title: 'Camera & ảnh',
+    camera_desc: 'Dùng để chụp CMND và tải ảnh hồ sơ.',
+    notifications_title: 'Thông báo',
+    notifications_desc: 'Nhận thông báo quan trọng về tuyển dụng và hợp đồng.',
+  },
   notifications: {
     title: 'Thông báo',
     job_applied: 'Đã ứng tuyển',
@@ -782,6 +828,14 @@ const en = {
     mode_hint: 'You can switch modes anytime in your profile',
     gada_title: 'GADA VN',
     phone_start: 'Get started with your phone number',
+    no_account: "Don't have an account?",
+    go_signup: 'Sign up',
+    have_account: 'Already have an account?',
+    go_login: 'Log in',
+    signup_title: 'GADA VN',
+    signup_subtitle: 'Vietnam Construction\nJob Platform',
+    signup_desc: 'Sign up quickly with your phone number\nand find nearby jobs.',
+    lang_select: 'Select language',
   },
   jobs: {
     apply_button: 'Apply',
@@ -1059,6 +1113,21 @@ const en = {
     support_phone: 'Customer support',
     support_phone_number: '+84 56 824 0240',
   },
+  permissions: {
+    title: 'App\nPermissions',
+    subtitle1: 'We need the following permissions for a better experience.',
+    subtitle2: 'You can change these anytime in Settings.',
+    allow_all: 'Allow all',
+    requesting: 'Requesting permissions...',
+    skip: 'Set up later',
+    required_badge: 'Required',
+    location_title: 'Location',
+    location_desc: 'Used to find nearby construction sites and job listings.',
+    camera_title: 'Camera & Photos',
+    camera_desc: 'Used for ID document capture and profile photo upload.',
+    notifications_title: 'Notifications',
+    notifications_desc: 'Receive important alerts about hiring and contracts.',
+  },
   notifications: {
     title: 'Notifications',
     job_applied: 'Job applied',
@@ -1088,23 +1157,45 @@ const en = {
 };
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { NativeModules, Platform } from 'react-native';
 
 const LANG_KEY = 'gada_language';
 
 export type LangCode = 'ko' | 'vi' | 'en';
 
 export const SUPPORTED_LANGUAGES: Array<{ code: LangCode; label: string; flag: string }> = [
-  { code: 'ko', label: '한국어', flag: '🇰🇷' },
   { code: 'vi', label: 'Tiếng Việt', flag: '🇻🇳' },
+  { code: 'ko', label: '한국어', flag: '🇰🇷' },
   { code: 'en', label: 'English', flag: '🇺🇸' },
 ];
+
+/** 디바이스 시스템 언어를 읽어 지원 언어 코드로 변환 */
+function getDeviceLanguage(): LangCode {
+  try {
+    let locale: string | undefined;
+    if (Platform.OS === 'android') {
+      locale = NativeModules.I18nManager?.localeIdentifier as string | undefined;
+    } else {
+      const settings = NativeModules.SettingsManager?.settings as Record<string, unknown> | undefined;
+      const langs = settings?.AppleLanguages as string[] | undefined;
+      locale = (settings?.AppleLocale as string | undefined) ?? langs?.[0];
+    }
+    if (!locale) return 'vi';
+    const lang = locale.split(/[_-]/)[0].toLowerCase();
+    if (lang === 'ko') return 'ko';
+    if (lang === 'vi') return 'vi';
+    if (lang === 'en') return 'en';
+  } catch {}
+  return 'vi'; // 베트남어를 기본값으로 (타겟 시장)
+}
 
 export async function getSavedLanguage(): Promise<LangCode> {
   try {
     const saved = await AsyncStorage.getItem(LANG_KEY);
     if (saved === 'ko' || saved === 'vi' || saved === 'en') return saved;
   } catch {}
-  return 'ko';
+  // 저장된 언어 없으면 디바이스 언어 사용
+  return getDeviceLanguage();
 }
 
 export async function saveLanguage(code: LangCode): Promise<void> {

@@ -4,18 +4,16 @@ import { View, StyleSheet } from 'react-native';
 import * as SplashScreen from 'expo-splash-screen';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useAuthStore } from '../store/auth.store';
-import auth from '@react-native-firebase/auth';
-import { syncAuthToken } from '../lib/firebase';
 
 export const PERMISSIONS_DONE_KEY = '@gada_permissions_done';
 
 export default function Index() {
-  const { isAuthenticated, isLoading, role, isNew, setUser, setNew, clearUser } = useAuthStore();
+  const { isAuthenticated, isLoading, role, isNew } = useAuthStore();
   const [permissionsChecked, setPermissionsChecked] = useState(false);
   const [permissionsDone, setPermissionsDone] = useState(false);
   const splashHidden = useRef(false);
 
-  // 1) AsyncStorage에서 권한 요청 여부 확인
+  // AsyncStorage에서 권한 요청 여부 확인
   useEffect(() => {
     AsyncStorage.getItem(PERMISSIONS_DONE_KEY)
       .then((val) => {
@@ -25,37 +23,7 @@ export default function Index() {
       .catch(() => setPermissionsChecked(true));
   }, []);
 
-  // 2) Firebase 인증 상태 구독
-  useEffect(() => {
-    const timeout = setTimeout(() => clearUser(), 10000);
-
-    const unsubscribe = auth().onAuthStateChanged(async (firebaseUser) => {
-      clearTimeout(timeout);
-      if (firebaseUser) {
-        try {
-          const result = await syncAuthToken();
-          if (result) {
-            const user = result.user as { id: string; role: 'WORKER' | 'MANAGER'; isManager?: boolean };
-            setUser(user.id, user.role, user.isManager);
-            if (result.isNew) setNew(true);
-          } else {
-            clearUser();
-          }
-        } catch {
-          clearUser();
-        }
-      } else {
-        clearUser();
-      }
-    });
-
-    return () => {
-      clearTimeout(timeout);
-      unsubscribe();
-    };
-  }, []);
-
-  // 3) auth + permissions 둘 다 확인된 순간 스플래시 제거
+  // auth + permissions 둘 다 확인된 순간 스플래시 제거
   useEffect(() => {
     if (!isLoading && permissionsChecked && !splashHidden.current) {
       splashHidden.current = true;
@@ -87,6 +55,5 @@ export default function Index() {
 }
 
 const styles = StyleSheet.create({
-  // 스플래시와 동일한 오렌지 배경으로 깜빡임 방지
-  blank: { flex: 1, backgroundColor: '#FF6B2C' },
+  blank: { flex: 1, backgroundColor: '#0669F7' },
 });

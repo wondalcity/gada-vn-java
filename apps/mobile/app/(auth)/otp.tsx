@@ -3,13 +3,12 @@ import {
   View, Text, TextInput, TouchableOpacity,
   StyleSheet, Alert,
 } from 'react-native';
-import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useAuthStore } from '../../store/auth.store';
+import { Colors, Radius, Spacing, Font } from '../../constants/theme';
 
 export default function OtpScreen() {
   const { t } = useTranslation();
-  const router = useRouter();
   const { confirmationResult, setConfirmationResult } = useAuthStore();
   const [otp, setOtp] = useState('');
   const [loading, setLoading] = useState(false);
@@ -20,7 +19,7 @@ export default function OtpScreen() {
     try {
       await confirmationResult.confirm(otp);
       setConfirmationResult(null);
-      // Auth state listener in index.tsx will handle routing
+      // Auth state listener in _layout.tsx handles routing after Firebase confirms
     } catch {
       Alert.alert(t('common.error'), t('auth.otp_error'));
     } finally {
@@ -36,6 +35,7 @@ export default function OtpScreen() {
       <TextInput
         style={styles.input}
         placeholder="000000"
+        placeholderTextColor={Colors.disabled}
         keyboardType="number-pad"
         value={otp}
         onChangeText={setOtp}
@@ -44,9 +44,10 @@ export default function OtpScreen() {
       />
 
       <TouchableOpacity
-        style={[styles.button, loading && styles.buttonDisabled]}
+        style={[styles.button, (loading || otp.length < 6) && styles.buttonDisabled]}
         onPress={handleVerify}
         disabled={loading || otp.length < 6}
+        activeOpacity={0.85}
       >
         <Text style={styles.buttonText}>
           {loading ? t('common.loading') : t('common.confirm')}
@@ -57,14 +58,21 @@ export default function OtpScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#fff', justifyContent: 'center', padding: 24 },
-  title: { fontSize: 24, fontWeight: 'bold', textAlign: 'center', marginBottom: 8 },
-  subtitle: { fontSize: 14, color: '#666', textAlign: 'center', marginBottom: 32 },
-  input: {
-    borderWidth: 1, borderColor: '#ddd', borderRadius: 12,
-    padding: 16, fontSize: 32, letterSpacing: 8, marginBottom: 20,
+  container: {
+    flex: 1, backgroundColor: Colors.surface,
+    justifyContent: 'center', padding: Spacing.xxl,
   },
-  button: { backgroundColor: '#FF6B2C', borderRadius: 12, padding: 16, alignItems: 'center' },
-  buttonDisabled: { opacity: 0.6 },
-  buttonText: { color: '#fff', fontSize: 16, fontWeight: '600' },
+  title: { ...Font.h3, color: Colors.onSurface, textAlign: 'center', marginBottom: Spacing.xs },
+  subtitle: { ...Font.body3, color: Colors.onSurfaceVariant, textAlign: 'center', marginBottom: Spacing.xxxl },
+  input: {
+    borderWidth: 1.5, borderColor: Colors.outline, borderRadius: Radius.md,
+    padding: Spacing.lg, fontSize: 32, letterSpacing: 8,
+    marginBottom: Spacing.xl, color: Colors.onSurface,
+  },
+  button: {
+    backgroundColor: Colors.primary, borderRadius: Radius.pill,
+    paddingVertical: 16, alignItems: 'center',
+  },
+  buttonDisabled: { opacity: 0.5 },
+  buttonText: { color: Colors.onPrimary, ...Font.t3 },
 });
