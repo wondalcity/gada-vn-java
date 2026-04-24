@@ -284,7 +284,7 @@ export function SearchBar({ provinces, trades = [], locale }: Props) {
 
   const tradeOptions: SelectOption[] = trades.map(tr => ({
     value: String(tr.id),
-    label: tr.nameKo,
+    label: locale === 'vi' ? tr.nameVi : locale === 'en' ? (tr.nameEn || tr.nameKo) : tr.nameKo,
   }))
 
   return (

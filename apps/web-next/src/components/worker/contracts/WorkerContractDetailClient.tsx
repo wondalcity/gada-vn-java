@@ -9,7 +9,7 @@ import { apiClient } from '@/lib/api/client'
 import { useSignatureCanvas } from '@/hooks/useSignatureCanvas'
 import type { Contract } from '@/types/contract'
 import { CONTRACT_STATUS_LABELS, CONTRACT_STATUS_COLORS } from '@/types/contract'
-import { ContractDocument, ContractDownloadButton } from '@/components/contracts/ContractDocument'
+import { ContractDocument, ContractDownloadButton, ContractLangSelector } from '@/components/contracts/ContractDocument'
 import { formatDate } from '@/lib/utils/date'
 
 function formatVND(n: number): string {
@@ -320,6 +320,9 @@ export default function WorkerContractDetailClient({ contractId }: Props) {
   const [isConfirming, setIsConfirming] = React.useState(false)
   const [confirmError, setConfirmError] = React.useState<string | null>(null)
   const [previewWorkerSigUrl, setPreviewWorkerSigUrl] = React.useState<string | null>(null)
+  const [contractLang, setContractLang] = React.useState<'ko' | 'vi' | 'en'>(
+    (locale === 'vi' || locale === 'en') ? locale : 'ko'
+  )
 
   React.useEffect(() => {
     if (!idToken) return
@@ -477,17 +480,20 @@ export default function WorkerContractDetailClient({ contractId }: Props) {
 
       {/* Contract document */}
       <div className="bg-white rounded-2xl border border-[#EFF1F5] shadow-sm overflow-hidden">
-        <div className="px-4 py-3 border-b border-[#EFF1F5] flex items-center justify-between gap-2">
-          <div className="flex items-center gap-2">
-            <svg className="w-4 h-4 text-[#0669F7]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-            </svg>
-            <span className="text-sm font-semibold text-[#25282A]">{t('worker_contracts.document_title')}</span>
+        <div className="px-4 py-3 border-b border-[#EFF1F5] space-y-2">
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2">
+              <svg className="w-4 h-4 text-[#0669F7]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+              <span className="text-sm font-semibold text-[#25282A]">{t('worker_contracts.document_title')}</span>
+            </div>
+            <ContractDownloadButton documentRef={documentRef} contractId={contract.id} lang={contractLang} />
           </div>
-          <ContractDownloadButton documentRef={documentRef} contractId={contract.id} />
+          <ContractLangSelector lang={contractLang} onChange={setContractLang} />
         </div>
         <div className="overflow-x-auto">
-          <ContractDocument contract={contract} documentRef={documentRef} previewWorkerSigUrl={previewWorkerSigUrl} />
+          <ContractDocument contract={contract} documentRef={documentRef} previewWorkerSigUrl={previewWorkerSigUrl} lang={contractLang} />
         </div>
       </div>
 

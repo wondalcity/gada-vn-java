@@ -8,7 +8,7 @@ import { apiClient } from '@/lib/api/client'
 import { useSignatureCanvas } from '@/hooks/useSignatureCanvas'
 import type { Contract } from '@/types/contract'
 import { CONTRACT_STATUS_LABELS, CONTRACT_STATUS_COLORS } from '@/types/contract'
-import { ContractDocument, ContractDownloadButton } from '@/components/contracts/ContractDocument'
+import { ContractDocument, ContractDownloadButton, ContractLangSelector } from '@/components/contracts/ContractDocument'
 
 function ManagerSignaturePad({
   onUse,
@@ -147,6 +147,9 @@ export default function ManagerContractClient({ contractId }: Props) {
   const [confirmError, setConfirmError] = React.useState<string | null>(null)
   const [previewManagerSigUrl, setPreviewManagerSigUrl] = React.useState<string | null>(null)
   const [pendingSignature, setPendingSignature] = React.useState<string | null>(null)
+  const [contractLang, setContractLang] = React.useState<'ko' | 'vi' | 'en'>(
+    (locale === 'vi' || locale === 'en') ? locale as 'vi' | 'en' : 'ko'
+  )
 
   const load = React.useCallback(() => {
     if (!idToken) return
@@ -253,7 +256,12 @@ export default function ManagerContractClient({ contractId }: Props) {
           <h1 className="text-xl font-bold text-[#25282A]">근로계약서</h1>
           <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${statusColor}`}>{statusLabel}</span>
         </div>
-        <ContractDownloadButton documentRef={documentRef} contractId={contract.id} />
+        <ContractDownloadButton documentRef={documentRef} contractId={contract.id} lang={contractLang} />
+      </div>
+
+      {/* Language selector */}
+      <div className="bg-white rounded-2xl border border-[#EFF1F5] px-4 py-3">
+        <ContractLangSelector lang={contractLang} onChange={setContractLang} />
       </div>
 
       {/* Success message */}
@@ -320,7 +328,7 @@ export default function ManagerContractClient({ contractId }: Props) {
 
       {/* Contract document */}
       <div className="overflow-x-auto rounded-2xl border border-[#EFF1F5] shadow-sm">
-        <ContractDocument contract={contract} documentRef={documentRef} previewManagerSigUrl={previewManagerSigUrl} />
+        <ContractDocument contract={contract} documentRef={documentRef} previewManagerSigUrl={previewManagerSigUrl} lang={contractLang} />
       </div>
 
       {/* Signature status */}
