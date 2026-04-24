@@ -11,7 +11,6 @@ type NavPermission = 'dashboard' | 'managers' | 'workers' | 'jobs' | 'sites' | '
 const ALL_NAV: { to: string; labelKey: string; permission: NavPermission; exact?: boolean }[] = [
   { to: '/',                 labelKey: 'nav.dashboard',         permission: 'dashboard', exact: true },
   { to: '/managers',         labelKey: 'nav.managers',          permission: 'managers' },
-  { to: '/managers/promote', labelKey: 'nav.managers_promote',  permission: 'managers' },
   { to: '/workers',          labelKey: 'nav.workers',           permission: 'workers' },
   { to: '/jobs',             labelKey: 'nav.jobs',              permission: 'jobs' },
   { to: '/sites',            labelKey: 'nav.sites',             permission: 'sites' },

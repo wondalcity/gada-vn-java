@@ -3,6 +3,7 @@ import { Link, useSearchParams } from 'react-router-dom'
 import { api } from '../lib/api'
 import { useAdminTranslation } from '../context/LanguageContext'
 import { fmtDateTime } from '../lib/dateUtils'
+import { PromoteWorkerContent } from './PromoteWorker'
 
 function formatPhone(phone: string | null | undefined): string {
   if (!phone) return '-'
@@ -46,6 +47,7 @@ export default function Managers() {
   const [total, setTotal] = useState(0)
   const [loading, setLoading] = useState(true)
   const [flash] = useState(searchParams.get('flash') ?? '')
+  const [showAssign, setShowAssign] = useState(false)
 
   const STATUS_TABS: { key: Status; labelKey: string }[] = [
     { key: 'PENDING',  labelKey: 'managers.tab_pending' },
@@ -87,6 +89,24 @@ export default function Managers() {
   return (
     <div className="p-8">
       <h1 className="text-2xl font-bold text-gray-900 mb-6">{t('managers.title')}</h1>
+
+      {/* Directly Assign Manager — collapsible section */}
+      <div className="mb-6">
+        <button
+          onClick={() => setShowAssign((v) => !v)}
+          className="flex items-center gap-2 px-4 py-2.5 bg-white border border-[#EFF1F5] rounded-2xl text-sm font-medium text-gray-700 hover:bg-[#F2F4F5] transition-colors shadow-sm"
+        >
+          <span className={`transition-transform ${showAssign ? 'rotate-90' : ''}`}>▶</span>
+          {t('promote_worker.title')}
+        </button>
+        {showAssign && (
+          <div className="mt-4 bg-[#F8F9FB] border border-[#EFF1F5] rounded-2xl p-6">
+            <h2 className="text-base font-semibold text-gray-800 mb-1">{t('promote_worker.title')}</h2>
+            <p className="text-sm text-gray-500 mb-4">{t('promote_worker.subtitle')}</p>
+            <PromoteWorkerContent />
+          </div>
+        )}
+      </div>
 
       {flash === 'approved' && (
         <div className="bg-green-50 border border-green-200 text-green-700 rounded-2xl p-4 mb-6 text-sm">{t('managers.flash_approved')}</div>

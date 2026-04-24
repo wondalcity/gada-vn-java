@@ -32,7 +32,7 @@ interface WorkerDetail extends Worker {
   user_id: string
 }
 
-export default function PromoteWorker() {
+export function PromoteWorkerContent() {
   const { t, locale } = useAdminTranslation()
   const [searchQuery, setSearchQuery] = useState('')
   const [searchResults, setSearchResults] = useState<Worker[]>([])
@@ -156,10 +156,7 @@ export default function PromoteWorker() {
   }
 
   return (
-    <div className="p-8">
-      <h1 className="text-2xl font-bold text-gray-900 mb-2">{t('promote_worker.title')}</h1>
-      <p className="text-sm text-gray-500 mb-6">{t('promote_worker.subtitle')}</p>
-
+    <div>
       {error && (
         <div className="bg-[#FDE8EE] border border-[#F4B0C0] text-[#D81A48] rounded-2xl p-4 mb-6 text-sm">
           {error}
@@ -394,6 +391,17 @@ export default function PromoteWorker() {
           </button>
         </form>
       )}
+    </div>
+  )
+}
+
+export default function PromoteWorker() {
+  const { t } = useAdminTranslation()
+  return (
+    <div className="p-8">
+      <h1 className="text-2xl font-bold text-gray-900 mb-2">{t('promote_worker.title')}</h1>
+      <p className="text-sm text-gray-500 mb-6">{t('promote_worker.subtitle')}</p>
+      <PromoteWorkerContent />
     </div>
   )
 }

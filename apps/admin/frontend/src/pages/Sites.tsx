@@ -99,11 +99,13 @@ function ManagerSearchSelect({
   value,
   onChange,
   placeholder,
+  noResultsText,
 }: {
   managers: Manager[]
   value: string
   onChange: (id: string) => void
   placeholder: string
+  noResultsText: string
 }) {
   const [query, setQuery] = useState('')
   const [open, setOpen] = useState(false)
@@ -149,7 +151,7 @@ function ManagerSearchSelect({
       {open && (
         <div className="absolute z-50 mt-1 w-full bg-white border border-[#EFF1F5] rounded-2xl shadow-lg max-h-52 overflow-y-auto">
           {filtered.length === 0 ? (
-            <div className="px-4 py-3 text-sm text-gray-400">검색 결과 없음</div>
+            <div className="px-4 py-3 text-sm text-gray-400">{noResultsText}</div>
           ) : (
             filtered.map(m => (
               <button
@@ -172,7 +174,7 @@ function ManagerSearchSelect({
 function SiteFormModal({
   site,
   managers,
-  companies,
+  companies: initialCompanies,
   onSave,
   onCancel,
 }: {
@@ -197,6 +199,29 @@ function SiteFormModal({
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
 
+  // inline company creation state
+  const [companies, setCompanies] = useState<Company[]>(initialCompanies)
+  const [showNewCompany, setShowNewCompany] = useState(false)
+  const [newCompanyForm, setNewCompanyForm] = useState({ name: '', contactName: '', contactPhone: '' })
+  const [creatingCompany, setCreatingCompany] = useState(false)
+
+  async function handleCreateCompany() {
+    if (!newCompanyForm.name.trim()) return
+    setCreatingCompany(true)
+    try {
+      const created = await api.post<Company>('/admin/companies', newCompanyForm)
+      const newList = [...companies, created]
+      setCompanies(newList)
+      setForm(f => ({ ...f, companyId: created.id }))
+      setShowNewCompany(false)
+      setNewCompanyForm({ name: '', contactName: '', contactPhone: '' })
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : t('common.save_failed'))
+    } finally {
+      setCreatingCompany(false)
+    }
+  }
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     if (!form.managerId) { setError(t('sites.modal.manager_required')); return }
@@ -218,13 +243,67 @@ function SiteFormModal({
         {error && <div className="bg-[#FDE8EE] border border-[#F4B0C0] text-[#D81A48] rounded-xl p-3 mb-4 text-sm">{error}</div>}
         <form onSubmit={handleSubmit} className="space-y-3">
           <div>
-            <label className="block text-xs font-medium text-gray-500 mb-1">{t('sites.modal.company')}</label>
-            <GadaSelect value={form.companyId} onChange={e => setForm({ ...form, companyId: e.target.value })}>
-              <option value="">{t('sites.modal.company_none')}</option>
-              {companies.map(c => (
-                <option key={c.id} value={c.id}>{c.name}</option>
-              ))}
-            </GadaSelect>
+            <div className="flex items-center justify-between mb-1">
+              <label className="block text-xs font-medium text-gray-500">{t('sites.modal.company')}</label>
+              {!showNewCompany && (
+                <button
+                  type="button"
+                  onClick={() => setShowNewCompany(true)}
+                  className="text-xs text-[#0669F7] hover:underline"
+                >
+                  {t('sites.modal.new_company_btn')}
+                </button>
+              )}
+            </div>
+            {showNewCompany ? (
+              <div className="border border-[#B8D4FD] rounded-2xl p-3 bg-[#F0F6FF] space-y-2">
+                <input
+                  type="text"
+                  value={newCompanyForm.name}
+                  onChange={e => setNewCompanyForm(f => ({ ...f, name: e.target.value }))}
+                  placeholder={t('sites.modal.new_company_name')}
+                  className={IN}
+                />
+                <input
+                  type="text"
+                  value={newCompanyForm.contactName}
+                  onChange={e => setNewCompanyForm(f => ({ ...f, contactName: e.target.value }))}
+                  placeholder={t('sites.modal.new_company_contact')}
+                  className={IN}
+                />
+                <input
+                  type="text"
+                  value={newCompanyForm.contactPhone}
+                  onChange={e => setNewCompanyForm(f => ({ ...f, contactPhone: e.target.value }))}
+                  placeholder={t('sites.modal.new_company_phone')}
+                  className={IN}
+                />
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => { setShowNewCompany(false); setNewCompanyForm({ name: '', contactName: '', contactPhone: '' }) }}
+                    className="flex-1 py-2 rounded-xl text-xs font-medium border border-[#EFF1F5] text-gray-600 hover:bg-[#F2F4F5]"
+                  >
+                    {t('sites.modal.new_company_cancel')}
+                  </button>
+                  <button
+                    type="button"
+                    disabled={creatingCompany || !newCompanyForm.name.trim()}
+                    onClick={handleCreateCompany}
+                    className="flex-1 py-2 rounded-xl text-xs font-bold bg-[#0669F7] text-white hover:bg-[#0550C4] disabled:opacity-50"
+                  >
+                    {creatingCompany ? t('sites.modal.new_company_creating') : t('sites.modal.new_company_save')}
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <GadaSelect value={form.companyId} onChange={e => setForm({ ...form, companyId: e.target.value })}>
+                <option value="">{t('sites.modal.company_none')}</option>
+                {companies.map(c => (
+                  <option key={c.id} value={c.id}>{c.name}</option>
+                ))}
+              </GadaSelect>
+            )}
           </div>
           <div>
             <label className="block text-xs font-medium text-gray-500 mb-1">{t('sites.modal.manager')}</label>
@@ -233,6 +312,7 @@ function SiteFormModal({
               value={form.managerId}
               onChange={id => setForm({ ...form, managerId: id })}
               placeholder={t('sites.modal.manager_placeholder')}
+              noResultsText={t('sites.modal.manager_no_results')}
             />
           </div>
           <div>
