@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState, useMemo } from 'react';
 import { useRouter } from '@/i18n/navigation';
 import { useAuth } from '@/hooks/useAuth';
+import { useTranslations } from 'next-intl';
 import { createPortal } from 'react-dom';
 
 const API_BASE = '/api/v1';
@@ -19,6 +20,7 @@ interface Trade {
   code: string;
   nameKo: string;
   nameVi: string;
+  nameEn?: string;
 }
 
 interface PublicHeaderSearchProps {
@@ -40,10 +42,13 @@ interface SearchSelectProps {
   options: SelectOption[];
   placeholder: string;
   title: string;
+  searchPlaceholder?: string;
+  noResultsText?: string;
+  pinnedLabel?: string;
   onTogglePin?: (value: string) => void;
 }
 
-function SearchSelect({ value, onChange, options, placeholder, title, onTogglePin }: SearchSelectProps) {
+function SearchSelect({ value, onChange, options, placeholder, title, searchPlaceholder = '검색...', noResultsText = '결과 없음', pinnedLabel = '★ 즐겨찾는 지역', onTogglePin }: SearchSelectProps) {
   const [open, setOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [search, setSearch] = useState('');
@@ -193,7 +198,7 @@ function SearchSelect({ value, onChange, options, placeholder, title, onTogglePi
               type="text"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="검색..."
+              placeholder={searchPlaceholder}
               className="w-full pl-7 pr-2 py-1.5 text-xs bg-[#F5F6F8] rounded-lg border-none outline-none text-[#25282A] placeholder:text-[#98A2B2]"
             />
           </div>
@@ -203,7 +208,7 @@ function SearchSelect({ value, onChange, options, placeholder, title, onTogglePi
         {isSearching ? (
           <>
             {filtered.length === 0 ? (
-              <li className="py-6 text-center text-xs text-[#98A2B2]">결과 없음</li>
+              <li className="py-6 text-center text-xs text-[#98A2B2]">{noResultsText}</li>
             ) : (
               filtered.map(o => renderDesktopOption(o))
             )}
@@ -213,7 +218,7 @@ function SearchSelect({ value, onChange, options, placeholder, title, onTogglePi
             {hasPinned && (
               <>
                 <li className="px-3 py-1">
-                  <span className="text-[10px] font-medium text-[#0669F7]">★ 즐겨찾는 지역</span>
+                  <span className="text-[10px] font-medium text-[#0669F7]">{pinnedLabel}</span>
                 </li>
                 {pinnedOptions.map(o => renderDesktopOption(o))}
                 <li className="h-px bg-[#F0F0F0] mx-2 my-1" />
@@ -255,7 +260,7 @@ function SearchSelect({ value, onChange, options, placeholder, title, onTogglePi
                     </svg>
                   </div>
                   <input type="text" value={search} onChange={(e) => setSearch(e.target.value)}
-                    placeholder="검색..."
+                    placeholder={searchPlaceholder}
                     className="w-full pl-8 pr-3 py-2 text-[14px] bg-[#F5F6F8] rounded-xl border-none outline-none text-[#25282A] placeholder:text-[#98A2B2]"
                     autoFocus
                   />
@@ -266,7 +271,7 @@ function SearchSelect({ value, onChange, options, placeholder, title, onTogglePi
               {isSearching ? (
                 <>
                   {filtered.length === 0 ? (
-                    <li className="py-10 text-center text-[14px] text-[#98A2B2]">결과 없음</li>
+                    <li className="py-10 text-center text-[14px] text-[#98A2B2]">{noResultsText}</li>
                   ) : (
                     filtered.map(o => renderMobileOption(o))
                   )}
@@ -276,7 +281,7 @@ function SearchSelect({ value, onChange, options, placeholder, title, onTogglePi
                   {hasPinned && (
                     <>
                       <li className="px-3 py-1.5">
-                        <span className="text-xs font-semibold text-[#0669F7]">★ 즐겨찾는 지역</span>
+                        <span className="text-xs font-semibold text-[#0669F7]">{pinnedLabel}</span>
                       </li>
                       {pinnedOptions.map(o => renderMobileOption(o))}
                       <li className="h-px bg-[#EFF1F5] mx-2 my-2" />
@@ -326,6 +331,7 @@ function SearchSelect({ value, onChange, options, placeholder, title, onTogglePi
 export default function PublicHeaderSearch({ locale, basePath = '/jobs' }: PublicHeaderSearchProps) {
   const router = useRouter();
   const { isLoggedIn } = useAuth();
+  const t = useTranslations('landing.hero');
   const [isOpen, setIsOpen] = useState(false);
   const [keyword, setKeyword] = useState('');
   const [province, setProvince] = useState('');
@@ -423,7 +429,7 @@ export default function PublicHeaderSearch({ locale, basePath = '/jobs' }: Publi
 
   // Sort provinces alphabetically, mark pinned (only when logged in)
   const provinceOptions: SelectOption[] = useMemo(() => [
-    { value: '', label: '전체 지역' },
+    { value: '', label: t('all_provinces') },
     ...[...provinces]
       .sort((a, b) => a.nameVi.localeCompare(b.nameVi, 'vi'))
       .map(p => ({
@@ -431,11 +437,11 @@ export default function PublicHeaderSearch({ locale, basePath = '/jobs' }: Publi
         label: locale === 'en' ? p.nameEn : p.nameVi,
         pinned: isLoggedIn ? pinnedProvinces.includes(p.slug) : false,
       })),
-  ], [provinces, pinnedProvinces, isLoggedIn, locale]);
+  ], [provinces, pinnedProvinces, isLoggedIn, locale, t]);
 
-  const tradeOptions: SelectOption[] = trades.map((t) => ({
-    value: String(t.id),
-    label: locale === 'ko' ? t.nameKo : t.nameVi,
+  const tradeOptions: SelectOption[] = trades.map((tr) => ({
+    value: String(tr.id),
+    label: locale === 'vi' ? tr.nameVi : locale === 'en' ? (tr.nameEn || tr.nameKo) : tr.nameKo,
   }));
 
   return (
@@ -486,7 +492,7 @@ export default function PublicHeaderSearch({ locale, basePath = '/jobs' }: Publi
                 type="text"
                 value={keyword}
                 onChange={(e) => setKeyword(e.target.value)}
-                placeholder="공고명 또는 현장명 검색..."
+                placeholder={t('search_placeholder')}
                 className="w-full pl-9 pr-3 py-2 text-sm border border-[#EFF1F5] rounded-xl bg-white focus:ring-2 focus:ring-[#0669F7] focus:border-transparent outline-none"
                 autoFocus
               />
@@ -498,16 +504,21 @@ export default function PublicHeaderSearch({ locale, basePath = '/jobs' }: Publi
                 value={province}
                 onChange={setProvince}
                 options={provinceOptions}
-                placeholder="전체 지역"
-                title="지역 선택"
+                placeholder={t('all_provinces')}
+                title={t('province_title')}
+                searchPlaceholder={t('search_inner')}
+                noResultsText={t('no_results')}
+                pinnedLabel={t('pinned_regions')}
                 onTogglePin={isLoggedIn ? togglePinProvince : undefined}
               />
               <SearchSelect
                 value={trade}
                 onChange={setTrade}
                 options={tradeOptions}
-                placeholder="전체 직종"
-                title="직종 선택"
+                placeholder={t('all_trades')}
+                title={t('trade_title')}
+                searchPlaceholder={t('search_inner')}
+                noResultsText={t('no_results')}
               />
             </div>
 
@@ -516,7 +527,7 @@ export default function PublicHeaderSearch({ locale, basePath = '/jobs' }: Publi
               type="submit"
               className="w-full py-2.5 rounded-full bg-[#0669F7] text-white text-sm font-bold hover:bg-[#0554D6] transition-colors"
             >
-              검색하기
+              {t('search_button')}
             </button>
           </form>
         </div>

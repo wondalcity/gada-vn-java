@@ -23,7 +23,13 @@
     "search_placeholder": "Tìm kiếm công việc hoặc công trường...",
     "all_provinces": "Tất cả tỉnh thành",
     "all_trades": "Tất cả nghề",
-    "map_view": "Xem bản đồ"
+    "map_view": "Xem bản đồ",
+    "search_button": "Tìm kiếm",
+    "province_title": "Chọn tỉnh thành",
+    "trade_title": "Chọn nghề",
+    "search_inner": "Tìm kiếm...",
+    "no_results": "Không có kết quả",
+    "pinned_regions": "★ Tỉnh thành yêu thích"
   },
   "stats": {
     "jobs": "{count} việc làm",

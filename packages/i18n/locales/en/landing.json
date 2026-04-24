@@ -23,7 +23,13 @@
     "search_placeholder": "Search by job title or site name...",
     "all_provinces": "All Provinces",
     "all_trades": "All Trades",
-    "map_view": "Map View"
+    "map_view": "Map View",
+    "search_button": "Search",
+    "province_title": "Select Province",
+    "trade_title": "Select Trade",
+    "search_inner": "Search...",
+    "no_results": "No results",
+    "pinned_regions": "★ Pinned Regions"
   },
   "stats": {
     "jobs": "{count} jobs",
