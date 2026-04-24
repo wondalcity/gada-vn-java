@@ -29,7 +29,7 @@
         "backgroundColor": "#FF6B2C"
       },
       "package": "com.wondalcity.gadavn",
-      "versionCode": 8,
+      "versionCode": 9,
       "permissions": [
         "ACCESS_FINE_LOCATION",
         "ACCESS_COARSE_LOCATION",
