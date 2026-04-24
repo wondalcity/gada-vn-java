@@ -19,6 +19,15 @@ interface SavedLocation {
   is_default: boolean
 }
 
+const EXP_OPTIONS = [
+  { value: '',      key: 'listing.filter.exp_all' },
+  { value: 'none',  key: 'listing.filter.exp_none' },
+  { value: 'lt1',   key: 'listing.filter.exp_lt1' },
+  { value: '1to2',  key: 'listing.filter.exp_1to2' },
+  { value: '2to3',  key: 'listing.filter.exp_2to3' },
+  { value: 'gte3',  key: 'listing.filter.exp_gte3' },
+] as const
+
 interface Props {
   provinces: Province[]
   trades: Trade[]
@@ -30,6 +39,7 @@ interface Props {
   selectedStatus?: string
   selectedMinWage?: number
   selectedMaxWage?: number
+  selectedMinExp?: string
   wageStats?: WageStats
   locale: string
 }
@@ -156,6 +166,7 @@ export function JobFilters({
   selectedStatus,
   selectedMinWage,
   selectedMaxWage,
+  selectedMinExp,
   wageStats,
   locale: _locale,
 }: Props) {
@@ -269,7 +280,7 @@ export function JobFilters({
   }
 
   const wageFilterActive = selectedMinWage != null || selectedMaxWage != null
-  const hasFilters = !!selectedProvince || !!selectedTrade || geoActive || !!selectedStatus || wageFilterActive
+  const hasFilters = !!selectedProvince || !!selectedTrade || geoActive || !!selectedStatus || wageFilterActive || !!selectedMinExp
 
   function applyWageFilter(minV: number, maxV: number) {
     const atMin = minV <= wageMin
@@ -340,6 +351,17 @@ export function JobFilters({
             options={tradeOptions}
             placeholder={t('listing.filter.all_trades')}
             onChange={v => updateParam('trade', v || undefined)}
+          />
+        </div>
+
+        {/* Experience filter */}
+        <div className="flex-1 md:flex-none">
+          <label className="block text-xs font-medium text-[#98A2B2] mb-1">{t('listing.filter.experience')}</label>
+          <FilterSelect
+            value={selectedMinExp ?? ''}
+            options={EXP_OPTIONS.map(o => ({ value: o.value, label: t(o.key as any) }))}
+            placeholder={t('listing.filter.exp_all')}
+            onChange={v => updateParam('minExp', v || undefined)}
           />
         </div>
       </div>

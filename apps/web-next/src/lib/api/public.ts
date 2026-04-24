@@ -139,6 +139,7 @@ export async function fetchPublicJobs(params: {
   q?: string
   minWage?: number
   maxWage?: number
+  minExp?: string
 }): Promise<PublicJobsResponse> {
   const qs = new URLSearchParams()
   if (params.q)              qs.set('q', params.q)
@@ -153,6 +154,7 @@ export async function fetchPublicJobs(params: {
   if (params.statusFilter)   qs.set('statusFilter', params.statusFilter)
   if (params.minWage != null) qs.set('minWage', String(params.minWage))
   if (params.maxWage != null) qs.set('maxWage', String(params.maxWage))
+  if (params.minExp)         qs.set('minExp', params.minExp)
   const cacheOptions = params.lat != null || params.q || params.minWage != null || params.maxWage != null
     ? { cache: 'no-store' as const }  // geo/search/wage filter results skip CDN cache
     : { next: { revalidate: 60, tags: ['JOBS_LISTING'] as string[] } }

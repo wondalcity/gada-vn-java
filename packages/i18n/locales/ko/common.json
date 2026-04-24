@@ -538,7 +538,7 @@
     "benefit_transport": "교통비 지원",
     "benefit_accommodation": "숙박 제공",
     "benefit_insurance": "산재보험",
-    "min_exp_label": "최소 경력 (개월)",
+    "min_exp_label": "최소 경력 (년)",
     "min_exp_placeholder": "0 = 신입 가능",
     "req_notes_label": "특이사항 또는 자격요건",
     "req_notes_placeholder": "특이사항 또는 자격요건을 입력하세요",

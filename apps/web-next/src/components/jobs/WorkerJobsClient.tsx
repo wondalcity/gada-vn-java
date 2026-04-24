@@ -50,6 +50,7 @@ interface Props {
   selectedStatus?: string
   selectedMinWage?: number
   selectedMaxWage?: number
+  selectedMinExp?: string
   wageStats?: WageStats
   paginationParams: Record<string, string>
   geoActive: boolean
@@ -79,6 +80,7 @@ export function WorkerJobsClient({
   selectedStatus,
   selectedMinWage,
   selectedMaxWage,
+  selectedMinExp,
   wageStats,
   paginationParams,
   geoActive,
@@ -163,6 +165,7 @@ export function WorkerJobsClient({
       selectedStatus={selectedStatus}
       selectedMinWage={selectedMinWage}
       selectedMaxWage={selectedMaxWage}
+      selectedMinExp={selectedMinExp}
       wageStats={wageStats}
       locale={locale}
     />
@@ -208,6 +211,7 @@ export function WorkerJobsClient({
               selectedStatus={selectedStatus}
               selectedMinWage={selectedMinWage}
               selectedMaxWage={selectedMaxWage}
+              selectedMinExp={selectedMinExp}
               wageStats={wageStats}
               totalJobs={total}
               viewToggle={viewToggle}

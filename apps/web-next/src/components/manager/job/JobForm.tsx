@@ -85,9 +85,11 @@ export default function JobForm({
   const [accommodation, setAccommodation] = React.useState(initialData?.benefits?.accommodation ?? false)
   const [insurance, setInsurance] = React.useState(initialData?.benefits?.insurance ?? false)
 
-  // Requirements
+  // Requirements (stored in DB as months; displayed/edited as years)
   const [minExp, setMinExp] = React.useState<number | ''>(
-    initialData?.requirements?.minExperienceMonths ?? ''
+    initialData?.requirements?.minExperienceMonths
+      ? Math.round(initialData.requirements.minExperienceMonths / 12)
+      : ''
   )
   const [reqNotes, setReqNotes] = React.useState(initialData?.requirements?.notes ?? '')
 
@@ -152,7 +154,7 @@ export default function JobForm({
         slotsTotal: Number(slotsTotal),
         benefits: { meals, transport, accommodation, insurance },
         requirements: {
-          minExperienceMonths: minExp !== '' ? Number(minExp) : undefined,
+          minExperienceMonths: minExp !== '' ? Number(minExp) * 12 : undefined,
           notes: reqNotes.trim() || undefined,
         },
       }

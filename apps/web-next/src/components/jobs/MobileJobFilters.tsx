@@ -29,6 +29,7 @@ interface Props {
   selectedStatus?: string
   selectedMinWage?: number
   selectedMaxWage?: number
+  selectedMinExp?: string
   wageStats?: WageStats
   totalJobs: number
   viewToggle?: React.ReactNode
@@ -173,12 +174,21 @@ export function MobileJobFilters({
   selectedStatus,
   selectedMinWage,
   selectedMaxWage,
+  selectedMinExp,
   wageStats,
   totalJobs,
   viewToggle,
 }: Props) {
   const t = useTranslations('jobs')
   const locale = useLocale()
+  const expOptions = [
+    { value: '',      label: t('listing.filter.exp_all') },
+    { value: 'none',  label: t('listing.filter.exp_none') },
+    { value: 'lt1',   label: t('listing.filter.exp_lt1') },
+    { value: '1to2',  label: t('listing.filter.exp_1to2') },
+    { value: '2to3',  label: t('listing.filter.exp_2to3') },
+    { value: 'gte3',  label: t('listing.filter.exp_gte3') },
+  ]
   const statusOptions = [
     { value: '',             label: t('listing.filter.status_open'),         dotColor: STATUS_DOT_COLORS[''] },
     { value: 'CLOSING_SOON', label: t('listing.filter.status_closing_soon'), dotColor: STATUS_DOT_COLORS['CLOSING_SOON'] },
@@ -215,6 +225,7 @@ export function MobileJobFilters({
     geoActive ? 'geo' : null,
     selectedStatus,
     wageFilterActive ? 'wage' : null,
+    selectedMinExp,
   ].filter(Boolean).length
 
   React.useEffect(() => {
@@ -428,6 +439,12 @@ export function MobileJobFilters({
                 }}
               />
             )}
+            {selectedMinExp && (
+              <FilterChip
+                label={expOptions.find(o => o.value === selectedMinExp)?.label ?? selectedMinExp}
+                onRemove={() => updateParam('minExp', undefined)}
+              />
+            )}
             <button
               type="button"
               onClick={clearAll}
@@ -495,6 +512,17 @@ export function MobileJobFilters({
                   options={tradeOptions}
                   placeholder={t('listing.filter.all_trades')}
                   onChange={v => updateParam('trade', v || undefined)}
+                />
+              </div>
+
+              {/* Experience */}
+              <div>
+                <label className="block text-sm font-semibold text-[#25282A] mb-2">{t('listing.filter.experience')}</label>
+                <FilterSelect
+                  value={selectedMinExp ?? ''}
+                  options={expOptions}
+                  placeholder={t('listing.filter.exp_all')}
+                  onChange={v => updateParam('minExp', v || undefined)}
                 />
               </div>
 

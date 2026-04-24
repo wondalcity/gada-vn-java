@@ -535,7 +535,7 @@
     "benefit_transport": "Transport",
     "benefit_accommodation": "Accommodation",
     "benefit_insurance": "Work Insurance",
-    "min_exp_label": "Min. Experience (months)",
+    "min_exp_label": "Min. Experience (years)",
     "min_exp_placeholder": "0 = open to beginners",
     "req_notes_label": "Special Requirements",
     "req_notes_placeholder": "Enter any special requirements or conditions",

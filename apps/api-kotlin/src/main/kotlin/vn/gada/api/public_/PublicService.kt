@@ -108,6 +108,19 @@ class PublicService(
             binds.add(maxWage)
         }
 
+        val minExp = params["minExp"] as? String
+        if (minExp != null) {
+            val expClause = when (minExp) {
+                "none"  -> "COALESCE((j.requirements->>'minExperienceMonths')::int, 0) = 0"
+                "lt1"   -> "COALESCE((j.requirements->>'minExperienceMonths')::int, 0) BETWEEN 1 AND 11"
+                "1to2"  -> "COALESCE((j.requirements->>'minExperienceMonths')::int, 0) BETWEEN 12 AND 23"
+                "2to3"  -> "COALESCE((j.requirements->>'minExperienceMonths')::int, 0) BETWEEN 24 AND 35"
+                "gte3"  -> "COALESCE((j.requirements->>'minExperienceMonths')::int, 0) >= 36"
+                else    -> null
+            }
+            if (expClause != null) whereParts.add(expClause)
+        }
+
         val where = whereParts.joinToString(" AND ")
         val distanceExpr = if (useGeo)
             "ROUND((ST_Distance(s.location::geography, ST_SetSRID(ST_MakePoint(?, ?), 4326)::geography) / 1000)::numeric, 1) AS distance_km,"

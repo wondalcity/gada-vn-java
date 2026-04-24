@@ -40,7 +40,14 @@
       "clear_location_aria": "Xóa bộ lọc vị trí",
       "wage_range": "Khoảng lương ngày",
       "apply_wage": "Áp dụng lọc lương",
-      "reset_wage": "Đặt lại lương"
+      "reset_wage": "Đặt lại lương",
+      "experience": "Kinh nghiệm yêu cầu",
+      "exp_all": "Tất cả",
+      "exp_none": "Không yêu cầu",
+      "exp_lt1": "Dưới 1 năm",
+      "exp_1to2": "1~2 năm",
+      "exp_2to3": "2~3 năm",
+      "exp_gte3": "3 năm trở lên"
     },
     "sort": {
       "latest": "Mới nhất",

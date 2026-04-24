@@ -19,6 +19,7 @@ interface Props {
     view?: string
     minWage?: string
     maxWage?: string
+    minExp?: string
   }>
 }
 
@@ -50,7 +51,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 export default async function JobsPage({ params, searchParams }: Props) {
   const { locale } = await params
   const t = await getTranslations({ locale, namespace: 'jobs' })
-  const { q, province, trade, page: pageStr, lat, lng, radius, status, view, minWage, maxWage } = await searchParams
+  const { q, province, trade, page: pageStr, lat, lng, radius, status, view, minWage, maxWage, minExp } = await searchParams
 
   const page = Math.max(1, Number(pageStr ?? 1))
   const tradeId = trade ? Number(trade) : undefined
@@ -73,6 +74,7 @@ export default async function JobsPage({ params, searchParams }: Props) {
       statusFilter: status,
       minWage: selectedMinWage,
       maxWage: selectedMaxWage,
+      minExp,
     }),
     fetchProvinces(locale),
     fetchTrades(locale),
@@ -91,6 +93,7 @@ export default async function JobsPage({ params, searchParams }: Props) {
   if (status)   paginationParams.status = status
   if (minWage)  paginationParams.minWage = minWage
   if (maxWage)  paginationParams.maxWage = maxWage
+  if (minExp)   paginationParams.minExp = minExp
 
   const jsonLd = {
     '@context': 'https://schema.org',
@@ -112,7 +115,7 @@ export default async function JobsPage({ params, searchParams }: Props) {
     : t('listing.empty')
 
   const wageFilterActive = selectedMinWage != null || selectedMaxWage != null
-  const activeFilterCount = [q, province, trade, geoActive ? 'geo' : null, status, wageFilterActive ? 'wage' : null].filter(Boolean).length
+  const activeFilterCount = [q, province, trade, geoActive ? 'geo' : null, status, wageFilterActive ? 'wage' : null, minExp].filter(Boolean).length
 
   return (
     <>
@@ -152,6 +155,7 @@ export default async function JobsPage({ params, searchParams }: Props) {
             selectedStatus={status}
             selectedMinWage={selectedMinWage}
             selectedMaxWage={selectedMaxWage}
+            selectedMinExp={minExp}
             wageStats={wageStats}
             paginationParams={paginationParams}
             geoActive={geoActive}

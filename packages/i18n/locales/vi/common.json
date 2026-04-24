@@ -538,7 +538,7 @@
     "benefit_transport": "Hỗ trợ đi lại",
     "benefit_accommodation": "Chỗ ở",
     "benefit_insurance": "Bảo hiểm tai nạn",
-    "min_exp_label": "Kinh nghiệm tối thiểu (tháng)",
+    "min_exp_label": "Kinh nghiệm tối thiểu (năm)",
     "min_exp_placeholder": "0 = chấp nhận người mới",
     "req_notes_label": "Yêu cầu đặc biệt",
     "req_notes_placeholder": "Nhập yêu cầu đặc biệt hoặc điều kiện",

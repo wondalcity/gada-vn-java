@@ -40,7 +40,14 @@
       "clear_location_aria": "위치 필터 제거",
       "wage_range": "일당 범위",
       "apply_wage": "노임 필터 적용",
-      "reset_wage": "노임 초기화"
+      "reset_wage": "노임 초기화",
+      "experience": "요구 경력",
+      "exp_all": "전체",
+      "exp_none": "필요없음",
+      "exp_lt1": "1년 미만",
+      "exp_1to2": "1~2년 미만",
+      "exp_2to3": "2~3년 미만",
+      "exp_gte3": "3년 이상"
     },
     "sort": {
       "latest": "최신순",
