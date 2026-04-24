@@ -371,7 +371,8 @@ export default function JobDetailView({
   const slotsLeft = slotsTotal - slotsFilled
 
   const description = locale === 'vi' ? job.descriptionVi : job.descriptionKo ?? job.descriptionVi
-  const siteName = locale === 'vi' ? job.site.nameVi : job.site.nameKo
+  const siteName = locale === 'vi' ? job.site.nameVi : locale === 'en' ? (job.site.nameEn ?? job.site.nameKo) : job.site.nameKo
+  const provinceName = locale === 'en' ? (job.provinceNameEn ?? job.provinceNameVi) : job.provinceNameVi
 
   const rawImages = (job.site as { imageUrls?: string[] })?.imageUrls ?? []
   const coverUrl = job.coverImageUrl ?? job.site.coverImageUrl
@@ -410,11 +411,11 @@ export default function JobDetailView({
             <StatusPill status={job.status} label={t(`detail.status.${job.status.toLowerCase()}` as any) ?? job.status} />
           </div>
           <p className="text-[15px] text-[#717171] mt-1">
-            {siteName} · {job.provinceNameVi}
+            {siteName} · {provinceName}
           </p>
           {(job.tradeNameKo || job.tradeNameVi) && (
             <span className="inline-flex items-center gap-1.5 mt-3 px-3 py-1 rounded-full bg-[#F7F7F7] text-[#717171] text-xs font-semibold border border-[#DDDDDD]">
-              {locale === 'vi' ? (job.tradeNameVi || job.tradeNameKo) : job.tradeNameKo}
+              {locale === 'vi' ? (job.tradeNameVi || job.tradeNameKo) : locale === 'en' ? (job.tradeNameEn || job.tradeNameKo) : job.tradeNameKo}
             </span>
           )}
         </div>

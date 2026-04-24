@@ -148,7 +148,7 @@ export function JobCard({ job, locale, basePath = '/jobs', onWagePress }: Props)
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
               d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
           </svg>
-          <span className="truncate font-medium">{job.siteNameKo} · {job.provinceNameVi}</span>
+          <span className="truncate font-medium">{job.siteName ?? job.siteNameKo} · {locale === 'en' ? (job.provinceNameEn ?? job.provinceNameVi) : job.provinceNameVi}</span>
           {job.distanceKm != null && (
             <span className="ml-auto shrink-0 px-2 py-0.5 bg-[#E6F0FE] text-[#0669F7] rounded-full font-bold">
               {job.distanceKm < 1 ? `${Math.round(job.distanceKm * 1000)}m` : `${job.distanceKm.toFixed(1)}km`}

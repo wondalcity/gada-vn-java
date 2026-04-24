@@ -38,8 +38,10 @@ export interface PublicJob {
   tradeNameVi: string
   tradeNameEn?: string
   provinceNameVi: string
+  provinceNameEn?: string
   provinceSlug: string
   siteSlug: string
+  siteName?: string
   siteNameKo: string
   workDate: string
   startTime?: string
@@ -66,8 +68,10 @@ export interface PublicJobDetail extends PublicJob {
     slug: string
     nameKo: string
     nameVi: string
+    nameEn?: string
     address: string
     province: string
+    provinceEn?: string
     provinceSlug: string
     lat?: number
     lng?: number
