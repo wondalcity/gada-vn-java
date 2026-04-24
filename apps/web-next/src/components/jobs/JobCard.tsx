@@ -76,8 +76,11 @@ export function JobCard({ job, locale, basePath = '/jobs', onWagePress }: Props)
       return exp > now && exp <= now + h72
     }
     if (job.workDate) {
-      const workDay = new Date(job.workDate + 'T00:00:00').getTime()
-      return workDay >= now && workDay <= now + h72
+      // Use UTC date string comparison to match backend's CURRENT_DATE logic,
+      // avoiding timezone issues where local midnight != UTC midnight
+      const todayUtc = new Date().toISOString().split('T')[0]
+      const threeDaysUtc = new Date(now + h72).toISOString().split('T')[0]
+      return job.workDate >= todayUtc && job.workDate <= threeDaysUtc
     }
     return false
   })()
