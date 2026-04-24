@@ -47,7 +47,7 @@ function CustomSelect({ value, onChange, options, placeholder }: CustomSelectPro
         className="w-full flex items-center justify-between gap-2 px-3 py-2.5 rounded-2xl border border-[#EFF1F5] focus:outline-none focus:border-[#0669F7] text-sm bg-white"
       >
         <span className={selectedLabel ? 'text-[#25282A]' : 'text-[#98A2B2]'}>
-          {selectedLabel ?? placeholder ?? '선택'}
+          {selectedLabel ?? placeholder}
         </span>
         <svg
           className={`w-4 h-4 text-[#98A2B2] shrink-0 transition-transform duration-150 ${open ? 'rotate-180' : ''}`}
@@ -463,7 +463,7 @@ export default function SiteForm({ mode, initialData, siteId, locale, idToken }:
             type="text"
             value={province}
             onChange={(e) => setProvince(e.target.value)}
-            placeholder="예: Hà Nội"
+            placeholder={t('province_placeholder')}
             className={inputClass}
           />
         </div>
@@ -475,7 +475,7 @@ export default function SiteForm({ mode, initialData, siteId, locale, idToken }:
             type="text"
             value={district}
             onChange={(e) => setDistrict(e.target.value)}
-            placeholder="예: Hoàn Kiếm"
+            placeholder={t('district_placeholder')}
             className={inputClass}
           />
         </div>
@@ -504,39 +504,39 @@ export default function SiteForm({ mode, initialData, siteId, locale, idToken }:
 
         {/* Company (건설사) selection */}
         <div>
-          <label className={labelClass}>건설사</label>
+          <label className={labelClass}>{t('company_label')}</label>
           <CustomSelect
             value={companyId}
             onChange={setCompanyId}
             options={[
-              { value: '', label: '선택 안 함' },
+              { value: '', label: t('company_none') },
               ...companies.map((c) => ({ value: c.id, label: c.name })),
             ]}
-            placeholder="건설사 선택"
+            placeholder={t('company_placeholder')}
           />
           <button
             type="button"
             onClick={() => setShowNewCompany((v) => !v)}
             className="mt-2 text-xs text-[#0669F7] hover:underline"
           >
-            + 새 건설사 등록
+            {t('company_add_button')}
           </button>
 
           {showNewCompany && (
             <div className="mt-2 p-4 rounded-2xl border border-[#EFF1F5] bg-[#F9FAFB] space-y-3">
-              <p className="text-xs font-semibold text-[#25282A]">새 건설사 등록</p>
+              <p className="text-xs font-semibold text-[#25282A]">{t('company_add_title')}</p>
               <input
                 type="text"
                 value={newCompanyName}
                 onChange={(e) => setNewCompanyName(e.target.value)}
-                placeholder="건설사명 *"
+                placeholder={t('company_name_placeholder')}
                 className={inputClass}
               />
               <input
                 type="text"
                 value={newCompanyPhone}
                 onChange={(e) => setNewCompanyPhone(e.target.value)}
-                placeholder="담당자 연락처 (선택)"
+                placeholder={t('company_phone_placeholder')}
                 className={inputClass}
               />
               <div className="flex gap-2">
@@ -546,14 +546,14 @@ export default function SiteForm({ mode, initialData, siteId, locale, idToken }:
                   disabled={savingCompany || !newCompanyName.trim()}
                   className="px-4 py-2 rounded-full bg-[#0669F7] text-white text-xs font-medium disabled:opacity-40 hover:bg-[#0557D4] transition-colors"
                 >
-                  {savingCompany ? '등록 중...' : '등록'}
+                  {savingCompany ? t('company_saving_button') : t('company_save_button')}
                 </button>
                 <button
                   type="button"
                   onClick={() => { setShowNewCompany(false); setNewCompanyName(''); setNewCompanyPhone('') }}
                   className="px-4 py-2 rounded-full border border-[#EFF1F5] text-[#25282A] text-xs font-medium hover:bg-[#F2F4F5] transition-colors"
                 >
-                  취소
+                  {t('company_cancel_button')}
                 </button>
               </div>
             </div>
