@@ -208,6 +208,8 @@ const ko = {
     no_contracts: '계약서가 없습니다',
   },
   worker: {
+    work_tab_title: '지원현황',
+    work_tab_label: '지원',
     profile_completion: '프로필 완성도',
     completion_items: '{{done}}/{{total}} 항목 완성',
     name_unregistered: '이름 미등록',
@@ -568,6 +570,8 @@ const vi = {
     no_contracts: 'Không có hợp đồng',
   },
   worker: {
+    work_tab_title: 'Đơn ứng tuyển',
+    work_tab_label: 'Ứng tuyển',
     profile_completion: 'Mức độ hoàn thiện hồ sơ',
     completion_items: '{{done}}/{{total}} mục hoàn thành',
     name_unregistered: 'Chưa có tên',
@@ -928,6 +932,8 @@ const en = {
     no_contracts: 'No contracts',
   },
   worker: {
+    work_tab_title: 'Applications',
+    work_tab_label: 'Apply',
     profile_completion: 'Profile completion',
     completion_items: '{{done}}/{{total}} items complete',
     name_unregistered: 'Name not registered',

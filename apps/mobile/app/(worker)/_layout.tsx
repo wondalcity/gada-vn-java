@@ -7,10 +7,10 @@ export default function WorkerLayout() {
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: '#FF6B2C',
-        tabBarInactiveTintColor: '#999',
-        tabBarStyle: { height: 60, paddingBottom: 8 },
-        headerStyle: { backgroundColor: '#FF6B2C' },
+        tabBarActiveTintColor: '#0669F7',
+        tabBarInactiveTintColor: '#98A2B2',
+        tabBarStyle: { height: 60, paddingBottom: 8, backgroundColor: '#fff', borderTopColor: '#EFF1F5' },
+        headerStyle: { backgroundColor: '#0669F7' },
         headerTintColor: '#fff',
       }}
     >
@@ -38,8 +38,8 @@ export default function WorkerLayout() {
       <Tabs.Screen
         name="work"
         options={{
-          title: t('manager.tab_workers'),
-          tabBarLabel: t('manager.tab_workers_label'),
+          title: t('worker.work_tab_title'),
+          tabBarLabel: t('worker.work_tab_label'),
           tabBarIcon: ({ color }) => <Text style={{ color, fontSize: 20 }}>📋</Text>,
         }}
       />

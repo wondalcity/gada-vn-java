@@ -171,25 +171,6 @@ export function WorkerJobsClient({
   return (
     <div className="min-h-full">
 
-      {/* Mobile filter bar — always visible in both list and map views */}
-      <div className="md:hidden">
-        <MobileJobFilters
-          provinces={provinces}
-          trades={trades}
-          selectedProvince={province}
-          selectedTrade={tradeId}
-          selectedLat={selectedLat}
-          selectedLng={selectedLng}
-          selectedRadius={selectedRadius}
-          selectedStatus={selectedStatus}
-          selectedMinWage={selectedMinWage}
-          selectedMaxWage={selectedMaxWage}
-          wageStats={wageStats}
-          totalJobs={total}
-          viewToggle={viewToggle}
-        />
-      </div>
-
       {/* ── MAP VIEW: Airbnb-style full-screen split (no container padding) ── */}
       {viewMode === 'map' && (
         <JobsMapView
@@ -213,6 +194,25 @@ export function WorkerJobsClient({
       {/* ── LIST VIEW: sidebar + grid ── */}
       {viewMode === 'list' && (
         <>
+
+          {/* Mobile filter bar — only in list view (map view has its own controls) */}
+          <div className="md:hidden">
+            <MobileJobFilters
+              provinces={provinces}
+              trades={trades}
+              selectedProvince={province}
+              selectedTrade={tradeId}
+              selectedLat={selectedLat}
+              selectedLng={selectedLng}
+              selectedRadius={selectedRadius}
+              selectedStatus={selectedStatus}
+              selectedMinWage={selectedMinWage}
+              selectedMaxWage={selectedMaxWage}
+              wageStats={wageStats}
+              totalJobs={total}
+              viewToggle={viewToggle}
+            />
+          </div>
 
           <div className="md:flex md:gap-6 md:max-w-[1760px] md:mx-auto md:px-6 xl:px-20 md:py-6">
 
