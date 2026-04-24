@@ -1,5 +1,5 @@
 import { Suspense } from 'react'
-import { fetchPublicJobs, fetchProvinces, fetchTrades } from '@/lib/api/public'
+import { fetchPublicJobs, fetchProvinces, fetchTrades, fetchWageStats } from '@/lib/api/public'
 import { WorkerJobsClient } from '@/components/jobs/WorkerJobsClient'
 
 interface Props {
@@ -14,6 +14,8 @@ interface Props {
     radius?: string
     status?: string
     view?: string
+    minWage?: string
+    maxWage?: string
   }>
 }
 
@@ -21,15 +23,17 @@ export const dynamic = 'force-dynamic'
 
 export default async function WorkerJobsPage({ params, searchParams }: Props) {
   const { locale } = await params
-  const { q, province, trade, page: pageStr, lat, lng, radius, status, view } = await searchParams
+  const { q, province, trade, page: pageStr, lat, lng, radius, status, view, minWage, maxWage } = await searchParams
 
   const page = Math.max(1, Number(pageStr ?? 1))
   const tradeId = trade ? Number(trade) : undefined
   const selectedLat = lat ? Number(lat) : undefined
   const selectedLng = lng ? Number(lng) : undefined
   const selectedRadius = radius ? Number(radius) : 30
+  const selectedMinWage = minWage ? Number(minWage) : undefined
+  const selectedMaxWage = maxWage ? Number(maxWage) : undefined
 
-  const [result, provinces, trades] = await Promise.all([
+  const [result, provinces, trades, wageStats] = await Promise.all([
     fetchPublicJobs({
       q: q?.trim() || undefined,
       provinceSlug: province,
@@ -40,9 +44,12 @@ export default async function WorkerJobsPage({ params, searchParams }: Props) {
       lng: selectedLng,
       radiusKm: selectedLat != null ? selectedRadius : undefined,
       statusFilter: status,
+      minWage: selectedMinWage,
+      maxWage: selectedMaxWage,
     }),
     fetchProvinces(locale),
     fetchTrades(locale),
+    fetchWageStats(),
   ])
 
   const { jobs, total, totalPages } = result
@@ -55,6 +62,8 @@ export default async function WorkerJobsPage({ params, searchParams }: Props) {
   if (lng)      paginationParams.lng = lng
   if (radius)   paginationParams.radius = radius
   if (status)   paginationParams.status = status
+  if (minWage)  paginationParams.minWage = minWage
+  if (maxWage)  paginationParams.maxWage = maxWage
 
   const geoActive = selectedLat != null && selectedLng != null
 
@@ -64,7 +73,8 @@ export default async function WorkerJobsPage({ params, searchParams }: Props) {
     ? '주변에 조건에 맞는 공고가 없습니다. 반경을 넓혀보세요.'
     : '조건에 맞는 공고가 없습니다.'
 
-  const activeFilterCount = [q, province, trade, geoActive ? 'geo' : null, status].filter(Boolean).length
+  const wageFilterActive = selectedMinWage != null || selectedMaxWage != null
+  const activeFilterCount = [q, province, trade, geoActive ? 'geo' : null, status, wageFilterActive ? 'wage' : null].filter(Boolean).length
 
   return (
     <div className="max-w-[1760px] mx-auto">
@@ -84,6 +94,9 @@ export default async function WorkerJobsPage({ params, searchParams }: Props) {
           selectedLng={selectedLng}
           selectedRadius={selectedRadius}
           selectedStatus={status}
+          selectedMinWage={selectedMinWage}
+          selectedMaxWage={selectedMaxWage}
+          wageStats={wageStats}
           paginationParams={paginationParams}
           geoActive={geoActive}
           emptyMessage={emptyMessage}

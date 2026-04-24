@@ -53,15 +53,19 @@ class PublicService(
         val statusFilter = params["statusFilter"] as? String
 
         val baseWhere = when (statusFilter) {
-            // 마감임박: OPEN + expires_at within 72 hours
+            // 마감임박: OPEN + deadline within 72 hours
+            // Uses expires_at if set; falls back to work_date within next 3 days
             "CLOSING_SOON" -> """j.status = 'OPEN'
-                AND j.expires_at IS NOT NULL
-                AND j.expires_at > NOW()
-                AND j.expires_at <= NOW() + INTERVAL '72 hours'"""
+                AND (j.expires_at IS NULL OR j.expires_at > NOW())
+                AND (
+                  (j.expires_at IS NOT NULL AND j.expires_at <= NOW() + INTERVAL '72 hours')
+                  OR
+                  (j.expires_at IS NULL AND j.work_date >= CURRENT_DATE AND j.work_date <= CURRENT_DATE + INTERVAL '3 days')
+                )"""
             // 모집마감: deadline passed OR manually closed by admin/manager
-            "CLOSED" -> "(j.status != 'OPEN' OR (j.expires_at IS NOT NULL AND j.expires_at <= NOW()))"
+            "CLOSED" -> "(j.status != 'OPEN' OR j.work_date < CURRENT_DATE OR (j.expires_at IS NOT NULL AND j.expires_at <= NOW()))"
             // 모집중 (default): OPEN jobs within their deadline, or no deadline set
-            else -> "j.status = 'OPEN' AND (j.expires_at IS NULL OR j.expires_at > NOW())"
+            else -> "j.status = 'OPEN' AND (j.expires_at IS NULL OR j.expires_at > NOW()) AND j.work_date >= CURRENT_DATE"
         }
 
         val binds = mutableListOf<Any?>()

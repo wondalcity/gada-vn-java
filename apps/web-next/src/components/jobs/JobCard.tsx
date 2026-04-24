@@ -66,11 +66,20 @@ export function JobCard({ job, locale, basePath = '/jobs', onWagePress }: Props)
 
   const remaining = job.slotsTotal - job.slotsFilled
 
-  // 마감임박: expires_at within 72 hours AND not yet expired
-  const isClosingSoon = !isExpired && job.status === 'OPEN' && job.expiresAt != null && (() => {
-    const exp = new Date(job.expiresAt!).getTime()
+  // 마감임박: deadline within 72 hours AND not yet expired
+  // Uses expires_at if set; falls back to work_date within next 3 days
+  const isClosingSoon = !isExpired && job.status === 'OPEN' && (() => {
     const now = Date.now()
-    return exp > now && exp <= now + 72 * 60 * 60 * 1000
+    const h72 = 72 * 60 * 60 * 1000
+    if (job.expiresAt != null) {
+      const exp = new Date(job.expiresAt).getTime()
+      return exp > now && exp <= now + h72
+    }
+    if (job.workDate) {
+      const workDay = new Date(job.workDate + 'T00:00:00').getTime()
+      return workDay >= now && workDay <= now + h72
+    }
+    return false
   })()
 
   return (
