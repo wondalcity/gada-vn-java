@@ -13,11 +13,33 @@
     "days_ago": "{n}d ago"
   },
   "types": {
-    "application_status": "Application update: {job_title}",
-    "contract_ready": "Contract ready to sign: {job_title}",
-    "attendance_recorded": "Your attendance has been recorded.",
-    "manager_approved": "Your manager registration has been approved.",
-    "manager_rejected": "Your manager registration was rejected: {reason}",
-    "hire_cancelled": "Your employment has been cancelled: {job_title}"
+    "APPLICATION_ACCEPTED": {
+      "title": "Application accepted ✅",
+      "body": "Congratulations! Your application has been accepted. Please review your contract."
+    },
+    "APPLICATION_REJECTED": {
+      "title": "Application result",
+      "body": "Unfortunately, your application was not accepted this time."
+    },
+    "NEW_APPLICATION": {
+      "title": "New application received",
+      "body": "A new worker has applied to your job posting."
+    },
+    "CONTRACT_READY": {
+      "title": "Contract issued 📄",
+      "body": "Please review and sign your contract."
+    },
+    "CONTRACT_CREATED": {
+      "title": "Contract ready",
+      "body": "Please review your contract."
+    },
+    "CONTRACT_SIGNED": {
+      "title": "Contract signed",
+      "body": "The contract has been successfully signed."
+    },
+    "ATTENDANCE_MARKED": {
+      "title": "Attendance recorded",
+      "body": "Your attendance has been recorded."
+    }
   }
 }

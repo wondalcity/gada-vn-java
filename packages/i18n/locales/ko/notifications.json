@@ -13,11 +13,33 @@
     "days_ago": "{n}일 전"
   },
   "types": {
-    "application_status": "지원 결과: {job_title}",
-    "contract_ready": "계약서가 준비되었습니다: {job_title}",
-    "attendance_recorded": "출근 기록이 등록되었습니다.",
-    "manager_approved": "매니저 등록이 승인되었습니다.",
-    "manager_rejected": "매니저 등록이 반려되었습니다: {reason}",
-    "hire_cancelled": "고용이 취소되었습니다: {job_title}"
+    "APPLICATION_ACCEPTED": {
+      "title": "지원이 수락되었습니다 ✅",
+      "body": "축하합니다! 지원이 수락되었습니다. 계약서를 확인해 주세요."
+    },
+    "APPLICATION_REJECTED": {
+      "title": "지원 결과 안내",
+      "body": "아쉽게도 이번 일자리 지원이 수락되지 않았습니다."
+    },
+    "NEW_APPLICATION": {
+      "title": "새로운 지원 신청",
+      "body": "새로운 근로자가 공고에 지원했습니다."
+    },
+    "CONTRACT_READY": {
+      "title": "계약서가 발행되었습니다 📄",
+      "body": "계약서를 확인하고 서명해 주세요."
+    },
+    "CONTRACT_CREATED": {
+      "title": "계약서가 준비되었습니다",
+      "body": "계약서를 확인해 주세요."
+    },
+    "CONTRACT_SIGNED": {
+      "title": "계약서 서명 완료",
+      "body": "계약서에 서명이 완료되었습니다."
+    },
+    "ATTENDANCE_MARKED": {
+      "title": "출근 기록",
+      "body": "출근이 기록되었습니다."
+    }
   }
 }

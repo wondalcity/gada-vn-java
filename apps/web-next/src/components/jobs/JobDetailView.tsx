@@ -442,14 +442,29 @@ export default function JobDetailView({
               <div className="flex-1">
                 <div className="flex items-center justify-between mb-2">
                   <p className="text-[15px] font-semibold text-[#222222]">{t('detail.slots_section')}</p>
-                  <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${slotsProgress >= 80 ? 'bg-[#FDE8EE] text-[#ED1C24]' : 'bg-[#E6F0FE] text-[#0669F7]'}`}>
-                    {slotsLeft > 0 ? t('detail.slots_left_n', { n: slotsLeft }) : t('card.deadline')}
+                  <span className={`text-xs font-semibold px-2 py-0.5 rounded-full flex items-center gap-1 ${
+                    slotsFilled > slotsTotal
+                      ? 'bg-[#FFDCE0] text-[#ED1C24]'
+                      : slotsFilled >= slotsTotal
+                        ? 'bg-[#FFF3E0] text-[#F97316]'
+                        : slotsProgress >= 80
+                          ? 'bg-[#FFF3E0] text-[#F97316]'
+                          : 'bg-[#E6F0FE] text-[#0669F7]'
+                  }`}>
+                    {t('card.slots_count', { filled: slotsFilled, total: slotsTotal })}
+                    {slotsFilled > slotsTotal && <span>⚠</span>}
                   </span>
                 </div>
                 <div className="w-full bg-[#EBEBEB] rounded-full h-1.5">
-                  <div className="h-1.5 rounded-full transition-all" style={{ width: `${slotsProgress}%`, background: slotsProgress >= 80 ? '#ED1C24' : '#0669F7' }} />
+                  <div className="h-1.5 rounded-full transition-all" style={{
+                    width: `${slotsProgress}%`,
+                    background: slotsFilled > slotsTotal
+                      ? '#ED1C24'
+                      : slotsProgress >= 80
+                        ? '#F97316'
+                        : '#0669F7'
+                  }} />
                 </div>
-                <p className="text-sm text-[#717171] mt-1.5">{t('detail.slots_filled_of', { filled: slotsFilled, total: slotsTotal })}</p>
               </div>
             </div>
           )}

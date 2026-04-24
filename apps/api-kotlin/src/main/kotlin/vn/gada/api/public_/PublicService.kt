@@ -135,7 +135,8 @@ class PublicService(
             SELECT
               j.id, j.slug, j.title, j.trade_id,
               j.work_date, j.start_time, j.end_time,
-              j.daily_wage, j.slots_total, j.slots_filled,
+              j.daily_wage, j.slots_total,
+              (SELECT COUNT(*) FROM app.job_applications a WHERE a.job_id = j.id AND a.status IN ('PENDING', 'ACCEPTED', 'CONTRACTED'))::int AS slots_filled,
               j.status, j.published_at, j.expires_at,
               s.id             AS site_id,
               s.name           AS site_name,
@@ -190,7 +191,8 @@ class PublicService(
         val jobSql = """SELECT
                 j.id, j.slug, j.title, j.description, j.trade_id,
                 j.work_date, j.start_time, j.end_time,
-                j.daily_wage, j.slots_total, j.slots_filled,
+                j.daily_wage, j.slots_total,
+                (SELECT COUNT(*) FROM app.job_applications a WHERE a.job_id = j.id AND a.status IN ('PENDING', 'ACCEPTED', 'CONTRACTED'))::int AS slots_filled,
                 j.status, j.published_at,
                 j.benefits, j.requirements,
                 s.id              AS site_id,
@@ -226,7 +228,8 @@ class PublicService(
             """SELECT
                 j.id, j.slug, j.title, j.trade_id,
                 j.work_date, j.start_time, j.end_time,
-                j.daily_wage, j.slots_total, j.slots_filled,
+                j.daily_wage, j.slots_total,
+                (SELECT COUNT(*) FROM app.job_applications a WHERE a.job_id = j.id AND a.status IN ('PENDING', 'ACCEPTED', 'CONTRACTED'))::int AS slots_filled,
                 j.status, j.published_at,
                 s.id AS site_id, s.name AS site_name, s.address, s.province,
                 s.image_s3_keys AS site_image_keys,

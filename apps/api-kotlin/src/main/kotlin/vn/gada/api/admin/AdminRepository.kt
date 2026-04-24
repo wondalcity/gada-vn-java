@@ -367,7 +367,13 @@ class AdminRepository(
 
     fun findJobsPaginated(status: String?, search: String, page: Int, limit: Int): List<Map<String, Any?>> {
         val offset = (page - 1) * limit
-        val baseQuery = """SELECT j.*, t.name_ko as trade_name_ko, t.name_vi as trade_name_vi,
+        val baseQuery = """SELECT j.id, j.site_id, j.manager_id, j.title, j.description, j.trade_id,
+                      j.work_date, j.start_time, j.end_time, j.daily_wage, j.currency,
+                      j.benefits, j.requirements, j.slots_total,
+                      (SELECT COUNT(*) FROM app.job_applications a WHERE a.job_id = j.id AND a.status IN ('PENDING', 'ACCEPTED', 'CONTRACTED'))::int AS slots_filled,
+                      j.status, j.slug, j.published_at, j.expires_at,
+                      j.image_s3_keys, j.cover_image_idx, j.created_at, j.updated_at,
+                      t.name_ko as trade_name_ko, t.name_vi as trade_name_vi,
                       cs.name as site_name, cs.address, cs.province,
                       cc.name as company_name
                FROM app.jobs j
@@ -417,7 +423,12 @@ class AdminRepository(
 
     fun findJobById(id: String): Map<String, Any?>? {
         return sanitizeList(db.queryForList(
-            """SELECT j.*,
+            """SELECT j.id, j.site_id, j.manager_id, j.title, j.description, j.trade_id,
+                      j.work_date, j.start_time, j.end_time, j.daily_wage, j.currency,
+                      j.benefits, j.requirements, j.slots_total,
+                      (SELECT COUNT(*) FROM app.job_applications a WHERE a.job_id = j.id AND a.status IN ('PENDING', 'ACCEPTED', 'CONTRACTED'))::int AS slots_filled,
+                      j.status, j.slug, j.published_at, j.expires_at,
+                      j.image_s3_keys, j.cover_image_idx, j.created_at, j.updated_at,
                       cs.name as site_name, cs.address, cs.province as province,
                       cc.name as company_name,
                       t.name_ko as trade_name_ko
@@ -622,7 +633,8 @@ class AdminRepository(
         ).firstOrNull() ?: return null
 
         val jobs = db.queryForList(
-            """SELECT j.id, j.title, j.status, j.work_date, j.daily_wage, j.slots_total, j.slots_filled,
+            """SELECT j.id, j.title, j.status, j.work_date, j.daily_wage, j.slots_total,
+                      COUNT(ja.id) FILTER (WHERE ja.status IN ('PENDING','ACCEPTED','CONTRACTED')) AS slots_filled,
                       COUNT(ja.id) FILTER (WHERE ja.status IN ('PENDING','ACCEPTED')) AS application_count,
                       COUNT(ja.id) FILTER (WHERE ja.status = 'ACCEPTED')              AS hired_count
                FROM app.jobs j

@@ -81,6 +81,8 @@
     "per_day": "/ day",
     "headcount": "Openings",
     "slots_left": "{n} left",
+    "slots_count": "{filled} applied / {total} needed",
+    "slots_over": "Over",
     "deadline": "Filled",
     "other": "Other"
   },

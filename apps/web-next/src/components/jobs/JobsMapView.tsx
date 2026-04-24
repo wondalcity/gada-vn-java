@@ -487,6 +487,7 @@ export default function JobsMapView({
   const { isLoaded } = useJsApiLoader({
     googleMapsApiKey: GOOGLE_MAPS_API_KEY,
     libraries: GOOGLE_MAPS_LIBRARIES,
+    language: locale === 'vi' ? 'vi' : locale === 'en' ? 'en' : 'ko',
   })
 
   const jobsWithCoords = jobs.filter(j => j.siteLat != null && j.siteLng != null)

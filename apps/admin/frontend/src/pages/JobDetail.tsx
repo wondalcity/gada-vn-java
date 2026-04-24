@@ -478,7 +478,18 @@ export default function JobDetail() {
           </div>
           <div>
             <span className="text-[#98A2B2] text-xs">{t('jobs.detail.field_slots')}</span>
-            <p className="font-medium text-gray-900 mt-0.5">{job.slots_filled ?? 0} / {job.slots_total}{locale === 'ko' ? '명' : ''}</p>
+            <p className={`font-medium mt-0.5 ${
+              (job.slots_filled ?? 0) > job.slots_total
+                ? 'text-[#ED1C24]'
+                : (job.slots_filled ?? 0) >= job.slots_total
+                  ? 'text-[#F97316]'
+                  : 'text-gray-900'
+            }`}>
+              {t('jobs.slots_applied')} {job.slots_filled ?? 0}{t('jobs.slots_suffix')} / {t('jobs.slots_needed')} {job.slots_total}{t('jobs.slots_suffix')}
+              {(job.slots_filled ?? 0) > job.slots_total && (
+                <span className="ml-1 text-[10px] px-1 py-0.5 rounded bg-[#FFDCE0] text-[#ED1C24]">{t('jobs.slots_over_badge')}</span>
+              )}
+            </p>
           </div>
           {(job.start_time || job.end_time) && (
             <div>

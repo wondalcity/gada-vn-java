@@ -183,8 +183,19 @@ export function JobCard({ job, locale, basePath = '/jobs', onWagePress }: Props)
             <div>
               <div className="flex justify-between text-xs mb-1.5">
                 <span className="text-[#98A2B2] font-medium">{t('card.headcount')}</span>
-                <span className={`font-bold ${remaining > 0 ? 'text-[#25282A]' : 'text-[#DBDFE9]'}`}>
-                  {remaining > 0 ? t('card.slots_left', { n: remaining }) : t('card.deadline')}
+                <span className={`font-bold ${
+                  job.slotsFilled > job.slotsTotal
+                    ? 'text-[#ED1C24]'
+                    : job.slotsFilled >= job.slotsTotal
+                      ? 'text-[#F97316]'
+                      : 'text-[#25282A]'
+                }`}>
+                  {t('card.slots_count', { filled: job.slotsFilled, total: job.slotsTotal })}
+                  {job.slotsFilled > job.slotsTotal && (
+                    <span className="ml-1 px-1 py-0.5 rounded text-[10px] bg-[#FFDCE0] text-[#ED1C24]">
+                      {t('card.slots_over')}
+                    </span>
+                  )}
                 </span>
               </div>
               <div className="w-full bg-[#EFF1F5] rounded-full h-1.5">
@@ -192,7 +203,11 @@ export function JobCard({ job, locale, basePath = '/jobs', onWagePress }: Props)
                   className="h-1.5 rounded-full transition-all"
                   style={{
                     width: `${slotsProgress}%`,
-                    background: slotsProgress >= 80 ? '#ED1C24' : '#0669F7',
+                    background: job.slotsFilled > job.slotsTotal
+                      ? '#ED1C24'
+                      : slotsProgress >= 80
+                        ? '#F97316'
+                        : '#0669F7',
                   }}
                 />
               </div>

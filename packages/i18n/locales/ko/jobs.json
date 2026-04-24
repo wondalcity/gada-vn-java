@@ -81,6 +81,8 @@
     "per_day": "/ 일",
     "headcount": "모집 현황",
     "slots_left": "잔여 {n}명",
+    "slots_count": "신청 {filled}명 / 모집 {total}명",
+    "slots_over": "초과",
     "deadline": "마감",
     "other": "기타"
   },

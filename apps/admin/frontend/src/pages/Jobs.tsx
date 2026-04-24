@@ -152,7 +152,20 @@ export default function Jobs() {
                   <td className="px-6 py-4 text-sm text-gray-600 whitespace-nowrap">{j.site_name ?? '-'}</td>
                   <td className="px-6 py-4 text-sm text-gray-600 whitespace-nowrap">{j.work_date ?? '-'}</td>
                   <td className="px-6 py-4 text-sm text-[#0669F7] font-medium whitespace-nowrap">₫{Number(j.daily_wage).toLocaleString('ko-KR')}</td>
-                  <td className="px-6 py-4 text-sm text-gray-500 whitespace-nowrap">{j.slots_filled ?? 0}/{j.slots_total}{t('jobs.slots_suffix')}</td>
+                  <td className="px-6 py-4 text-sm whitespace-nowrap">
+                    <span className={`font-medium ${
+                      (j.slots_filled ?? 0) > j.slots_total
+                        ? 'text-[#ED1C24]'
+                        : (j.slots_filled ?? 0) >= j.slots_total
+                          ? 'text-[#F97316]'
+                          : 'text-gray-500'
+                    }`}>
+                      {t('jobs.slots_applied')} {j.slots_filled ?? 0}{t('jobs.slots_suffix')} / {t('jobs.slots_needed')} {j.slots_total}{t('jobs.slots_suffix')}
+                      {(j.slots_filled ?? 0) > j.slots_total && (
+                        <span className="ml-1 text-[10px] px-1 py-0.5 rounded bg-[#FFDCE0] text-[#ED1C24]">{t('jobs.slots_over_badge')}</span>
+                      )}
+                    </span>
+                  </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span className={`px-2 py-1 text-xs rounded-full ${STATUS_BADGE[j.status] ?? 'bg-[#EFF1F5] text-[#98A2B2]'}`}>
                       {getStatusLabel(j.status)}

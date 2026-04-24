@@ -13,11 +13,33 @@
     "days_ago": "{n} ngày trước"
   },
   "types": {
-    "application_status": "Kết quả ứng tuyển: {job_title}",
-    "contract_ready": "Hợp đồng đã sẵn sàng: {job_title}",
-    "attendance_recorded": "Chấm công đã được ghi nhận.",
-    "manager_approved": "Đăng ký quản lý đã được duyệt.",
-    "manager_rejected": "Đăng ký quản lý bị từ chối: {reason}",
-    "hire_cancelled": "Hợp đồng lao động đã bị hủy: {job_title}"
+    "APPLICATION_ACCEPTED": {
+      "title": "Đơn ứng tuyển được chấp nhận ✅",
+      "body": "Chúc mừng! Đơn ứng tuyển của bạn đã được chấp nhận. Vui lòng kiểm tra hợp đồng."
+    },
+    "APPLICATION_REJECTED": {
+      "title": "Kết quả ứng tuyển",
+      "body": "Rất tiếc, đơn ứng tuyển của bạn không được chấp nhận lần này."
+    },
+    "NEW_APPLICATION": {
+      "title": "Có đơn ứng tuyển mới",
+      "body": "Một công nhân mới đã ứng tuyển vào công việc của bạn."
+    },
+    "CONTRACT_READY": {
+      "title": "Hợp đồng đã được tạo 📄",
+      "body": "Vui lòng xem và ký hợp đồng."
+    },
+    "CONTRACT_CREATED": {
+      "title": "Hợp đồng đã sẵn sàng",
+      "body": "Vui lòng kiểm tra hợp đồng."
+    },
+    "CONTRACT_SIGNED": {
+      "title": "Hợp đồng đã được ký",
+      "body": "Hợp đồng đã được ký thành công."
+    },
+    "ATTENDANCE_MARKED": {
+      "title": "Đã ghi nhận chấm công",
+      "body": "Chấm công của bạn đã được ghi nhận."
+    }
   }
 }

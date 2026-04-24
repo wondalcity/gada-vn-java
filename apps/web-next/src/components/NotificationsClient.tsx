@@ -1,7 +1,7 @@
 'use client'
 
 import * as React from 'react'
-import { useTranslations } from 'next-intl'
+import { useTranslations, useMessages } from 'next-intl'
 import { getSessionCookie } from '@/lib/auth/session'
 
 const API_BASE = '/api/v1'
@@ -50,6 +50,54 @@ function notifIconBg(type: string): string {
   if (type === 'CONTRACT_CREATED' || type === 'CONTRACT_SIGNED') return 'bg-[#E6F0FE] text-[#0669F7]'
   if (type === 'ATTENDANCE_MARKED') return 'bg-[#E6F9E6] text-[#1A6B1A]'
   return 'bg-[#F2F4F5] text-[#7A7B7A]'
+}
+
+function useNotifText(type: string, storedTitle: string, storedBody: string): { title: string; body: string } {
+  const messages = useMessages()
+  const typeData = (messages as Record<string, any>)?.notifications?.types?.[type]
+  if (typeData && typeof typeData === 'object' && typeData.title) {
+    return { title: typeData.title as string, body: (typeData.body as string) || storedBody }
+  }
+  return { title: storedTitle, body: storedBody }
+}
+
+function NotificationItem({
+  n,
+  onMarkRead,
+}: {
+  n: { id: string; type: string; title: string; body: string; read: boolean; created_at: string; data?: Record<string, unknown> }
+  onMarkRead: (id: string) => void
+}) {
+  const t = useTranslations('notifications')
+  const { title, body } = useNotifText(n.type, n.title, n.body)
+
+  return (
+    <div
+      className={`px-4 py-4 flex gap-3 cursor-pointer transition-colors ${
+        n.read ? 'bg-white' : 'bg-[#E6F0FE]'
+      }`}
+      onClick={() => !n.read && onMarkRead(n.id)}
+    >
+      {/* Icon */}
+      <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 ${notifIconBg(n.type)}`}>
+        <NotifIcon type={n.type} />
+      </div>
+
+      {/* Content */}
+      <div className="flex-1 min-w-0">
+        <div className="flex items-start justify-between gap-2">
+          <p className={`text-sm ${n.read ? 'text-[#25282A]' : 'font-semibold text-[#25282A]'}`}>
+            {title}
+          </p>
+          {!n.read && (
+            <span className="w-2 h-2 rounded-full bg-[#0669F7] flex-shrink-0 mt-1.5" />
+          )}
+        </div>
+        <p className="text-xs text-[#98A2B2] mt-0.5 line-clamp-2">{body}</p>
+        <p className="text-xs text-[#98A2B2] mt-1">{timeAgo(n.created_at, t)}</p>
+      </div>
+    </div>
+  )
 }
 
 export default function NotificationsClient() {
@@ -169,32 +217,7 @@ export default function NotificationsClient() {
       ) : (
         <div className="divide-y divide-[#EFF1F5]">
           {notifications.map(n => (
-            <div
-              key={n.id}
-              className={`px-4 py-4 flex gap-3 cursor-pointer transition-colors ${
-                n.read ? 'bg-white' : 'bg-[#E6F0FE]'
-              }`}
-              onClick={() => !n.read && markRead(n.id)}
-            >
-              {/* Icon */}
-              <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 ${notifIconBg(n.type)}`}>
-                <NotifIcon type={n.type} />
-              </div>
-
-              {/* Content */}
-              <div className="flex-1 min-w-0">
-                <div className="flex items-start justify-between gap-2">
-                  <p className={`text-sm ${n.read ? 'text-[#25282A]' : 'font-semibold text-[#25282A]'}`}>
-                    {n.title}
-                  </p>
-                  {!n.read && (
-                    <span className="w-2 h-2 rounded-full bg-[#0669F7] flex-shrink-0 mt-1.5" />
-                  )}
-                </div>
-                <p className="text-xs text-[#98A2B2] mt-0.5 line-clamp-2">{n.body}</p>
-                <p className="text-xs text-[#98A2B2] mt-1">{timeAgo(n.created_at, t)}</p>
-              </div>
-            </div>
+            <NotificationItem key={n.id} n={n} onMarkRead={markRead} />
           ))}
         </div>
       )}

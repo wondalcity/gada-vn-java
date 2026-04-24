@@ -81,6 +81,8 @@
     "per_day": "/ ngày",
     "headcount": "Tình trạng tuyển",
     "slots_left": "Còn {n} chỗ",
+    "slots_count": "{filled} nộp / {total} cần",
+    "slots_over": "Vượt chỉ tiêu",
     "deadline": "Đã đủ",
     "other": "Khác"
   },
