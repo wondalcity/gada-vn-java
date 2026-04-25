@@ -1,5 +1,5 @@
-import { useEffect } from 'react';
-import { Stack } from 'expo-router';
+import { useEffect, useRef } from 'react';
+import { Stack, useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { useTranslation } from 'react-i18next';
@@ -16,6 +16,9 @@ SplashScreen.preventAutoHideAsync().catch(() => {});
 export default function RootLayout() {
   const { t } = useTranslation();
   const { setUser, setNew, clearUser } = useAuthStore();
+  const router = useRouter();
+  // 첫 번째 onAuthStateChanged 이벤트는 앱 초기화; 이후 이벤트는 로그인/로그아웃 액션
+  const authInitialized = useRef(false);
 
   // i18n 언어 복원 (비동기, 스플래시와 무관)
   useEffect(() => {
@@ -30,6 +33,9 @@ export default function RootLayout() {
 
     const unsubscribe = auth().onAuthStateChanged(async (firebaseUser) => {
       clearTimeout(timeout);
+      const isFirstCheck = !authInitialized.current;
+      authInitialized.current = true;
+
       if (firebaseUser) {
         try {
           const result = await syncAuthToken();
@@ -44,14 +50,28 @@ export default function RootLayout() {
             const role = user.isManager ? 'MANAGER' : 'WORKER';
             setUser(user.id, role as 'WORKER' | 'MANAGER', user.isManager ?? false);
             if (result.isNew) setNew(true);
+
+            // OTP 확인 후 명시적 라우팅 (첫 번째 체크는 index.tsx가 Redirect로 처리)
+            if (!isFirstCheck) {
+              if (result.isNew) {
+                router.replace('/(auth)/role');
+              } else if (role === 'MANAGER') {
+                router.replace('/(manager)');
+              } else {
+                router.replace('/(worker)');
+              }
+            }
           } else {
             clearUser();
+            if (!isFirstCheck) router.replace('/(auth)/phone');
           }
         } catch {
           clearUser();
+          if (!isFirstCheck) router.replace('/(auth)/phone');
         }
       } else {
         clearUser();
+        // 첫 번째 체크에서는 라우팅 안 함 — index.tsx가 처리
       }
     });
 
@@ -66,15 +86,15 @@ export default function RootLayout() {
       <StatusBar style="dark" />
       <Stack
         screenOptions={{
-          headerStyle: { backgroundColor: Colors.primary },
-          headerTintColor: '#fff',
-          headerTitleStyle: { fontWeight: 'bold' },
+          headerStyle: { backgroundColor: Colors.surface },
+          headerTintColor: Colors.onSurface,
+          headerTitleStyle: { fontWeight: '600' },
+          headerBackTitle: '',
         }}
       >
         <Stack.Screen name="index" options={{ headerShown: false }} />
         <Stack.Screen name="(permissions)" options={{ headerShown: false }} />
         <Stack.Screen name="(auth)" options={{ headerShown: false }} />
-        <Stack.Screen name="(auth)/role" options={{ title: t('auth.role_select_title'), headerShown: true }} />
         <Stack.Screen name="(worker)" options={{ headerShown: false }} />
         <Stack.Screen name="(manager)" options={{ headerShown: false }} />
       </Stack>

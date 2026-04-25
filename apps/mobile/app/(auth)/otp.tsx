@@ -29,7 +29,6 @@ export default function OtpScreen() {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>{t('auth.otp_title')}</Text>
       <Text style={styles.subtitle}>{t('auth.otp_sent')}</Text>
 
       <TextInput
@@ -62,7 +61,6 @@ const styles = StyleSheet.create({
     flex: 1, backgroundColor: Colors.surface,
     justifyContent: 'center', padding: Spacing.xxl,
   },
-  title: { ...Font.h3, color: Colors.onSurface, textAlign: 'center', marginBottom: Spacing.xs },
   subtitle: { ...Font.body3, color: Colors.onSurfaceVariant, textAlign: 'center', marginBottom: Spacing.xxxl },
   input: {
     borderWidth: 1.5, borderColor: Colors.outline, borderRadius: Radius.md,

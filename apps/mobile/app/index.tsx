@@ -55,5 +55,5 @@ export default function Index() {
 }
 
 const styles = StyleSheet.create({
-  blank: { flex: 1, backgroundColor: '#0669F7' },
+  blank: { flex: 1, backgroundColor: '#FFFFFF' },
 });
