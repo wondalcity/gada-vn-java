@@ -106,8 +106,7 @@ jobs:
           npx --yes firebase-tools appdistribution:distribute \
             apps/mobile/android/app/build/outputs/apk/release/app-release.apk \
             --app "1:359319234631:android:199915ce689bcad8c0a962" \
-            --release-notes "$NOTES" \
-            --groups "internal-testers"
+            --release-notes "$NOTES"
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
