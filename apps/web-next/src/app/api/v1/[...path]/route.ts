@@ -59,7 +59,7 @@ async function handler(
     })
 
     const resHeaders = new Headers()
-    upstream.headers.forEach((value, key) => {
+    upstream.headers.forEach((value: string, key: string) => {
       if (!HOP_BY_HOP.has(key.toLowerCase())) {
         resHeaders.set(key, value)
       }
