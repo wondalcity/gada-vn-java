@@ -41,20 +41,30 @@ print("=== end ===")
 
 original = content
 
-def replace_node_exec(text, pkg_substring, resolved_path):
+def replace_node_exec(text, pkg_substring, resolved_path, exact=False):
     """
     Replace any Groovy construct:
         ["node", "--print", "...require.resolve('<pkg_substring>'...)"].execute(null, rootDir).text.trim()
     with the literal resolved_path string (quoted).
 
     Uses DOTALL regex so the Groovy array can span lines.
+
+    If exact=True, pkg_substring must be the ENTIRE contents of the quoted string
+    (no [^"]* wildcards on either side). Use this to avoid false matches when the
+    substring also appears embedded inside a longer pattern.
     """
-    # Match: ["node", "--print", "...ANYTHING CONTAINING pkg_substring..."].execute(null, rootDir).text.trim()
-    pattern = (
-        r'\["node",\s*"--print",\s*"[^"]*'
-        + re.escape(pkg_substring)
-        + r'[^"]*"\]\.execute\(null,\s*rootDir\)\.text\.trim\(\)'
-    )
+    if exact:
+        pattern = (
+            r'\["node",\s*"--print",\s*"'
+            + re.escape(pkg_substring)
+            + r'"\]\.execute\(null,\s*rootDir\)\.text\.trim\(\)'
+        )
+    else:
+        pattern = (
+            r'\["node",\s*"--print",\s*"[^"]*'
+            + re.escape(pkg_substring)
+            + r'[^"]*"\]\.execute\(null,\s*rootDir\)\.text\.trim\(\)'
+        )
     replacement = f'"{resolved_path}"'
     new_text, count = re.subn(pattern, replacement, text, flags=re.DOTALL)
     if count > 0:
@@ -65,8 +75,11 @@ def replace_node_exec(text, pkg_substring, resolved_path):
 #    because the gradle-plugin pattern also contains 'react-native/package.json'
 content = replace_node_exec(content, "@react-native/gradle-plugin/package.json", gp_pkg)
 
-# 2. react-native/package.json (standalone occurrences)
-content = replace_node_exec(content, "require.resolve('react-native/package.json')", rn_pkg)
+# 2. react-native/package.json (standalone occurrences).
+#    Use exact=True so the [^"]* wildcards are removed — this prevents a false match
+#    inside the cli-platform-android pattern which also contains 'react-native/package.json'
+#    embedded in a longer require.resolve(...) expression.
+content = replace_node_exec(content, "require.resolve('react-native/package.json')", rn_pkg, exact=True)
 
 # 3. expo/package.json
 content = replace_node_exec(content, "require.resolve('expo/package.json')", expo_pkg)

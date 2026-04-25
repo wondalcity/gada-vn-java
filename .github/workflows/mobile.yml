@@ -51,13 +51,25 @@ jobs:
           # We compute the absolute paths in the shell (which works correctly) and
           # hard-code them directly into settings.gradle so Gradle never needs to spawn node.
           RN_PKG=$(node --print "require.resolve('react-native/package.json')")
-          GRADLE_PLUGIN_PKG=$(node --print "require.resolve('@react-native/gradle-plugin/package.json', { paths: [require.resolve('react-native/package.json')] })")
+          RN_DIR=$(dirname "$RN_PKG")
+          GRADLE_PLUGIN_PKG=$(node --print "require.resolve('@react-native/gradle-plugin/package.json', { paths: ['$RN_DIR'] })")
           EXPO_PKG=$(node --print "require.resolve('expo/package.json')")
-          CLI_ANDROID_PKG=$(node --print "require.resolve('@react-native-community/cli-platform-android/package.json', { paths: [require.resolve('react-native/package.json')] })" 2>/dev/null || echo "")
+          CLI_ANDROID_PKG=$(node --print "require.resolve('@react-native-community/cli-platform-android/package.json', { paths: ['$RN_DIR'] })" 2>/dev/null || echo "")
 
           echo "RN_PKG=$RN_PKG"
+          echo "RN_DIR=$RN_DIR"
           echo "GRADLE_PLUGIN_PKG=$GRADLE_PLUGIN_PKG"
           echo "EXPO_PKG=$EXPO_PKG"
+          echo "CLI_ANDROID_PKG=$CLI_ANDROID_PKG"
+
+          # In RN 0.74+, native_modules.gradle lives in cli-platform-android, not react-native.
+          # Gradle's apply-from in settings.gradle looks for it relative to the react-native dir,
+          # so we symlink it there if it doesn't already exist.
+          if [ ! -f "$RN_DIR/native_modules.gradle" ] && [ -n "$CLI_ANDROID_PKG" ]; then
+            CLI_ANDROID_DIR=$(dirname "$CLI_ANDROID_PKG")
+            ln -sf "$CLI_ANDROID_DIR/native_modules.gradle" "$RN_DIR/native_modules.gradle"
+            echo "Symlinked native_modules.gradle: $CLI_ANDROID_DIR/native_modules.gradle -> $RN_DIR/native_modules.gradle"
+          fi
 
           python3 scripts/patch_settings_gradle.py "$RN_PKG" "$GRADLE_PLUGIN_PKG" "$EXPO_PKG" "$CLI_ANDROID_PKG"
 
