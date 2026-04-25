@@ -1,6 +1,9 @@
 # ── node_modules (reinstalled inside Docker) ─────────────────────────────────
 **/node_modules
 **/.pnpm-store
+# EXCEPTION: fast-deploy.sh packages pre-built Next.js standalone output into
+# a runner image using docker build. The standalone/node_modules must be included.
+!apps/web-next/.next/standalone/**
 
 # ── Git & IDE ─────────────────────────────────────────────────────────────────
 .git
