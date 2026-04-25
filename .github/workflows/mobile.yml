@@ -54,6 +54,8 @@ jobs:
         env:
           KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+          # pnpm workspace installs to root node_modules; expose to node commands inside settings.gradle
+          NODE_PATH: ${{ github.workspace }}/node_modules
         run: |
           chmod +x gradlew
           ./gradlew assembleRelease --no-daemon
