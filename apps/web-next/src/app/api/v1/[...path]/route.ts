@@ -37,7 +37,7 @@ async function handler(
 
   // Forward request headers (strip hop-by-hop)
   const headers = new Headers()
-  req.headers.forEach((value, key) => {
+  req.headers.forEach((value: string, key: string) => {
     if (!HOP_BY_HOP.has(key.toLowerCase())) {
       headers.set(key, value)
     }
