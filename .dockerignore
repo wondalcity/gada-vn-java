@@ -11,7 +11,9 @@
 *.iml
 
 # ── Next.js build output ──────────────────────────────────────────────────────
-apps/web-next/.next
+# NOTE: .next is NOT excluded here because fast-deploy.sh builds Next.js
+# outside Docker then packages the standalone output via docker build COPY.
+# (docker cp can't handle pnpm symlinks; docker build COPY resolves them.)
 apps/web-next/out
 
 # ── Mobile app (not needed for web/api/admin builds) ─────────────────────────
