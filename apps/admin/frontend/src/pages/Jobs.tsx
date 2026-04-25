@@ -23,12 +23,20 @@ const STATUS_BADGE: Record<string, string> = {
   COMPLETED: 'bg-purple-100 text-purple-700',
 }
 
+function isClosingSoon(workDate: string | undefined): boolean {
+  if (!workDate) return false
+  const today = new Date(); today.setHours(0, 0, 0, 0)
+  const d = new Date(workDate); d.setHours(0, 0, 0, 0)
+  const diff = (d.getTime() - today.getTime()) / 86400000
+  return diff >= 0 && diff <= 3
+}
+
 const LIMIT_OPTIONS = [10, 30, 50]
 
 export default function Jobs() {
   const { t } = useAdminTranslation()
   const [searchParams, setSearchParams] = useSearchParams()
-  const status = searchParams.get('status') ?? ''
+  const tab = searchParams.get('tab') ?? ''
   const page = parseInt(searchParams.get('page') ?? '1')
   const limit = parseInt(searchParams.get('limit') ?? '20')
   const search = searchParams.get('search') ?? ''
@@ -41,13 +49,15 @@ export default function Jobs() {
   const STATUS_TABS = [
     { key: '', label: t('jobs.tab_all') },
     { key: 'OPEN', label: t('jobs.tab_open') },
+    { key: 'CLOSING_SOON', label: t('jobs.tab_closing_soon') },
     { key: 'FILLED', label: t('jobs.tab_filled') },
+    { key: 'COMPLETED', label: t('jobs.tab_completed') },
     { key: 'CANCELLED', label: t('jobs.tab_cancelled') },
   ]
 
-  const load = useCallback((s: string, q: string, p: number, l: number) => {
+  const load = useCallback((tb: string, q: string, p: number, l: number) => {
     setLoading(true)
-    api.get<{ data: Job[]; total: number }>(`/admin/jobs?status=${s}&search=${encodeURIComponent(q)}&page=${p}&limit=${l}`)
+    api.get<{ data: Job[]; total: number }>(`/admin/jobs?tab=${tb}&search=${encodeURIComponent(q)}&page=${p}&limit=${l}`)
       .then((res) => {
         const data = res.data ?? []
         setJobs(data)
@@ -60,27 +70,29 @@ export default function Jobs() {
       .finally(() => setLoading(false))
   }, [])
 
-  useEffect(() => { load(status, search, page, limit) }, [status, search, page, limit, load])
+  useEffect(() => { load(tab, search, page, limit) }, [tab, search, page, limit, load])
 
   function handleSearch(e: React.FormEvent) {
     e.preventDefault()
-    setSearchParams({ status, search: query, page: '1', limit: String(limit) })
+    setSearchParams({ tab, search: query, page: '1', limit: String(limit) })
   }
 
   function goToPage(p: number) {
-    setSearchParams({ status, search, page: String(p), limit: String(limit) })
+    setSearchParams({ tab, search, page: String(p), limit: String(limit) })
   }
 
   async function deleteJob(id: string) {
     if (!confirm(t('jobs.confirm_cancel'))) return
     await api.delete(`/admin/jobs/${id}`)
-    setJobs((prev) => prev.filter((j) => j.id !== id))
+    load(tab, search, page, limit)
   }
 
-  function getStatusLabel(s: string) {
+  function getStatusLabel(s: string, workDate?: string) {
+    if (s === 'OPEN' && workDate && new Date(workDate) < new Date(new Date().toDateString())) return t('jobs.tab_completed')
     if (s === 'OPEN') return t('jobs.status_open')
     if (s === 'FILLED') return t('jobs.status_filled')
     if (s === 'CANCELLED') return t('jobs.status_cancelled')
+    if (s === 'COMPLETED') return t('jobs.status_completed')
     return s
   }
 
@@ -98,10 +110,10 @@ export default function Jobs() {
       {flash === 'deleted' && <div className="bg-[#F2F4F5] border border-[#EFF1F5] text-gray-600 rounded-2xl p-3 mb-4 text-sm">{t('jobs.flash_deleted')}</div>}
 
       <div className="flex flex-wrap gap-2 mb-4">
-        {STATUS_TABS.map((tab) => (
-          <button key={tab.key} onClick={() => setSearchParams({ status: tab.key, search, page: '1', limit: String(limit) })}
-            className={`px-4 py-2 rounded-2xl text-sm font-medium transition-colors ${status === tab.key ? 'bg-[#0669F7] text-white' : 'bg-white text-gray-600 hover:bg-[#F2F4F5] border border-[#EFF1F5]'}`}>
-            {tab.label}
+        {STATUS_TABS.map((t) => (
+          <button key={t.key} onClick={() => setSearchParams({ tab: t.key, search, page: '1', limit: String(limit) })}
+            className={`px-4 py-2 rounded-2xl text-sm font-medium transition-colors ${tab === t.key ? 'bg-[#0669F7] text-white' : 'bg-white text-gray-600 hover:bg-[#F2F4F5] border border-[#EFF1F5]'} ${t.key === 'CLOSING_SOON' ? 'border-orange-300 text-orange-600 hover:bg-orange-50' : ''} ${tab === t.key && t.key === 'CLOSING_SOON' ? '!bg-orange-500 !text-white !border-orange-500' : ''}`}>
+            {t.label}
           </button>
         ))}
       </div>
@@ -167,9 +179,16 @@ export default function Jobs() {
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`px-2 py-1 text-xs rounded-full ${STATUS_BADGE[j.status] ?? 'bg-[#EFF1F5] text-[#98A2B2]'}`}>
-                      {getStatusLabel(j.status)}
-                    </span>
+                    <div className="flex flex-col gap-1">
+                      <span className={`px-2 py-1 text-xs rounded-full ${STATUS_BADGE[j.status] ?? 'bg-[#EFF1F5] text-[#98A2B2]'}`}>
+                        {getStatusLabel(j.status, j.work_date)}
+                      </span>
+                      {j.status === 'OPEN' && isClosingSoon(j.work_date) && (
+                        <span className="px-2 py-0.5 text-xs rounded-full bg-orange-100 text-orange-600 font-medium">
+                          {t('jobs.tab_closing_soon')}
+                        </span>
+                      )}
+                    </div>
                   </td>
                   <td className="px-6 py-4 text-sm text-gray-500 whitespace-nowrap">{fmtDateTime(j.created_at)}</td>
                   <td className="px-6 py-4 text-right whitespace-nowrap">

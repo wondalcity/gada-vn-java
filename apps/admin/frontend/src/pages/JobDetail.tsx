@@ -2,7 +2,7 @@ import { useEffect, useState, useRef } from 'react'
 import { useParams, Link, useNavigate } from 'react-router-dom'
 import { api } from '../lib/api'
 import { useAdminTranslation } from '../context/LanguageContext'
-import { fmtDate, fmtDateTime } from '../lib/dateUtils'
+import { fmtDate, fmtDateTime, tradeName } from '../lib/dateUtils'
 
 interface Job {
   id: string
@@ -19,6 +19,9 @@ interface Job {
   status: string
   description?: string
   company_name?: string
+  trade_name_ko?: string
+  trade_name_vi?: string
+  trade_name_en?: string
   created_at?: string
   updated_at?: string
 }
@@ -495,6 +498,14 @@ export default function JobDetail() {
             <div>
               <span className="text-[#98A2B2] text-xs">{t('jobs.detail.field_work_time')}</span>
               <p className="font-medium text-gray-900 mt-0.5">{job.start_time ?? '-'} ~ {job.end_time ?? '-'}</p>
+            </div>
+          )}
+          {(job.trade_name_ko || job.trade_name_vi) && (
+            <div>
+              <span className="text-[#98A2B2] text-xs">{t('jobs.detail.field_trade')}</span>
+              <p className="font-medium text-gray-900 mt-0.5">
+                {tradeName(job.trade_name_ko, job.trade_name_vi, locale, job.trade_name_en)}
+              </p>
             </div>
           )}
           {job.created_at && (

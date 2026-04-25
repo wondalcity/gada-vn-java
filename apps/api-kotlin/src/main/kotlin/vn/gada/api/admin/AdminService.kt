@@ -124,9 +124,9 @@ class AdminService(
 
     // ── Jobs ──────────────────────────────────────────────────────────────────
 
-    fun listJobs(status: String?, search: String, page: Int, limit: Int): Map<String, Any?> {
-        val data = repo.findJobsPaginated(status, search, page, limit)
-        val total = repo.countJobs(status, search)
+    fun listJobs(status: String?, search: String, page: Int, limit: Int, tab: String? = null): Map<String, Any?> {
+        val data = repo.findJobsPaginated(status, search, page, limit, tab)
+        val total = repo.countJobs(status, search, tab)
         return mapOf("data" to data, "total" to total, "page" to page, "limit" to limit)
     }
 

@@ -34,9 +34,11 @@ export function fmtDateTime(dateStr: string | null | undefined): string {
 }
 
 /**
- * Locale-aware trade name: prefer vi name for non-Korean locales.
+ * Locale-aware trade name.
+ * ko → Korean, vi → Vietnamese, en → English (falls back to Korean)
  */
-export function tradeName(nameKo: string | null | undefined, nameVi: string | null | undefined, locale: string): string {
+export function tradeName(nameKo: string | null | undefined, nameVi: string | null | undefined, locale: string, nameEn?: string | null): string {
   if (locale === 'ko') return nameKo ?? nameVi ?? '-'
+  if (locale === 'en') return nameEn ?? nameKo ?? '-'
   return nameVi ?? nameKo ?? '-'
 }

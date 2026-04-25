@@ -1,8 +1,9 @@
 import Link from 'next/link';
+import Image from 'next/image';
 import type { JobWithSite } from '@gada-vn/core';
 
 interface Props {
-  job: JobWithSite & { site_name?: string; address?: string };
+  job: JobWithSite & { site_name?: string; address?: string; site_cover_image_url?: string | null };
   locale: string;
 }
 
@@ -13,9 +14,21 @@ export default function JobListingCard({ job, locale }: Props) {
   return (
     <Link href={`/${locale === 'ko' ? '' : locale + '/'}jobs/${job.id}`}>
       <article className="bg-white rounded-2xl shadow-sm hover:shadow-md transition-shadow overflow-hidden group">
-        {/* Image placeholder */}
-        <div className="h-40 bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center">
-          <span className="text-4xl">🏗️</span>
+        {/* Site cover image */}
+        <div className="h-40 relative bg-gradient-to-br from-gray-100 to-gray-200 overflow-hidden">
+          {job.site_cover_image_url ? (
+            <Image
+              src={job.site_cover_image_url}
+              alt={job.site_name || job.title}
+              fill
+              className="object-cover group-hover:scale-105 transition-transform duration-300"
+              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+            />
+          ) : (
+            <div className="flex items-center justify-center h-full">
+              <span className="text-4xl">🏗️</span>
+            </div>
+          )}
         </div>
 
         <div className="p-5">

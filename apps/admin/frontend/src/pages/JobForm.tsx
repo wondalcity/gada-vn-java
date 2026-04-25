@@ -6,7 +6,7 @@ import { useAdminTranslation } from '../context/LanguageContext'
 import { tradeName as trdName } from '../lib/dateUtils'
 
 interface Site { id: string; name: string; province?: string }
-interface Trade { id: number; name_ko: string; name_vi?: string }
+interface Trade { id: number; name_ko: string; name_vi?: string; name_en?: string }
 
 export default function JobForm() {
   const { t, locale } = useAdminTranslation()
@@ -187,7 +187,7 @@ export default function JobForm() {
         <F label={t('jobs.form.field_trade')}>
           <GadaSelect value={form.tradeId} onChange={(e) => setForm({ ...form, tradeId: e.target.value })}>
             <option value="">{t('jobs.form.trade_none')}</option>
-            {trades.map((tr) => <option key={tr.id} value={tr.id}>{trdName(tr.name_ko, tr.name_vi, locale)}</option>)}
+            {trades.map((tr) => <option key={tr.id} value={tr.id}>{trdName(tr.name_ko, tr.name_vi, locale, tr.name_en)}</option>)}
           </GadaSelect>
         </F>
         <F label={t('jobs.form.field_work_date')}>

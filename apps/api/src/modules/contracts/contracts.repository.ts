@@ -162,25 +162,29 @@ export class ContractsRepository {
     contractHtml: string;
     companySealS3Key?: string | null;
   }) {
-    if (data.companySealS3Key) {
-      const { rows } = await this.db.query(
-        `INSERT INTO app.contracts
-           (application_id, job_id, worker_id, manager_id, contract_html, status,
-            manager_signature_s3_key, manager_signed_at)
-         VALUES ($1, $2, $3, $4, $5, 'PENDING_WORKER_SIGN', $6, NOW())
-         RETURNING *`,
-        [data.applicationId, data.jobId, data.workerId, data.managerId, data.contractHtml, data.companySealS3Key],
-      );
-      return rows[0];
-    }
+    const seal = data.companySealS3Key ?? null;
+    // Upsert: allow regeneration if worker hasn't signed yet.
+    // ON CONFLICT DO UPDATE only fires when worker_signed_at IS NULL.
+    // If worker already signed, the WHERE condition fails → nothing updates → returns null.
     const { rows } = await this.db.query(
       `INSERT INTO app.contracts
-         (application_id, job_id, worker_id, manager_id, contract_html, status)
-       VALUES ($1, $2, $3, $4, $5, 'PENDING_WORKER_SIGN')
+         (application_id, job_id, worker_id, manager_id, contract_html, status,
+          manager_signature_s3_key, manager_signed_at)
+       VALUES ($1, $2, $3, $4, $5, 'PENDING_WORKER_SIGN',
+               $6, CASE WHEN $6::TEXT IS NOT NULL THEN NOW() ELSE NULL END)
+       ON CONFLICT (application_id) DO UPDATE SET
+         contract_html            = EXCLUDED.contract_html,
+         status                   = 'PENDING_WORKER_SIGN',
+         worker_signed_at         = NULL,
+         worker_signature_s3_key  = NULL,
+         manager_signed_at        = EXCLUDED.manager_signed_at,
+         manager_signature_s3_key = EXCLUDED.manager_signature_s3_key,
+         updated_at               = NOW()
+       WHERE app.contracts.worker_signed_at IS NULL
        RETURNING *`,
-      [data.applicationId, data.jobId, data.workerId, data.managerId, data.contractHtml],
+      [data.applicationId, data.jobId, data.workerId, data.managerId, data.contractHtml, seal],
     );
-    return rows[0];
+    return rows[0] ?? null;
   }
 
   async sign(contractId: string, workerUserId: string, signatureData: string) {

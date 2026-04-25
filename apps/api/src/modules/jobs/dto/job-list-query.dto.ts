@@ -33,6 +33,10 @@ export class JobListQueryDto {
   province?: string;
 
   @IsOptional()
+  @IsString()
+  q?: string;
+
+  @IsOptional()
   @Type(() => Number)
   @IsNumber()
   @Min(1)

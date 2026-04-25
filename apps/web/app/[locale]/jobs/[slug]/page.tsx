@@ -35,7 +35,9 @@ const PROVINCE_CODE: Record<string, string> = {
 
 // ── Data fetchers ─────────────────────────────────────────────────────────────
 
-async function getJob(id: string): Promise<JobWithSite | null> {
+type JobWithMeta = JobWithSite & { site_name?: string; address?: string; site_cover_image_url?: string | null };
+
+async function getJob(id: string): Promise<JobWithMeta | null> {
   const apiUrl = process.env.INTERNAL_API_URL || 'http://localhost:3001/v1';
   try {
     const res = await fetch(`${apiUrl}/jobs/${id}`, {
@@ -117,7 +119,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const job = await getJob(slug);
   if (!job) return { title: 'Job Not Found' };
 
-  const jobWithMeta = job as JobWithSite & { site_name?: string; address?: string };
+  const jobWithMeta = job as JobWithMeta;
   const siteName = jobWithMeta.site_name || job.title;
   const address = jobWithMeta.address || '';
 
@@ -287,7 +289,7 @@ export default async function JobsSlugPage({ params, searchParams }: Props) {
   const job = await getJob(slug);
   if (!job) notFound();
 
-  const jobWithMeta = job as JobWithSite & { site_name?: string; address?: string };
+  const jobWithMeta = job as JobWithMeta;
 
   const jsonLd = {
     '@context': 'https://schema.org',
@@ -332,8 +334,21 @@ export default async function JobsSlugPage({ params, searchParams }: Props) {
       />
 
       <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
-        <div className="h-64 bg-gray-200 flex items-center justify-center">
-          <span className="text-gray-400 text-4xl">🏗️</span>
+        <div className="h-64 relative bg-gray-200 overflow-hidden">
+          {jobWithMeta.site_cover_image_url ? (
+            <Image
+              src={jobWithMeta.site_cover_image_url}
+              alt={jobWithMeta.site_name || job.title}
+              fill
+              className="object-cover"
+              sizes="(max-width: 768px) 100vw, 768px"
+              priority
+            />
+          ) : (
+            <div className="flex items-center justify-center h-full">
+              <span className="text-gray-400 text-4xl">🏗️</span>
+            </div>
+          )}
         </div>
 
         <div className="p-8">

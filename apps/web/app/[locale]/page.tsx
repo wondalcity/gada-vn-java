@@ -3,6 +3,7 @@ import { getTranslations } from 'next-intl/server';
 import Link from 'next/link';
 import type { JobWithSite } from '@gada-vn/core';
 import JobListingCard from '../../components/JobListingCard';
+import HeroSearch from '../../components/HeroSearch';
 
 interface Props {
   params: Promise<{ locale: string }>;
@@ -20,6 +21,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     openGraph: { title: 'GADA VN', description: t('hero_subtitle') },
   };
 }
+
+interface Trade { id: number; name_ko: string; name_vi?: string; name_en?: string }
 
 async function getTodayJobs(
   locale: string,
@@ -39,6 +42,18 @@ async function getTodayJobs(
   }
 }
 
+async function getTrades(): Promise<Trade[]> {
+  const apiUrl = process.env.INTERNAL_API_URL || 'http://localhost:3001/v1';
+  try {
+    const res = await fetch(`${apiUrl}/trades`, { next: { revalidate: 86400, tags: ['trades'] } });
+    if (!res.ok) return [];
+    const json = await res.json();
+    return json.data || json || [];
+  } catch {
+    return [];
+  }
+}
+
 const PROVINCE_LINKS = [
   { slug: 'ho-chi-minh', labelKo: '호치민', labelVi: 'TP.HCM' },
   { slug: 'hanoi', labelKo: '하노이', labelVi: 'Hà Nội' },
@@ -52,7 +67,7 @@ export default async function HomePage({ params }: Props) {
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: 'home' });
   const isVi = locale === 'vi';
-  const jobs = await getTodayJobs(locale);
+  const [jobs, trades] = await Promise.all([getTodayJobs(locale), getTrades()]);
 
   return (
     <main>
@@ -68,12 +83,14 @@ export default async function HomePage({ params }: Props) {
               : t('hero_subtitle')}
           </p>
 
+          <HeroSearch locale={locale} trades={trades} />
+
           {/* Province quick links */}
-          <div className="flex flex-wrap gap-3 justify-center">
+          <div className="flex flex-wrap gap-3 justify-center mt-6">
             {PROVINCE_LINKS.map(({ slug, labelKo, labelVi }) => (
               <Link
                 key={slug}
-                href={`/jobs/${slug}`}
+                href={`/jobs?province=${slug}`}
                 className="bg-white/15 hover:bg-white/25 backdrop-blur px-4 py-2 rounded-full text-sm font-medium transition-colors"
               >
                 {isVi ? labelVi : labelKo}

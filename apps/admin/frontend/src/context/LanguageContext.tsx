@@ -7,7 +7,10 @@ const STORAGE_KEY = 'gada_admin_locale'
 function getInitialLocale(): AdminLocale {
   try {
     const stored = localStorage.getItem(STORAGE_KEY)
-    if (stored === 'ko' || stored === 'vi' || stored === 'en') return stored
+    if (stored === 'ko' || stored === 'vi' || stored === 'en') {
+      document.documentElement.lang = stored
+      return stored
+    }
   } catch {}
   return 'ko'
 }
@@ -29,6 +32,7 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
     setLocaleState(next)
     try {
       localStorage.setItem(STORAGE_KEY, next)
+      document.documentElement.lang = next
     } catch {}
   }, [])
 
@@ -247,6 +251,9 @@ export const ADMIN_TRANSLATIONS: Record<AdminLocale, Record<string, string>> = {
     'jobs.tab_open': '모집 중',
     'jobs.tab_filled': '마감',
     'jobs.tab_cancelled': '취소됨',
+    'jobs.tab_closing_soon': '마감 임박',
+    'jobs.tab_completed': '완료',
+    'jobs.status_completed': '완료',
     'jobs.col_title': '공고 제목',
     'jobs.col_site': '현장명',
     'jobs.col_work_date': '근무일',
@@ -303,6 +310,7 @@ export const ADMIN_TRANSLATIONS: Record<AdminLocale, Record<string, string>> = {
     'jobs.detail.field_wage': '일 노임',
     'jobs.detail.field_slots': '모집인원',
     'jobs.detail.field_work_time': '근무시간',
+    'jobs.detail.field_trade': '직종',
     'jobs.detail.field_created_at': '생성일',
     'jobs.detail.field_updated_at': '수정일',
     'jobs.detail.stat_total': '총 지원',
@@ -955,6 +963,9 @@ export const ADMIN_TRANSLATIONS: Record<AdminLocale, Record<string, string>> = {
     'jobs.tab_open': 'Đang tuyển',
     'jobs.tab_filled': 'Đã đóng',
     'jobs.tab_cancelled': 'Đã hủy',
+    'jobs.tab_closing_soon': 'Sắp đóng',
+    'jobs.tab_completed': 'Hoàn thành',
+    'jobs.status_completed': 'Hoàn thành',
     'jobs.col_title': 'Tiêu đề',
     'jobs.col_site': 'Công trường',
     'jobs.col_work_date': 'Ngày làm',
@@ -992,6 +1003,18 @@ export const ADMIN_TRANSLATIONS: Record<AdminLocale, Record<string, string>> = {
     'jobs.form.saving': 'Đang lưu...',
     'jobs.form.save_failed': 'Lưu thất bại',
     'jobs.form.loading': 'Đang tải...',
+    'jobs.form.site_search_placeholder': 'Tìm tên công trường hoặc khu vực...',
+    'jobs.form.site_no_results': 'Không có kết quả',
+    'jobs.form.field_benefits': 'Phúc lợi',
+    'jobs.form.benefit_meals': 'Bữa ăn',
+    'jobs.form.benefit_transport': 'Đi lại',
+    'jobs.form.benefit_accommodation': 'Chỗ ở',
+    'jobs.form.benefit_insurance': 'Bảo hiểm TNLĐ',
+    'jobs.form.field_requirements': 'Yêu cầu',
+    'jobs.form.field_min_experience': 'Kinh nghiệm tối thiểu (tháng)',
+    'jobs.form.field_min_experience_placeholder': 'VD: 6',
+    'jobs.form.field_requirement_notes': 'Yêu cầu khác',
+    'jobs.form.field_requirement_notes_placeholder': 'VD: Ưu tiên người có thể làm việc trên cao',
 
     'jobs.detail.back': '← Danh sách việc làm',
     'jobs.detail.edit': 'Chỉnh sửa',
@@ -999,6 +1022,7 @@ export const ADMIN_TRANSLATIONS: Record<AdminLocale, Record<string, string>> = {
     'jobs.detail.field_wage': 'Lương ngày',
     'jobs.detail.field_slots': 'Số lượng',
     'jobs.detail.field_work_time': 'Giờ làm',
+    'jobs.detail.field_trade': 'Ngành nghề',
     'jobs.detail.field_created_at': 'Ngày tạo',
     'jobs.detail.field_updated_at': 'Cập nhật',
     'jobs.detail.stat_total': 'Tổng đơn',
@@ -1651,6 +1675,9 @@ export const ADMIN_TRANSLATIONS: Record<AdminLocale, Record<string, string>> = {
     'jobs.tab_open': 'Open',
     'jobs.tab_filled': 'Filled',
     'jobs.tab_cancelled': 'Cancelled',
+    'jobs.tab_closing_soon': 'Closing Soon',
+    'jobs.tab_completed': 'Completed',
+    'jobs.status_completed': 'Completed',
     'jobs.col_title': 'Title',
     'jobs.col_site': 'Site',
     'jobs.col_work_date': 'Work Date',
@@ -1688,6 +1715,18 @@ export const ADMIN_TRANSLATIONS: Record<AdminLocale, Record<string, string>> = {
     'jobs.form.saving': 'Saving...',
     'jobs.form.save_failed': 'Save failed',
     'jobs.form.loading': 'Loading...',
+    'jobs.form.site_search_placeholder': 'Search by site name or area...',
+    'jobs.form.site_no_results': 'No results found',
+    'jobs.form.field_benefits': 'Benefits',
+    'jobs.form.benefit_meals': 'Meals',
+    'jobs.form.benefit_transport': 'Transportation',
+    'jobs.form.benefit_accommodation': 'Accommodation',
+    'jobs.form.benefit_insurance': 'Work Injury Insurance',
+    'jobs.form.field_requirements': 'Requirements',
+    'jobs.form.field_min_experience': 'Min. Experience (months)',
+    'jobs.form.field_min_experience_placeholder': 'e.g. 6',
+    'jobs.form.field_requirement_notes': 'Other Requirements',
+    'jobs.form.field_requirement_notes_placeholder': 'e.g. Must be able to work at height',
 
     'jobs.detail.back': '← Job List',
     'jobs.detail.edit': 'Edit',
@@ -1695,6 +1734,7 @@ export const ADMIN_TRANSLATIONS: Record<AdminLocale, Record<string, string>> = {
     'jobs.detail.field_wage': 'Daily Wage',
     'jobs.detail.field_slots': 'Slots',
     'jobs.detail.field_work_time': 'Work Hours',
+    'jobs.detail.field_trade': 'Trade',
     'jobs.detail.field_created_at': 'Created',
     'jobs.detail.field_updated_at': 'Updated',
     'jobs.detail.stat_total': 'Total',

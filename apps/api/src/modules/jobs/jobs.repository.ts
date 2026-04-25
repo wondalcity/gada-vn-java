@@ -3,16 +3,37 @@ import { DatabaseService } from '../../common/database/database.service';
 import { CreateJobDto } from './dto/create-job.dto';
 import { JobListQueryDto } from './dto/job-list-query.dto';
 
+function toImageUrl(key: string | null | undefined): string | undefined {
+  if (!key) return undefined;
+  if (key.startsWith('http://') || key.startsWith('https://')) return key;
+  const domain = process.env.CLOUDFRONT_DOMAIN;
+  if (!domain) return undefined;
+  const base = domain.startsWith('http') ? domain : `https://${domain}`;
+  return `${base}/${key}`;
+}
+
+function mapJobRow(r: Record<string, unknown>): Record<string, unknown> {
+  const keys = (r.site_image_s3_keys as string[] | null) ?? [];
+  const coverIdx = (r.site_cover_image_idx as number) ?? 0;
+  const validIdx = coverIdx >= 0 && coverIdx < keys.length ? coverIdx : 0;
+  const { site_image_s3_keys: _k, site_cover_image_idx: _i, ...rest } = r;
+  return {
+    ...rest,
+    site_cover_image_url: toImageUrl(keys[validIdx]) ?? null,
+  };
+}
+
 @Injectable()
 export class JobsRepository {
   constructor(private readonly db: DatabaseService) {}
 
   async findMany(query: JobListQueryDto) {
-    const { lat, lng, radiusKm = 50, page = 1, limit = 20 } = query;
+    const { lat, lng, radiusKm = 50, page = 1, limit = 20, q } = query;
     const offset = (page - 1) * limit;
 
     let sql = `
-      SELECT j.*, s.name as site_name, s.address, s.province, s.lat, s.lng
+      SELECT j.*, s.name as site_name, s.address, s.province, s.lat, s.lng,
+             s.image_s3_keys as site_image_s3_keys, s.cover_image_idx as site_cover_image_idx
       ${lat && lng ? `, ST_Distance(s.location::geography, ST_MakePoint($1, $2)::geography) / 1000 as distance_km` : ''}
       FROM app.jobs j
       JOIN app.construction_sites s ON j.site_id = s.id
@@ -27,14 +48,20 @@ export class JobsRepository {
       sql += ` AND ST_DWithin(s.location::geography, ST_MakePoint($1, $2)::geography, ${radiusKm * 1000})`;
     }
 
-    if (query.tradeId) {
-      sql += ` AND j.trade_id = $${paramIdx++}`;
-      params.push(query.tradeId);
-    }
-
     if (query.province) {
       sql += ` AND s.province = $${paramIdx++}`;
       params.push(query.province);
+    }
+
+    if (q && q.trim()) {
+      sql += ` AND (j.title ILIKE $${paramIdx} OR s.name ILIKE $${paramIdx})`;
+      paramIdx++;
+      params.push(`%${q.trim()}%`);
+    }
+
+    if (query.tradeId) {
+      sql += ` AND j.trade_id = $${paramIdx++}`;
+      params.push(query.tradeId);
     }
 
     if (lat && lng) {
@@ -47,14 +74,15 @@ export class JobsRepository {
     params.push(limit, offset);
 
     const { rows } = await this.db.query(sql, params);
-    return rows;
+    return rows.map(mapJobRow);
   }
 
   async findByDate(date: string, query: JobListQueryDto) {
     const { page = 1, limit = 20 } = query;
     const offset = (page - 1) * limit;
     const { rows } = await this.db.query(
-      `SELECT j.*, s.name as site_name, s.address
+      `SELECT j.*, s.name as site_name, s.address,
+              s.image_s3_keys as site_image_s3_keys, s.cover_image_idx as site_cover_image_idx
        FROM app.jobs j
        JOIN app.construction_sites s ON j.site_id = s.id
        WHERE j.work_date = $1 AND j.status = 'OPEN'
@@ -62,18 +90,19 @@ export class JobsRepository {
        LIMIT $2 OFFSET $3`,
       [date, limit, offset],
     );
-    return rows;
+    return rows.map(mapJobRow);
   }
 
   async findById(id: string) {
     const { rows } = await this.db.query(
-      `SELECT j.*, s.name as site_name, s.address, s.province, s.lat, s.lng
+      `SELECT j.*, s.name as site_name, s.address, s.province, s.lat, s.lng,
+              s.image_s3_keys as site_image_s3_keys, s.cover_image_idx as site_cover_image_idx
        FROM app.jobs j
        JOIN app.construction_sites s ON j.site_id = s.id
        WHERE j.id = $1`,
       [id],
     );
-    return rows[0] || null;
+    return rows[0] ? mapJobRow(rows[0]) : null;
   }
 
   async getManagerIdByUserId(userId: string): Promise<string> {

@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
+import { Injectable, NotFoundException, ForbiddenException, ConflictException } from '@nestjs/common';
 import { ContractsRepository } from './contracts.repository';
 import { NotificationsService } from '../notifications/notifications.service';
 
@@ -34,6 +34,10 @@ export class ContractsService {
       contractHtml,
       companySealS3Key,
     });
+
+    if (!contract) {
+      throw new ForbiddenException('계약서가 이미 서명되어 재생성할 수 없습니다.');
+    }
 
     // Notify worker that contract is ready to sign
     const parties = await this.repo.findPartyUserIds(contract.id);

@@ -365,7 +365,7 @@ class AdminRepository(
 
     // ── Jobs ──────────────────────────────────────────────────────────────────
 
-    fun findJobsPaginated(status: String?, search: String, page: Int, limit: Int): List<Map<String, Any?>> {
+    fun findJobsPaginated(status: String?, search: String, page: Int, limit: Int, tab: String? = null): List<Map<String, Any?>> {
         val offset = (page - 1) * limit
         val baseQuery = """SELECT j.id, j.site_id, j.manager_id, j.title, j.description, j.trade_id,
                       j.work_date, j.start_time, j.end_time, j.daily_wage, j.currency,
@@ -373,51 +373,72 @@ class AdminRepository(
                       (SELECT COUNT(*) FROM app.job_applications a WHERE a.job_id = j.id AND a.status IN ('PENDING', 'ACCEPTED', 'CONTRACTED'))::int AS slots_filled,
                       j.status, j.slug, j.published_at, j.expires_at,
                       j.image_s3_keys, j.cover_image_idx, j.created_at, j.updated_at,
-                      t.name_ko as trade_name_ko, t.name_vi as trade_name_vi,
+                      t.name_ko as trade_name_ko, t.name_vi as trade_name_vi, t.name_en as trade_name_en,
                       cs.name as site_name, cs.address, cs.province,
                       cc.name as company_name
                FROM app.jobs j
                LEFT JOIN ref.construction_trades t ON j.trade_id = t.id
                LEFT JOIN app.construction_sites cs ON j.site_id = cs.id
                LEFT JOIN app.construction_companies cc ON cs.company_id = cc.id"""
-        val hasStatus = !status.isNullOrBlank()
-        val hasSearch = search.isNotBlank()
-        val like = "%$search%"
-        return when {
-            !hasStatus && !hasSearch -> sanitizeList(db.queryForList(
-                "$baseQuery ORDER BY j.created_at DESC LIMIT ? OFFSET ?", limit, offset))
-            hasStatus && !hasSearch -> sanitizeList(db.queryForList(
-                "$baseQuery WHERE j.status = ? ORDER BY j.created_at DESC LIMIT ? OFFSET ?",
-                status, limit, offset))
-            !hasStatus && hasSearch -> sanitizeList(db.queryForList(
-                "$baseQuery WHERE (j.title ILIKE ? OR cs.name ILIKE ? OR cc.name ILIKE ?) ORDER BY j.created_at DESC LIMIT ? OFFSET ?",
-                like, like, like, limit, offset))
-            else -> sanitizeList(db.queryForList(
-                "$baseQuery WHERE j.status = ? AND (j.title ILIKE ? OR cs.name ILIKE ? OR cc.name ILIKE ?) ORDER BY j.created_at DESC LIMIT ? OFFSET ?",
-                status, like, like, like, limit, offset))
+
+        val conditions = mutableListOf<String>()
+        val params = mutableListOf<Any?>()
+
+        // tab-based date-aware filtering takes precedence over status param
+        when (tab) {
+            "OPEN" -> conditions.add("j.status = 'OPEN' AND j.work_date >= CURRENT_DATE")
+            "CLOSING_SOON" -> conditions.add("j.status = 'OPEN' AND j.work_date >= CURRENT_DATE AND j.work_date <= CURRENT_DATE + INTERVAL '3 days'")
+            "FILLED" -> conditions.add("j.status = 'FILLED'")
+            "COMPLETED" -> conditions.add("j.work_date < CURRENT_DATE AND j.status != 'CANCELLED'")
+            "CANCELLED" -> conditions.add("j.status = 'CANCELLED'")
+            else -> if (!status.isNullOrBlank()) {
+                conditions.add("j.status = ?")
+                params.add(status)
+            }
         }
+
+        if (search.isNotBlank()) {
+            val like = "%$search%"
+            conditions.add("(j.title ILIKE ? OR cs.name ILIKE ? OR cc.name ILIKE ?)")
+            params.addAll(listOf(like, like, like))
+        }
+
+        val whereClause = if (conditions.isNotEmpty()) " WHERE ${conditions.joinToString(" AND ")}" else ""
+        val sql = "$baseQuery$whereClause ORDER BY j.created_at DESC LIMIT ? OFFSET ?"
+        params.add(limit)
+        params.add(offset)
+
+        return sanitizeList(db.queryForList(sql, *params.toTypedArray()))
     }
 
-    fun countJobs(status: String?, search: String): Int {
-        val hasStatus = !status.isNullOrBlank()
-        val hasSearch = search.isNotBlank()
-        val like = "%$search%"
-        val rows = when {
-            !hasStatus && !hasSearch -> db.queryForList("SELECT COUNT(*) as count FROM app.jobs")
-            hasStatus && !hasSearch -> db.queryForList(
-                "SELECT COUNT(*) as count FROM app.jobs WHERE status = ?", status)
-            !hasStatus && hasSearch -> db.queryForList(
-                """SELECT COUNT(*) as count FROM app.jobs j
-                   LEFT JOIN app.construction_sites cs ON j.site_id = cs.id
-                   LEFT JOIN app.construction_companies cc ON cs.company_id = cc.id
-                   WHERE (j.title ILIKE ? OR cs.name ILIKE ? OR cc.name ILIKE ?)""", like, like, like)
-            else -> db.queryForList(
-                """SELECT COUNT(*) as count FROM app.jobs j
-                   LEFT JOIN app.construction_sites cs ON j.site_id = cs.id
-                   LEFT JOIN app.construction_companies cc ON cs.company_id = cc.id
-                   WHERE j.status = ? AND (j.title ILIKE ? OR cs.name ILIKE ? OR cc.name ILIKE ?)""",
-                status, like, like, like)
+    fun countJobs(status: String?, search: String, tab: String? = null): Int {
+        val conditions = mutableListOf<String>()
+        val params = mutableListOf<Any?>()
+
+        when (tab) {
+            "OPEN" -> conditions.add("j.status = 'OPEN' AND j.work_date >= CURRENT_DATE")
+            "CLOSING_SOON" -> conditions.add("j.status = 'OPEN' AND j.work_date >= CURRENT_DATE AND j.work_date <= CURRENT_DATE + INTERVAL '3 days'")
+            "FILLED" -> conditions.add("j.status = 'FILLED'")
+            "COMPLETED" -> conditions.add("j.work_date < CURRENT_DATE AND j.status != 'CANCELLED'")
+            "CANCELLED" -> conditions.add("j.status = 'CANCELLED'")
+            else -> if (!status.isNullOrBlank()) {
+                conditions.add("j.status = ?")
+                params.add(status)
+            }
         }
+
+        if (search.isNotBlank()) {
+            val like = "%$search%"
+            conditions.add("(j.title ILIKE ? OR cs.name ILIKE ? OR cc.name ILIKE ?)")
+            params.addAll(listOf(like, like, like))
+        }
+
+        val whereClause = if (conditions.isNotEmpty()) " WHERE ${conditions.joinToString(" AND ")}" else ""
+        val sql = """SELECT COUNT(*) as count FROM app.jobs j
+                     LEFT JOIN app.construction_sites cs ON j.site_id = cs.id
+                     LEFT JOIN app.construction_companies cc ON cs.company_id = cc.id$whereClause"""
+
+        val rows = if (params.isEmpty()) db.queryForList(sql) else db.queryForList(sql, *params.toTypedArray())
         return (rows.firstOrNull()?.get("count") as? Number)?.toInt() ?: 0
     }
 
@@ -431,7 +452,7 @@ class AdminRepository(
                       j.image_s3_keys, j.cover_image_idx, j.created_at, j.updated_at,
                       cs.name as site_name, cs.address, cs.province as province,
                       cc.name as company_name,
-                      t.name_ko as trade_name_ko
+                      t.name_ko as trade_name_ko, t.name_vi as trade_name_vi, t.name_en as trade_name_en
                FROM app.jobs j
                LEFT JOIN app.construction_sites cs ON j.site_id = cs.id
                LEFT JOIN app.construction_companies cc ON cs.company_id = cc.id

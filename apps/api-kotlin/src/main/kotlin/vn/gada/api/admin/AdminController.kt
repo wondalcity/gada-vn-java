@@ -229,12 +229,13 @@ class AdminController(
     fun listJobs(
         request: HttpServletRequest,
         @RequestParam(required = false) status: String?,
+        @RequestParam(required = false) tab: String?,
         @RequestParam(defaultValue = "") search: String,
         @RequestParam(defaultValue = "1") page: Int,
         @RequestParam(defaultValue = "20") limit: Int
     ): ResponseEntity<Map<String, Any?>> {
         checkAdminKey(request)
-        return ok(adminService.listJobs(status, search, page, limit))
+        return ok(adminService.listJobs(status, search, page, limit, tab))
     }
 
     /** GET /admin/jobs/:id */
