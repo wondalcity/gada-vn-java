@@ -44,6 +44,21 @@ jobs:
         working-directory: apps/mobile
         run: npx expo prebuild --platform android --non-interactive --clean
 
+      - name: Expose node_modules to Gradle settings.gradle
+        run: |
+          # settings.gradle runs `node --print require.resolve(...)` from android/.
+          # pnpm workspace isolation means packages live in apps/mobile/node_modules/,
+          # not the root. Create a direct node_modules dir inside android/ so Node
+          # finds them without directory traversal (works around pnpm symlink depth issues).
+          ANDROID_NM="${{ github.workspace }}/apps/mobile/android/node_modules"
+          MOBILE_NM="${{ github.workspace }}/apps/mobile/node_modules"
+          mkdir -p "$ANDROID_NM"
+          # Hard-link the key packages settings.gradle needs
+          ln -sfn "$MOBILE_NM/react-native"              "$ANDROID_NM/react-native"
+          ln -sfn "$MOBILE_NM/@react-native"             "$ANDROID_NM/@react-native"
+          ln -sfn "$MOBILE_NM/expo"                      "$ANDROID_NM/expo"
+          ln -sfn "$MOBILE_NM/expo-modules-autolinking"  "$ANDROID_NM/expo-modules-autolinking"
+
       - name: Decode release keystore
         run: |
           echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d \
@@ -54,8 +69,6 @@ jobs:
         env:
           KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
-          # pnpm workspace installs to root node_modules; expose to node commands inside settings.gradle
-          NODE_PATH: ${{ github.workspace }}/node_modules
         run: |
           chmod +x gradlew
           ./gradlew assembleRelease --no-daemon
