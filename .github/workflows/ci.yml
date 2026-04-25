@@ -87,7 +87,7 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm turbo build --filter=@gada-vn/core
       - name: Run API tests
-        run: pnpm --filter=@gada-vn/api test --coverage
+        run: pnpm --filter=@gada-vn/api test -- --coverage
         env:
           DATABASE_URL: postgresql://gadaadmin:testpassword@localhost:5432/gada_vn_test
           NODE_ENV: test
