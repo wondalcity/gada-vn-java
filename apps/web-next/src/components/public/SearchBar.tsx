@@ -261,12 +261,22 @@ export function SearchBar({ provinces, trades = [], locale }: Props) {
     })
   }
 
-  function handleSearch(e: React.FormEvent) {
-    e.preventDefault()
+  function buildParams() {
     const params = new URLSearchParams()
     if (keyword.trim()) params.set('q', keyword.trim())
     if (selectedProvince) params.set('province', selectedProvince)
     if (selectedTrade) params.set('trade', selectedTrade)
+    return params
+  }
+
+  function handleSearch(e: React.FormEvent) {
+    e.preventDefault()
+    router.push(`/jobs?${buildParams().toString()}`)
+  }
+
+  function handleMapView(e: React.MouseEvent) {
+    e.preventDefault()
+    const params = buildParams()
     params.set('view', 'map')
     router.push(`/jobs?${params.toString()}`)
   }
@@ -326,7 +336,17 @@ export function SearchBar({ provinces, trades = [], locale }: Props) {
         )}
         <button
           type="submit"
-          className="px-6 py-3 rounded-xl bg-white text-[#0669F7] font-bold text-sm hover:bg-[#E6F0FE] transition-colors shadow-lg shrink-0 flex items-center gap-2"
+          className="px-6 py-3 rounded-xl bg-[#0669F7] text-white font-bold text-sm hover:bg-[#0553C7] transition-colors shadow-lg shrink-0 flex items-center gap-2"
+        >
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
+          </svg>
+          {t('hero.search_button')}
+        </button>
+        <button
+          type="button"
+          onClick={handleMapView}
+          className="px-4 py-3 rounded-xl bg-white/20 text-white font-bold text-sm hover:bg-white/30 transition-colors shadow-lg shrink-0 flex items-center gap-2"
         >
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}

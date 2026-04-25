@@ -73,6 +73,28 @@ jobs:
 
           python3 scripts/patch_settings_gradle.py "$RN_PKG" "$GRADLE_PLUGIN_PKG" "$EXPO_PKG" "$CLI_ANDROID_PKG"
 
+      - name: Patch AndroidManifest (fix FCM notification color merge conflict)
+        run: |
+          # expo-notifications adds default_notification_color without tools:replace,
+          # causing a manifest merger conflict with react-native-firebase/messaging.
+          # Add tools:replace="android:resource" so our value wins.
+          MANIFEST=apps/mobile/android/app/src/main/AndroidManifest.xml
+          python3 - "$MANIFEST" <<'PYEOF'
+          import sys, re
+          path = sys.argv[1]
+          with open(path, 'r') as f:
+              content = f.read()
+          pattern = r'(<meta-data android:name="com\.google\.firebase\.messaging\.default_notification_color"(?:(?!tools:replace)[^/])*)(/>)'
+          replacement = r'\1 tools:replace="android:resource"\2'
+          patched = re.sub(pattern, replacement, content)
+          with open(path, 'w') as f:
+              f.write(patched)
+          if 'tools:replace="android:resource"' in patched:
+              print("✓ tools:replace added to FCM notification color meta-data")
+          else:
+              print("WARNING: patch may not have applied")
+          PYEOF
+
       - name: Decode release keystore
         run: |
           echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d \
