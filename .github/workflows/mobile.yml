@@ -76,7 +76,7 @@ jobs:
       - name: Decode release keystore
         run: |
           echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d \
-            > apps/mobile/android/gada-release.keystore
+            > apps/mobile/android/app/gada-release.keystore
 
       - name: Build release APK
         working-directory: apps/mobile/android
