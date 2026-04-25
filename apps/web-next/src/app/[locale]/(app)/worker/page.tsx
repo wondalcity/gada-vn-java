@@ -25,17 +25,6 @@ interface RawApplication {
   contractId?: string
 }
 
-const STATUS_CONFIG: Record<string, { label: string; className: string }> = {
-  APPLIED:    { label: '검토 대기', className: 'status-pending border' },
-  PENDING:    { label: '검토 대기', className: 'status-pending border' },
-  HIRED:      { label: '합격', className: 'status-accepted border' },
-  ACCEPTED:   { label: '합격', className: 'status-accepted border' },
-  COMPLETED:  { label: '계약 완료', className: 'status-contracted border' },
-  CONTRACTED: { label: '계약 완료', className: 'status-contracted border' },
-  REJECTED:   { label: '불합격', className: 'status-rejected border' },
-  WITHDRAWN:  { label: '취소', className: 'status-withdrawn border' },
-}
-
 function formatWage(n: number | null | undefined) {
   if (n == null) return '-'
   return new Intl.NumberFormat('ko-KR').format(n) + ' ₫'
@@ -117,7 +106,21 @@ function IconSettings() {
 
 export default async function WorkerHomePage({ params }: Props) {
   const { locale } = await params
-  const t = await getTranslations({ locale, namespace: 'worker' })
+  const [t, tCommon] = await Promise.all([
+    getTranslations({ locale, namespace: 'worker' }),
+    getTranslations({ locale, namespace: 'common' }),
+  ])
+
+  const STATUS_CONFIG: Record<string, { label: string; className: string }> = {
+    APPLIED:    { label: tCommon('worker_applications.status_pending'),    className: 'status-pending border' },
+    PENDING:    { label: tCommon('worker_applications.status_pending'),    className: 'status-pending border' },
+    HIRED:      { label: tCommon('worker_applications.status_accepted'),   className: 'status-accepted border' },
+    ACCEPTED:   { label: tCommon('worker_applications.status_accepted'),   className: 'status-accepted border' },
+    COMPLETED:  { label: tCommon('worker_applications.status_contracted'), className: 'status-contracted border' },
+    CONTRACTED: { label: tCommon('worker_applications.status_contracted'), className: 'status-contracted border' },
+    REJECTED:   { label: tCommon('worker_applications.status_rejected'),   className: 'status-rejected border' },
+    WITHDRAWN:  { label: tCommon('worker_applications.status_withdrawn'),  className: 'status-withdrawn border' },
+  }
   const cookieStore = await cookies()
   const token = cookieStore.get('gada_session')?.value
 

@@ -191,7 +191,7 @@ export default function SiteForm({ mode, initialData, siteId, locale, idToken }:
   React.useEffect(() => {
     let isMounted = true
     getGoogleMapsLoader()
-      .load()
+      .importLibrary('places')
       .then(() => {
         if (!isMounted || !addressInputRef.current) return
         const autocomplete = new google.maps.places.Autocomplete(addressInputRef.current, {

@@ -47,7 +47,8 @@
       "exp_lt1": "1년 미만",
       "exp_1to2": "1~2년 미만",
       "exp_2to3": "2~3년 미만",
-      "exp_gte3": "3년 이상"
+      "exp_gte3": "3년 이상",
+      "search_province": "지역 검색..."
     },
     "sort": {
       "latest": "최신순",

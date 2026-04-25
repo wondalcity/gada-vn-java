@@ -47,7 +47,8 @@
       "exp_lt1": "Under 1 Year",
       "exp_1to2": "1~2 Years",
       "exp_2to3": "2~3 Years",
-      "exp_gte3": "3+ Years"
+      "exp_gte3": "3+ Years",
+      "search_province": "Search province..."
     },
     "sort": {
       "latest": "Latest",

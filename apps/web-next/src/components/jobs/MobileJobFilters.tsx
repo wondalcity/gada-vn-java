@@ -499,7 +499,7 @@ export function MobileJobFilters({
                   placeholder={t('listing.filter.all_provinces')}
                   onChange={v => updateParam('province', v || undefined)}
                   searchable
-                  searchPlaceholder="지역 검색..."
+                  searchPlaceholder={t('listing.filter.search_province')}
                   onTogglePin={togglePinProvince}
                 />
               </div>

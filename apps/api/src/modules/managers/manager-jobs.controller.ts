@@ -268,12 +268,13 @@ export class ManagerJobsController {
   ) {
     const updated = await this.applicationsService.hire(id, user.id);
     if (!updated) return null;
-    // Fetch updated slot meta
+    // Increment slots_filled and fetch updated slot meta
     const { rows } = await this.db.query(
-      `SELECT j.slots_total, j.slots_filled, j.status
+      `UPDATE app.jobs j
+       SET slots_filled = slots_filled + 1
        FROM app.job_applications a
-       JOIN app.jobs j ON a.job_id = j.id
-       WHERE a.id = $1`,
+       WHERE j.id = a.job_id AND a.id = $1
+       RETURNING j.slots_total, j.slots_filled, j.status`,
       [id],
     );
     const r = rows[0];

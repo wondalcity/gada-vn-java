@@ -22,7 +22,7 @@ export default function AddressStep({ draft, onChange, onNext, isSaving }: Addre
     let cancelled = false
     const loader = getGoogleMapsLoader()
     loader
-      .load()
+      .importLibrary('places')
       .then(() => {
         if (!cancelled) setMapsLoaded(true)
       })

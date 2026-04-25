@@ -756,7 +756,10 @@ function AddressTab({ profile, onSaved }: { profile: WorkerProfile; onSaved: (p:
   const [addError, setAddError] = React.useState('')
 
   React.useEffect(() => {
-    getGoogleMapsLoader().load().then(() => setMapsLoaded(true)).catch(() => setMapsError(true))
+    getGoogleMapsLoader()
+      .importLibrary('places')
+      .then(() => setMapsLoaded(true))
+      .catch(() => setMapsError(true))
   }, [])
 
   // Initialize Autocomplete when add form becomes visible

@@ -44,43 +44,22 @@ jobs:
         working-directory: apps/mobile
         run: npx expo prebuild --platform android --non-interactive --clean
 
-      - name: Expose node_modules to Gradle settings.gradle
+      - name: Patch settings.gradle with resolved module paths
+        working-directory: apps/mobile
         run: |
-          # settings.gradle spawns node from android/ and tries to resolve:
-          #   require.resolve('@react-native/gradle-plugin', { paths: [require.resolve('react-native')] })
-          # pnpm workspace isolation means @react-native/gradle-plugin lives in the .pnpm
-          # store context of react-native, which node can't reach via the file path passed
-          # to `paths`. We expose all needed packages directly in android/node_modules/ so
-          # Node.js finds them in the first lookup without needing to climb the tree.
-          ANDROID_NM="${{ github.workspace }}/apps/mobile/android/node_modules"
-          ROOT_NM="${{ github.workspace }}/node_modules"
-          MOBILE_NM="${{ github.workspace }}/apps/mobile/node_modules"
-          mkdir -p "$ANDROID_NM/@react-native"
+          # Gradle's Java Process.exec() doesn't reliably resolve pnpm workspace packages.
+          # We compute the absolute paths in the shell (which works correctly) and
+          # hard-code them directly into settings.gradle so Gradle never needs to spawn node.
+          RN_PKG=$(node --print "require.resolve('react-native/package.json')")
+          GRADLE_PLUGIN_PKG=$(node --print "require.resolve('@react-native/gradle-plugin/package.json', { paths: [require.resolve('react-native/package.json')] })")
+          EXPO_PKG=$(node --print "require.resolve('expo/package.json')")
+          CLI_ANDROID_PKG=$(node --print "require.resolve('@react-native-community/cli-platform-android/package.json', { paths: [require.resolve('react-native/package.json')] })" 2>/dev/null || echo "")
 
-          # react-native itself: prefer mobile workspace, fall back to root
-          if [ -d "$MOBILE_NM/react-native" ]; then
-            ln -sfn "$MOBILE_NM/react-native" "$ANDROID_NM/react-native"
-          else
-            ln -sfn "$ROOT_NM/react-native" "$ANDROID_NM/react-native"
-          fi
+          echo "RN_PKG=$RN_PKG"
+          echo "GRADLE_PLUGIN_PKG=$GRADLE_PLUGIN_PKG"
+          echo "EXPO_PKG=$EXPO_PKG"
 
-          # @react-native/gradle-plugin: lives at root (pnpm hoists it there as it's
-          # a direct dep of the workspace via react-native)
-          ln -sfn "$ROOT_NM/@react-native/gradle-plugin" \
-            "$ANDROID_NM/@react-native/gradle-plugin"
-
-          # expo packages: needed for autolinking
-          for pkg in expo expo-modules-autolinking; do
-            if [ -d "$MOBILE_NM/$pkg" ]; then
-              ln -sfn "$MOBILE_NM/$pkg" "$ANDROID_NM/$pkg"
-            fi
-          done
-
-          # Verify the key symlinks resolve correctly
-          echo "Verifying resolution from android/:"
-          cd "${{ github.workspace }}/apps/mobile/android"
-          node --print "require.resolve('react-native/package.json')" || echo "WARN: react-native not found"
-          node --print "require.resolve('@react-native/gradle-plugin/package.json', { paths: [require.resolve('react-native/package.json')] })" || echo "WARN: gradle-plugin not found"
+          python3 scripts/patch_settings_gradle.py "$RN_PKG" "$GRADLE_PLUGIN_PKG" "$EXPO_PKG" "$CLI_ANDROID_PKG"
 
       - name: Decode release keystore
         run: |
