@@ -202,7 +202,18 @@
     "sign_error_generic": "Đã xảy ra lỗi khi ký.",
     "sign_success": "Đã ký thành công! Hợp đồng đã hoàn tất.",
     "banner_need_sign": "Cần chữ ký. Vui lòng xem nội dung hợp đồng và ký vào ô bên dưới.",
-    "banner_fully_signed": "Hợp đồng hoàn tất."
+    "banner_fully_signed": "Hợp đồng hoàn tất.",
+    "contract_lang_label": "Ngôn ngữ HĐ:",
+    "tab_draw": "Ký trực tiếp",
+    "tab_saved": "Dùng chữ ký đã lưu",
+    "saved_sig_label": "Chữ ký đã lưu trong hồ sơ",
+    "save_to_profile": "Lưu chữ ký này vào hồ sơ",
+    "sign_processing": "Đang xử lý...",
+    "sign_use_btn": "Sử dụng",
+    "status_PENDING_WORKER_SIGN": "Chờ công nhân ký",
+    "status_PENDING_MANAGER_SIGN": "Chờ công ty ký",
+    "status_FULLY_SIGNED": "Hợp đồng hoàn tất",
+    "status_VOID": "Hợp đồng vô hiệu"
   },
   "worker_id_upload": {
     "back_to_profile": "Quay lại hồ sơ",

@@ -8,7 +8,7 @@ import { useAuth } from '@/hooks/useAuth'
 import { apiClient } from '@/lib/api/client'
 import { useSignatureCanvas } from '@/hooks/useSignatureCanvas'
 import type { Contract } from '@/types/contract'
-import { CONTRACT_STATUS_LABELS, CONTRACT_STATUS_COLORS } from '@/types/contract'
+import { CONTRACT_STATUS_COLORS } from '@/types/contract'
 import { ContractDocument, ContractDownloadButton, ContractLangSelector } from '@/components/contracts/ContractDocument'
 import { formatDate } from '@/lib/utils/date'
 
@@ -75,21 +75,21 @@ function SignaturePad({
             onClick={() => setUseSaved(false)}
             className={`flex-1 py-2 text-xs font-medium transition-colors ${!useSaved ? 'bg-[#0669F7] text-white' : 'bg-white text-[#98A2B2] hover:bg-[#F8F8FA] hover:text-[#25282A]'}`}
           >
-            직접 서명
+            {t('worker_contracts.tab_draw')}
           </button>
           <button
             type="button"
             onClick={() => setUseSaved(true)}
             className={`flex-1 py-2 text-xs font-medium transition-colors ${useSaved ? 'bg-[#0669F7] text-white' : 'bg-white text-[#98A2B2] hover:bg-[#F8F8FA] hover:text-[#25282A]'}`}
           >
-            저장된 서명 사용
+            {t('worker_contracts.tab_saved')}
           </button>
         </div>
       )}
 
       {useSaved && savedSigUrl ? (
         <div>
-          <p className="text-xs font-medium text-[#98A2B2] mb-2">프로필에 저장된 서명</p>
+          <p className="text-xs font-medium text-[#98A2B2] mb-2">{t('worker_contracts.saved_sig_label')}</p>
           <div className="border-2 border-[#C8D8FF] rounded-xl bg-[#FAFCFF] p-4 flex items-center justify-center min-h-[120px]">
             <img src={savedSigUrl} alt="저장된 서명" className="max-h-24 object-contain" />
           </div>
@@ -124,7 +124,7 @@ function SignaturePad({
                 onChange={e => setSaveToProfile(e.target.checked)}
                 className="w-4 h-4 rounded accent-[#0669F7]"
               />
-              <span className="text-xs text-[#25282A]">이 서명을 프로필에 저장</span>
+              <span className="text-xs text-[#25282A]">{t('worker_contracts.save_to_profile')}</span>
             </label>
           )}
         </>
@@ -152,7 +152,7 @@ function SignaturePad({
           disabled={(!useSaved && !hasDrawn) || isSubmitting}
           className="flex-1 py-3 rounded-full bg-[#0669F7] text-white font-semibold text-sm disabled:opacity-40 hover:bg-[#0557D4] transition-colors"
         >
-          {isSubmitting ? '처리 중...' : '사용하기'}
+          {isSubmitting ? t('worker_contracts.sign_processing') : t('worker_contracts.sign_use_btn')}
         </button>
       </div>
     </div>
@@ -409,7 +409,13 @@ export default function WorkerContractDetailClient({ contractId }: Props) {
     )
   }
 
-  const statusLabel = CONTRACT_STATUS_LABELS[contract.status]
+  const contractStatusLabels = {
+    PENDING_WORKER_SIGN:  t('worker_contracts.status_PENDING_WORKER_SIGN'),
+    PENDING_MANAGER_SIGN: t('worker_contracts.status_PENDING_MANAGER_SIGN'),
+    FULLY_SIGNED:         t('worker_contracts.status_FULLY_SIGNED'),
+    VOID:                 t('worker_contracts.status_VOID'),
+  }
+  const statusLabel = contractStatusLabels[contract.status]
   const statusColor = CONTRACT_STATUS_COLORS[contract.status]
 
   return (

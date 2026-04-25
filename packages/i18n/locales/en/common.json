@@ -202,7 +202,18 @@
     "sign_error_generic": "An error occurred while signing.",
     "sign_success": "Signed successfully! Contract is complete.",
     "banner_need_sign": "Signature required. Please review the contract and sign below.",
-    "banner_fully_signed": "Contract complete."
+    "banner_fully_signed": "Contract complete.",
+    "contract_lang_label": "Contract language:",
+    "tab_draw": "Draw signature",
+    "tab_saved": "Use saved signature",
+    "saved_sig_label": "Signature saved in profile",
+    "save_to_profile": "Save this signature to profile",
+    "sign_processing": "Processing...",
+    "sign_use_btn": "Use",
+    "status_PENDING_WORKER_SIGN": "Awaiting worker signature",
+    "status_PENDING_MANAGER_SIGN": "Awaiting company signature",
+    "status_FULLY_SIGNED": "Contract complete",
+    "status_VOID": "Contract void"
   },
   "worker_id_upload": {
     "back_to_profile": "Back to Profile",

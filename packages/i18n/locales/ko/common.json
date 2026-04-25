@@ -202,7 +202,18 @@
     "sign_error_generic": "서명 중 오류가 발생했습니다.",
     "sign_success": "서명이 완료되었습니다! 계약이 완료되었습니다.",
     "banner_need_sign": "서명이 필요합니다. 계약 내용을 확인한 후 하단 서명란에 서명해 주세요.",
-    "banner_fully_signed": "계약이 완료되었습니다."
+    "banner_fully_signed": "계약이 완료되었습니다.",
+    "contract_lang_label": "계약서 언어:",
+    "tab_draw": "직접 서명",
+    "tab_saved": "저장된 서명 사용",
+    "saved_sig_label": "프로필에 저장된 서명",
+    "save_to_profile": "이 서명을 프로필에 저장",
+    "sign_processing": "처리 중...",
+    "sign_use_btn": "사용하기",
+    "status_PENDING_WORKER_SIGN": "근로자 서명 대기",
+    "status_PENDING_MANAGER_SIGN": "건설사 서명 대기",
+    "status_FULLY_SIGNED": "계약 완료",
+    "status_VOID": "계약 무효"
   },
   "worker_id_upload": {
     "back_to_profile": "프로필로 돌아가기",
