@@ -45,9 +45,9 @@ export default function JobForm() {
       api.get<Site[] | { data?: Site[] }>('/admin/sites'),
       api.get<Trade[]>('/admin/trades'),
       isEdit ? api.get<Record<string, unknown>>(`/admin/jobs/${id}`) : Promise.resolve(null),
-    ]).then(([s, t, job]) => {
+    ]).then(([s, tradesData, job]) => {
       setSites(Array.isArray(s) ? s : (Array.isArray((s as { data?: Site[] }).data) ? (s as { data: Site[] }).data : []))
-      setTrades(Array.isArray(t) ? t : [])
+      setTrades(Array.isArray(tradesData) ? tradesData : [])
       if (job) {
         setForm({
           siteId: String(job.site_id ?? ''),

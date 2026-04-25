@@ -34,64 +34,240 @@ export function GadaSelect({ className = '', children, ...props }: GadaSelectPro
   )
 }
 
-// ── GadaDateInput ─────────────────────────────────────────────────────────────
+// ── GadaDateInput — custom locale-aware calendar ───────────────────────────────
 
-const DATE_MONTHS = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC']
+const LOCALE_MAP: Record<string, string> = { ko: 'ko-KR', vi: 'vi-VN', en: 'en-US' }
 
-function formatDisplayDate(value: string): string {
+function toIntlLocale(locale: string) {
+  return LOCALE_MAP[locale] ?? locale
+}
+
+function formatDisplayDate(value: string, locale: string): string {
   if (!value) return ''
-  const parts = value.split('-')
-  if (parts.length !== 3) return ''
-  const [year, month, day] = parts
-  const mIdx = parseInt(month, 10) - 1
-  if (mIdx < 0 || mIdx > 11 || !year || !day) return ''
-  return `${day}/${DATE_MONTHS[mIdx]}/${year}`
+  const [year, month, day] = value.split('-').map(Number)
+  if (!year || !month || !day) return ''
+  const date = new Date(year, month - 1, day)
+  return new Intl.DateTimeFormat(toIntlLocale(locale), { year: 'numeric', month: 'short', day: '2-digit' }).format(date)
 }
 
-interface GadaDateInputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'type'> {
-  locale?: string
+function getDayHeaders(locale: string): string[] {
+  const intlLocale = toIntlLocale(locale)
+  // Build 7 day headers starting Sunday (day 0)
+  return Array.from({ length: 7 }, (_, i) => {
+    const date = new Date(2023, 0, 1 + i) // Jan 1 2023 = Sunday
+    return new Intl.DateTimeFormat(intlLocale, { weekday: 'short' }).format(date)
+  })
 }
 
-export function GadaDateInput({ className = '', locale = 'ko', value, ...props }: GadaDateInputProps) {
-  const showCustomDisplay = locale !== 'ko'
-  const displayValue = showCustomDisplay && typeof value === 'string' && value
-    ? formatDisplayDate(value)
-    : ''
+function getMonthLabel(year: number, month: number, locale: string): string {
+  return new Intl.DateTimeFormat(toIntlLocale(locale), { year: 'numeric', month: 'long' }).format(new Date(year, month, 1))
+}
+
+function daysInMonth(year: number, month: number) {
+  return new Date(year, month + 1, 0).getDate()
+}
+
+interface CalendarProps {
+  value: string       // YYYY-MM-DD or ''
+  locale: string
+  onSelect: (iso: string) => void
+  onClear: () => void
+  onClose: () => void
+  clearLabel: string
+  todayLabel: string
+}
+
+function GadaCalendar({ value, locale, onSelect, onClear, onClose, clearLabel, todayLabel }: CalendarProps) {
+  const today = new Date()
+  const parsed = value ? value.split('-').map(Number) : null
+  const [viewYear, setViewYear] = React.useState(parsed ? parsed[0] : today.getFullYear())
+  const [viewMonth, setViewMonth] = React.useState(parsed ? parsed[1] - 1 : today.getMonth())
+
+  const firstDow = new Date(viewYear, viewMonth, 1).getDay() // 0=Sun
+  const totalDays = daysInMonth(viewYear, viewMonth)
+  const dayHeaders = getDayHeaders(locale)
+
+  function prevMonth() {
+    if (viewMonth === 0) { setViewYear(y => y - 1); setViewMonth(11) }
+    else setViewMonth(m => m - 1)
+  }
+  function nextMonth() {
+    if (viewMonth === 11) { setViewYear(y => y + 1); setViewMonth(0) }
+    else setViewMonth(m => m + 1)
+  }
+  function selectDay(day: number) {
+    const iso = `${viewYear}-${String(viewMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`
+    onSelect(iso)
+    onClose()
+  }
+  function goToday() {
+    const iso = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`
+    onSelect(iso)
+    onClose()
+  }
+
+  const selectedDay = parsed && parsed[0] === viewYear && parsed[1] - 1 === viewMonth ? parsed[2] : null
+  const todayDay = today.getFullYear() === viewYear && today.getMonth() === viewMonth ? today.getDate() : null
+
+  // Build grid: leading empty cells + day numbers
+  const cells: (number | null)[] = [
+    ...Array(firstDow).fill(null),
+    ...Array.from({ length: totalDays }, (_, i) => i + 1),
+  ]
+  // Pad to full rows of 7
+  while (cells.length % 7 !== 0) cells.push(null)
 
   return (
-    <div className="relative">
-      <input
-        type="date"
-        lang={locale}
-        className={
-          `${BASE} pr-9 ` +
-          // Stretch the native calendar-picker-indicator over the entire input
-          // so clicking anywhere opens the picker; then hide it visually.
-          '[&::-webkit-calendar-picker-indicator]:absolute ' +
-          '[&::-webkit-calendar-picker-indicator]:inset-0 ' +
-          '[&::-webkit-calendar-picker-indicator]:w-full ' +
-          '[&::-webkit-calendar-picker-indicator]:h-full ' +
-          '[&::-webkit-calendar-picker-indicator]:opacity-0 ' +
-          '[&::-webkit-calendar-picker-indicator]:cursor-pointer ' +
-          className
-        }
-        style={showCustomDisplay ? { color: 'transparent' } : undefined}
-        value={value}
-        {...props}
-      />
-      {showCustomDisplay && (
-        <div className="pointer-events-none absolute inset-0 flex items-center px-3 pr-9">
-          <span className={`text-sm ${displayValue ? 'text-[#25282A]' : 'text-[#98A2B2]'}`}>
-            {displayValue || 'DD/MMM/YYYY'}
-          </span>
-        </div>
+    <div
+      className="absolute z-50 mt-1 bg-white border border-[#EFF1F5] rounded-2xl shadow-lg p-3 w-64"
+      onMouseDown={(e) => e.preventDefault()} // prevent input blur
+    >
+      {/* Header */}
+      <div className="flex items-center justify-between mb-2">
+        <button type="button" onClick={prevMonth}
+          className="p-1 rounded-lg hover:bg-[#F2F4F5] text-[#25282A]">
+          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+          </svg>
+        </button>
+        <span className="text-sm font-medium text-[#25282A]">
+          {getMonthLabel(viewYear, viewMonth, locale)}
+        </span>
+        <button type="button" onClick={nextMonth}
+          className="p-1 rounded-lg hover:bg-[#F2F4F5] text-[#25282A]">
+          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+          </svg>
+        </button>
+      </div>
+
+      {/* Day headers */}
+      <div className="grid grid-cols-7 mb-1">
+        {dayHeaders.map((d) => (
+          <div key={d} className="text-center text-[10px] font-medium text-[#98A2B2] py-1">{d}</div>
+        ))}
+      </div>
+
+      {/* Day grid */}
+      <div className="grid grid-cols-7">
+        {cells.map((day, idx) => {
+          if (!day) return <div key={idx} />
+          const isSelected = day === selectedDay
+          const isToday = day === todayDay
+          return (
+            <button
+              key={idx}
+              type="button"
+              onClick={() => selectDay(day)}
+              className={`
+                text-xs py-1.5 rounded-lg text-center transition-colors
+                ${isSelected
+                  ? 'bg-[#0669F7] text-white font-semibold'
+                  : isToday
+                  ? 'bg-[#E6F0FE] text-[#0669F7] font-semibold'
+                  : 'text-[#25282A] hover:bg-[#F2F4F5]'}
+              `}
+            >
+              {day}
+            </button>
+          )
+        })}
+      </div>
+
+      {/* Footer */}
+      <div className="flex justify-between mt-2 pt-2 border-t border-[#EFF1F5]">
+        <button type="button" onClick={() => { onClear(); onClose() }}
+          className="text-xs text-[#0669F7] hover:underline px-1">{clearLabel}</button>
+        <button type="button" onClick={goToday}
+          className="text-xs text-[#0669F7] hover:underline px-1">{todayLabel}</button>
+      </div>
+    </div>
+  )
+}
+
+const CLEAR_LABEL: Record<string, string> = { ko: '삭제', vi: 'Xóa', en: 'Clear' }
+const TODAY_LABEL: Record<string, string> = { ko: '오늘', vi: 'Hôm nay', en: 'Today' }
+
+interface GadaDateInputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'type' | 'value' | 'onChange'> {
+  locale?: string
+  value?: string
+  onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void
+}
+
+export function GadaDateInput({ className = '', locale = 'ko', value = '', onChange, required, ...props }: GadaDateInputProps) {
+  const [open, setOpen] = React.useState(false)
+  const containerRef = React.useRef<HTMLDivElement>(null)
+
+  // Close on outside click
+  React.useEffect(() => {
+    function onDown(e: MouseEvent) {
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+        setOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', onDown)
+    return () => document.removeEventListener('mousedown', onDown)
+  }, [])
+
+  function handleSelect(iso: string) {
+    // Synthesize a change event with the ISO value
+    const nativeInput = containerRef.current?.querySelector('input[type="hidden"]') as HTMLInputElement | null
+    if (nativeInput) {
+      Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value')!.set!.call(nativeInput, iso)
+      nativeInput.dispatchEvent(new Event('change', { bubbles: true }))
+    }
+    onChange?.({ target: { value: iso } } as React.ChangeEvent<HTMLInputElement>)
+  }
+
+  function handleClear() {
+    onChange?.({ target: { value: '' } } as React.ChangeEvent<HTMLInputElement>)
+  }
+
+  const displayText = value ? formatDisplayDate(value, locale) : ''
+
+  return (
+    <div className="relative" ref={containerRef}>
+      {/* Hidden native input for form required validation */}
+      <input type="hidden" value={value} {...props} />
+      {required && (
+        <input
+          type="text"
+          required
+          value={value}
+          onChange={() => {}}
+          className="sr-only"
+          tabIndex={-1}
+        />
       )}
+
+      {/* Visible display button */}
+      <button
+        type="button"
+        onClick={() => setOpen(o => !o)}
+        className={`${BASE} pr-9 text-left ${!displayText ? 'text-[#98A2B2]' : ''} ${className}`}
+      >
+        {displayText || (locale === 'ko' ? 'YYYY-MM-DD' : 'DD/MMM/YYYY')}
+      </button>
+
+      {/* Calendar icon */}
       <div className="pointer-events-none absolute inset-y-0 right-3 flex items-center">
         <svg className="w-4 h-4 text-[#98A2B2]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
           <path strokeLinecap="round" strokeLinejoin="round"
             d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
         </svg>
       </div>
+
+      {open && (
+        <GadaCalendar
+          value={value}
+          locale={locale}
+          onSelect={handleSelect}
+          onClear={handleClear}
+          onClose={() => setOpen(false)}
+          clearLabel={CLEAR_LABEL[locale] ?? 'Clear'}
+          todayLabel={TODAY_LABEL[locale] ?? 'Today'}
+        />
+      )}
     </div>
   )
 }
