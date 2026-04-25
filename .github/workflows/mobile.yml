@@ -73,6 +73,34 @@ jobs:
 
           python3 scripts/patch_settings_gradle.py "$RN_PKG" "$GRADLE_PLUGIN_PKG" "$EXPO_PKG" "$CLI_ANDROID_PKG"
 
+      - name: Hoist @react-native packages for Metro resolver
+        working-directory: apps/mobile
+        run: |
+          # Expo CLI resolves @react-native/* via Node's CJS resolution from apps/mobile/.
+          # pnpm doesn't hoist transitive deps to the root node_modules, so they aren't
+          # findable by Node. We find them in the pnpm virtual store and symlink to
+          # the workspace root node_modules/ so Metro bundling can proceed.
+          WORKSPACE_MODULES=$(pwd)/../../node_modules
+          RN_PKG=$(node --print "require.resolve('react-native/package.json')")
+          # Up two levels: react-native/package.json -> react-native/ -> node_modules/ (pnpm virtual)
+          RN_PNPM_MODULES=$(dirname "$(dirname "$RN_PKG")")
+          echo "RN_PNPM_MODULES=$RN_PNPM_MODULES"
+          if [ -d "$RN_PNPM_MODULES/@react-native" ]; then
+            mkdir -p "$WORKSPACE_MODULES/@react-native"
+            for pkg_dir in "$RN_PNPM_MODULES/@react-native"/*/; do
+              pkg_name=$(basename "$pkg_dir")
+              dest="$WORKSPACE_MODULES/@react-native/$pkg_name"
+              if [ ! -e "$dest" ]; then
+                ln -sf "$pkg_dir" "$dest"
+                echo "Symlinked @react-native/$pkg_name"
+              else
+                echo "Already exists: @react-native/$pkg_name"
+              fi
+            done
+          else
+            echo "WARNING: $RN_PNPM_MODULES/@react-native not found"
+          fi
+
       - name: Decode release keystore
         run: |
           echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d \
