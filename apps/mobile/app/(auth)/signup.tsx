@@ -10,6 +10,7 @@ import { useAuthStore } from '../../store/auth.store';
 import { SUPPORTED_LANGUAGES, changeAppLanguage, type LangCode } from '../../lib/i18n';
 import { Colors, Radius, Spacing, Font } from '../../constants/theme';
 import CountryPicker from '../../components/CountryPicker';
+import { logEvent } from '../../lib/crashlytics';
 
 export default function SignupScreen() {
   const { t, i18n } = useTranslation();
@@ -28,12 +29,17 @@ export default function SignupScreen() {
     try {
       const raw = phone.trim();
       const normalized = raw.startsWith('0') ? raw.slice(1) : raw;
-      const confirmation = await signInWithPhoneOtp(`${countryCode}${normalized}`);
+      const fullNumber = `${countryCode}${normalized}`;
+      logEvent(`Auth: signup OTP send attempt — ${fullNumber.replace(/\d(?=\d{4})/g, '*')}`);
+      const confirmation = await signInWithPhoneOtp(fullNumber);
       setPendingName(name.trim());
       setConfirmationResult(confirmation);
       router.push('/(auth)/otp');
-    } catch {
-      Alert.alert(t('common.error'), t('auth.otp_send_fail'));
+    } catch (e) {
+      const code = (e as any)?.code ?? 'unknown';
+      const msg = e instanceof Error ? e.message : String(e);
+      logEvent(`Auth: signup OTP send failed — code=${code} msg=${msg}`);
+      Alert.alert(t('common.error'), `${t('auth.otp_send_fail')}\n(${code})`);
     } finally {
       setLoading(false);
     }

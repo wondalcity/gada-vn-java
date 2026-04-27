@@ -9,7 +9,7 @@ import { signInWithPhoneOtp } from '../../lib/firebase';
 import { useAuthStore } from '../../store/auth.store';
 import { SUPPORTED_LANGUAGES, changeAppLanguage, type LangCode } from '../../lib/i18n';
 import { Colors, Radius, Spacing, Font } from '../../constants/theme';
-import { setCurrentScreen } from '../../lib/crashlytics';
+import { setCurrentScreen, logEvent } from '../../lib/crashlytics';
 import CountryPicker from '../../components/CountryPicker';
 
 export default function PhoneScreen() {
@@ -28,11 +28,16 @@ export default function PhoneScreen() {
     try {
       const raw = phone.trim();
       const normalized = raw.startsWith('0') ? raw.slice(1) : raw;
-      const confirmation = await signInWithPhoneOtp(`${countryCode}${normalized}`);
+      const fullNumber = `${countryCode}${normalized}`;
+      logEvent(`Auth: OTP send attempt — ${fullNumber.replace(/\d(?=\d{4})/g, '*')}`);
+      const confirmation = await signInWithPhoneOtp(fullNumber);
       setConfirmationResult(confirmation);
       router.push('/(auth)/otp');
-    } catch {
-      Alert.alert(t('common.error'), t('auth.otp_send_fail'));
+    } catch (e) {
+      const code = (e as any)?.code ?? 'unknown';
+      const msg = e instanceof Error ? e.message : String(e);
+      logEvent(`Auth: OTP send failed — code=${code} msg=${msg}`);
+      Alert.alert(t('common.error'), `${t('auth.otp_send_fail')}\n(${code})`);
     } finally {
       setLoading(false);
     }
