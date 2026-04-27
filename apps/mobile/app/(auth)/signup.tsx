@@ -9,12 +9,7 @@ import { signInWithPhoneOtp } from '../../lib/firebase';
 import { useAuthStore } from '../../store/auth.store';
 import { SUPPORTED_LANGUAGES, changeAppLanguage, type LangCode } from '../../lib/i18n';
 import { Colors, Radius, Spacing, Font } from '../../constants/theme';
-
-const COUNTRY_CODES = [
-  { code: '+84', flag: '🇻🇳', label: 'VN' },
-  { code: '+82', flag: '🇰🇷', label: 'KR' },
-  { code: '+61', flag: '🇦🇺', label: 'AU' },
-];
+import CountryPicker from '../../components/CountryPicker';
 
 export default function SignupScreen() {
   const { t, i18n } = useTranslation();
@@ -31,7 +26,9 @@ export default function SignupScreen() {
     if (!canSend) return;
     setLoading(true);
     try {
-      const confirmation = await signInWithPhoneOtp(`${countryCode}${phone}`);
+      const raw = phone.trim();
+      const normalized = raw.startsWith('0') ? raw.slice(1) : raw;
+      const confirmation = await signInWithPhoneOtp(`${countryCode}${normalized}`);
       setPendingName(name.trim());
       setConfirmationResult(confirmation);
       router.push('/(auth)/otp');
@@ -98,19 +95,7 @@ export default function SignupScreen() {
 
         {/* Country Code */}
         <View style={styles.fieldGroup}>
-          <View style={styles.phoneRow}>
-            {COUNTRY_CODES.map((c) => (
-              <TouchableOpacity
-                key={c.code}
-                style={[styles.countryBtn, countryCode === c.code && styles.countryBtnActive]}
-                onPress={() => setCountryCode(c.code)}
-              >
-                <Text style={[styles.countryBtnText, countryCode === c.code && styles.countryBtnTextActive]}>
-                  {c.flag} {c.code}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </View>
+          <CountryPicker value={countryCode} onChange={setCountryCode} />
 
           {/* Phone Input */}
           <TextInput
@@ -178,15 +163,6 @@ const styles = StyleSheet.create({
   fieldGroup: { gap: Spacing.xs },
   fieldLabel: { ...Font.body3, fontWeight: '600', color: Colors.onSurface },
   required: { color: '#ED1C24' },
-
-  phoneRow: { flexDirection: 'row', gap: Spacing.sm, marginBottom: 4 },
-  countryBtn: {
-    flex: 1, paddingVertical: Spacing.sm, borderRadius: Radius.sm,
-    borderWidth: 1.5, borderColor: Colors.outline, alignItems: 'center',
-  },
-  countryBtnActive: { borderColor: Colors.primary, backgroundColor: Colors.primaryContainer },
-  countryBtnText: { ...Font.body3, color: Colors.onSurfaceVariant, fontWeight: '500' },
-  countryBtnTextActive: { color: Colors.primary, fontWeight: '700' },
 
   input: {
     borderWidth: 1.5, borderColor: Colors.outline, borderRadius: Radius.md,
