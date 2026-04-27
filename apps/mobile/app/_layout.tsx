@@ -57,37 +57,35 @@ export default function RootLayout() {
             setUser(user.id, role as 'WORKER' | 'MANAGER', user.isManager ?? false);
             await setAuthUser(user.id, role as 'WORKER' | 'MANAGER');
 
-            // OTP 확인 후 명시적 라우팅 (첫 번째 체크는 index.tsx가 처리)
+            // 앱 시작 시 첫 번째 인증 상태 확인 — index.tsx가 라우팅 처리
+            // OTP/Google/Facebook 로그인 후 라우팅은 각 화면에서 직접 처리하므로
+            // 여기서는 최초 앱 로드(isFirstCheck)에만 상태를 갱신하고 라우팅은 index.tsx에 위임
+            // 단, Google/소셜 로그인처럼 otp.tsx를 거치지 않는 경우를 위해 비첫번째 체크에서도 라우팅
             if (!isFirstCheck) {
-              if (result.isNew) {
-                logEvent('Auth: new user registration');
-                // 신규 가입: 회원가입 화면에서 입력한 이름이 있으면 저장
-                const { pendingName } = useAuthStore.getState();
-                if (pendingName) {
-                  try {
-                    await api.post('/auth/register', { name: pendingName });
-                  } catch { /* 이름 저장 실패는 무시 — 프로필에서 나중에 설정 가능 */ }
-                  useAuthStore.getState().clearPendingName();
-                }
-                router.replace('/(worker)');
-              } else if (role === 'MANAGER') {
-                logEvent('Auth: existing MANAGER navigating to manager home');
+              if (role === 'MANAGER') {
+                logEvent('Auth: session restored — MANAGER navigating to manager home');
                 router.replace('/(manager)');
               } else {
-                logEvent('Auth: existing WORKER navigating to worker home');
+                logEvent('Auth: session restored — WORKER navigating to worker home');
                 router.replace('/(worker)');
               }
             }
           } else {
+            // Only clear session if no other flow (e.g. otp.tsx) has authenticated first
+            if (!useAuthStore.getState().isAuthenticated) {
+              await clearAuthUser();
+              clearUser();
+              if (!isFirstCheck) router.replace('/(auth)/phone');
+            }
+          }
+        } catch (e) {
+          logEvent(`Auth: syncAuthToken failed — ${e instanceof Error ? e.message : String(e)}`);
+          // Only clear session if no other flow has authenticated first
+          if (!useAuthStore.getState().isAuthenticated) {
             await clearAuthUser();
             clearUser();
             if (!isFirstCheck) router.replace('/(auth)/phone');
           }
-        } catch (e) {
-          logEvent(`Auth: syncAuthToken failed — ${e instanceof Error ? e.message : String(e)}`);
-          await clearAuthUser();
-          clearUser();
-          if (!isFirstCheck) router.replace('/(auth)/phone');
         }
       } else {
         logEvent('Auth: no Firebase user (signed out)');

@@ -3,14 +3,18 @@ import {
   View, Text, TextInput, TouchableOpacity,
   StyleSheet, Alert,
 } from 'react-native';
+import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useAuthStore } from '../../store/auth.store';
+import { syncAuthToken } from '../../lib/firebase';
+import { api } from '../../lib/api-client';
 import { Colors, Radius, Spacing, Font } from '../../constants/theme';
 import { setCurrentScreen, logEvent } from '../../lib/crashlytics';
 
 export default function OtpScreen() {
   const { t } = useTranslation();
-  const { confirmationResult, setConfirmationResult } = useAuthStore();
+  const router = useRouter();
+  const { confirmationResult, setConfirmationResult, setUser } = useAuthStore();
   const [otp, setOtp] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -23,9 +27,29 @@ export default function OtpScreen() {
       await confirmationResult.confirm(otp);
       setConfirmationResult(null);
       logEvent('Auth: OTP verification succeeded');
-      // Auth state listener in _layout.tsx handles routing after Firebase confirms
+
+      // Verify access token and navigate to main screen
+      const result = await syncAuthToken();
+      if (!result) throw new Error('token_sync_failed');
+
+      const user = result.user as { id: string; isManager?: boolean };
+      const role: 'WORKER' | 'MANAGER' = user.isManager ? 'MANAGER' : 'WORKER';
+      setUser(user.id, role, user.isManager ?? false);
+
+      if (result.isNew) {
+        logEvent('Auth: new user — applying pending name if any');
+        const { pendingName } = useAuthStore.getState();
+        if (pendingName) {
+          try { await api.post('/auth/register', { name: pendingName }); } catch {}
+          useAuthStore.getState().clearPendingName();
+        }
+      }
+
+      logEvent(`Auth: OTP login complete — role=${role} isNew=${result.isNew}`);
+      router.replace(role === 'MANAGER' ? '/(manager)' : '/(worker)');
     } catch (e) {
-      logEvent(`Auth: OTP verification failed — ${e instanceof Error ? e.message : String(e)}`);
+      const msg = e instanceof Error ? e.message : String(e);
+      logEvent(`Auth: OTP verification failed — ${msg}`);
       Alert.alert(t('common.error'), t('auth.otp_error'));
     } finally {
       setLoading(false);
