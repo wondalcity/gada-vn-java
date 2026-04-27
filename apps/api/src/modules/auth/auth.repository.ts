@@ -32,13 +32,27 @@ export class AuthRepository {
     role: string;
     provider?: string;
   }) {
-    const { rows } = await this.db.query<UserRow>(
-      `INSERT INTO auth.users (firebase_uid, phone, email, role, provider)
-       VALUES ($1, $2, $3, $4, $5)
-       RETURNING *`,
-      [data.firebaseUid, data.phone, data.email, data.role, data.provider ?? 'phone'],
-    );
-    return rows[0];
+    try {
+      const { rows } = await this.db.query<UserRow>(
+        `INSERT INTO auth.users (firebase_uid, phone, email, role, provider)
+         VALUES ($1, $2, $3, $4, $5)
+         RETURNING *`,
+        [data.firebaseUid, data.phone, data.email, data.role, data.provider ?? 'phone'],
+      );
+      return rows[0];
+    } catch (err: unknown) {
+      // 42703 = undefined_column: migration 027 미적용 시 provider 컬럼 없음 — 폴백
+      if ((err as { code?: string })?.code === '42703') {
+        const { rows } = await this.db.query<UserRow>(
+          `INSERT INTO auth.users (firebase_uid, phone, email, role)
+           VALUES ($1, $2, $3, $4)
+           RETURNING *`,
+          [data.firebaseUid, data.phone, data.email, data.role],
+        );
+        return rows[0];
+      }
+      throw err;
+    }
   }
 
   async updateFirebaseUid(userId: string, firebaseUid: string) {

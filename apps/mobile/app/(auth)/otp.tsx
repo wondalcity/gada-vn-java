@@ -23,12 +23,23 @@ export default function OtpScreen() {
   async function handleVerify() {
     if (otp.length < 6 || !confirmationResult) return;
     setLoading(true);
+
+    // Step 1: Firebase OTP 확인
     try {
       await confirmationResult.confirm(otp);
-      setConfirmationResult(null);
-      logEvent('Auth: OTP verification succeeded');
+    } catch (e) {
+      const code = (e as { code?: string })?.code ?? 'unknown';
+      const msg = e instanceof Error ? e.message : String(e);
+      logEvent(`Auth: OTP confirm failed — code=${code} msg=${msg}`);
+      Alert.alert(t('common.error'), `${t('auth.otp_error')}\n(${code})`);
+      setLoading(false);
+      return;
+    }
 
-      // Verify access token and navigate to main screen
+    // Step 2: Firebase OTP 확인 성공 — 토큰 동기화 및 홈 화면 진입
+    setConfirmationResult(null);
+    logEvent('Auth: OTP verification succeeded');
+    try {
       const result = await syncAuthToken();
       if (!result) throw new Error('token_sync_failed');
 
@@ -49,8 +60,8 @@ export default function OtpScreen() {
       router.replace(role === 'MANAGER' ? '/(manager)' : '/(worker)');
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
-      logEvent(`Auth: OTP verification failed — ${msg}`);
-      Alert.alert(t('common.error'), t('auth.otp_error'));
+      logEvent(`Auth: token sync failed after OTP — ${msg}`);
+      Alert.alert(t('common.error'), t('common.process_fail'));
     } finally {
       setLoading(false);
     }
