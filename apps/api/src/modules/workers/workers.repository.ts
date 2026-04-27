@@ -122,17 +122,21 @@ export class WorkersRepository {
 
     if (rows[0]) return rows[0];
 
-    // Profile doesn't exist yet — create a minimal one
-    const { rows: inserted } = await this.db.query(
+    // Profile doesn't exist yet — create minimal row then apply all SET clauses
+    await this.db.query(
       `INSERT INTO app.worker_profiles (user_id, full_name, date_of_birth, experience_months)
-       VALUES ($1, $2, COALESCE($3, '1990-01-01'::date), COALESCE($4, 0))
-       ON CONFLICT (user_id) DO UPDATE
-         SET full_name = EXCLUDED.full_name,
-             updated_at = NOW()
-       RETURNING *`,
-      [userId, data.fullName ?? '', data.dateOfBirth ?? null, data.experienceMonths ?? 0],
+       VALUES ($1, '', '1990-01-01'::date, 0)
+       ON CONFLICT (user_id) DO NOTHING`,
+      [userId],
     );
-    return inserted[0];
+    const { rows: updated } = await this.db.query(
+      `UPDATE app.worker_profiles
+       SET ${setClauses.join(', ')}
+       WHERE user_id = $1
+       RETURNING *`,
+      params,
+    );
+    return updated[0] ?? null;
   }
 
   // ── Trade skills ─────────────────────────────────────────────────────────

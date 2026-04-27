@@ -76,21 +76,26 @@ services:
     depends_on:
       - api
 
-  # PHP Admin
+  # Spring Boot Admin (Kotlin + embedded React SPA)
   admin:
     build:
       context: ./apps/admin
       dockerfile: Dockerfile
     container_name: gada-vn-admin
     environment:
-      APP_ENV: development
+      PORT: 8080
+      DATABASE_URL: jdbc:postgresql://postgres:5432/gada_vn
+      DATABASE_USER: gadaadmin
+      DATABASE_PASSWORD: localpassword
       API_BASE_URL: http://api:3001/v1
+      ADMIN_SERVICE_KEY: local-dev-admin-service-key-000000000000
     ports:
-      - "8080:80"
-    volumes:
-      - ./apps/admin:/app
+      - "8080:8080"
     depends_on:
-      - api
+      postgres:
+        condition: service_healthy
+      api:
+        condition: service_started
 
 volumes:
   postgres_data:
