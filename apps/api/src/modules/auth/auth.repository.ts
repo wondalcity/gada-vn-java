@@ -8,6 +8,7 @@ export interface UserRow {
   email: string | null;
   role: string;
   status: string;
+  provider: string;
   created_at: Date;
   updated_at: Date;
 }
@@ -29,12 +30,13 @@ export class AuthRepository {
     phone: string | null;
     email: string | null;
     role: string;
+    provider?: string;
   }) {
     const { rows } = await this.db.query<UserRow>(
-      `INSERT INTO auth.users (firebase_uid, phone, email, role)
-       VALUES ($1, $2, $3, $4)
+      `INSERT INTO auth.users (firebase_uid, phone, email, role, provider)
+       VALUES ($1, $2, $3, $4, $5)
        RETURNING *`,
-      [data.firebaseUid, data.phone, data.email, data.role],
+      [data.firebaseUid, data.phone, data.email, data.role, data.provider ?? 'phone'],
     );
     return rows[0];
   }
@@ -163,12 +165,13 @@ export class AuthRepository {
   }
 
   /** Ensure a minimal worker_profiles row exists for new WORKER users. */
-  async ensureWorkerProfile(userId: string, phone: string | null): Promise<void> {
+  async ensureWorkerProfile(userId: string, phone: string | null, fullName?: string | null): Promise<void> {
+    const name = fullName || phone || '';
     await this.db.query(
       `INSERT INTO app.worker_profiles (user_id, full_name)
        VALUES ($1, $2)
        ON CONFLICT (user_id) DO NOTHING`,
-      [userId, phone ?? ''],
+      [userId, name],
     );
   }
 }

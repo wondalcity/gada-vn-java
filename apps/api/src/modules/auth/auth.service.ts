@@ -65,14 +65,23 @@ export class AuthService {
     }
 
     // 3. Create new user
+    const providerMap: Record<string, string> = {
+      'google.com': 'google',
+      'facebook.com': 'facebook',
+      'phone': 'phone',
+      'password': 'email',
+    };
+    const provider = providerMap[decoded.firebase?.sign_in_provider ?? 'phone'] ?? 'phone';
+
     try {
       const user = await this.repo.create({
         firebaseUid: decoded.uid,
         phone: decoded.phone_number || null,
         email: decoded.email || null,
         role: 'WORKER',
+        provider,
       });
-      await this.repo.ensureWorkerProfile(user.id, decoded.phone_number || null);
+      await this.repo.ensureWorkerProfile(user.id, decoded.phone_number || null, decoded.name || null);
       const profile = await this.repo.getMeProfile(user.id);
       return { user: profile, isNew: true };
     } catch (err: unknown) {
@@ -249,8 +258,9 @@ export class AuthService {
         phone: decoded.phone_number || null,
         email: decoded.email || null,
         role: 'WORKER',
+        provider: 'facebook',
       });
-      await this.repo.ensureWorkerProfile(dbUser.id, decoded.phone_number || null);
+      await this.repo.ensureWorkerProfile(dbUser.id, decoded.phone_number || null, decoded.name || null);
       isNewUser = true;
     }
 

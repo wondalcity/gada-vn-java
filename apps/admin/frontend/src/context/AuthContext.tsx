@@ -50,7 +50,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => { reload() }, [reload])
 
   const can = useCallback(
-    (key: keyof AdminPermissions) => user?.permissions?.[key] ?? false,
+    (key: keyof AdminPermissions) => {
+      if (!user) return false
+      // SUPER_ADMIN always has full access regardless of stored permissions
+      if (user.role === 'SUPER_ADMIN') return true
+      return user.permissions?.[key] ?? false
+    },
     [user],
   )
 

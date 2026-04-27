@@ -5,7 +5,7 @@ import {
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
-import { signInWithPhoneOtp } from '../../lib/firebase';
+import { signInWithPhoneOtp, signInWithGoogle } from '../../lib/firebase';
 import { useAuthStore } from '../../store/auth.store';
 import { SUPPORTED_LANGUAGES, changeAppLanguage, type LangCode } from '../../lib/i18n';
 import { Colors, Radius, Spacing, Font } from '../../constants/theme';
@@ -19,6 +19,7 @@ export default function PhoneScreen() {
   const [countryCode, setCountryCode] = useState('+84');
   const [phone, setPhone] = useState('');
   const [loading, setLoading] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
 
   useEffect(() => { setCurrentScreen('auth/phone'); }, []);
 
@@ -40,6 +41,21 @@ export default function PhoneScreen() {
       Alert.alert(t('common.error'), `${t('auth.otp_send_fail')}\n(${code})`);
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function handleGoogleSignIn() {
+    setGoogleLoading(true);
+    try {
+      logEvent('Auth: Google sign-in attempt');
+      await signInWithGoogle();
+      // Auth state listener in _layout.tsx handles routing
+    } catch (e) {
+      const code = (e as any)?.code ?? 'unknown';
+      logEvent(`Auth: Google sign-in failed — code=${code}`);
+      Alert.alert(t('common.error'), t('auth.otp_send_fail'));
+    } finally {
+      setGoogleLoading(false);
     }
   }
 
@@ -102,6 +118,25 @@ export default function PhoneScreen() {
           </Text>
         </TouchableOpacity>
 
+        {/* Divider */}
+        <View style={styles.dividerRow}>
+          <View style={styles.dividerLine} />
+          <Text style={styles.dividerText}>{t('auth.or_social')}</Text>
+          <View style={styles.dividerLine} />
+        </View>
+
+        {/* Google Sign-In */}
+        <TouchableOpacity
+          style={[styles.googleBtn, googleLoading && styles.buttonDisabled]}
+          onPress={handleGoogleSignIn}
+          disabled={googleLoading || loading}
+          activeOpacity={0.85}
+        >
+          <Text style={styles.googleBtnText}>
+            {googleLoading ? t('common.loading') : `G  ${t('auth.google_login')}`}
+          </Text>
+        </TouchableOpacity>
+
         {/* Signup Link */}
         <View style={styles.signupRow}>
           <Text style={styles.signupHint}>{t('auth.no_account')}</Text>
@@ -147,6 +182,16 @@ const styles = StyleSheet.create({
   },
   buttonDisabled: { opacity: 0.5 },
   buttonText: { color: Colors.onPrimary, ...Font.t3 },
+
+  dividerRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.sm },
+  dividerLine: { flex: 1, height: 1, backgroundColor: Colors.outline },
+  dividerText: { ...Font.caption, color: Colors.onSurfaceVariant },
+
+  googleBtn: {
+    borderWidth: 1.5, borderColor: Colors.outline, borderRadius: Radius.pill,
+    paddingVertical: 14, alignItems: 'center', backgroundColor: Colors.surface,
+  },
+  googleBtnText: { ...Font.t4, color: Colors.onSurface, fontWeight: '600' },
 
   signupRow: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: 4, marginTop: Spacing.sm },
   signupHint: { ...Font.body3, color: Colors.onSurfaceVariant },

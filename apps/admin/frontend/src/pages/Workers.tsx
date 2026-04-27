@@ -22,6 +22,8 @@ interface Worker {
   id: string
   full_name: string
   phone?: string
+  email?: string
+  provider?: string
   current_province?: string
   id_verified: boolean
   created_at: string
@@ -225,7 +227,7 @@ export default function Workers() {
             <table className="w-full min-w-[700px]">
               <thead className="bg-[#F2F4F5]">
                 <tr>
-                  {[t('workers.col_name'), t('workers.col_phone'), t('workers.col_region'), t('workers.col_id_verified'), t('workers.col_role'), t('workers.col_joined'), ''].map((h) => (
+                  {[t('workers.col_name'), t('workers.col_phone'), t('workers.col_region'), t('workers.col_id_verified'), t('workers.col_role'), t('workers.col_signup_type'), t('workers.col_joined'), ''].map((h) => (
                     <th key={h} className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase whitespace-nowrap">{h}</th>
                   ))}
                 </tr>
@@ -246,6 +248,20 @@ export default function Workers() {
                         <span className="px-2 py-1 text-xs rounded-full bg-[#FDBC08]/20 text-yellow-700 font-medium">{t('workers.role_manager')}</span>
                       ) : (
                         <span className="px-2 py-1 text-xs rounded-full bg-[#EFF1F5] text-[#98A2B2]">{t('workers.role_worker')}</span>
+                      )}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      {w.provider === 'google' && (
+                        <span className="px-2 py-1 text-xs rounded-full bg-blue-100 text-blue-700 font-medium">{t('workers.signup_google')}</span>
+                      )}
+                      {w.provider === 'facebook' && (
+                        <span className="px-2 py-1 text-xs rounded-full bg-indigo-100 text-indigo-700 font-medium">{t('workers.signup_facebook')}</span>
+                      )}
+                      {w.provider === 'email' && (
+                        <span className="px-2 py-1 text-xs rounded-full bg-purple-100 text-purple-700 font-medium">{t('workers.signup_email')}</span>
+                      )}
+                      {(!w.provider || w.provider === 'phone') && (
+                        <span className="px-2 py-1 text-xs rounded-full bg-[#EFF1F5] text-[#98A2B2]">{t('workers.signup_phone')}</span>
                       )}
                     </td>
                     <td className="px-6 py-4 text-sm text-gray-400 whitespace-nowrap">{fmtDateTime(w.created_at)}</td>

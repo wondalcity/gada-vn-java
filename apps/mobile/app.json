@@ -29,7 +29,7 @@
         "backgroundColor": "#FFFFFF"
       },
       "package": "com.wondalcity.gadavn",
-      "versionCode": 21,
+      "versionCode": 22,
       "config": {
         "googleMaps": {
           "apiKey": "AIzaSyAhnj-RPawHuFzcbBqvQZU70bsesXXNDm0"
@@ -63,7 +63,8 @@
       "@react-native-firebase/app",
       "@react-native-firebase/auth",
       "@react-native-firebase/crashlytics",
-      "@react-native-firebase/messaging"
+      "@react-native-firebase/messaging",
+      "@react-native-google-signin/google-signin"
     ],
     "scheme": "gadavn",
     "extra": {

@@ -70,6 +70,8 @@ const ko = {
     name_placeholder: '이름을 입력하세요 (2자 이상)',
     role_label: '역할 선택',
     select_country: '국가 선택',
+    or_social: '또는',
+    google_login: '구글로 로그인',
   },
   jobs: {
     apply_button: '지원하기',
@@ -459,6 +461,8 @@ const vi = {
     name_placeholder: 'Nhập họ tên (ít nhất 2 ký tự)',
     role_label: 'Chọn vai trò',
     select_country: 'Chọn quốc gia',
+    or_social: 'Hoặc',
+    google_login: 'Đăng nhập bằng Google',
   },
   jobs: {
     apply_button: 'Ứng tuyển',
@@ -848,6 +852,8 @@ const en = {
     name_placeholder: 'Enter your name (min. 2 characters)',
     role_label: 'Select role',
     select_country: 'Select country',
+    or_social: 'Or',
+    google_login: 'Sign in with Google',
   },
   jobs: {
     apply_button: 'Apply',

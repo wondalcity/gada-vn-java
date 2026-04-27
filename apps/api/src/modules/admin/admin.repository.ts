@@ -18,12 +18,13 @@ export class AdminRepository {
     const { rows } = await this.db.query(
       `SELECT
          wp.id, wp.full_name, wp.current_province, wp.id_verified, wp.created_at,
-         u.phone, u.role
+         u.phone, u.email, u.role, u.provider
        FROM app.worker_profiles wp
        JOIN auth.users u ON wp.user_id = u.id
        WHERE (
          wp.full_name ILIKE $1
          OR u.phone ILIKE $1
+         OR u.email ILIKE $1
        )
        ORDER BY wp.created_at DESC
        LIMIT $2`,
@@ -33,10 +34,12 @@ export class AdminRepository {
       id: r.id,
       full_name: r.full_name,
       phone: r.phone,
+      email: r.email,
       current_province: r.current_province,
       id_verified: r.id_verified,
       created_at: r.created_at,
       is_manager: r.role === 'MANAGER',
+      provider: r.provider ?? 'phone',
     }));
   }
 
@@ -46,7 +49,7 @@ export class AdminRepository {
       `SELECT COUNT(*) as count
        FROM app.worker_profiles wp
        JOIN auth.users u ON wp.user_id = u.id
-       WHERE wp.full_name ILIKE $1 OR u.phone ILIKE $1`,
+       WHERE wp.full_name ILIKE $1 OR u.phone ILIKE $1 OR u.email ILIKE $1`,
       [param],
     );
     return parseInt(rows[0]?.count ?? '0');
