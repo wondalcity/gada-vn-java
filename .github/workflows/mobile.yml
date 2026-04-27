@@ -101,7 +101,10 @@ jobs:
         run: |
           NOTES="${{ github.event.inputs.release_notes }}"
           if [ -z "$NOTES" ]; then
-            NOTES="Branch: ${{ github.ref_name }} | SHA: ${GITHUB_SHA::8}"
+            VERSION_CODE=$(node -e "console.log(require('./apps/mobile/app.json').expo.android.versionCode)")
+            COMMITS=$(git log --pretty=format:"- %s" -5)
+            NOTES=$(printf '[versionCode %s] %s @ %s\n\n%s' \
+              "$VERSION_CODE" "${{ github.ref_name }}" "${GITHUB_SHA::8}" "$COMMITS")
           fi
           npx --yes firebase-tools appdistribution:distribute \
             apps/mobile/android/app/build/outputs/apk/release/app-release.apk \
