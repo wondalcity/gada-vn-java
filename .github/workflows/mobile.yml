@@ -76,13 +76,19 @@ jobs:
 
           python3 scripts/patch_settings_gradle.py "$RN_PKG" "$GRADLE_PLUGIN_PKG" "$EXPO_PKG" "$CLI_ANDROID_PKG"
 
-      - name: Patch AndroidManifest (fix FCM notification color merge conflict)
+      - name: Patch AndroidManifest (FCM color + cleartext HTTP)
         run: |
-          # expo-notifications adds default_notification_color without tools:replace,
-          # causing a manifest merger conflict with react-native-firebase/messaging.
           MANIFEST=apps/mobile/android/app/src/main/AndroidManifest.xml
+
+          # 1) expo-notifications adds default_notification_color without tools:replace,
+          #    causing a manifest merger conflict with react-native-firebase/messaging.
           sed -i 's|\(messaging\.default_notification_color"[^>]*\)\/>|\1 tools:replace="android:resource"/>|' "$MANIFEST"
-          echo "After patch:"; grep "default_notification_color" "$MANIFEST"
+          echo "FCM patch:"; grep "default_notification_color" "$MANIFEST"
+
+          # 2) Android 9+ blocks plain HTTP by default. The staging API runs on HTTP,
+          #    so we must explicitly allow cleartext traffic in the release build.
+          sed -i 's|<application android:name=".MainApplication"|<application android:name=".MainApplication" android:usesCleartextTraffic="true"|' "$MANIFEST"
+          echo "Cleartext patch:"; grep "usesCleartextTraffic" "$MANIFEST"
 
       - name: Decode release keystore
         run: |
