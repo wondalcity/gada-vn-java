@@ -24,10 +24,11 @@ config.resolver.nodeModulesPaths = [
 // resolveRequest fires at the lowest resolution level, before any other mechanism
 // (extraNodeModules, package exports, hierarchical lookup), guaranteeing
 // every require('react') in the entire bundle resolves to the same file.
+// react-dom is not installed in React Native projects; omit it to avoid
+// require.resolve() throwing at metro.config.js load time on the build server.
 const REACT_SINGLETONS = {
   react: require.resolve('react'),
   'react-native': require.resolve('react-native'),
-  'react-dom': require.resolve('react-dom'),
 };
 
 config.resolver.resolveRequest = (context, moduleName, platform) => {
@@ -41,7 +42,6 @@ config.resolver.resolveRequest = (context, moduleName, platform) => {
 config.resolver.extraNodeModules = {
   react: path.resolve(projectRoot, 'node_modules/react'),
   'react-native': path.resolve(projectRoot, 'node_modules/react-native'),
-  'react-dom': path.resolve(projectRoot, 'node_modules/react-dom'),
 };
 
 // Prevent "Cannot read property 'useMemo' of null" in Hermes production builds.
