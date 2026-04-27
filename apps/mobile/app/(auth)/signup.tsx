@@ -55,10 +55,10 @@ export default function SignupScreen() {
 
       router.push('/(auth)/otp');
     } catch (e) {
-      const code = (e as any)?.code ?? 'unknown';
+      const code = (e as any)?.code ?? (e as any)?.statusCode ?? 'unknown';
       const msg = e instanceof Error ? e.message : String(e);
       logEvent(`Auth: signup OTP send failed — code=${code} msg=${msg}`);
-      Alert.alert(t('common.error'), `${t('auth.otp_send_fail')}\n(${code})`);
+      Alert.alert(t('common.error'), `${t('auth.otp_send_fail')}\n${msg || code}`);
     } finally {
       setLoading(false);
     }

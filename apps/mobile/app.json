@@ -29,7 +29,8 @@
         "backgroundColor": "#FFFFFF"
       },
       "package": "com.wondalcity.gadavn",
-      "versionCode": 30,
+      "versionCode": 31,
+      "usesCleartextTraffic": true,
       "config": {
         "googleMaps": {
           "apiKey": "AIzaSyAhnj-RPawHuFzcbBqvQZU70bsesXXNDm0"
