@@ -16,38 +16,32 @@ import { setCurrentScreen, logEvent } from '../../lib/crashlytics';
 export default function OtpScreen() {
   const { t } = useTranslation();
   const router = useRouter();
-  const { pendingPhone, devOtp, clearPendingPhone, setDevOtp, setUser } = useAuthStore();
+  const {
+    pendingPhone, confirmationResult,
+    devOtp, clearPendingPhone, setConfirmationResult, setDevOtp, setUser,
+  } = useAuthStore();
   const [otp, setOtp] = useState('');
   const [loading, setLoading] = useState(false);
 
   useEffect(() => { setCurrentScreen('auth/otp'); }, []);
 
-  // 스테이징: devOtp가 있으면 자동 입력
+  // 스테이징 devOtp 자동 입력
   useEffect(() => {
     if (devOtp) setOtp(devOtp);
   }, [devOtp]);
 
   async function handleVerify() {
-    if (otp.length < 6 || !pendingPhone) return;
+    if (otp.length < 6) return;
     setLoading(true);
 
     try {
-      // 서버 OTP 검증 — 웹앱과 동일한 /auth/otp/verify 엔드포인트 사용
-      // (Firebase Phone Auth 대신 서버 검증을 사용해 SHA-1 불필요)
-      const result = await api.post<{
-        customToken?: string;
-        devToken?: string;
-        isNewUser?: boolean;
-      }>('/auth/otp/verify', { phone: pendingPhone, otp });
+      if (confirmationResult) {
+        // ── Firebase Phone Auth flow (프로덕션 일반 폰) ──────────────────────
+        // 웹앱의 confirmFirebaseOtp → /auth/verify-token 흐름과 동일
+        await confirmationResult.confirm(otp);
+        setConfirmationResult(null);
+        logEvent('Auth: Firebase OTP confirmed');
 
-      clearPendingPhone();
-      setDevOtp(null);
-      logEvent('Auth: OTP verification succeeded');
-
-      if (result.customToken) {
-        // 프로덕션: Firebase Custom Token으로 로그인 후 ID 토큰 동기화
-        // 웹앱의 signInWithCustomTokenAndGetIdToken과 동일한 흐름
-        await auth().signInWithCustomToken(result.customToken);
         const syncResult = await syncAuthToken();
         if (!syncResult) throw new Error('token_sync_failed');
 
@@ -63,37 +57,81 @@ export default function OtpScreen() {
           }
         }
 
-        logEvent(`Auth: OTP login complete (customToken) — role=${role} isNew=${syncResult.isNew}`);
+        logEvent(`Auth: Firebase login complete — role=${role} isNew=${syncResult.isNew}`);
         router.replace(role === 'MANAGER' ? '/(manager)/home' : '/(worker)');
 
-      } else if (result.devToken) {
-        // 스테이징: devToken을 직접 저장 후 /auth/me로 프로필 조회
-        // 웹앱의 setSessionCookie(devToken) 패턴과 동일
-        await SecureStore.setItemAsync('auth_token', result.devToken);
-        const profile = await api.get<{ id: string; isManager?: boolean } | null>('/auth/me');
-        if (!profile) throw new Error('profile_load_failed');
+      } else if (pendingPhone) {
+        // ── 서버 OTP flow (스테이징 전체 / 프로덕션 테스트폰) ─────────────────
+        // 웹앱의 /auth/otp/verify → devToken or customToken 흐름과 동일
+        const result = await api.post<{
+          customToken?: string;
+          devToken?: string;
+          isNewUser?: boolean;
+        }>('/auth/otp/verify', { phone: pendingPhone, otp });
 
-        const role: 'WORKER' | 'MANAGER' = profile.isManager ? 'MANAGER' : 'WORKER';
-        setUser(profile.id, role, profile.isManager ?? false);
+        clearPendingPhone();
+        setDevOtp(null);
+        logEvent('Auth: server OTP verified');
 
-        if (result.isNewUser) {
-          const { pendingName } = useAuthStore.getState();
-          if (pendingName) {
-            try { await api.post('/auth/register', { name: pendingName }); } catch {}
-            useAuthStore.getState().clearPendingName();
+        if (result.customToken) {
+          // customToken → Firebase 로그인 → ID 토큰 동기화
+          await auth().signInWithCustomToken(result.customToken);
+          const syncResult = await syncAuthToken();
+          if (!syncResult) throw new Error('token_sync_failed');
+
+          const user = syncResult.user as { id: string; isManager?: boolean };
+          const role: 'WORKER' | 'MANAGER' = user.isManager ? 'MANAGER' : 'WORKER';
+          setUser(user.id, role, user.isManager ?? false);
+
+          if (syncResult.isNew) {
+            const { pendingName } = useAuthStore.getState();
+            if (pendingName) {
+              try { await api.post('/auth/register', { name: pendingName }); } catch {}
+              useAuthStore.getState().clearPendingName();
+            }
           }
+
+          logEvent(`Auth: server OTP login (customToken) — role=${role} isNew=${syncResult.isNew}`);
+          router.replace(role === 'MANAGER' ? '/(manager)/home' : '/(worker)');
+
+        } else if (result.devToken) {
+          // devToken → SecureStore 저장 → /auth/me
+          await SecureStore.setItemAsync('auth_token', result.devToken);
+          const profile = await api.get<{ id: string; isManager?: boolean } | null>('/auth/me');
+          if (!profile) throw new Error('profile_load_failed');
+
+          const role: 'WORKER' | 'MANAGER' = profile.isManager ? 'MANAGER' : 'WORKER';
+          setUser(profile.id, role, profile.isManager ?? false);
+
+          if (result.isNewUser) {
+            const { pendingName } = useAuthStore.getState();
+            if (pendingName) {
+              try { await api.post('/auth/register', { name: pendingName }); } catch {}
+              useAuthStore.getState().clearPendingName();
+            }
+          }
+
+          logEvent(`Auth: server OTP login (devToken) — role=${role} isNew=${result.isNewUser}`);
+          router.replace(role === 'MANAGER' ? '/(manager)/home' : '/(worker)');
+
+        } else {
+          throw new Error('no_token_in_response');
         }
-
-        logEvent(`Auth: OTP login complete (devToken) — role=${role} isNew=${result.isNewUser}`);
-        router.replace(role === 'MANAGER' ? '/(manager)/home' : '/(worker)');
-
       } else {
-        throw new Error('no_token_in_response');
+        throw new Error('no_pending_auth');
       }
     } catch (e) {
+      const code = (e as any)?.code ?? '';
       const msg = e instanceof Error ? e.message : String(e);
-      logEvent(`Auth: OTP verification failed — ${msg}`);
-      Alert.alert(t('common.error'), t('common.process_fail'));
+      logEvent(`Auth: OTP verification failed — code=${code} msg=${msg}`);
+      // Firebase 오류 코드 → 사용자 메시지 매핑
+      if (code === 'auth/invalid-verification-code' || code === 'auth/invalid-credential') {
+        Alert.alert(t('common.error'), t('auth.otp_error'));
+      } else if (code === 'auth/code-expired' || code === 'auth/session-expired') {
+        Alert.alert(t('common.error'), t('auth.otp_expired') ?? t('auth.otp_error'));
+      } else {
+        Alert.alert(t('common.error'), t('common.process_fail'));
+      }
     } finally {
       setLoading(false);
     }

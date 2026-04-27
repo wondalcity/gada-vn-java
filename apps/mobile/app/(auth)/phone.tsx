@@ -5,7 +5,7 @@ import {
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
-import { signInWithGoogle } from '../../lib/firebase';
+import { signInWithPhoneOtp, signInWithGoogle } from '../../lib/firebase';
 import { api } from '../../lib/api-client';
 import { useAuthStore } from '../../store/auth.store';
 import { SUPPORTED_LANGUAGES, changeAppLanguage, type LangCode } from '../../lib/i18n';
@@ -13,10 +13,13 @@ import { Colors, Radius, Spacing, Font } from '../../constants/theme';
 import { setCurrentScreen, logEvent } from '../../lib/crashlytics';
 import CountryPicker from '../../components/CountryPicker';
 
+// 프로덕션 빌드 여부 — EXPO_PUBLIC_APP_ENV=production 일 때만 Firebase SMS 사용
+const IS_PRODUCTION = process.env.EXPO_PUBLIC_APP_ENV === 'production';
+
 export default function PhoneScreen() {
   const { t, i18n } = useTranslation();
   const router = useRouter();
-  const { setPendingPhone, setDevOtp } = useAuthStore();
+  const { setPendingPhone, setDevOtp, setConfirmationResult } = useAuthStore();
   const [countryCode, setCountryCode] = useState('+84');
   const [phone, setPhone] = useState('');
   const [loading, setLoading] = useState(false);
@@ -32,11 +35,34 @@ export default function PhoneScreen() {
       const normalized = raw.startsWith('0') ? raw.slice(1) : raw;
       const fullNumber = `${countryCode}${normalized}`;
       logEvent(`Auth: OTP send attempt — ${fullNumber.replace(/\d(?=\d{4})/g, '*')}`);
-      const resp = await api.post<{ message?: string; devOtp?: string; isTest?: boolean }>(
-        '/auth/otp/send', { phone: fullNumber },
-      );
-      setPendingPhone(fullNumber);
-      setDevOtp(resp?.devOtp ?? null);
+
+      if (IS_PRODUCTION) {
+        // 프로덕션: 테스트폰 여부 확인 후 분기
+        const testCheck = await api.get<{ isTest: boolean }>(
+          `/auth/is-test-phone?phone=${encodeURIComponent(fullNumber)}`,
+        );
+        if (testCheck?.isTest) {
+          // 테스트폰 → 서버 OTP (000000 고정)
+          await api.post('/auth/otp/send', { phone: fullNumber });
+          setPendingPhone(fullNumber);
+          setDevOtp(null); // 프로덕션 테스트폰은 000000 고정 (힌트 불필요)
+          logEvent('Auth: test phone — server OTP');
+        } else {
+          // 일반폰 → Firebase Phone Auth (실제 SMS 발송)
+          const confirmation = await signInWithPhoneOtp(fullNumber);
+          setConfirmationResult(confirmation);
+          logEvent('Auth: normal phone — Firebase SMS');
+        }
+      } else {
+        // 스테이징: 모든 번호에 서버 OTP (devOtp 화면 표시)
+        const resp = await api.post<{ message?: string; devOtp?: string; isTest?: boolean }>(
+          '/auth/otp/send', { phone: fullNumber },
+        );
+        setPendingPhone(fullNumber);
+        setDevOtp(resp?.devOtp ?? null);
+        logEvent('Auth: staging — server OTP');
+      }
+
       router.push('/(auth)/otp');
     } catch (e) {
       const code = (e as any)?.code ?? 'unknown';

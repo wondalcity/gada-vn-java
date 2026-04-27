@@ -44,6 +44,7 @@ jobs:
         working-directory: apps/mobile
         env:
           EXPO_PUBLIC_API_URL: ${{ secrets.EXPO_PUBLIC_API_URL }}
+          EXPO_PUBLIC_APP_ENV: staging
         run: npx expo prebuild --platform android --non-interactive --clean
 
       - name: Patch settings.gradle with resolved module paths
@@ -88,12 +89,20 @@ jobs:
           echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d \
             > apps/mobile/android/app/gada-release.keystore
 
+      - name: Print release keystore SHA-1 (for Firebase Console registration)
+        run: |
+          keytool -list -v \
+            -keystore apps/mobile/android/app/gada-release.keystore \
+            -storepass "${{ secrets.KEYSTORE_PASSWORD }}" \
+            2>/dev/null | grep -E "SHA1:|SHA-1:" | head -3
+
       - name: Build release APK
         working-directory: apps/mobile/android
         env:
           KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
           EXPO_PUBLIC_API_URL: ${{ secrets.EXPO_PUBLIC_API_URL }}
+          EXPO_PUBLIC_APP_ENV: staging
         run: |
           chmod +x gradlew
           ./gradlew assembleRelease --no-daemon

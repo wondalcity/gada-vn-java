@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import type { FirebaseAuthTypes } from '@react-native-firebase/auth';
 
 interface AuthState {
   userId: string | null;
@@ -7,9 +8,10 @@ interface AuthState {
   isAuthenticated: boolean;
   isLoading: boolean;
   isNew: boolean;
-  pendingName: string | null; // name collected during signup, cleared after /auth/register
-  pendingPhone: string | null; // phone number being verified via server OTP
-  devOtp: string | null;        // OTP code returned by server in staging (devOtp field)
+  pendingName: string | null;
+  pendingPhone: string | null;     // server OTP flow (staging / test phone)
+  confirmationResult: FirebaseAuthTypes.ConfirmationResult | null; // Firebase Phone Auth flow (production / normal phone)
+  devOtp: string | null;           // OTP returned in staging response (auto-fill)
   setUser: (userId: string, role: 'WORKER' | 'MANAGER', isManager?: boolean) => void;
   setNew: (isNew: boolean) => void;
   clearUser: () => void;
@@ -18,6 +20,7 @@ interface AuthState {
   clearPendingName: () => void;
   setPendingPhone: (phone: string) => void;
   clearPendingPhone: () => void;
+  setConfirmationResult: (result: FirebaseAuthTypes.ConfirmationResult | null) => void;
   setDevOtp: (otp: string | null) => void;
 }
 
@@ -30,16 +33,22 @@ export const useAuthStore = create<AuthState>((set) => ({
   isNew: false,
   pendingName: null,
   pendingPhone: null,
+  confirmationResult: null,
   devOtp: null,
   setUser: (userId, role, isManager) =>
     set({ userId, role, isManager: isManager ?? role === 'MANAGER', isAuthenticated: true, isLoading: false }),
   setNew: (isNew) => set({ isNew }),
   clearUser: () =>
-    set({ userId: null, role: null, isManager: false, isAuthenticated: false, isLoading: false, isNew: false, pendingName: null, pendingPhone: null, devOtp: null }),
+    set({
+      userId: null, role: null, isManager: false,
+      isAuthenticated: false, isLoading: false, isNew: false,
+      pendingName: null, pendingPhone: null, confirmationResult: null, devOtp: null,
+    }),
   setLoading: (isLoading) => set({ isLoading }),
   setPendingName: (pendingName) => set({ pendingName }),
   clearPendingName: () => set({ pendingName: null }),
   setPendingPhone: (pendingPhone) => set({ pendingPhone }),
   clearPendingPhone: () => set({ pendingPhone: null }),
+  setConfirmationResult: (confirmationResult) => set({ confirmationResult }),
   setDevOtp: (devOtp) => set({ devOtp }),
 }));
