@@ -14,14 +14,16 @@ export default function ManagerLayout() {
         headerTintColor: '#fff',
       }}
     >
+      {/* Home — dashboard */}
       <Tabs.Screen
-        name="index"
+        name="home"
         options={{
-          title: t('manager.tab_jobs'),
-          tabBarLabel: t('manager.tab_jobs_label'),
-          tabBarIcon: ({ color }) => <Text style={{ color, fontSize: 20 }}>📋</Text>,
+          title: t('manager.tab_home'),
+          tabBarLabel: t('manager.tab_home_label'),
+          tabBarIcon: ({ color }) => <Text style={{ color, fontSize: 20 }}>🏠</Text>,
         }}
       />
+      {/* Sites */}
       <Tabs.Screen
         name="sites"
         options={{
@@ -30,6 +32,16 @@ export default function ManagerLayout() {
           tabBarIcon: ({ color }) => <Text style={{ color, fontSize: 20 }}>🏗️</Text>,
         }}
       />
+      {/* Jobs */}
+      <Tabs.Screen
+        name="index"
+        options={{
+          title: t('manager.tab_jobs'),
+          tabBarLabel: t('manager.tab_jobs_label'),
+          tabBarIcon: ({ color }) => <Text style={{ color, fontSize: 20 }}>📋</Text>,
+        }}
+      />
+      {/* Hires (채용 관리) */}
       <Tabs.Screen
         name="workers"
         options={{
@@ -38,6 +50,7 @@ export default function ManagerLayout() {
           tabBarIcon: ({ color }) => <Text style={{ color, fontSize: 20 }}>👷</Text>,
         }}
       />
+      {/* Contracts */}
       <Tabs.Screen
         name="contracts"
         options={{

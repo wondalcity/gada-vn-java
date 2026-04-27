@@ -43,7 +43,7 @@ export default function Index() {
     } else if (!isAuthenticated) {
       router.replace('/(auth)/phone');
     } else if (role === 'MANAGER') {
-      router.replace('/(manager)');
+      router.replace('/(manager)/home');
     } else {
       router.replace('/(worker)');
     }

@@ -64,7 +64,7 @@ export default function RootLayout() {
             if (!isFirstCheck) {
               if (role === 'MANAGER') {
                 logEvent('Auth: session restored — MANAGER navigating to manager home');
-                router.replace('/(manager)');
+                router.replace('/(manager)/home');
               } else {
                 logEvent('Auth: session restored — WORKER navigating to worker home');
                 router.replace('/(worker)');

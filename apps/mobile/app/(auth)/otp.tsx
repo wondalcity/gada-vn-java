@@ -57,7 +57,7 @@ export default function OtpScreen() {
       }
 
       logEvent(`Auth: OTP login complete — role=${role} isNew=${result.isNew}`);
-      router.replace(role === 'MANAGER' ? '/(manager)' : '/(worker)');
+      router.replace(role === 'MANAGER' ? '/(manager)/home' : '/(worker)');
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
       logEvent(`Auth: token sync failed after OTP — ${msg}`);

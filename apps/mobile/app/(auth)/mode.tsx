@@ -34,7 +34,7 @@ export default function ModeSelectScreen() {
 
           <TouchableOpacity
             style={[styles.option, styles.optionManager]}
-            onPress={() => router.replace('/(manager)')}
+            onPress={() => router.replace('/(manager)/home')}
             activeOpacity={0.85}
           >
             <Text style={styles.optionIcon}>🏗️</Text>

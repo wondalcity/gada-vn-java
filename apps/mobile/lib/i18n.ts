@@ -85,6 +85,7 @@ const ko = {
     slots: '{{filled}}/{{total}}명 고용',
     today: '오늘',
     nearby: '근처 일자리',
+    tab_label: '일자리',
     filters: {
       distance: '거리 순',
       wage: '급여 순',
@@ -283,6 +284,8 @@ const ko = {
     view_contract: '근로계약서 보기 →',
   },
   manager: {
+    tab_home: '홈',
+    tab_home_label: '홈',
     tab_jobs: '공고 관리',
     tab_jobs_label: '공고',
     tab_sites: '현장 관리',
@@ -476,6 +479,7 @@ const vi = {
     slots: '{{filled}}/{{total}} người',
     today: 'Hôm nay',
     nearby: 'Việc làm gần đây',
+    tab_label: 'Việc làm',
     filters: {
       distance: 'Gần nhất',
       wage: 'Lương cao nhất',
@@ -674,6 +678,8 @@ const vi = {
     view_contract: 'Xem hợp đồng lao động →',
   },
   manager: {
+    tab_home: 'Trang chủ',
+    tab_home_label: 'Trang chủ',
     tab_jobs: 'Quản lý công việc',
     tab_jobs_label: 'Công việc',
     tab_sites: 'Quản lý công trình',
@@ -867,6 +873,7 @@ const en = {
     slots: '{{filled}}/{{total}} hired',
     today: 'Today',
     nearby: 'Nearby jobs',
+    tab_label: 'Jobs',
     filters: {
       distance: 'Nearest',
       wage: 'Highest wage',
@@ -1065,6 +1072,8 @@ const en = {
     view_contract: 'View employment contract →',
   },
   manager: {
+    tab_home: 'Home',
+    tab_home_label: 'Home',
     tab_jobs: 'Job management',
     tab_jobs_label: 'Jobs',
     tab_sites: 'Site management',

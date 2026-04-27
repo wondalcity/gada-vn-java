@@ -26,20 +26,22 @@ class AuthService(
             // If account was soft-deleted, treat as new registration
             if (existing["status"] == "DELETED") {
                 repo.reactivateUser(existing["id"] as String, name ?: (decoded.claims["phone_number"] as? String))
-                val reactivated = repo.findByFirebaseUid(decoded.uid)!!
-                return mapOf("user" to reactivated, "isNew" to true)
+                val profile = repo.getMeProfile(existing["id"] as String) ?: repo.findByFirebaseUid(decoded.uid)!!
+                return mapOf("user" to profile, "isNew" to true)
             }
             // Ensure worker_profile exists (handles incomplete registrations)
             val userId = existing["id"] as String
             repo.ensureWorkerProfile(userId, name ?: (existing["phone"] as? String))
-            return mapOf("user" to existing, "isNew" to false)
+            val profile = repo.getMeProfile(userId) ?: existing
+            return mapOf("user" to profile, "isNew" to false)
         }
         val phoneNumber = decoded.claims["phone_number"] as? String
         val tokenEmail = decoded.claims["email"] as? String
         val email = emailOverride ?: tokenEmail
         val user = repo.create(decoded.uid, phoneNumber, email, "WORKER")
         repo.ensureWorkerProfile(user["id"] as String, name ?: phoneNumber)
-        return mapOf("user" to user, "isNew" to true)
+        val profile = repo.getMeProfile(user["id"] as String) ?: user
+        return mapOf("user" to profile, "isNew" to true)
     }
 
     fun getMe(userId: String): Map<String, Any?>? {

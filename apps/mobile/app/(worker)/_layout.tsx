@@ -29,8 +29,8 @@ export default function WorkerLayout() {
         name="index"
         options={{
           title: t('jobs.nearby'),
-          tabBarLabel: t('jobs.nearby'),
-          tabBarIcon: ({ color }) => <Text style={{ color, fontSize: 20 }}>🏗️</Text>,
+          tabBarLabel: t('jobs.tab_label'),
+          tabBarIcon: ({ color }) => <Text style={{ color, fontSize: 20 }}>💼</Text>,
         }}
       />
 
