@@ -16,7 +16,7 @@ import CountryPicker from '../../components/CountryPicker';
 export default function PhoneScreen() {
   const { t, i18n } = useTranslation();
   const router = useRouter();
-  const { setPendingPhone } = useAuthStore();
+  const { setPendingPhone, setDevOtp } = useAuthStore();
   const [countryCode, setCountryCode] = useState('+84');
   const [phone, setPhone] = useState('');
   const [loading, setLoading] = useState(false);
@@ -32,8 +32,11 @@ export default function PhoneScreen() {
       const normalized = raw.startsWith('0') ? raw.slice(1) : raw;
       const fullNumber = `${countryCode}${normalized}`;
       logEvent(`Auth: OTP send attempt — ${fullNumber.replace(/\d(?=\d{4})/g, '*')}`);
-      await api.post('/auth/otp/send', { phone: fullNumber });
+      const resp = await api.post<{ message?: string; devOtp?: string; isTest?: boolean }>(
+        '/auth/otp/send', { phone: fullNumber },
+      );
       setPendingPhone(fullNumber);
+      setDevOtp(resp?.devOtp ?? null);
       router.push('/(auth)/otp');
     } catch (e) {
       const code = (e as any)?.code ?? 'unknown';

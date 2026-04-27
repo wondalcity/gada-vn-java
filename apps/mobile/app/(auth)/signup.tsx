@@ -16,7 +16,7 @@ import { logEvent } from '../../lib/crashlytics';
 export default function SignupScreen() {
   const { t, i18n } = useTranslation();
   const router = useRouter();
-  const { setPendingPhone, setPendingName } = useAuthStore();
+  const { setPendingPhone, setPendingName, setDevOtp } = useAuthStore();
   const [name, setName] = useState('');
   const [countryCode, setCountryCode] = useState('+84');
   const [phone, setPhone] = useState('');
@@ -33,9 +33,12 @@ export default function SignupScreen() {
       const normalized = raw.startsWith('0') ? raw.slice(1) : raw;
       const fullNumber = `${countryCode}${normalized}`;
       logEvent(`Auth: signup OTP send attempt — ${fullNumber.replace(/\d(?=\d{4})/g, '*')}`);
-      await api.post('/auth/otp/send', { phone: fullNumber });
+      const resp = await api.post<{ message?: string; devOtp?: string; isTest?: boolean }>(
+        '/auth/otp/send', { phone: fullNumber },
+      );
       setPendingName(name.trim());
       setPendingPhone(fullNumber);
+      setDevOtp(resp?.devOtp ?? null);
       router.push('/(auth)/otp');
     } catch (e) {
       const code = (e as any)?.code ?? 'unknown';

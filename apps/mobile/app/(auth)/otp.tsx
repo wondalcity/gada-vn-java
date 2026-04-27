@@ -16,18 +16,24 @@ import { setCurrentScreen, logEvent } from '../../lib/crashlytics';
 export default function OtpScreen() {
   const { t } = useTranslation();
   const router = useRouter();
-  const { pendingPhone, clearPendingPhone, setUser } = useAuthStore();
+  const { pendingPhone, devOtp, clearPendingPhone, setDevOtp, setUser } = useAuthStore();
   const [otp, setOtp] = useState('');
   const [loading, setLoading] = useState(false);
 
   useEffect(() => { setCurrentScreen('auth/otp'); }, []);
+
+  // 스테이징: devOtp가 있으면 자동 입력
+  useEffect(() => {
+    if (devOtp) setOtp(devOtp);
+  }, [devOtp]);
 
   async function handleVerify() {
     if (otp.length < 6 || !pendingPhone) return;
     setLoading(true);
 
     try {
-      // Step 1: 서버 OTP 검증 (Firebase Phone Auth 미사용 — SHA-1 불필요)
+      // 서버 OTP 검증 — 웹앱과 동일한 /auth/otp/verify 엔드포인트 사용
+      // (Firebase Phone Auth 대신 서버 검증을 사용해 SHA-1 불필요)
       const result = await api.post<{
         customToken?: string;
         devToken?: string;
@@ -35,10 +41,12 @@ export default function OtpScreen() {
       }>('/auth/otp/verify', { phone: pendingPhone, otp });
 
       clearPendingPhone();
+      setDevOtp(null);
       logEvent('Auth: OTP verification succeeded');
 
       if (result.customToken) {
         // 프로덕션: Firebase Custom Token으로 로그인 후 ID 토큰 동기화
+        // 웹앱의 signInWithCustomTokenAndGetIdToken과 동일한 흐름
         await auth().signInWithCustomToken(result.customToken);
         const syncResult = await syncAuthToken();
         if (!syncResult) throw new Error('token_sync_failed');
@@ -60,6 +68,7 @@ export default function OtpScreen() {
 
       } else if (result.devToken) {
         // 스테이징: devToken을 직접 저장 후 /auth/me로 프로필 조회
+        // 웹앱의 setSessionCookie(devToken) 패턴과 동일
         await SecureStore.setItemAsync('auth_token', result.devToken);
         const profile = await api.get<{ id: string; isManager?: boolean } | null>('/auth/me');
         if (!profile) throw new Error('profile_load_failed');
@@ -105,6 +114,11 @@ export default function OtpScreen() {
         textAlign="center"
       />
 
+      {/* 스테이징 devOtp 힌트 */}
+      {devOtp ? (
+        <Text style={styles.devHint}>개발 코드: {devOtp}</Text>
+      ) : null}
+
       <TouchableOpacity
         style={[styles.button, (loading || otp.length < 6) && styles.buttonDisabled]}
         onPress={handleVerify}
@@ -128,7 +142,11 @@ const styles = StyleSheet.create({
   input: {
     borderWidth: 1.5, borderColor: Colors.outline, borderRadius: Radius.md,
     padding: Spacing.lg, fontSize: 32, letterSpacing: 8,
-    marginBottom: Spacing.xl, color: Colors.onSurface,
+    marginBottom: Spacing.sm, color: Colors.onSurface,
+  },
+  devHint: {
+    ...Font.caption, color: Colors.primary, textAlign: 'center',
+    marginBottom: Spacing.xl, fontWeight: '600',
   },
   button: {
     backgroundColor: Colors.primary, borderRadius: Radius.pill,
