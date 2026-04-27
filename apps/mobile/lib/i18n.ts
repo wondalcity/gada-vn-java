@@ -66,6 +66,9 @@ const ko = {
     signup_subtitle: '베트남 건설 현장\n일자리 플랫폼',
     signup_desc: '전화번호로 빠르게 가입하고\n근처 일자리를 찾아보세요.',
     lang_select: '언어 선택',
+    name_label: '이름',
+    name_placeholder: '이름을 입력하세요 (2자 이상)',
+    role_label: '역할 선택',
   },
   jobs: {
     apply_button: '지원하기',
@@ -451,6 +454,9 @@ const vi = {
     signup_subtitle: 'Nền tảng việc làm\nxây dựng Việt Nam',
     signup_desc: 'Đăng ký nhanh bằng số điện thoại\nvà tìm việc làm gần bạn.',
     lang_select: 'Chọn ngôn ngữ',
+    name_label: 'Họ tên',
+    name_placeholder: 'Nhập họ tên (ít nhất 2 ký tự)',
+    role_label: 'Chọn vai trò',
   },
   jobs: {
     apply_button: 'Ứng tuyển',
@@ -836,6 +842,9 @@ const en = {
     signup_subtitle: 'Vietnam Construction\nJob Platform',
     signup_desc: 'Sign up quickly with your phone number\nand find nearby jobs.',
     lang_select: 'Select language',
+    name_label: 'Name',
+    name_placeholder: 'Enter your name (min. 2 characters)',
+    role_label: 'Select role',
   },
   jobs: {
     apply_button: 'Apply',

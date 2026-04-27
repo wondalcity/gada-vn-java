@@ -29,7 +29,7 @@ export default function RootLayout() {
 
   // Firebase 인증 상태 구독 — 루트 레이아웃에서 관리해야 언마운트되지 않음
   useEffect(() => {
-    const timeout = setTimeout(() => clearUser(), 10000);
+    const timeout = setTimeout(() => clearUser(), 3000);
 
     const unsubscribe = auth().onAuthStateChanged(async (firebaseUser) => {
       clearTimeout(timeout);

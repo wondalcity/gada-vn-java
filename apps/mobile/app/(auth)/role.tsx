@@ -1,50 +1,38 @@
 import { useState } from 'react';
 import {
-  View, Text, TouchableOpacity, StyleSheet,
-  ActivityIndicator, Alert, SafeAreaView,
+  View, Text, TextInput, TouchableOpacity, StyleSheet,
+  ActivityIndicator, Alert, SafeAreaView, KeyboardAvoidingView,
+  Platform, ScrollView,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useAuthStore } from '../../store/auth.store';
 import { api, ApiError } from '../../lib/api-client';
+import { Colors, Radius, Spacing, Font } from '../../constants/theme';
 
 type Role = 'WORKER' | 'MANAGER';
 
-interface RoleOption {
-  role: Role;
-  icon: string;
-  titleKey: string;
-  descKey: string;
-}
-
-const ROLE_OPTIONS: RoleOption[] = [
-  {
-    role: 'WORKER',
-    icon: '👷',
-    titleKey: 'auth.role_worker',
-    descKey: 'auth.role_worker_desc',
-  },
-  {
-    role: 'MANAGER',
-    icon: '🏗️',
-    titleKey: 'auth.role_manager',
-    descKey: 'auth.role_manager_desc',
-  },
+const ROLE_OPTIONS: { role: Role; icon: string; titleKey: string; descKey: string }[] = [
+  { role: 'WORKER', icon: '👷', titleKey: 'auth.role_worker', descKey: 'auth.role_worker_desc' },
+  { role: 'MANAGER', icon: '🏗️', titleKey: 'auth.role_manager', descKey: 'auth.role_manager_desc' },
 ];
 
 export default function RoleSelectScreen() {
   const { t } = useTranslation();
   const router = useRouter();
   const { userId, setUser } = useAuthStore();
+  const [name, setName] = useState('');
   const [selected, setSelected] = useState<Role | null>(null);
   const [loading, setLoading] = useState(false);
 
+  const canConfirm = !!selected && name.trim().length >= 2;
+
   async function handleConfirm() {
-    if (!selected || !userId) return;
+    if (!canConfirm || !userId) return;
     setLoading(true);
     try {
-      await api.post('/auth/register', { role: selected });
-      setUser(userId, selected);
+      await api.post('/auth/register', { name: name.trim(), role: selected });
+      setUser(userId, selected!);
       if (selected === 'MANAGER') {
         router.replace('/(manager)/register');
       } else {
@@ -60,88 +48,122 @@ export default function RoleSelectScreen() {
 
   return (
     <SafeAreaView style={styles.safe}>
-      <View style={styles.container}>
-        <Text style={styles.title}>{t('auth.role_select_title')}</Text>
-        <Text style={styles.subtitle}>{t('auth.role_select_subtitle')}</Text>
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      >
+        <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
+          <Text style={styles.title}>{t('auth.role_select_title')}</Text>
+          <Text style={styles.subtitle}>{t('auth.role_select_subtitle')}</Text>
 
-        <View style={styles.options}>
-          {ROLE_OPTIONS.map((opt) => (
-            <TouchableOpacity
-              key={opt.role}
-              style={[styles.option, selected === opt.role && styles.optionSelected]}
-              onPress={() => setSelected(opt.role)}
-              activeOpacity={0.8}
-            >
-              <Text style={styles.optionIcon}>{opt.icon}</Text>
-              <View style={styles.optionBody}>
-                <Text style={[styles.optionTitle, selected === opt.role && styles.optionTitleSelected]}>
-                  {opt.role === 'WORKER' ? t('auth.role_worker') : t('auth.role_manager')}
-                </Text>
-                <Text style={[styles.optionDesc, selected === opt.role && styles.optionDescSelected]}>
-                  {opt.role === 'WORKER'
-                    ? t('auth.role_worker_desc')
-                    : t('auth.role_manager_desc')}
-                </Text>
-              </View>
-              <View style={[styles.radio, selected === opt.role && styles.radioSelected]}>
-                {selected === opt.role && <View style={styles.radioDot} />}
-              </View>
-            </TouchableOpacity>
-          ))}
-        </View>
-
-        {selected === 'MANAGER' && (
-          <View style={styles.notice}>
-            <Text style={styles.noticeText}>{t('auth.manager_notice')}</Text>
+          {/* Name input */}
+          <View style={styles.fieldGroup}>
+            <Text style={styles.fieldLabel}>{t('auth.name_label')}</Text>
+            <TextInput
+              style={styles.input}
+              placeholder={t('auth.name_placeholder')}
+              placeholderTextColor={Colors.disabled}
+              value={name}
+              onChangeText={setName}
+              autoCorrect={false}
+              maxLength={50}
+              returnKeyType="done"
+            />
           </View>
-        )}
 
-        <TouchableOpacity
-          style={[styles.button, (!selected || loading) && styles.buttonDisabled]}
-          onPress={handleConfirm}
-          disabled={!selected || loading}
-        >
-          {loading
-            ? <ActivityIndicator color="#fff" />
-            : <Text style={styles.buttonText}>{t('auth.start')}</Text>
-          }
-        </TouchableOpacity>
-      </View>
+          {/* Role options */}
+          <View style={styles.fieldGroup}>
+            <Text style={styles.fieldLabel}>{t('auth.role_label')}</Text>
+            <View style={styles.options}>
+              {ROLE_OPTIONS.map((opt) => (
+                <TouchableOpacity
+                  key={opt.role}
+                  style={[styles.option, selected === opt.role && styles.optionSelected]}
+                  onPress={() => setSelected(opt.role)}
+                  activeOpacity={0.8}
+                >
+                  <Text style={styles.optionIcon}>{opt.icon}</Text>
+                  <View style={styles.optionBody}>
+                    <Text style={[styles.optionTitle, selected === opt.role && styles.optionTitleSelected]}>
+                      {opt.role === 'WORKER' ? t('auth.role_worker') : t('auth.role_manager')}
+                    </Text>
+                    <Text style={[styles.optionDesc, selected === opt.role && styles.optionDescSelected]}>
+                      {opt.role === 'WORKER' ? t('auth.role_worker_desc') : t('auth.role_manager_desc')}
+                    </Text>
+                  </View>
+                  <View style={[styles.radio, selected === opt.role && styles.radioSelected]}>
+                    {selected === opt.role && <View style={styles.radioDot} />}
+                  </View>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </View>
+
+          {selected === 'MANAGER' && (
+            <View style={styles.notice}>
+              <Text style={styles.noticeText}>{t('auth.manager_notice')}</Text>
+            </View>
+          )}
+
+          <TouchableOpacity
+            style={[styles.button, (!canConfirm || loading) && styles.buttonDisabled]}
+            onPress={handleConfirm}
+            disabled={!canConfirm || loading}
+          >
+            {loading
+              ? <ActivityIndicator color="#fff" />
+              : <Text style={styles.buttonText}>{t('auth.start')}</Text>
+            }
+          </TouchableOpacity>
+        </ScrollView>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: '#fff' },
-  container: { flex: 1, padding: 24, justifyContent: 'center' },
-  title: { fontSize: 26, fontWeight: '800', color: '#1A1A1A', marginBottom: 8, textAlign: 'center' },
-  subtitle: { fontSize: 14, color: '#888', textAlign: 'center', marginBottom: 40 },
-  options: { gap: 16, marginBottom: 24 },
+  safe: { flex: 1, backgroundColor: Colors.surface },
+  scroll: { padding: Spacing.xxl, paddingTop: Spacing.xl, gap: Spacing.xl },
+
+  title: { ...Font.h3, color: Colors.onSurface, textAlign: 'center' },
+  subtitle: { ...Font.body3, color: Colors.onSurfaceVariant, textAlign: 'center' },
+
+  fieldGroup: { gap: Spacing.sm },
+  fieldLabel: { ...Font.t4, color: Colors.onSurface },
+
+  input: {
+    borderWidth: 1.5, borderColor: Colors.outline, borderRadius: Radius.md,
+    padding: Spacing.lg, ...Font.body1, color: Colors.onSurface,
+  },
+
+  options: { gap: Spacing.md },
   option: {
     flexDirection: 'row', alignItems: 'center', gap: 16,
-    borderWidth: 2, borderColor: '#E0E0E0', borderRadius: 20,
-    padding: 20, backgroundColor: '#FAFAFA',
+    borderWidth: 2, borderColor: Colors.outline, borderRadius: Radius.lg,
+    padding: 20, backgroundColor: Colors.surfaceDim,
   },
-  optionSelected: { borderColor: '#FF6B2C', backgroundColor: '#FFF8F5' },
-  optionIcon: { fontSize: 40, width: 52, textAlign: 'center' },
+  optionSelected: { borderColor: Colors.primary, backgroundColor: Colors.primaryContainer },
+  optionIcon: { fontSize: 36, width: 48, textAlign: 'center' },
   optionBody: { flex: 1, gap: 4 },
-  optionTitle: { fontSize: 18, fontWeight: '700', color: '#444' },
-  optionTitleSelected: { color: '#FF6B2C' },
-  optionDesc: { fontSize: 13, color: '#888', lineHeight: 18 },
-  optionDescSelected: { color: '#FF6B2C' },
+  optionTitle: { ...Font.t4, color: Colors.onSurface },
+  optionTitleSelected: { color: Colors.primary },
+  optionDesc: { ...Font.caption, color: Colors.onSurfaceVariant, lineHeight: 18 },
+  optionDescSelected: { color: Colors.primary },
   radio: {
     width: 24, height: 24, borderRadius: 12,
-    borderWidth: 2, borderColor: '#E0E0E0',
+    borderWidth: 2, borderColor: Colors.outline,
     justifyContent: 'center', alignItems: 'center',
   },
-  radioSelected: { borderColor: '#FF6B2C' },
-  radioDot: { width: 12, height: 12, borderRadius: 6, backgroundColor: '#FF6B2C' },
-  notice: { backgroundColor: '#FFF8F5', borderRadius: 12, padding: 14, marginBottom: 24 },
-  noticeText: { fontSize: 13, color: '#FF6B2C', lineHeight: 20 },
+  radioSelected: { borderColor: Colors.primary },
+  radioDot: { width: 12, height: 12, borderRadius: 6, backgroundColor: Colors.primary },
+
+  notice: { backgroundColor: Colors.primaryContainer, borderRadius: Radius.md, padding: 14 },
+  noticeText: { ...Font.caption, color: Colors.primary, lineHeight: 20 },
+
   button: {
-    backgroundColor: '#FF6B2C', borderRadius: 16,
+    backgroundColor: Colors.primary, borderRadius: Radius.pill,
     paddingVertical: 18, alignItems: 'center',
   },
-  buttonDisabled: { backgroundColor: '#E0E0E0' },
-  buttonText: { color: '#fff', fontSize: 18, fontWeight: '700' },
+  buttonDisabled: { opacity: 0.5 },
+  buttonText: { color: Colors.onPrimary, ...Font.t3 },
 });

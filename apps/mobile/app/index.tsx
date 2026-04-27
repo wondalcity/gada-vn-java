@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
-import { Redirect } from 'expo-router';
 import { View, StyleSheet } from 'react-native';
 import * as SplashScreen from 'expo-splash-screen';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useRouter } from 'expo-router';
 import { useAuthStore } from '../store/auth.store';
 
 export const PERMISSIONS_DONE_KEY = '@gada_permissions_done';
@@ -12,6 +12,8 @@ export default function Index() {
   const [permissionsChecked, setPermissionsChecked] = useState(false);
   const [permissionsDone, setPermissionsDone] = useState(false);
   const splashHidden = useRef(false);
+  const navigated = useRef(false);
+  const router = useRouter();
 
   // AsyncStorage에서 권한 요청 여부 확인
   useEffect(() => {
@@ -23,35 +25,34 @@ export default function Index() {
       .catch(() => setPermissionsChecked(true));
   }, []);
 
-  // auth + permissions 둘 다 확인된 순간 스플래시 제거
+  // auth + permissions 둘 다 확인된 순간 스플래시 제거 후 라우팅
   useEffect(() => {
-    if (!isLoading && permissionsChecked && !splashHidden.current) {
+    if (isLoading || !permissionsChecked) return;
+    if (navigated.current) return;
+    navigated.current = true;
+
+    // 스플래시 제거
+    if (!splashHidden.current) {
       splashHidden.current = true;
       SplashScreen.hideAsync().catch(() => {});
     }
-  }, [isLoading, permissionsChecked]);
+
+    // 적절한 화면으로 이동
+    if (!permissionsDone) {
+      router.replace('/(permissions)');
+    } else if (!isAuthenticated) {
+      router.replace('/(auth)/phone');
+    } else if (isNew) {
+      router.replace('/(auth)/role');
+    } else if (role === 'MANAGER') {
+      router.replace('/(manager)');
+    } else {
+      router.replace('/(worker)');
+    }
+  }, [isLoading, permissionsChecked, permissionsDone, isAuthenticated, isNew, role, router]);
 
   // 로딩 중 → 스플래시가 계속 덮고 있으므로 빈 화면 반환
-  if (isLoading || !permissionsChecked) {
-    return <View style={styles.blank} />;
-  }
-
-  // 최초 실행 → 권한 요청 화면
-  if (!permissionsDone) {
-    return <Redirect href="/(permissions)" />;
-  }
-
-  // 미로그인 → 전화번호 입력 화면
-  if (!isAuthenticated) {
-    return <Redirect href="/(auth)/phone" />;
-  }
-
-  // 신규 가입 → 역할 선택
-  if (isNew) return <Redirect href="/(auth)/role" />;
-
-  // 역할에 따라 홈 화면 진입
-  if (role === 'MANAGER') return <Redirect href="/(manager)" />;
-  return <Redirect href="/(worker)" />;
+  return <View style={styles.blank} />;
 }
 
 const styles = StyleSheet.create({
