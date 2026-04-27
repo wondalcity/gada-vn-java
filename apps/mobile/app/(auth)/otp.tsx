@@ -5,6 +5,8 @@ import {
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
+import auth from '@react-native-firebase/auth';
+import * as SecureStore from 'expo-secure-store';
 import { useAuthStore } from '../../store/auth.store';
 import { syncAuthToken } from '../../lib/firebase';
 import { api } from '../../lib/api-client';
@@ -14,53 +16,74 @@ import { setCurrentScreen, logEvent } from '../../lib/crashlytics';
 export default function OtpScreen() {
   const { t } = useTranslation();
   const router = useRouter();
-  const { confirmationResult, setConfirmationResult, setUser } = useAuthStore();
+  const { pendingPhone, clearPendingPhone, setUser } = useAuthStore();
   const [otp, setOtp] = useState('');
   const [loading, setLoading] = useState(false);
 
   useEffect(() => { setCurrentScreen('auth/otp'); }, []);
 
   async function handleVerify() {
-    if (otp.length < 6 || !confirmationResult) return;
+    if (otp.length < 6 || !pendingPhone) return;
     setLoading(true);
 
-    // Step 1: Firebase OTP 확인
     try {
-      await confirmationResult.confirm(otp);
-    } catch (e) {
-      const code = (e as { code?: string })?.code ?? 'unknown';
-      const msg = e instanceof Error ? e.message : String(e);
-      logEvent(`Auth: OTP confirm failed — code=${code} msg=${msg}`);
-      Alert.alert(t('common.error'), `${t('auth.otp_error')}\n(${code})`);
-      setLoading(false);
-      return;
-    }
+      // Step 1: 서버 OTP 검증 (Firebase Phone Auth 미사용 — SHA-1 불필요)
+      const result = await api.post<{
+        customToken?: string;
+        devToken?: string;
+        isNewUser?: boolean;
+      }>('/auth/otp/verify', { phone: pendingPhone, otp });
 
-    // Step 2: Firebase OTP 확인 성공 — 토큰 동기화 및 홈 화면 진입
-    setConfirmationResult(null);
-    logEvent('Auth: OTP verification succeeded');
-    try {
-      const result = await syncAuthToken();
-      if (!result) throw new Error('token_sync_failed');
+      clearPendingPhone();
+      logEvent('Auth: OTP verification succeeded');
 
-      const user = result.user as { id: string; isManager?: boolean };
-      const role: 'WORKER' | 'MANAGER' = user.isManager ? 'MANAGER' : 'WORKER';
-      setUser(user.id, role, user.isManager ?? false);
+      if (result.customToken) {
+        // 프로덕션: Firebase Custom Token으로 로그인 후 ID 토큰 동기화
+        await auth().signInWithCustomToken(result.customToken);
+        const syncResult = await syncAuthToken();
+        if (!syncResult) throw new Error('token_sync_failed');
 
-      if (result.isNew) {
-        logEvent('Auth: new user — applying pending name if any');
-        const { pendingName } = useAuthStore.getState();
-        if (pendingName) {
-          try { await api.post('/auth/register', { name: pendingName }); } catch {}
-          useAuthStore.getState().clearPendingName();
+        const user = syncResult.user as { id: string; isManager?: boolean };
+        const role: 'WORKER' | 'MANAGER' = user.isManager ? 'MANAGER' : 'WORKER';
+        setUser(user.id, role, user.isManager ?? false);
+
+        if (syncResult.isNew) {
+          const { pendingName } = useAuthStore.getState();
+          if (pendingName) {
+            try { await api.post('/auth/register', { name: pendingName }); } catch {}
+            useAuthStore.getState().clearPendingName();
+          }
         }
-      }
 
-      logEvent(`Auth: OTP login complete — role=${role} isNew=${result.isNew}`);
-      router.replace(role === 'MANAGER' ? '/(manager)/home' : '/(worker)');
+        logEvent(`Auth: OTP login complete (customToken) — role=${role} isNew=${syncResult.isNew}`);
+        router.replace(role === 'MANAGER' ? '/(manager)/home' : '/(worker)');
+
+      } else if (result.devToken) {
+        // 스테이징: devToken을 직접 저장 후 /auth/me로 프로필 조회
+        await SecureStore.setItemAsync('auth_token', result.devToken);
+        const profile = await api.get<{ id: string; isManager?: boolean } | null>('/auth/me');
+        if (!profile) throw new Error('profile_load_failed');
+
+        const role: 'WORKER' | 'MANAGER' = profile.isManager ? 'MANAGER' : 'WORKER';
+        setUser(profile.id, role, profile.isManager ?? false);
+
+        if (result.isNewUser) {
+          const { pendingName } = useAuthStore.getState();
+          if (pendingName) {
+            try { await api.post('/auth/register', { name: pendingName }); } catch {}
+            useAuthStore.getState().clearPendingName();
+          }
+        }
+
+        logEvent(`Auth: OTP login complete (devToken) — role=${role} isNew=${result.isNewUser}`);
+        router.replace(role === 'MANAGER' ? '/(manager)/home' : '/(worker)');
+
+      } else {
+        throw new Error('no_token_in_response');
+      }
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
-      logEvent(`Auth: token sync failed after OTP — ${msg}`);
+      logEvent(`Auth: OTP verification failed — ${msg}`);
       Alert.alert(t('common.error'), t('common.process_fail'));
     } finally {
       setLoading(false);

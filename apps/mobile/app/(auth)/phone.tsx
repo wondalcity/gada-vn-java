@@ -5,7 +5,8 @@ import {
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
-import { signInWithPhoneOtp, signInWithGoogle } from '../../lib/firebase';
+import { signInWithGoogle } from '../../lib/firebase';
+import { api } from '../../lib/api-client';
 import { useAuthStore } from '../../store/auth.store';
 import { SUPPORTED_LANGUAGES, changeAppLanguage, type LangCode } from '../../lib/i18n';
 import { Colors, Radius, Spacing, Font } from '../../constants/theme';
@@ -15,7 +16,7 @@ import CountryPicker from '../../components/CountryPicker';
 export default function PhoneScreen() {
   const { t, i18n } = useTranslation();
   const router = useRouter();
-  const { setConfirmationResult } = useAuthStore();
+  const { setPendingPhone } = useAuthStore();
   const [countryCode, setCountryCode] = useState('+84');
   const [phone, setPhone] = useState('');
   const [loading, setLoading] = useState(false);
@@ -31,8 +32,8 @@ export default function PhoneScreen() {
       const normalized = raw.startsWith('0') ? raw.slice(1) : raw;
       const fullNumber = `${countryCode}${normalized}`;
       logEvent(`Auth: OTP send attempt — ${fullNumber.replace(/\d(?=\d{4})/g, '*')}`);
-      const confirmation = await signInWithPhoneOtp(fullNumber);
-      setConfirmationResult(confirmation);
+      await api.post('/auth/otp/send', { phone: fullNumber });
+      setPendingPhone(fullNumber);
       router.push('/(auth)/otp');
     } catch (e) {
       const code = (e as any)?.code ?? 'unknown';

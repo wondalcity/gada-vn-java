@@ -1,5 +1,4 @@
 import { create } from 'zustand';
-import type { FirebaseAuthTypes } from '@react-native-firebase/auth';
 
 interface AuthState {
   userId: string | null;
@@ -9,14 +8,15 @@ interface AuthState {
   isLoading: boolean;
   isNew: boolean;
   pendingName: string | null; // name collected during signup, cleared after /auth/register
-  confirmationResult: FirebaseAuthTypes.ConfirmationResult | null;
+  pendingPhone: string | null; // phone number being verified via server OTP
   setUser: (userId: string, role: 'WORKER' | 'MANAGER', isManager?: boolean) => void;
   setNew: (isNew: boolean) => void;
   clearUser: () => void;
   setLoading: (loading: boolean) => void;
   setPendingName: (name: string) => void;
   clearPendingName: () => void;
-  setConfirmationResult: (result: FirebaseAuthTypes.ConfirmationResult | null) => void;
+  setPendingPhone: (phone: string) => void;
+  clearPendingPhone: () => void;
 }
 
 export const useAuthStore = create<AuthState>((set) => ({
@@ -27,14 +27,15 @@ export const useAuthStore = create<AuthState>((set) => ({
   isLoading: true,
   isNew: false,
   pendingName: null,
-  confirmationResult: null,
+  pendingPhone: null,
   setUser: (userId, role, isManager) =>
     set({ userId, role, isManager: isManager ?? role === 'MANAGER', isAuthenticated: true, isLoading: false }),
   setNew: (isNew) => set({ isNew }),
   clearUser: () =>
-    set({ userId: null, role: null, isManager: false, isAuthenticated: false, isLoading: false, isNew: false, pendingName: null }),
+    set({ userId: null, role: null, isManager: false, isAuthenticated: false, isLoading: false, isNew: false, pendingName: null, pendingPhone: null }),
   setLoading: (isLoading) => set({ isLoading }),
   setPendingName: (pendingName) => set({ pendingName }),
   clearPendingName: () => set({ pendingName: null }),
-  setConfirmationResult: (confirmationResult) => set({ confirmationResult }),
+  setPendingPhone: (pendingPhone) => set({ pendingPhone }),
+  clearPendingPhone: () => set({ pendingPhone: null }),
 }));
