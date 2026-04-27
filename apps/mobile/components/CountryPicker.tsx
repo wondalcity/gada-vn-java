@@ -15,13 +15,8 @@ interface Country {
 const COUNTRIES: Country[] = [
   { code: '+84', flag: '🇻🇳', names: { ko: '베트남', vi: 'Việt Nam', en: 'Vietnam' } },
   { code: '+82', flag: '🇰🇷', names: { ko: '대한민국', vi: 'Hàn Quốc', en: 'South Korea' } },
-  { code: '+81', flag: '🇯🇵', names: { ko: '일본', vi: 'Nhật Bản', en: 'Japan' } },
-  { code: '+86', flag: '🇨🇳', names: { ko: '중국', vi: 'Trung Quốc', en: 'China' } },
-  { code: '+855', flag: '🇰🇭', names: { ko: '캄보디아', vi: 'Campuchia', en: 'Cambodia' } },
-  { code: '+60', flag: '🇲🇾', names: { ko: '말레이시아', vi: 'Malaysia', en: 'Malaysia' } },
-  { code: '+66', flag: '🇹🇭', names: { ko: '태국', vi: 'Thái Lan', en: 'Thailand' } },
-  { code: '+61', flag: '🇦🇺', names: { ko: '호주', vi: 'Úc', en: 'Australia' } },
   { code: '+1', flag: '🇺🇸', names: { ko: '미국', vi: 'Mỹ', en: 'USA' } },
+  { code: '+61', flag: '🇦🇺', names: { ko: '호주', vi: 'Úc', en: 'Australia' } },
 ];
 
 interface Props {
