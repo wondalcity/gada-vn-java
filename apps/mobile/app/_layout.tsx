@@ -7,6 +7,7 @@ import * as SplashScreen from 'expo-splash-screen';
 import auth from '@react-native-firebase/auth';
 import i18n, { getSavedLanguage } from '../lib/i18n';
 import { syncAuthToken } from '../lib/firebase';
+import { api } from '../lib/api-client';
 import { useAuthStore } from '../store/auth.store';
 import { Colors } from '../constants/theme';
 
@@ -17,7 +18,6 @@ export default function RootLayout() {
   const { t } = useTranslation();
   const { setUser, setNew, clearUser } = useAuthStore();
   const router = useRouter();
-  // 첫 번째 onAuthStateChanged 이벤트는 앱 초기화; 이후 이벤트는 로그인/로그아웃 액션
   const authInitialized = useRef(false);
 
   // i18n 언어 복원 (비동기, 스플래시와 무관)
@@ -46,15 +46,21 @@ export default function RootLayout() {
               isWorker?: boolean;
               roles?: string[];
             };
-            // API returns isManager boolean; derive role string from it
             const role = user.isManager ? 'MANAGER' : 'WORKER';
             setUser(user.id, role as 'WORKER' | 'MANAGER', user.isManager ?? false);
-            if (result.isNew) setNew(true);
 
-            // OTP 확인 후 명시적 라우팅 (첫 번째 체크는 index.tsx가 Redirect로 처리)
+            // OTP 확인 후 명시적 라우팅 (첫 번째 체크는 index.tsx가 처리)
             if (!isFirstCheck) {
               if (result.isNew) {
-                router.replace('/(auth)/role');
+                // 신규 가입: 회원가입 화면에서 입력한 이름이 있으면 저장
+                const { pendingName } = useAuthStore.getState();
+                if (pendingName) {
+                  try {
+                    await api.post('/auth/register', { name: pendingName });
+                  } catch { /* 이름 저장 실패는 무시 — 프로필에서 나중에 설정 가능 */ }
+                  useAuthStore.getState().clearPendingName();
+                }
+                router.replace('/(worker)');
               } else if (role === 'MANAGER') {
                 router.replace('/(manager)');
               } else {

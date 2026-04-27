@@ -8,7 +8,7 @@ import { useAuthStore } from '../store/auth.store';
 export const PERMISSIONS_DONE_KEY = '@gada_permissions_done';
 
 export default function Index() {
-  const { isAuthenticated, isLoading, role, isNew } = useAuthStore();
+  const { isAuthenticated, isLoading, role } = useAuthStore();
   const [permissionsChecked, setPermissionsChecked] = useState(false);
   const [permissionsDone, setPermissionsDone] = useState(false);
   const splashHidden = useRef(false);
@@ -42,14 +42,12 @@ export default function Index() {
       router.replace('/(permissions)');
     } else if (!isAuthenticated) {
       router.replace('/(auth)/phone');
-    } else if (isNew) {
-      router.replace('/(auth)/role');
     } else if (role === 'MANAGER') {
       router.replace('/(manager)');
     } else {
       router.replace('/(worker)');
     }
-  }, [isLoading, permissionsChecked, permissionsDone, isAuthenticated, isNew, role, router]);
+  }, [isLoading, permissionsChecked, permissionsDone, isAuthenticated, role, router]);
 
   // 로딩 중 → 스플래시가 계속 덮고 있으므로 빈 화면 반환
   return <View style={styles.blank} />;

@@ -19,16 +19,20 @@ const COUNTRY_CODES = [
 export default function SignupScreen() {
   const { t, i18n } = useTranslation();
   const router = useRouter();
-  const { setConfirmationResult } = useAuthStore();
+  const { setConfirmationResult, setPendingName } = useAuthStore();
+  const [name, setName] = useState('');
   const [countryCode, setCountryCode] = useState('+84');
   const [phone, setPhone] = useState('');
   const [loading, setLoading] = useState(false);
 
+  const canSend = name.trim().length >= 2 && phone.trim().length > 0;
+
   async function handleSendOtp() {
-    if (!phone.trim()) return;
+    if (!canSend) return;
     setLoading(true);
     try {
       const confirmation = await signInWithPhoneOtp(`${countryCode}${phone}`);
+      setPendingName(name.trim());
       setConfirmationResult(confirmation);
       router.push('/(auth)/otp');
     } catch {
@@ -74,37 +78,57 @@ export default function SignupScreen() {
           <Text style={styles.heroDesc}>{t('auth.signup_desc')}</Text>
         </View>
 
-        {/* Country Code */}
-        <View style={styles.phoneRow}>
-          {COUNTRY_CODES.map((c) => (
-            <TouchableOpacity
-              key={c.code}
-              style={[styles.countryBtn, countryCode === c.code && styles.countryBtnActive]}
-              onPress={() => setCountryCode(c.code)}
-            >
-              <Text style={[styles.countryBtnText, countryCode === c.code && styles.countryBtnTextActive]}>
-                {c.flag} {c.code}
-              </Text>
-            </TouchableOpacity>
-          ))}
+        {/* Name */}
+        <View style={styles.fieldGroup}>
+          <Text style={styles.fieldLabel}>
+            {t('auth.name_label')} <Text style={styles.required}>*</Text>
+          </Text>
+          <TextInput
+            style={styles.input}
+            placeholder={t('auth.name_placeholder')}
+            placeholderTextColor={Colors.disabled}
+            value={name}
+            onChangeText={setName}
+            autoCorrect={false}
+            autoCapitalize="words"
+            maxLength={50}
+            returnKeyType="next"
+          />
         </View>
 
-        {/* Phone Input */}
-        <TextInput
-          style={styles.input}
-          placeholder={t('auth.phone_placeholder')}
-          placeholderTextColor={Colors.disabled}
-          keyboardType="phone-pad"
-          value={phone}
-          onChangeText={setPhone}
-          maxLength={12}
-        />
+        {/* Country Code */}
+        <View style={styles.fieldGroup}>
+          <View style={styles.phoneRow}>
+            {COUNTRY_CODES.map((c) => (
+              <TouchableOpacity
+                key={c.code}
+                style={[styles.countryBtn, countryCode === c.code && styles.countryBtnActive]}
+                onPress={() => setCountryCode(c.code)}
+              >
+                <Text style={[styles.countryBtnText, countryCode === c.code && styles.countryBtnTextActive]}>
+                  {c.flag} {c.code}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
 
-        {/* Signup Button */}
+          {/* Phone Input */}
+          <TextInput
+            style={styles.input}
+            placeholder={t('auth.phone_placeholder')}
+            placeholderTextColor={Colors.disabled}
+            keyboardType="phone-pad"
+            value={phone}
+            onChangeText={setPhone}
+            maxLength={12}
+          />
+        </View>
+
+        {/* Register Button */}
         <TouchableOpacity
-          style={[styles.button, (loading || !phone.trim()) && styles.buttonDisabled]}
+          style={[styles.button, (!canSend || loading) && styles.buttonDisabled]}
           onPress={handleSendOtp}
-          disabled={loading || !phone.trim()}
+          disabled={!canSend || loading}
           activeOpacity={0.85}
         >
           <Text style={styles.buttonText}>
@@ -151,7 +175,11 @@ const styles = StyleSheet.create({
   heroTitle: { ...Font.h3, color: Colors.onSurface, textAlign: 'center', marginBottom: Spacing.sm },
   heroDesc: { ...Font.body3, color: Colors.onSurfaceVariant, textAlign: 'center', lineHeight: 22 },
 
-  phoneRow: { flexDirection: 'row', gap: Spacing.sm },
+  fieldGroup: { gap: Spacing.xs },
+  fieldLabel: { ...Font.body3, fontWeight: '600', color: Colors.onSurface },
+  required: { color: '#ED1C24' },
+
+  phoneRow: { flexDirection: 'row', gap: Spacing.sm, marginBottom: 4 },
   countryBtn: {
     flex: 1, paddingVertical: Spacing.sm, borderRadius: Radius.sm,
     borderWidth: 1.5, borderColor: Colors.outline, alignItems: 'center',
