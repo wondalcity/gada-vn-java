@@ -10,6 +10,7 @@ import { syncAuthToken } from '../lib/firebase';
 import { api } from '../lib/api-client';
 import { useAuthStore } from '../store/auth.store';
 import { Colors } from '../constants/theme';
+import { initCrashlytics, setAuthUser, clearAuthUser, logEvent } from '../lib/crashlytics';
 
 // 스플래시를 앱 초기화 완료 전까지 유지
 SplashScreen.preventAutoHideAsync().catch(() => {});
@@ -19,6 +20,11 @@ export default function RootLayout() {
   const { setUser, setNew, clearUser } = useAuthStore();
   const router = useRouter();
   const authInitialized = useRef(false);
+
+  // Crashlytics 초기화
+  useEffect(() => {
+    initCrashlytics();
+  }, []);
 
   // i18n 언어 복원 (비동기, 스플래시와 무관)
   useEffect(() => {
@@ -37,6 +43,7 @@ export default function RootLayout() {
       authInitialized.current = true;
 
       if (firebaseUser) {
+        logEvent(`Auth: Firebase user detected uid=${firebaseUser.uid}`);
         try {
           const result = await syncAuthToken();
           if (result) {
@@ -48,10 +55,12 @@ export default function RootLayout() {
             };
             const role = user.isManager ? 'MANAGER' : 'WORKER';
             setUser(user.id, role as 'WORKER' | 'MANAGER', user.isManager ?? false);
+            await setAuthUser(user.id, role as 'WORKER' | 'MANAGER');
 
             // OTP 확인 후 명시적 라우팅 (첫 번째 체크는 index.tsx가 처리)
             if (!isFirstCheck) {
               if (result.isNew) {
+                logEvent('Auth: new user registration');
                 // 신규 가입: 회원가입 화면에서 입력한 이름이 있으면 저장
                 const { pendingName } = useAuthStore.getState();
                 if (pendingName) {
@@ -62,20 +71,27 @@ export default function RootLayout() {
                 }
                 router.replace('/(worker)');
               } else if (role === 'MANAGER') {
+                logEvent('Auth: existing MANAGER navigating to manager home');
                 router.replace('/(manager)');
               } else {
+                logEvent('Auth: existing WORKER navigating to worker home');
                 router.replace('/(worker)');
               }
             }
           } else {
+            await clearAuthUser();
             clearUser();
             if (!isFirstCheck) router.replace('/(auth)/phone');
           }
-        } catch {
+        } catch (e) {
+          logEvent(`Auth: syncAuthToken failed — ${e instanceof Error ? e.message : String(e)}`);
+          await clearAuthUser();
           clearUser();
           if (!isFirstCheck) router.replace('/(auth)/phone');
         }
       } else {
+        logEvent('Auth: no Firebase user (signed out)');
+        await clearAuthUser();
         clearUser();
         // 첫 번째 체크에서는 라우팅 안 함 — index.tsx가 처리
       }

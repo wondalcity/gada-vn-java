@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   View, Text, TextInput, TouchableOpacity,
   StyleSheet, Alert,
@@ -6,6 +6,7 @@ import {
 import { useTranslation } from 'react-i18next';
 import { useAuthStore } from '../../store/auth.store';
 import { Colors, Radius, Spacing, Font } from '../../constants/theme';
+import { setCurrentScreen, logEvent } from '../../lib/crashlytics';
 
 export default function OtpScreen() {
   const { t } = useTranslation();
@@ -13,14 +14,18 @@ export default function OtpScreen() {
   const [otp, setOtp] = useState('');
   const [loading, setLoading] = useState(false);
 
+  useEffect(() => { setCurrentScreen('auth/otp'); }, []);
+
   async function handleVerify() {
     if (otp.length < 6 || !confirmationResult) return;
     setLoading(true);
     try {
       await confirmationResult.confirm(otp);
       setConfirmationResult(null);
+      logEvent('Auth: OTP verification succeeded');
       // Auth state listener in _layout.tsx handles routing after Firebase confirms
-    } catch {
+    } catch (e) {
+      logEvent(`Auth: OTP verification failed — ${e instanceof Error ? e.message : String(e)}`);
       Alert.alert(t('common.error'), t('auth.otp_error'));
     } finally {
       setLoading(false);

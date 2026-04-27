@@ -1,4 +1,5 @@
 import * as SecureStore from 'expo-secure-store';
+import { recordApiError } from './crashlytics';
 
 const BASE_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:3001/v1';
 
@@ -55,7 +56,9 @@ async function request<T>(
   const json = await response.json();
 
   if (!response.ok) {
-    throw new ApiError(response.status, json.message || 'Request failed');
+    const message = json.message || 'Request failed';
+    recordApiError(method, path, response.status, message);
+    throw new ApiError(response.status, message);
   }
 
   return json.data as T;

@@ -7,6 +7,7 @@ import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { api, ApiError } from '../../lib/api-client';
+import { setCurrentScreen } from '../../lib/crashlytics';
 
 const CDN = process.env.EXPO_PUBLIC_CDN_URL ?? '';
 const WEB_URL = process.env.EXPO_PUBLIC_WEB_URL ?? 'https://gada.vn';
@@ -81,6 +82,10 @@ export default function WorkerHomeScreen() {
   const [jobs, setJobs] = useState<Job[]>([]);
   const [totalJobs, setTotalJobs] = useState(0);
   const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    setCurrentScreen('worker/home');
+  }, []);
 
   useEffect(() => {
     Promise.all([

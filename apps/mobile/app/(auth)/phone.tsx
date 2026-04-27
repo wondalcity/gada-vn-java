@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   View, Text, TextInput, TouchableOpacity,
   StyleSheet, KeyboardAvoidingView, Platform, Alert, ScrollView,
@@ -9,6 +9,7 @@ import { signInWithPhoneOtp } from '../../lib/firebase';
 import { useAuthStore } from '../../store/auth.store';
 import { SUPPORTED_LANGUAGES, changeAppLanguage, type LangCode } from '../../lib/i18n';
 import { Colors, Radius, Spacing, Font } from '../../constants/theme';
+import { setCurrentScreen } from '../../lib/crashlytics';
 
 const COUNTRY_CODES = [
   { code: '+84', flag: '🇻🇳', label: 'VN' },
@@ -23,6 +24,8 @@ export default function PhoneScreen() {
   const [countryCode, setCountryCode] = useState('+84');
   const [phone, setPhone] = useState('');
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => { setCurrentScreen('auth/phone'); }, []);
 
   async function handleSendOtp() {
     if (!phone.trim()) return;
