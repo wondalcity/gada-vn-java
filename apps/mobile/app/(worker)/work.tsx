@@ -8,24 +8,22 @@ import { useTranslation } from 'react-i18next';
 import { api } from '../../lib/api-client';
 import { Colors, Spacing, Radius, Font } from '../../constants/theme';
 
-type WorkStatus = 'APPLIED' | 'HIRED' | 'COMPLETED';
+type WorkStatus = 'PENDING' | 'ACCEPTED' | 'CONTRACTED' | 'REJECTED' | 'WITHDRAWN';
 
-interface MyJob {
+interface MyApplication {
   id: string;
   jobId: string;
-  title: string;
-  siteNameVi: string;
+  jobTitle: string;
+  siteName: string;
   workDate: string;
   dailyWage: number;
   status: WorkStatus;
   contractId?: string;
 }
 
-// TAB_LABELS and STATUS_CONFIG are built inside the component to use t()
-
-
 function formatDate(dateStr: string): string {
   const d = new Date(dateStr);
+  if (isNaN(d.getTime())) return dateStr;
   const days = ['일', '월', '화', '수', '목', '금', '토'];
   return `${d.getMonth() + 1}/${d.getDate()}(${days[d.getDay()]})`;
 }
@@ -37,48 +35,51 @@ function formatVnd(n: number): string {
 export default function WorkerWorkScreen() {
   const { t } = useTranslation();
   const router = useRouter();
-  const [activeTab, setActiveTab] = useState<WorkStatus>('APPLIED');
+  const [activeTab, setActiveTab] = useState<WorkStatus>('PENDING');
 
   const TAB_LABELS: { key: WorkStatus; label: string }[] = [
-    { key: 'APPLIED',   label: t('worker.work_tab_applied') },
-    { key: 'HIRED',     label: t('worker.work_tab_hired') },
-    { key: 'COMPLETED', label: t('worker.work_tab_completed') },
+    { key: 'PENDING',    label: t('worker.work_tab_applied') },
+    { key: 'ACCEPTED',   label: t('worker.work_tab_hired') },
+    { key: 'CONTRACTED', label: t('worker.work_tab_completed') },
   ];
 
   const STATUS_CONFIG: Record<WorkStatus, { bg: string; text: string; label: string }> = {
-    APPLIED:   { bg: Colors.primaryContainer, text: Colors.primary,           label: t('worker.work_status_applied') },
-    HIRED:     { bg: Colors.successContainer, text: Colors.onSuccessContainer, label: t('worker.work_status_hired') },
-    COMPLETED: { bg: Colors.surfaceContainer, text: Colors.onSurfaceVariant,   label: t('worker.work_status_completed') },
+    PENDING:    { bg: Colors.primaryContainer, text: Colors.primary,           label: t('worker.work_status_applied') },
+    ACCEPTED:   { bg: Colors.successContainer, text: Colors.onSuccessContainer, label: t('worker.work_status_hired') },
+    CONTRACTED: { bg: '#E6F9E6',               text: '#1A6B1A',                 label: t('worker.work_status_completed') },
+    REJECTED:   { bg: Colors.errorContainer,   text: Colors.onErrorContainer,   label: '거절됨' },
+    WITHDRAWN:  { bg: Colors.surfaceContainer, text: Colors.onSurfaceVariant,   label: '취소됨' },
   };
-  const [allJobs, setAllJobs] = useState<MyJob[]>([]);
+
+  const [allApplications, setAllApplications] = useState<MyApplication[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
-  const loadJobs = useCallback(async () => {
+  const loadApplications = useCallback(async () => {
     try {
-      const data = await api.get<MyJob[]>('/applications/mine');
-      setAllJobs(data);
+      const data = await api.get<MyApplication[]>('/applications/mine');
+      setAllApplications(Array.isArray(data) ? data : []);
     } catch {
-      setAllJobs([]);
+      setAllApplications([]);
     } finally {
       setLoading(false);
       setRefreshing(false);
     }
   }, []);
 
-  useEffect(() => { loadJobs(); }, [loadJobs]);
+  useEffect(() => { loadApplications(); }, [loadApplications]);
 
   function onRefresh() {
     setRefreshing(true);
-    loadJobs();
+    loadApplications();
   }
 
-  const filtered = allJobs.filter((j) => j.status === activeTab);
+  const filtered = allApplications.filter((j) => j.status === activeTab);
 
-  const counts: Record<WorkStatus, number> = {
-    APPLIED:   allJobs.filter(j => j.status === 'APPLIED').length,
-    HIRED:     allJobs.filter(j => j.status === 'HIRED').length,
-    COMPLETED: allJobs.filter(j => j.status === 'COMPLETED').length,
+  const counts = {
+    PENDING:    allApplications.filter(j => j.status === 'PENDING').length,
+    ACCEPTED:   allApplications.filter(j => j.status === 'ACCEPTED').length,
+    CONTRACTED: allApplications.filter(j => j.status === 'CONTRACTED').length,
   };
 
   if (loading) {
@@ -101,9 +102,9 @@ export default function WorkerWorkScreen() {
           >
             <Text style={[styles.tabText, activeTab === key && styles.tabTextActive]}>
               {label}
-              {counts[key] > 0 && (
+              {counts[key as keyof typeof counts] > 0 && (
                 <Text style={activeTab === key ? styles.tabCountActive : styles.tabCount}>
-                  {' '}{counts[key]}
+                  {' '}{counts[key as keyof typeof counts]}
                 </Text>
               )}
             </Text>
@@ -123,27 +124,27 @@ export default function WorkerWorkScreen() {
           <View style={styles.empty}>
             <Text style={styles.emptyIcon}>📋</Text>
             <Text style={styles.emptyText}>
-              {activeTab === 'APPLIED' ? t('worker.no_applied_jobs')
-               : activeTab === 'HIRED' ? t('worker.no_hired_jobs')
+              {activeTab === 'PENDING' ? t('worker.no_applied_jobs')
+               : activeTab === 'ACCEPTED' ? t('worker.no_hired_jobs')
                : t('worker.no_completed_jobs')}
             </Text>
           </View>
         }
         renderItem={({ item }) => {
-          const cfg = STATUS_CONFIG[item.status];
+          const cfg = STATUS_CONFIG[item.status] ?? { bg: Colors.surfaceContainer, text: Colors.onSurfaceVariant, label: item.status };
           return (
             <TouchableOpacity
               style={styles.card}
               onPress={() => router.push({ pathname: '/(worker)/jobs/[id]', params: { id: item.jobId } })}
             >
               <View style={styles.cardTop}>
-                <Text style={styles.cardTitle} numberOfLines={2}>{item.title}</Text>
+                <Text style={styles.cardTitle} numberOfLines={2}>{item.jobTitle}</Text>
                 <View style={[styles.badge, { backgroundColor: cfg.bg }]}>
                   <Text style={[styles.badgeText, { color: cfg.text }]}>{cfg.label}</Text>
                 </View>
               </View>
 
-              <Text style={styles.siteName}>{item.siteNameVi}</Text>
+              <Text style={styles.siteName}>{item.siteName}</Text>
 
               <View style={styles.cardFooter}>
                 <View style={styles.metaRow}>
@@ -153,10 +154,13 @@ export default function WorkerWorkScreen() {
                 <Text style={styles.wage}>{formatVnd(item.dailyWage)}</Text>
               </View>
 
-              {item.status === 'HIRED' && item.contractId && (
+              {item.status === 'ACCEPTED' && item.contractId && (
                 <TouchableOpacity
                   style={styles.contractBtn}
-                  onPress={() => router.push({ pathname: '/(worker)/contracts/[id]', params: { id: item.contractId! } })}
+                  onPress={(e) => {
+                    e.stopPropagation();
+                    router.push({ pathname: '/(worker)/contracts/[id]', params: { id: item.contractId! } });
+                  }}
                 >
                   <Text style={styles.contractBtnText}>{t('worker.view_contract')}</Text>
                 </TouchableOpacity>

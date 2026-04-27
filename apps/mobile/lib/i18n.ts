@@ -173,6 +173,7 @@ const ko = {
   },
   attendance: {
     title: '출퇴근 내역',
+    tab_label: '출퇴근',
     today: '오늘 근무',
     check_in: '출근',
     check_out: '퇴근',
@@ -224,7 +225,7 @@ const ko = {
   },
   worker: {
     work_tab_title: '지원현황',
-    work_tab_label: '지원',
+    work_tab_label: '지원현황',
     profile_completion: '프로필 완성도',
     completion_items: '{{done}}/{{total}} 항목 완성',
     name_unregistered: '이름 미등록',
@@ -567,6 +568,7 @@ const vi = {
   },
   attendance: {
     title: 'Lịch sử chấm công',
+    tab_label: 'Chấm công',
     today: 'Làm việc hôm nay',
     check_in: 'Vào ca',
     check_out: 'Tan ca',
@@ -961,6 +963,7 @@ const en = {
   },
   attendance: {
     title: 'Attendance history',
+    tab_label: 'Attendance',
     today: 'Today\'s work',
     check_in: 'Check in',
     check_out: 'Check out',

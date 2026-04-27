@@ -49,7 +49,7 @@ export default function WorkerLayout() {
         name="attendance"
         options={{
           title: t('attendance.title'),
-          tabBarLabel: t('attendance.title'),
+          tabBarLabel: t('attendance.tab_label'),
           tabBarIcon: ({ color }) => <Text style={{ color, fontSize: 20 }}>⏱️</Text>,
         }}
       />

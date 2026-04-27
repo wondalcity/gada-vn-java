@@ -35,9 +35,9 @@ export default function ManagerSitesScreen() {
   const loadSites = useCallback(async () => {
     try {
       const data = await api.get<Site[]>('/manager/sites');
-      setSites(data);
+      setSites(Array.isArray(data) ? data : []);
     } catch {
-      setSites(DEMO_SITES);
+      setSites([]);
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -77,7 +77,12 @@ export default function ManagerSitesScreen() {
           <TouchableOpacity
             style={styles.card}
             activeOpacity={0.7}
-            onPress={() => router.push({ pathname: '/(manager)/jobs/create', params: { siteId: item.id } })}
+            onPress={() => {
+              Alert.alert(item.name, '이 현장에서 무엇을 하시겠습니까?', [
+                { text: t('common.cancel'), style: 'cancel' },
+                { text: '공고 등록', onPress: () => router.push({ pathname: '/(manager)/jobs/create', params: { siteId: item.id } }) },
+              ]);
+            }}
           >
             <View style={styles.cardTop}>
               <View style={styles.iconBox}>
@@ -108,6 +113,14 @@ export default function ManagerSitesScreen() {
         )}
       />
 
+      {/* FAB — create new site */}
+      <TouchableOpacity
+        style={styles.fab}
+        onPress={() => router.push('/(manager)/sites/create')}
+        activeOpacity={0.85}
+      >
+        <Text style={styles.fabText}>+</Text>
+      </TouchableOpacity>
     </View>
   );
 }
@@ -150,4 +163,13 @@ const styles = StyleSheet.create({
   empty: { alignItems: 'center', paddingTop: 80, gap: 12 },
   emptyIcon: { fontSize: 40 },
   emptyText: { ...Font.body3, color: Colors.onSurfaceVariant },
+
+  fab: {
+    position: 'absolute', right: 20, bottom: 20,
+    width: 56, height: 56, borderRadius: 28,
+    backgroundColor: Colors.primary,
+    justifyContent: 'center', alignItems: 'center',
+    shadowColor: Colors.primary, shadowOpacity: 0.4, shadowRadius: 8, elevation: 6,
+  },
+  fabText: { color: Colors.onPrimary, fontSize: 28, lineHeight: 32 },
 });

@@ -2,14 +2,14 @@ import { useEffect, useState, useCallback } from 'react';
 import {
   View, Text, FlatList, StyleSheet,
   TouchableOpacity, RefreshControl, ActivityIndicator,
-  Linking, Alert, Modal,
+  Linking, Alert, Modal, TextInput,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { api } from '../../lib/api-client';
 import { Colors, Spacing, Radius, Font } from '../../constants/theme';
 
-type ApplicationStatus = 'APPLIED' | 'HIRED' | 'REJECTED' | 'COMPLETED';
+type ApplicationStatus = 'PENDING' | 'ACCEPTED' | 'REJECTED' | 'CONTRACTED';
 
 interface WorkerApplication {
   id: string;
@@ -22,38 +22,29 @@ interface WorkerApplication {
   workerTrades: string[];
   experienceYears?: number;
   status: ApplicationStatus;
+  contractId?: string;
+  contractStatus?: string;
 }
-
-const DEMO_APPLICATIONS: WorkerApplication[] = [
-  { id: 'dapp-1', jobId: 'djob-1', jobTitle: '강남구 철근 작업 모집', workDate: '2026-04-05', workerId: 'dw-1', workerName: '김민준', workerPhone: '+82 10-1234-5678', workerTrades: ['철근공'], experienceYears: 3, status: 'HIRED' },
-  { id: 'dapp-2', jobId: 'djob-1', jobTitle: '강남구 철근 작업 모집', workDate: '2026-04-05', workerId: 'dw-2', workerName: '이서준', workerPhone: '+82 10-2345-6789', workerTrades: ['철근공'], experienceYears: 5, status: 'APPLIED' },
-  { id: 'dapp-3', jobId: 'djob-2', jobTitle: '서초 오피스텔 미장 작업', workDate: '2026-04-07', workerId: 'dw-3', workerName: '박도윤', workerPhone: '+82 10-3456-7890', workerTrades: ['미장공'], experienceYears: 2, status: 'APPLIED' },
-  { id: 'dapp-4', jobId: 'djob-3', jobTitle: '마포구 배관 설치', workDate: '2026-04-10', workerId: 'dw-4', workerName: '최현우', workerPhone: '+82 10-4567-8901', workerTrades: ['배관공'], experienceYears: 6, status: 'COMPLETED' },
-  { id: 'dapp-5', jobId: 'djob-5', jobTitle: '성동구 신축 도장 작업', workDate: '2026-04-12', workerId: 'dw-5', workerName: '정시우', workerPhone: '+82 10-5678-9012', workerTrades: ['도장공'], experienceYears: 4, status: 'HIRED' },
-  { id: 'dapp-6', jobId: 'djob-2', jobTitle: '서초 오피스텔 미장 작업', workDate: '2026-04-07', workerId: 'dw-6', workerName: '강지훈', workerPhone: '+82 10-6789-0123', workerTrades: ['미장공'], experienceYears: 1, status: 'REJECTED' },
-]
-
-// STATUS_CONFIG and TAB_FILTERS built inside component to use t()
-
 
 function formatDate(dateStr: string): string {
   const d = new Date(dateStr);
+  if (isNaN(d.getTime())) return dateStr;
   const days = ['일', '월', '화', '수', '목', '금', '토'];
   return `${d.getMonth() + 1}/${d.getDate()}(${days[d.getDay()]})`;
 }
 
 function formatPhone(phone: string | null | undefined): string {
-  if (!phone) return '-'
-  const p = phone.trim()
+  if (!phone) return '-';
+  const p = phone.trim();
   if (p.startsWith('+84')) {
-    const d = p.slice(3)
-    if (d.length === 9) return `+84 ${d.slice(0, 2)}-${d.slice(2, 5)}-${d.slice(5)}`
+    const d = p.slice(3);
+    if (d.length === 9) return `+84 ${d.slice(0, 2)}-${d.slice(2, 5)}-${d.slice(5)}`;
   }
   if (p.startsWith('+82')) {
-    const d = p.slice(3)
-    if (d.length >= 9) return `+82 ${d.slice(0, 2)}-${d.slice(2, d.length - 4)}-${d.slice(d.length - 4)}`
+    const d = p.slice(3);
+    if (d.length >= 9) return `+82 ${d.slice(0, 2)}-${d.slice(2, d.length - 4)}-${d.slice(d.length - 4)}`;
   }
-  return p
+  return p;
 }
 
 export default function ManagerWorkersScreen() {
@@ -62,29 +53,32 @@ export default function ManagerWorkersScreen() {
   const [applications, setApplications] = useState<WorkerApplication[]>([]);
 
   const STATUS_CONFIG: Record<ApplicationStatus, { bg: string; text: string; label: string }> = {
-    APPLIED:   { bg: Colors.primaryContainer, text: Colors.primary,           label: t('manager.tab_filter_applied') },
-    HIRED:     { bg: Colors.successContainer, text: Colors.onSuccessContainer, label: t('manager.tab_filter_hired') },
-    REJECTED:  { bg: Colors.errorContainer,   text: Colors.onErrorContainer,   label: t('manager.worker_reject_button') },
-    COMPLETED: { bg: Colors.surfaceContainer, text: Colors.onSurfaceVariant,   label: t('manager.tab_filter_completed') },
+    PENDING:    { bg: Colors.primaryContainer, text: Colors.primary,           label: t('manager.tab_filter_applied') },
+    ACCEPTED:   { bg: Colors.successContainer, text: Colors.onSuccessContainer, label: t('manager.tab_filter_hired') },
+    REJECTED:   { bg: Colors.errorContainer,   text: Colors.onErrorContainer,   label: t('manager.worker_reject_button') },
+    CONTRACTED: { bg: '#E6F9E6',               text: '#1A6B1A',                 label: t('manager.tab_filter_completed') },
   };
 
   const TAB_FILTERS: { key: ApplicationStatus | 'ALL'; label: string }[] = [
-    { key: 'ALL',       label: t('manager.tab_filter_all') },
-    { key: 'APPLIED',   label: t('manager.tab_filter_applied') },
-    { key: 'HIRED',     label: t('manager.tab_filter_hired') },
-    { key: 'COMPLETED', label: t('manager.tab_filter_completed') },
+    { key: 'ALL',        label: t('manager.tab_filter_all') },
+    { key: 'PENDING',    label: t('manager.tab_filter_applied') },
+    { key: 'ACCEPTED',   label: t('manager.tab_filter_hired') },
+    { key: 'CONTRACTED', label: t('manager.tab_filter_completed') },
   ];
+
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [activeFilter, setActiveFilter] = useState<ApplicationStatus | 'ALL'>('ALL');
   const [selectedWorker, setSelectedWorker] = useState<WorkerApplication | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [creatingContractFor, setCreatingContractFor] = useState<string | null>(null);
 
   const loadApplications = useCallback(async () => {
     try {
       const data = await api.get<WorkerApplication[]>('/manager/applications');
-      setApplications(data.length > 0 ? data : DEMO_APPLICATIONS);
+      setApplications(Array.isArray(data) ? data : []);
     } catch {
-      setApplications(DEMO_APPLICATIONS);
+      setApplications([]);
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -119,13 +113,35 @@ export default function ManagerWorkersScreen() {
     ]);
   }
 
+  async function handleCreateContract(applicationId: string) {
+    setCreatingContractFor(applicationId);
+    try {
+      await api.post('/contracts/generate', { applicationId });
+      loadApplications();
+    } catch (e) {
+      Alert.alert(t('common.error'), t('common.process_fail'));
+    } finally {
+      setCreatingContractFor(null);
+    }
+  }
+
   function handleCall(phone: string) {
     Linking.openURL(`tel:${phone}`);
   }
 
-  const filtered = activeFilter === 'ALL'
-    ? applications
-    : applications.filter(a => a.status === activeFilter);
+  const filtered = (() => {
+    let list = applications;
+    if (activeFilter !== 'ALL') list = list.filter(a => a.status === activeFilter);
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase();
+      list = list.filter(a =>
+        a.workerName.toLowerCase().includes(q) ||
+        a.workerPhone.includes(q) ||
+        a.jobTitle.toLowerCase().includes(q),
+      );
+    }
+    return list;
+  })();
 
   if (loading) {
     return (
@@ -157,6 +173,20 @@ export default function ManagerWorkersScreen() {
         })}
       </View>
 
+      {/* Search box */}
+      {applications.length > 0 && (
+        <View style={styles.searchBox}>
+          <TextInput
+            style={styles.searchInput}
+            placeholder={t('manager.worker_search_placeholder', '이름, 전화번호, 공고 검색')}
+            placeholderTextColor={Colors.onSurfaceVariant}
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+            returnKeyType="search"
+          />
+        </View>
+      )}
+
       <FlatList
         data={filtered}
         keyExtractor={(item) => item.id}
@@ -171,10 +201,11 @@ export default function ManagerWorkersScreen() {
           </View>
         }
         renderItem={({ item }) => {
-          const cfg = STATUS_CONFIG[item.status];
+          const cfg = STATUS_CONFIG[item.status] ?? { bg: Colors.surfaceContainer, text: Colors.onSurfaceVariant, label: item.status };
+          const isFullySigned = item.contractId && item.contractStatus === 'FULLY_SIGNED';
           return (
             <View style={styles.card}>
-              {/* Worker info header — tap to open detail modal */}
+              {/* Worker info header */}
               <TouchableOpacity
                 style={styles.cardHeader}
                 onPress={() => setSelectedWorker(item)}
@@ -224,28 +255,40 @@ export default function ManagerWorkersScreen() {
 
               {/* Action buttons */}
               <View style={styles.actions}>
-                <TouchableOpacity
-                  style={styles.callBtn}
-                  onPress={() => handleCall(item.workerPhone)}
-                >
+                <TouchableOpacity style={styles.callBtn} onPress={() => handleCall(item.workerPhone)}>
                   <Text style={styles.callBtnText}>{t('manager.worker_call_button')}</Text>
                 </TouchableOpacity>
 
-                {item.status === 'APPLIED' && (
+                {item.status === 'PENDING' && (
                   <>
-                    <TouchableOpacity
-                      style={styles.rejectBtn}
-                      onPress={() => handleReject(item.id)}
-                    >
+                    <TouchableOpacity style={styles.rejectBtn} onPress={() => handleReject(item.id)}>
                       <Text style={styles.rejectBtnText}>{t('manager.worker_reject_action')}</Text>
                     </TouchableOpacity>
-                    <TouchableOpacity
-                      style={styles.hireBtn}
-                      onPress={() => handleHire(item.id)}
-                    >
+                    <TouchableOpacity style={styles.hireBtn} onPress={() => handleHire(item.id)}>
                       <Text style={styles.hireBtnText}>{t('manager.worker_hire_action')}</Text>
                     </TouchableOpacity>
                   </>
+                )}
+
+                {item.status === 'ACCEPTED' && !isFullySigned && (
+                  <TouchableOpacity
+                    style={[styles.hireBtn, { flex: 2 }]}
+                    onPress={() => handleCreateContract(item.id)}
+                    disabled={creatingContractFor === item.id}
+                  >
+                    <Text style={styles.hireBtnText}>
+                      {creatingContractFor === item.id ? t('common.loading') : '계약서 생성'}
+                    </Text>
+                  </TouchableOpacity>
+                )}
+
+                {(item.status === 'ACCEPTED' || item.status === 'CONTRACTED') && isFullySigned && item.contractId && (
+                  <TouchableOpacity
+                    style={[styles.hireBtn, { flex: 2, backgroundColor: '#1A6B1A' }]}
+                    onPress={() => router.push({ pathname: '/(manager)/contracts/[id]', params: { id: item.contractId! } })}
+                  >
+                    <Text style={styles.hireBtnText}>계약서 보기</Text>
+                  </TouchableOpacity>
                 )}
               </View>
             </View>
@@ -256,7 +299,7 @@ export default function ManagerWorkersScreen() {
       {/* ── Worker Detail Modal ── */}
       {selectedWorker && (() => {
         const w = selectedWorker;
-        const cfg = STATUS_CONFIG[w.status];
+        const cfg = STATUS_CONFIG[w.status] ?? { bg: Colors.surfaceContainer, text: Colors.onSurfaceVariant, label: w.status };
         return (
           <Modal
             visible={!!selectedWorker}
@@ -289,7 +332,7 @@ export default function ManagerWorkersScreen() {
                   </View>
                 </View>
 
-                {/* Phone — tappable */}
+                {/* Phone */}
                 <TouchableOpacity
                   style={styles.detailPhoneRow}
                   onPress={() => handleCall(w.workerPhone)}
@@ -331,12 +374,12 @@ export default function ManagerWorkersScreen() {
                   <Text style={styles.jobRefArrow}>›</Text>
                 </TouchableOpacity>
 
-                {/* Action buttons */}
+                {/* Actions */}
                 <View style={styles.actions}>
                   <TouchableOpacity style={styles.callBtn} onPress={() => handleCall(w.workerPhone)}>
                     <Text style={styles.callBtnText}>{t('manager.worker_call_button')}</Text>
                   </TouchableOpacity>
-                  {w.status === 'APPLIED' && (
+                  {w.status === 'PENDING' && (
                     <>
                       <TouchableOpacity
                         style={styles.rejectBtn}
@@ -383,6 +426,22 @@ const styles = StyleSheet.create({
   filterChipActive: { backgroundColor: Colors.primary },
   filterChipText: { ...Font.caption, color: Colors.onSurfaceVariant, fontWeight: '600' },
   filterChipTextActive: { color: Colors.onPrimary },
+
+  searchBox: {
+    backgroundColor: Colors.surface,
+    paddingHorizontal: Spacing.lg,
+    paddingVertical: Spacing.sm,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.outline,
+  },
+  searchInput: {
+    backgroundColor: Colors.background,
+    borderRadius: Radius.sm,
+    paddingHorizontal: Spacing.md,
+    paddingVertical: 8,
+    ...Font.body3,
+    color: Colors.onSurface,
+  },
 
   list: { padding: Spacing.lg, gap: Spacing.md, paddingBottom: 32 },
 
@@ -455,7 +514,6 @@ const styles = StyleSheet.create({
   emptyIcon: { fontSize: 40 },
   emptyText: { ...Font.body3, color: Colors.onSurfaceVariant },
 
-  // Detail modal
   detailOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' },
   detailSheet: {
     backgroundColor: Colors.surface,

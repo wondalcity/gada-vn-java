@@ -61,9 +61,9 @@ export default function ManagerJobsScreen() {
   const loadJobs = useCallback(async () => {
     try {
       const data = await api.get<DemoJob[]>('/jobs/mine');
-      setJobs(data);
+      setJobs(Array.isArray(data) ? data : []);
     } catch {
-      setJobs(DEMO_JOBS);
+      setJobs([]);
     } finally {
       setLoading(false);
       setRefreshing(false);

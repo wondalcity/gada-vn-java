@@ -133,6 +133,15 @@ export default function ManagerLayout() {
           tabBarStyle: { display: 'none' },
         }}
       />
+      <Tabs.Screen
+        name="sites/create"
+        options={{
+          href: null,
+          title: '현장 등록',
+          headerShown: true,
+          tabBarStyle: { display: 'none' },
+        }}
+      />
     </Tabs>
   );
 }
