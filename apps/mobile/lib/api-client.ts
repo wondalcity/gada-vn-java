@@ -13,6 +13,23 @@ class ApiError extends Error {
   }
 }
 
+// API가 snake_case로 응답하는 경우를 대비해 camelCase로 자동 변환
+function toCamelKey(s: string): string {
+  return s.replace(/_([a-z])/g, (_, c: string) => c.toUpperCase());
+}
+
+function camelizeKeys<T>(val: unknown): T {
+  if (Array.isArray(val)) return val.map(camelizeKeys) as T;
+  if (val !== null && typeof val === 'object') {
+    return Object.fromEntries(
+      Object.entries(val as Record<string, unknown>).map(([k, v]) => [
+        toCamelKey(k), camelizeKeys(v),
+      ]),
+    ) as T;
+  }
+  return val as T;
+}
+
 async function getAuthToken(): Promise<string | null> {
   return SecureStore.getItemAsync('auth_token');
 }
@@ -61,7 +78,7 @@ async function request<T>(
     throw new ApiError(response.status, message);
   }
 
-  return json.data as T;
+  return camelizeKeys<T>(json.data);
 }
 
 export const api = {

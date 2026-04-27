@@ -63,8 +63,8 @@ export default function RootLayout() {
             // 단, Google/소셜 로그인처럼 otp.tsx를 거치지 않는 경우를 위해 비첫번째 체크에서도 라우팅
             if (!isFirstCheck) {
               if (role === 'MANAGER') {
-                logEvent('Auth: session restored — MANAGER navigating to manager home');
-                router.replace('/(manager)/home');
+                logEvent('Auth: session restored — MANAGER navigating to mode select');
+                router.replace('/(auth)/mode');
               } else {
                 logEvent('Auth: session restored — WORKER navigating to worker home');
                 router.replace('/(worker)');

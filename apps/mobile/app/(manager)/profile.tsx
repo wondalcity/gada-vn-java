@@ -21,6 +21,13 @@ export default function ManagerProfile() {
         </View>
       </View>
 
+      {/* Switch Mode */}
+      <TouchableOpacity style={styles.settingRow} onPress={() => router.push('/(auth)/mode' as never)} activeOpacity={0.7}>
+        <Text style={styles.settingIcon}>🔄</Text>
+        <Text style={styles.settingLabel}>{t('auth.switch_mode', '모드 전환')}</Text>
+        <Text style={styles.settingValue}>›</Text>
+      </TouchableOpacity>
+
       {/* Language setting */}
       <TouchableOpacity style={styles.settingRow} onPress={() => setLangModalVisible(true)} activeOpacity={0.7}>
         <Text style={styles.settingIcon}>🌐</Text>

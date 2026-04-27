@@ -58,7 +58,7 @@ export default function OtpScreen() {
         }
 
         logEvent(`Auth: Firebase login complete — role=${role} isNew=${syncResult.isNew}`);
-        router.replace(role === 'MANAGER' ? '/(manager)/home' : '/(worker)');
+        router.replace(role === 'MANAGER' ? '/(auth)/mode' : '/(worker)');
 
       } else if (pendingPhone) {
         // ── 서버 OTP flow (스테이징 전체 / 프로덕션 테스트폰) ─────────────────
@@ -92,7 +92,7 @@ export default function OtpScreen() {
           }
 
           logEvent(`Auth: server OTP login (customToken) — role=${role} isNew=${syncResult.isNew}`);
-          router.replace(role === 'MANAGER' ? '/(manager)/home' : '/(worker)');
+          router.replace(role === 'MANAGER' ? '/(auth)/mode' : '/(worker)');
 
         } else if (result.devToken) {
           // devToken → SecureStore 저장 → /auth/me
@@ -112,7 +112,7 @@ export default function OtpScreen() {
           }
 
           logEvent(`Auth: server OTP login (devToken) — role=${role} isNew=${result.isNewUser}`);
-          router.replace(role === 'MANAGER' ? '/(manager)/home' : '/(worker)');
+          router.replace(role === 'MANAGER' ? '/(auth)/mode' : '/(worker)');
 
         } else {
           throw new Error('no_token_in_response');

@@ -182,7 +182,7 @@ export default function ManagerWorkersScreen() {
               >
                 <View style={styles.avatarCircle}>
                   <Text style={styles.avatarText}>
-                    {item.workerName.charAt(0)}
+                    {(item.workerName ?? '?').charAt(0)}
                   </Text>
                 </View>
                 <View style={styles.workerInfo}>
@@ -195,9 +195,9 @@ export default function ManagerWorkersScreen() {
               </TouchableOpacity>
 
               {/* Trade chips */}
-              {item.workerTrades.length > 0 && (
+              {(item.workerTrades ?? []).length > 0 && (
                 <View style={styles.chips}>
-                  {item.workerTrades.slice(0, 3).map((trade) => (
+                  {(item.workerTrades ?? []).slice(0, 3).map((trade) => (
                     <View key={trade} style={styles.chip}>
                       <Text style={styles.chipText}>{trade}</Text>
                     </View>
@@ -281,7 +281,7 @@ export default function ManagerWorkersScreen() {
                 {/* Avatar + name */}
                 <View style={styles.detailProfile}>
                   <View style={styles.detailAvatar}>
-                    <Text style={styles.detailAvatarText}>{w.workerName.charAt(0)}</Text>
+                    <Text style={styles.detailAvatarText}>{(w.workerName ?? '?').charAt(0)}</Text>
                   </View>
                   <Text style={styles.detailName}>{w.workerName}</Text>
                   <View style={[styles.statusBadge, { backgroundColor: cfg.bg }]}>
@@ -301,9 +301,9 @@ export default function ManagerWorkersScreen() {
                 </TouchableOpacity>
 
                 {/* Trades + experience */}
-                {(w.workerTrades.length > 0 || w.experienceYears !== undefined) && (
+                {((w.workerTrades ?? []).length > 0 || w.experienceYears !== undefined) && (
                   <View style={styles.chips}>
-                    {w.workerTrades.map((trade) => (
+                    {(w.workerTrades ?? []).map((trade) => (
                       <View key={trade} style={styles.chip}>
                         <Text style={styles.chipText}>{trade}</Text>
                       </View>
