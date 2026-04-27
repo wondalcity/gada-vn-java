@@ -81,9 +81,14 @@ export default function PhoneScreen() {
       await signInWithGoogle();
       // Auth state listener in _layout.tsx handles routing
     } catch (e) {
-      const code = (e as any)?.code ?? 'unknown';
+      const code = (e as any)?.code ?? '';
+      // Silently ignore user-initiated cancellation
+      if (code === 'SIGN_IN_CANCELLED' || code === '-3' || code === '12501') {
+        logEvent('Auth: Google sign-in cancelled by user');
+        return;
+      }
       logEvent(`Auth: Google sign-in failed — code=${code}`);
-      Alert.alert(t('common.error'), t('auth.otp_send_fail'));
+      Alert.alert(t('common.error'), t('auth.google_login_fail'));
     } finally {
       setGoogleLoading(false);
     }

@@ -72,6 +72,7 @@ const ko = {
     select_country: '국가 선택',
     or_social: '또는',
     google_login: '구글로 로그인',
+    google_login_fail: '구글 로그인에 실패했습니다. 다시 시도해주세요.',
   },
   jobs: {
     apply_button: '지원하기',
@@ -467,6 +468,7 @@ const vi = {
     select_country: 'Chọn quốc gia',
     or_social: 'Hoặc',
     google_login: 'Đăng nhập bằng Google',
+    google_login_fail: 'Đăng nhập Google thất bại. Vui lòng thử lại.',
   },
   jobs: {
     apply_button: 'Ứng tuyển',
@@ -862,6 +864,7 @@ const en = {
     select_country: 'Select country',
     or_social: 'Or',
     google_login: 'Sign in with Google',
+    google_login_fail: 'Google sign-in failed. Please try again.',
   },
   jobs: {
     apply_button: 'Apply',
