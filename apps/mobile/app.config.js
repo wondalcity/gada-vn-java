@@ -22,6 +22,9 @@ module.exports = ({ config }) => ({
   android: {
     ...config.android,
     versionCode: config.android?.versionCode ?? 1,
+    // EAS builds: use GOOGLE_SERVICES_JSON secret env var (file type)
+    // Local builds: fall back to the local file
+    googleServicesFile: process.env.GOOGLE_SERVICES_JSON ?? './google-services.json',
     config: {
       googleMaps: {
         apiKey: process.env.GOOGLE_MAPS_ANDROID_KEY ?? '',
