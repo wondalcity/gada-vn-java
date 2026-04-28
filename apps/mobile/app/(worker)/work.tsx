@@ -7,6 +7,7 @@ import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { api } from '../../lib/api-client';
 import { Colors, Spacing, Radius, Font } from '../../constants/theme';
+import { showToast } from '../../lib/toast';
 
 type WorkStatus = 'PENDING' | 'ACCEPTED' | 'CONTRACTED' | 'REJECTED' | 'WITHDRAWN';
 
@@ -94,7 +95,7 @@ export default function WorkerWorkScreen() {
               await api.delete(`/applications/${id}`);
               await loadApplications();
             } catch {
-              Alert.alert(t('common.error'), t('common.process_fail'));
+              showToast({ message: t('common.process_fail', '처리 중 오류가 발생했습니다'), type: 'error' });
             } finally {
               setWithdrawingId(null);
             }

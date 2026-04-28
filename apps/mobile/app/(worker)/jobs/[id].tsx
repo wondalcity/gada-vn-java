@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback, useRef } from 'react';
 import {
   View, Text, ScrollView, TouchableOpacity,
-  StyleSheet, Alert, ActivityIndicator, Modal, Platform, Dimensions,
+  StyleSheet, ActivityIndicator, Modal, Platform, Dimensions,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Image } from 'expo-image';
@@ -9,6 +9,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { api, ApiError } from '../../../lib/api-client';
 import { Colors, Font, Spacing, Radius } from '../../../constants/theme';
+import { showToast } from '../../../lib/toast';
 
 const CDN = process.env.EXPO_PUBLIC_CDN_URL ?? '';
 const SCREEN_WIDTH = Dimensions.get('window').width;
@@ -146,9 +147,8 @@ export default function JobDetailScreen() {
       const data = await api.get<JobDetail>(`/jobs/${id}`);
       setJob(data);
     } catch {
-      Alert.alert(t('common.error'), t('jobs.load_fail'), [
-        { text: t('common.confirm'), onPress: () => router.back() },
-      ]);
+      showToast({ message: t('jobs.load_fail', '일자리 정보를 불러오지 못했습니다'), type: 'error' });
+      router.back();
     } finally {
       setLoading(false);
     }
@@ -161,15 +161,14 @@ export default function JobDetailScreen() {
     setApplying(true);
     try {
       await api.post(`/jobs/${id}/apply`);
-      Alert.alert(t('jobs.apply_success_title'), t('jobs.apply_success_body'), [
-        { text: t('common.confirm'), onPress: () => router.back() },
-      ]);
+      showToast({ message: t('jobs.apply_success_body', '지원이 완료되었습니다'), type: 'success' });
+      router.back();
     } catch (err) {
       const message =
         err instanceof ApiError && err.statusCode === 409
-          ? t('jobs.already_applied')
-          : t('jobs.apply_fail');
-      Alert.alert(t('common.error'), message);
+          ? t('jobs.already_applied', '이미 지원한 공고입니다')
+          : t('jobs.apply_fail', '지원에 실패했습니다');
+      showToast({ message, type: 'error' });
     } finally {
       setApplying(false);
     }

@@ -96,6 +96,15 @@ export default function WorkerLayout() {
         }}
       />
       <Tabs.Screen
+        name="contracts/index"
+        options={{
+          href: null,
+          title: t('worker.contracts_list', '계약서 목록'),
+          headerShown: true,
+          tabBarStyle: { display: 'none' },
+        }}
+      />
+      <Tabs.Screen
         name="contracts/[id]"
         options={{
           href: null,

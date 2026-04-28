@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import {
   View, Text, ScrollView, TouchableOpacity, StyleSheet,
-  ActivityIndicator, RefreshControl,
+  ActivityIndicator, RefreshControl, Alert,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
@@ -9,6 +9,7 @@ import { api } from '../../../lib/api-client';
 import { useAuthStore } from '../../../store/auth.store';
 import { setCurrentScreen } from '../../../lib/crashlytics';
 import { Colors } from '../../../constants/theme';
+import { showToast } from '../../../lib/toast';
 
 function formatPhone(phone: string | null | undefined): string {
   if (!phone) return '-';
@@ -100,12 +101,12 @@ export default function WorkerMyPageScreen() {
     try {
       await api.post('/managers/register', {});
       setManagerStatus('PENDING');
-      Alert.alert(
-        t('worker.manager_apply_success_title', '신청 완료'),
-        t('worker.manager_apply_success_body', '관리자 신청이 접수되었습니다. 검토 후 승인됩니다.'),
-      );
+      showToast({
+        message: t('worker.manager_apply_success_body', '관리자 신청이 접수되었습니다. 검토 후 승인됩니다.'),
+        type: 'success',
+      });
     } catch {
-      Alert.alert(t('common.error'), t('common.process_fail'));
+      showToast({ message: t('common.process_fail', '처리 중 오류가 발생했습니다'), type: 'error' });
     } finally {
       setApplyingManager(false);
     }
@@ -126,7 +127,7 @@ export default function WorkerMyPageScreen() {
 
   const quickActions = [
     { icon: '📋', label: t('worker.dashboard_applications', '지원현황'), onPress: () => router.push('/(worker)/work' as never) },
-    { icon: '📄', label: t('worker.dashboard_contracts', '계약서'), onPress: () => router.push('/(worker)/work' as never) },
+    { icon: '📄', label: t('worker.dashboard_contracts', '계약서'), onPress: () => router.push('/(worker)/contracts/' as never) },
     { icon: '👤', label: t('worker.dashboard_profile', '프로필'), onPress: () => router.push('/(worker)/profile/edit' as never) },
     { icon: '🔍', label: t('worker.dashboard_find_jobs', '일자리'), onPress: () => router.push('/(worker)/' as never) },
   ];

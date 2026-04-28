@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import {
   View, Text, ScrollView, TouchableOpacity, StyleSheet,
-  TextInput, Alert, ActivityIndicator, Image, KeyboardAvoidingView, Platform, Modal, FlatList,
+  TextInput, ActivityIndicator, Image, KeyboardAvoidingView, Platform, Modal, FlatList,
 } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { useRouter } from 'expo-router';
@@ -9,6 +9,8 @@ import { useTranslation } from 'react-i18next';
 import i18n from '../../../lib/i18n';
 import { api, ApiError } from '../../../lib/api-client';
 import { useAuthStore } from '../../../store/auth.store';
+import { showToast } from '../../../lib/toast';
+import DatePickerField from '../../../components/DatePickerField';
 
 function formatPhone(phone: string | null | undefined): string {
   if (!phone) return '-'
@@ -52,7 +54,7 @@ type Section = 'basic' | 'trade' | 'address' | 'bank' | 'id' | 'signature' | nul
 async function pickImage(): Promise<string | null> {
   const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
   if (status !== 'granted') {
-    Alert.alert(i18n.t('common.permission_required'), i18n.t('common.photo_permission'));
+    showToast({ message: i18n.t('common.photo_permission', '사진 접근 권한이 필요합니다'), type: 'error' });
     return null;
   }
   const result = await ImagePicker.launchImageLibraryAsync({
@@ -117,12 +119,12 @@ function BasicSection({ profile, onSaved }: { profile: WorkerProfile; onSaved: (
         setAvatarUrl(dataUrl);
         onSaved({ profile_image_url: dataUrl });
       }
-    } catch { Alert.alert(t('common.error'), t('worker.avatar_upload_fail')); }
+    } catch { showToast({ message: t('worker.avatar_upload_fail', '프로필 사진 업로드에 실패했습니다'), type: 'error' }); }
     finally { setSaving(false); }
   }
 
   async function handleSave() {
-    if (!fullName.trim()) { Alert.alert(t('common.confirm'), t('worker.name_required')); return; }
+    if (!fullName.trim()) { showToast({ message: t('worker.name_required', '이름을 입력해주세요'), type: 'warning' }); return; }
     setSaving(true);
     try {
       await api.put('/workers/me', {
@@ -132,9 +134,9 @@ function BasicSection({ profile, onSaved }: { profile: WorkerProfile; onSaved: (
         bio: bio.trim() || null,
       });
       onSaved({ full_name: fullName.trim(), date_of_birth: dob || null, gender: (gender || null) as 'MALE' | 'FEMALE' | 'OTHER' | null, bio: bio.trim() || null });
-      Alert.alert(t('common.save_complete'), t('worker.basic_save_success'));
+      showToast({ message: t('worker.basic_save_success', '기본정보가 저장되었습니다'), type: 'success' });
     } catch (e) {
-      Alert.alert(t('common.error'), e instanceof ApiError ? e.message : t('common.save_fail'));
+      showToast({ message: e instanceof ApiError ? e.message : t('common.save_fail', '저장에 실패했습니다'), type: 'error' });
     } finally { setSaving(false); }
   }
 
@@ -155,7 +157,7 @@ function BasicSection({ profile, onSaved }: { profile: WorkerProfile; onSaved: (
       <TextInput style={s.input} value={fullName} onChangeText={setFullName} placeholder={t('worker.field_name_placeholder')} placeholderTextColor="#C0C4CF" />
 
       <FieldLabel label={t('worker.field_dob')} />
-      <TextInput style={s.input} value={dob} onChangeText={setDob} placeholder="YYYY-MM-DD" placeholderTextColor="#C0C4CF" keyboardType="numeric" />
+      <DatePickerField value={dob || null} onChange={(v) => setDob(v)} placeholder="생년월일 선택" />
 
       <FieldLabel label={t('worker.field_gender')} />
       <View style={s.genderRow}>
@@ -219,7 +221,7 @@ function BankSection({ profile, onSaved }: { profile: WorkerProfile; onSaved: (p
         setBookUrl(dataUrl);
         onSaved({ bank_book_url: dataUrl });
       }
-    } catch { Alert.alert(t('common.error'), t('worker.bank_book_upload_fail')); }
+    } catch { showToast({ message: t('worker.bank_book_upload_fail', '통장 사본 업로드에 실패했습니다'), type: 'error' }); }
     finally { setSaving(false); }
   }
 
@@ -231,9 +233,9 @@ function BankSection({ profile, onSaved }: { profile: WorkerProfile; onSaved: (p
         bankAccountNumber: accountNumber.trim() || null,
       });
       onSaved({ bank_name: bankName.trim() || null, bank_account_number: accountNumber.trim() || null });
-      Alert.alert(t('common.save_complete'), t('worker.bank_save_success'));
+      showToast({ message: t('worker.bank_save_success', '계좌 정보가 저장되었습니다'), type: 'success' });
     } catch (e) {
-      Alert.alert(t('common.error'), e instanceof ApiError ? e.message : t('common.save_fail'));
+      showToast({ message: e instanceof ApiError ? e.message : t('common.save_fail', '저장에 실패했습니다'), type: 'error' });
     } finally { setSaving(false); }
   }
 
@@ -335,7 +337,7 @@ function IdSection({ profile, onSaved }: { profile: WorkerProfile; onSaved: (p: 
         if (side === 'front') { setFrontUrl(dataUrl); onSaved({ id_front_url: dataUrl }); }
         else { setBackUrl(dataUrl); onSaved({ id_back_url: dataUrl }); }
       }
-    } catch { Alert.alert(t('common.error'), t('worker.id_upload_fail')); }
+    } catch { showToast({ message: t('worker.id_upload_fail', '신분증 사진 업로드에 실패했습니다'), type: 'error' }); }
     finally { setSaving(false); }
   }
 
@@ -344,9 +346,9 @@ function IdSection({ profile, onSaved }: { profile: WorkerProfile; onSaved: (p: 
     try {
       await api.put('/workers/me', { idNumber: idNumber.trim() || null });
       onSaved({ id_number: idNumber.trim() || null });
-      Alert.alert(t('common.save_complete'), t('worker.id_save_success'));
+      showToast({ message: t('worker.id_save_success', '신분증 번호가 저장되었습니다'), type: 'success' });
     } catch (e) {
-      Alert.alert(t('common.error'), e instanceof ApiError ? e.message : t('common.save_fail'));
+      showToast({ message: e instanceof ApiError ? e.message : t('common.save_fail', '저장에 실패했습니다'), type: 'error' });
     } finally { setSaving(false); }
   }
 
@@ -438,9 +440,9 @@ function TradeSection({ profile, onSaved }: { profile: WorkerProfile; onSaved: (
         experienceMonths: parseInt(experienceMonths, 10) || 0,
       });
       onSaved({ primary_trade_id: tradeId, experience_months: parseInt(experienceMonths, 10) || 0 });
-      Alert.alert(t('common.save_complete'), t('worker.trade_save_success', '직종/경력이 저장되었습니다.'));
-    } catch (e) {
-      Alert.alert(t('common.error'), t('common.save_fail'));
+      showToast({ message: t('worker.trade_save_success', '직종/경력이 저장되었습니다'), type: 'success' });
+    } catch {
+      showToast({ message: t('common.save_fail', '저장에 실패했습니다'), type: 'error' });
     } finally { setSaving(false); }
   }
 
@@ -491,9 +493,9 @@ function AddressSection({ profile, onSaved }: { profile: WorkerProfile; onSaved:
         currentDistrict: district.trim() || null,
       });
       onSaved({ current_province: province.trim() || null, current_district: district.trim() || null });
-      Alert.alert(t('common.save_complete'), t('worker.address_save_success', '주소가 저장되었습니다.'));
+      showToast({ message: t('worker.address_save_success', '주소가 저장되었습니다'), type: 'success' });
     } catch {
-      Alert.alert(t('common.error'), t('common.save_fail'));
+      showToast({ message: t('common.save_fail', '저장에 실패했습니다'), type: 'error' });
     } finally { setSaving(false); }
   }
 
@@ -544,7 +546,7 @@ function SignatureSection({ profile, onSaved }: { profile: WorkerProfile; onSave
         setSigUrl(dataUrl);
         onSaved({ signature_url: dataUrl });
       }
-    } catch { Alert.alert(t('common.error'), t('common.upload_fail')); }
+    } catch { showToast({ message: t('common.upload_fail', '업로드에 실패했습니다'), type: 'error' }); }
     finally { setSaving(false); }
   }
 

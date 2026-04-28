@@ -6,6 +6,7 @@ import {
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { api, ApiError } from '../../../lib/api-client';
+import { showToast } from '../../../lib/toast';
 
 interface Contract {
   id: string;
@@ -47,12 +48,11 @@ export default function WorkerContractScreen() {
     setSigning(true);
     try {
       await api.post(`/contracts/${id}/sign`, { signatureData });
-      Alert.alert(t('contract.sign_complete_title'), t('contract.sign_complete_body'), [
-        { text: t('common.confirm'), onPress: () => { load(); } },
-      ]);
+      showToast({ message: t('contract.sign_complete_body', '계약서에 서명했습니다'), type: 'success' });
+      load();
     } catch (err) {
-      const msg = err instanceof ApiError ? err.message : t('contract.sign_fail');
-      Alert.alert(t('common.error'), msg);
+      const msg = err instanceof ApiError ? err.message : t('contract.sign_fail', '서명에 실패했습니다');
+      showToast({ message: msg, type: 'error' });
     } finally {
       setSigning(false);
     }

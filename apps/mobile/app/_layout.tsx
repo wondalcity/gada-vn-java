@@ -11,6 +11,7 @@ import { api } from '../lib/api-client';
 import { useAuthStore } from '../store/auth.store';
 import { Colors } from '../constants/theme';
 import { initCrashlytics, setAuthUser, clearAuthUser, logEvent } from '../lib/crashlytics';
+import ToastHost from '../components/ToastHost';
 
 // 스플래시를 앱 초기화 완료 전까지 유지
 SplashScreen.preventAutoHideAsync().catch(() => {});
@@ -104,6 +105,7 @@ export default function RootLayout() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <StatusBar style="dark" />
+      <ToastHost />
       <Stack
         screenOptions={{
           headerStyle: { backgroundColor: Colors.surface },
