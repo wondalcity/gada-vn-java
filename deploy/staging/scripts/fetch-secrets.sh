@@ -60,6 +60,8 @@ FIREBASE_WEB_API_KEY=$(secret "firebase-web-api-key")
 JWT_SECRET=$(secret "jwt-secret")
 ADMIN_SERVICE_KEY=$(secret "admin-service-key")
 ANTHROPIC_API_KEY=$(secret "anthropic-api-key")
+SES_SMTP_USERNAME=$(secret "ses-smtp-username")
+SES_SMTP_PASSWORD=$(secret "ses-smtp-password")
 
 # Parse Redis URL (redis://[:password@]host:port)
 REDIS_HOST=$(echo "$REDIS_URL" | sed -E 's|redis://([^:@]+@)?([^:]+):[0-9]+.*|\2|')
@@ -123,6 +125,13 @@ DATABASE_PASSWORD=${DATABASE_PASSWORD}
 
 API_BASE_URL=http://api:7001/v1
 ADMIN_SERVICE_KEY=${ADMIN_SERVICE_KEY}
+
+MAIL_HOST=email-smtp.ap-southeast-1.amazonaws.com
+MAIL_PORT=587
+MAIL_USERNAME=${SES_SMTP_USERNAME}
+MAIL_PASSWORD=${SES_SMTP_PASSWORD}
+MAIL_FROM=noreply@gada.vn
+MAIL_ENABLED=true
 EOF
 chmod 600 "$DEPLOY_DIR/.env.admin"
 log ".env.admin written"
