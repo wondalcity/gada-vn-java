@@ -54,15 +54,10 @@ export default function PhoneScreen() {
           logEvent('Auth: normal phone — Firebase SMS');
         }
       } else {
-        // 스테이징: 서버 OTP flow (Firebase 불필요 — 무조건 동작)
-        // isDev=true 환경에서 /auth/otp/verify는 devToken을 반환하고
-        // FirebaseAuthFilter가 dev_<userId> 토큰을 Firebase 없이 수락함
-        const result = await api.post<{ message: string; devOtp?: string }>(
-          '/auth/otp/send', { phone: fullNumber },
-        );
-        setPendingPhone(fullNumber);
-        if (result.devOtp) setDevOtp(result.devOtp);
-        logEvent('Auth: staging — server OTP (always works)');
+        // 스테이징: Firebase Phone Auth (프로덕션과 동일 플로우)
+        const confirmation = await signInWithPhoneOtp(fullNumber);
+        setConfirmationResult(confirmation);
+        logEvent('Auth: staging — Firebase SMS');
       }
 
       router.push('/(auth)/otp');

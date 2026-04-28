@@ -4,6 +4,9 @@ import {
   Dimensions, Platform,
 } from 'react-native';
 import MapView, { Marker, Region, MapPressEvent, PROVIDER_GOOGLE } from 'react-native-maps';
+
+// react-native-maps native module이 로드되지 않은 경우 안전하게 처리
+const SafeMapView = MapView as typeof MapView | undefined;
 import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
@@ -17,6 +20,11 @@ const SELECTED_DELTA = 0.012; // ~1.2km per side ≈ zoom 14-15
 function formatVnd(n: number): string {
   if (n >= 1_000_000) return `₫${(n / 1_000_000).toFixed(1)}M`;
   return `₫${(n / 1000).toFixed(0)}K`;
+}
+
+// Intl.NumberFormat 대신 Hermes 호환 포매터 사용
+function formatNumber(n: number): string {
+  return String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
 }
 
 function formatDate(dateStr: string, lang: string): string {
@@ -109,7 +117,7 @@ function JobCard({
 
           <View style={styles.cardMeta}>
             <Text style={styles.cardWage}>
-              {new Intl.NumberFormat('ko-KR').format(job.dailyWage)}{' '}
+              {formatNumber(job.dailyWage)}{' '}
               <Text style={styles.cardWageUnit}>₫/일</Text>
             </Text>
             {remaining > 0 && !isFull && (
@@ -216,10 +224,19 @@ export default function JobsMapView({ jobs, initialRegion, focusJobId, onFocused
     if (selectedJobId) deselectJob();
   }, [selectedJobId, deselectJob]);
 
+  // MapView native module이 로드되지 않은 환경 (에뮬레이터, Google Play Services 미설치 등) 방어
+  if (!SafeMapView) {
+    return (
+      <View style={[styles.container, { alignItems: 'center', justifyContent: 'center' }]}>
+        <Text style={{ color: '#888', fontSize: 14 }}>{t('jobs.map_unavailable', '지도를 사용할 수 없습니다')}</Text>
+      </View>
+    );
+  }
+
   return (
     <View style={styles.container}>
-      <MapView
-        ref={mapRef}
+      <SafeMapView
+        ref={mapRef as React.RefObject<InstanceType<typeof MapView>>}
         provider={PROVIDER_GOOGLE}
         style={StyleSheet.absoluteFill}
         initialRegion={defaultRegion}
@@ -247,7 +264,7 @@ export default function JobsMapView({ jobs, initialRegion, focusJobId, onFocused
           </Marker>
           );
         })}
-      </MapView>
+      </SafeMapView>
 
       {/* Airbnb-style bottom card */}
       {selectedJob && (

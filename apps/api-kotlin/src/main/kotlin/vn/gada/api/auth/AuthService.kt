@@ -38,6 +38,21 @@ class AuthService(
         val phoneNumber = decoded.claims["phone_number"] as? String
         val tokenEmail = decoded.claims["email"] as? String
         val email = emailOverride ?: tokenEmail
+
+        // 동일 전화번호가 다른 Firebase UID로 이미 등록된 경우 (재가입, 기기 변경 등):
+        // Firebase Phone Auth OTP 인증 성공 = 해당 번호 소유 증명 → firebase_uid만 업데이트
+        if (phoneNumber != null) {
+            val existingByPhone = repo.findByPhone(phoneNumber)
+            if (existingByPhone != null) {
+                val userId = existingByPhone["id"] as String
+                repo.updateFirebaseUid(userId, decoded.uid)
+                repo.ensureWorkerProfile(userId, name ?: phoneNumber)
+                val profile = repo.getMeProfile(userId) ?: existingByPhone
+                log.info("[Auth] phone conflict resolved: uid updated for userId={}", userId)
+                return mapOf("user" to profile, "isNew" to false)
+            }
+        }
+
         val user = repo.create(decoded.uid, phoneNumber, email, "WORKER")
         repo.ensureWorkerProfile(user["id"] as String, name ?: phoneNumber)
         val profile = repo.getMeProfile(user["id"] as String) ?: user

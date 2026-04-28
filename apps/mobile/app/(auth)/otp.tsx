@@ -19,17 +19,12 @@ export default function OtpScreen() {
   const router = useRouter();
   const {
     pendingPhone, confirmationResult,
-    clearPendingPhone, setConfirmationResult, setDevOtp, setUser, devOtp,
+    clearPendingPhone, setConfirmationResult, setDevOtp, setUser,
   } = useAuthStore();
   const [otp, setOtp] = useState('');
   const [loading, setLoading] = useState(false);
 
   useEffect(() => { setCurrentScreen('auth/otp'); }, []);
-
-  // 스테이징: devOtp가 있으면 자동 입력 (서버 응답에서 받은 OTP)
-  useEffect(() => {
-    if (devOtp && !otp) setOtp(devOtp);
-  }, [devOtp]);
 
   async function handleVerify() {
     if (otp.length < 6) return;
