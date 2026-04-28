@@ -67,6 +67,9 @@ class FirebaseService(
         } catch (e: FirebaseAuthException) {
             log.warn("Firebase token verification failed: code={} msg={}", e.authErrorCode, e.message)
             null
+        } catch (e: Exception) {
+            log.warn("Firebase token verification failed (malformed token): {}", e.message)
+            null
         }
     }
 
