@@ -14,8 +14,21 @@ export async function signInWithPhoneOtp(phoneNumber: string) {
 
 export async function signInWithGoogle() {
   await GoogleSignin.hasPlayServices({ showPlayServicesUpdateDialog: true });
-  const { data } = await GoogleSignin.signIn();
-  const googleCredential = auth.GoogleAuthProvider.credential(data?.idToken ?? null);
+  const response = await GoogleSignin.signIn();
+
+  // v13: returns { type, data } instead of throwing on cancellation
+  if (response.type !== 'success') {
+    throw Object.assign(new Error('sign-in cancelled'), { code: 'SIGN_IN_CANCELLED' });
+  }
+
+  // idToken can be null in some Android Credential Manager flows — fall back to getTokens()
+  let idToken = response.data?.idToken ?? null;
+  if (!idToken) {
+    const tokens = await GoogleSignin.getTokens();
+    idToken = tokens.idToken;
+  }
+
+  const googleCredential = auth.GoogleAuthProvider.credential(idToken);
   return auth().signInWithCredential(googleCredential);
 }
 

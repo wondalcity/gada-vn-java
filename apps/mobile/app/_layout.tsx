@@ -11,6 +11,7 @@ import { api } from '../lib/api-client';
 import { useAuthStore } from '../store/auth.store';
 import { Colors } from '../constants/theme';
 import { initCrashlytics, setAuthUser, clearAuthUser, logEvent } from '../lib/crashlytics';
+import { showToast } from '../lib/toast';
 import ToastHost from '../components/ToastHost';
 
 // 스플래시를 앱 초기화 완료 전까지 유지
@@ -80,12 +81,16 @@ export default function RootLayout() {
             }
           }
         } catch (e) {
-          logEvent(`Auth: syncAuthToken failed — ${e instanceof Error ? e.message : String(e)}`);
+          const errMsg = e instanceof Error ? e.message : String(e);
+          logEvent(`Auth: syncAuthToken failed — ${errMsg}`);
           // Only clear session if no other flow has authenticated first
           if (!useAuthStore.getState().isAuthenticated) {
             await clearAuthUser();
             clearUser();
-            if (!isFirstCheck) router.replace('/(auth)/phone');
+            if (!isFirstCheck) {
+              showToast({ message: `로그인에 실패했습니다: ${errMsg}`, type: 'error' });
+              router.replace('/(auth)/phone');
+            }
           }
         }
       } else {
