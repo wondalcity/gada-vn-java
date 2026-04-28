@@ -74,16 +74,21 @@ class ContractRepository(
 
     fun findByManagerUserId(managerUserId: String): List<Map<String, Any?>> {
         return db.queryForList(
-            """SELECT c.id, c.status,
-                      j.title          AS job_title,
-                      j.work_date,
-                      j.daily_wage,
-                      s.name           AS site_name,
-                      wp.full_name     AS worker_name,
-                      uw.phone         AS worker_phone,
-                      c.worker_signed_at,
-                      c.manager_signed_at,
-                      c.created_at
+            """SELECT c.id,
+                      CASE c.status
+                        WHEN 'PENDING_WORKER_SIGN' THEN 'PENDING'
+                        WHEN 'FULLY_SIGNED'        THEN 'SIGNED'
+                        ELSE c.status
+                      END                    AS status,
+                      j.title                AS "jobTitle",
+                      j.work_date            AS "workDate",
+                      j.daily_wage           AS "dailyWage",
+                      s.name                 AS "siteName",
+                      wp.full_name           AS "workerName",
+                      uw.phone               AS "workerPhone",
+                      c.worker_signed_at     AS "workerSignedAt",
+                      c.manager_signed_at    AS "managerSignedAt",
+                      c.created_at           AS "createdAt"
                FROM app.contracts c
                JOIN app.jobs j ON c.job_id = j.id
                JOIN app.construction_sites s ON j.site_id = s.id

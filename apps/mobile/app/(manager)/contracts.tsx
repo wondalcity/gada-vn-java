@@ -122,7 +122,8 @@ export default function ManagerContractsScreen() {
           </View>
         }
         renderItem={({ item }) => {
-          const cfg = STATUS_CONFIG[item.status];
+          const cfg = STATUS_CONFIG[item.status] ?? { label: item.status, bg: Colors.surfaceContainer, text: Colors.onSurfaceVariant };
+          const workerInitial = item.workerName ? item.workerName.charAt(0) : '?';
           return (
             <TouchableOpacity
               style={styles.card}
@@ -131,10 +132,10 @@ export default function ManagerContractsScreen() {
             >
               <View style={styles.cardHeader}>
                 <View style={styles.workerAvatar}>
-                  <Text style={styles.avatarText}>{item.workerName.charAt(0)}</Text>
+                  <Text style={styles.avatarText}>{workerInitial}</Text>
                 </View>
                 <View style={styles.cardInfo}>
-                  <Text style={styles.workerName}>{item.workerName}</Text>
+                  <Text style={styles.workerName}>{item.workerName ?? '-'}</Text>
                   <Text style={styles.jobTitle} numberOfLines={1}>{item.jobTitle}</Text>
                 </View>
                 <View style={[styles.statusBadge, { backgroundColor: cfg.bg }]}>

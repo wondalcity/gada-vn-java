@@ -1,11 +1,21 @@
+import { useEffect } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, SafeAreaView } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { Colors, Spacing, Radius, Font } from '../../constants/theme';
+import { useAuthStore } from '../../store/auth.store';
 
 export default function ModeSelectScreen() {
   const { t } = useTranslation();
   const router = useRouter();
+  const { isManager } = useAuthStore();
+
+  // 관리자 권한이 없는 유저가 이 화면에 접근하면 근로자 홈으로 리다이렉트
+  useEffect(() => {
+    if (!isManager) {
+      router.replace('/(worker)');
+    }
+  }, [isManager, router]);
 
   return (
     <SafeAreaView style={styles.safe}>
