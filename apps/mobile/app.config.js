@@ -32,6 +32,9 @@ module.exports = ({ config }) => ({
   // ── iOS ──────────────────────────────────────────────────────────────────
   ios: {
     ...config.ios,
+    // EAS builds: use GOOGLE_SERVICES_PLIST secret env var (file type)
+    // Local builds: fall back to the local file
+    googleServicesFile: process.env.GOOGLE_SERVICES_PLIST ?? './GoogleService-Info.plist',
     config: {
       ...(config.ios?.config ?? {}),
       // Enables Google Maps on iOS (instead of default Apple Maps).
