@@ -6,6 +6,7 @@ import {
   ScrollView, Dimensions,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
+import { useLocalSearchParams } from 'expo-router';
 import { ApiError } from '../../lib/api-client';
 import { useJobStore } from '../../store/job.store';
 import { api } from '../../lib/api-client';
@@ -27,6 +28,8 @@ interface Province { code: string; id?: string; nameKo: string; nameVi?: string;
 export default function WorkerJobFeed() {
   const { t, i18n } = useTranslation();
   const { jobs, setJobs } = useJobStore();
+  // Read pre-applied filters from home screen navigation
+  const params = useLocalSearchParams<{ province?: string; tradeId?: string; q?: string; viewMode?: string }>();
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [viewMode, setViewMode] = useState<ViewMode>('list');
@@ -51,6 +54,15 @@ export default function WorkerJobFeed() {
 
   const [trades, setTrades] = useState<Trade[]>([]);
   const [provinces, setProvinces] = useState<Province[]>([]);
+
+  // Apply pre-filters from home screen search (runs once on mount)
+  useEffect(() => {
+    if (params.province) setAppliedProvince(params.province);
+    if (params.tradeId) setAppliedTradeId(Number(params.tradeId));
+    if (params.q) setAppliedSearch(params.q);
+    if (params.viewMode === 'map') setViewMode('map');
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
@@ -155,7 +167,7 @@ export default function WorkerJobFeed() {
       {/* ── Top bar: job count + filter + view toggle ── */}
       <View style={styles.topBar}>
         <Text style={styles.jobCount}>
-          {loading ? '로딩 중...' : `총 ${totalCount > 0 ? totalCount : jobs.length}개 공고`}
+          {loading ? '로딩 중...' : `총 ${totalCount > 0 ? totalCount : (jobs?.length ?? 0)}개 공고`}
         </Text>
 
         <View style={styles.topBarRight}>
@@ -363,7 +375,7 @@ export default function WorkerJobFeed() {
                         onPress={() => setPendingProvince(pendingProvince === pKey ? '' : pKey)}
                       >
                         <Text style={[styles.chipText, pendingProvince === pKey && styles.chipTextActive]}>
-                          {p.nameKo}
+                          {p.nameKo || p.nameVi || p.code}
                         </Text>
                       </TouchableOpacity>
                     );
@@ -388,7 +400,7 @@ export default function WorkerJobFeed() {
                       onPress={() => setPendingTradeId(pendingTradeId === tr.id ? null : tr.id)}
                     >
                       <Text style={[styles.chipText, pendingTradeId === tr.id && styles.chipTextActive]}>
-                        {tr.nameKo}
+                        {tr.nameKo || tr.nameVi || String(tr.id)}
                       </Text>
                     </TouchableOpacity>
                   ))}

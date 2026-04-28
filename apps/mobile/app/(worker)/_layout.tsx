@@ -57,7 +57,7 @@ export default function WorkerLayout() {
 
       {/* 마이페이지 — replaces 프로필 tab, at rightmost */}
       <Tabs.Screen
-        name="profile"
+        name="profile/index"
         options={{
           title: t('landing.mypage'),
           tabBarLabel: t('landing.mypage'),

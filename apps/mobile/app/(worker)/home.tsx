@@ -147,11 +147,11 @@ export default function WorkerHomeScreen() {
     if (searchQuery.trim()) params.q = searchQuery.trim();
     if (selectedProvince) params.province = selectedProvince;
     if (selectedTradeId) params.tradeId = String(selectedTradeId);
-    router.push({ pathname: '/(worker)/index', params } as any);
+    router.push({ pathname: '/(worker)/', params } as any);
   }, [searchQuery, selectedProvince, selectedTradeId, router]);
 
   const handleMapView = useCallback(() => {
-    router.push({ pathname: '/(worker)/index', params: { viewMode: 'map' } } as any);
+    router.push({ pathname: '/(worker)/', params: { viewMode: 'map' } } as any);
   }, [router]);
 
   const selectedProvinceName = selectedProvince
@@ -242,7 +242,7 @@ export default function WorkerHomeScreen() {
               <TouchableOpacity
                 key={slug}
                 style={styles.quickPill}
-                onPress={() => router.push({ pathname: '/(worker)/index', params: { province: slug } } as any)}
+                onPress={() => router.push({ pathname: '/(worker)/', params: { province: slug } } as any)}
                 activeOpacity={0.75}
               >
                 <Text style={styles.quickPillText}>
@@ -264,7 +264,7 @@ export default function WorkerHomeScreen() {
                 key={p.code}
                 nameKo={p.nameKo}
                 nameVi={p.nameVi}
-                onPress={() => router.push({ pathname: '/(worker)/index', params: { province: p.code } } as any)}
+                onPress={() => router.push({ pathname: '/(worker)/', params: { province: p.code } } as any)}
               />
             ))}
           </View>
@@ -275,7 +275,7 @@ export default function WorkerHomeScreen() {
       <View style={[styles.section, styles.sectionGray]}>
         <View style={styles.sectionHeader}>
           <Text style={styles.sectionTitle}>{t('landing.latest_jobs_title') || '오늘의 일자리'}</Text>
-          <TouchableOpacity onPress={() => router.push('/(worker)/index' as any)}>
+          <TouchableOpacity onPress={() => router.push('/(worker)/' as any)}>
             <Text style={styles.viewAll}>전체 보기 →</Text>
           </TouchableOpacity>
         </View>
@@ -294,7 +294,7 @@ export default function WorkerHomeScreen() {
         )}
         <TouchableOpacity
           style={styles.allJobsBtn}
-          onPress={() => router.push('/(worker)/index' as any)}
+          onPress={() => router.push('/(worker)/' as any)}
           activeOpacity={0.85}
         >
           <Text style={styles.allJobsBtnText}>{t('landing.all_jobs_btn') || '전체 공고 보기'}</Text>

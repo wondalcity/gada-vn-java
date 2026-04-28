@@ -110,7 +110,7 @@ async function requestPaginated<T>(
     throw new ApiError(response.status, message);
   }
 
-  const data = camelizeKeys<T[]>(json.data);
+  const data = camelizeKeys<T[]>(Array.isArray(json.data) ? json.data : []);
   const meta = camelizeKeys<{ total: number; page: number; totalPages: number }>(json.meta ?? {
     total: Array.isArray(json.data) ? json.data.length : 0,
     page: 1,
