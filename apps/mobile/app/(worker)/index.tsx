@@ -13,6 +13,7 @@ import { api } from '../../lib/api-client';
 import JobCard, { type JobCardItem } from '../../components/jobs/JobCard';
 import JobsMapView from '../../components/jobs/JobsMapView';
 import { Colors, Spacing, Radius, Font } from '../../constants/theme';
+import WorkerHeader from '../../components/WorkerHeader';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const CARD_GAP = 12;
@@ -27,8 +28,8 @@ interface Province { code: string; id?: string; nameKo?: string; nameVi?: string
 export default function WorkerJobFeed() {
   const { t, i18n } = useTranslation();
   const { jobs, setJobs } = useJobStore();
-  // Read pre-applied filters from home screen navigation
-  const params = useLocalSearchParams<{ province?: string; tradeId?: string; q?: string; viewMode?: string }>();
+  // Read pre-applied filters from home screen navigation or header search
+  const params = useLocalSearchParams<{ province?: string; tradeId?: string; q?: string; viewMode?: string; openFilter?: string }>();
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [viewMode, setViewMode] = useState<ViewMode>('list');
@@ -54,14 +55,21 @@ export default function WorkerJobFeed() {
   const [trades, setTrades] = useState<Trade[]>([]);
   const [provinces, setProvinces] = useState<Province[]>([]);
 
-  // Apply pre-filters from home screen search (runs once on mount)
+  // Apply pre-filters from home screen search — re-runs whenever params change
   useEffect(() => {
-    if (params.province) setAppliedProvince(params.province);
+    const hasParams = params.province || params.tradeId || params.q || params.viewMode || params.openFilter;
+    if (!hasParams) return;
+    if (params.province !== undefined) setAppliedProvince(params.province);
     if (params.tradeId) setAppliedTradeId(Number(params.tradeId));
-    if (params.q) setAppliedSearch(params.q);
+    if (params.q !== undefined) setAppliedSearch(params.q);
     if (params.viewMode === 'map') setViewMode('map');
+    if (params.openFilter) {
+      // Open filter modal when header search button was pressed
+      setTimeout(() => openFilter(), 100);
+    }
+  // openFilter is defined below; safe to omit from deps since it only reads state
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [params.province, params.tradeId, params.q, params.viewMode, params.openFilter]);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
@@ -163,6 +171,9 @@ export default function WorkerJobFeed() {
 
   return (
     <View style={styles.container}>
+      {/* Custom header replaces native Tabs header */}
+      <WorkerHeader />
+
       {/* ── Top bar: job count + filter + view toggle ── */}
       <View style={styles.topBar}>
         <Text style={styles.jobCount}>
@@ -471,7 +482,7 @@ const styles = StyleSheet.create({
 
   // Filter button
   filterBtn: {
-    width: 36, height: 36, borderRadius: 8,
+    width: 44, height: 44, borderRadius: 10,
     backgroundColor: Colors.surfaceContainer,
     alignItems: 'center', justifyContent: 'center',
     position: 'relative',
@@ -490,9 +501,9 @@ const styles = StyleSheet.create({
   // View toggle
   viewToggleGroup: {
     flexDirection: 'row', backgroundColor: Colors.surfaceContainer,
-    borderRadius: 8, padding: 2, gap: 2,
+    borderRadius: 10, padding: 2, gap: 2,
   },
-  viewToggleBtn: { width: 32, height: 32, borderRadius: 6, alignItems: 'center', justifyContent: 'center' },
+  viewToggleBtn: { width: 40, height: 40, borderRadius: 8, alignItems: 'center', justifyContent: 'center' },
   viewToggleBtnActive: { backgroundColor: Colors.surface },
   listIcon: { gap: 3 },
   listIconLine: { width: 16, height: 2, borderRadius: 1, backgroundColor: Colors.disabled },

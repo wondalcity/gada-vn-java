@@ -6,7 +6,7 @@ import {
 import * as ImagePicker from 'expo-image-picker';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
-import i18n, { SUPPORTED_LANGUAGES, changeAppLanguage, LangCode } from '../../../lib/i18n';
+import i18n from '../../../lib/i18n';
 import { api, ApiError } from '../../../lib/api-client';
 import { useAuthStore } from '../../../store/auth.store';
 
@@ -47,7 +47,7 @@ interface WorkerProfile {
   email: string | null;
 }
 
-type Section = 'basic' | 'bank' | 'id' | null;
+type Section = 'basic' | 'trade' | 'address' | 'bank' | 'id' | 'signature' | null;
 
 async function pickImage(): Promise<string | null> {
   const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -357,13 +357,27 @@ function IdSection({ profile, onSaved }: { profile: WorkerProfile; onSaved: (p: 
           <Text style={s.verifiedText}>{t('worker.id_verified')}</Text>
         </View>
       )}
+
+      {/* ID number input */}
       <FieldLabel label={t('worker.field_id_number')} />
-      <TextInput style={s.input} value={idNumber} onChangeText={setIdNumber} placeholder={t('worker.field_id_number_placeholder')} placeholderTextColor="#C0C4CF" />
-      <SaveBtn saving={saving} onPress={handleSaveNumber} label={t('worker.number_save')} />
+      <TextInput
+        style={s.input}
+        value={idNumber}
+        onChangeText={setIdNumber}
+        placeholder={t('worker.field_id_number_placeholder')}
+        placeholderTextColor="#C0C4CF"
+      />
+
+      {/* ID photos */}
       <View style={{ height: 12 }} />
       <FieldLabel label={t('worker.field_id_photo')} />
       <View style={s.idPhotoRow}>
-        <TouchableOpacity style={[s.idPhotoZone, !!frontUrl && s.idPhotoZoneDone]} onPress={() => handlePickId('front')} disabled={saving} activeOpacity={0.7}>
+        <TouchableOpacity
+          style={[s.idPhotoZone, !!frontUrl && s.idPhotoZoneDone]}
+          onPress={() => handlePickId('front')}
+          disabled={saving}
+          activeOpacity={0.7}
+        >
           {frontUrl ? (
             <Image source={{ uri: frontUrl }} style={s.idPhotoImg} resizeMode="cover" />
           ) : (
@@ -373,7 +387,12 @@ function IdSection({ profile, onSaved }: { profile: WorkerProfile; onSaved: (p: 
             </>
           )}
         </TouchableOpacity>
-        <TouchableOpacity style={[s.idPhotoZone, !!backUrl && s.idPhotoZoneDone]} onPress={() => handlePickId('back')} disabled={saving} activeOpacity={0.7}>
+        <TouchableOpacity
+          style={[s.idPhotoZone, !!backUrl && s.idPhotoZoneDone]}
+          onPress={() => handlePickId('back')}
+          disabled={saving}
+          activeOpacity={0.7}
+        >
           {backUrl ? (
             <Image source={{ uri: backUrl }} style={s.idPhotoImg} resizeMode="cover" />
           ) : (
@@ -384,6 +403,161 @@ function IdSection({ profile, onSaved }: { profile: WorkerProfile; onSaved: (p: 
           )}
         </TouchableOpacity>
       </View>
+
+      {/* Single save button at the bottom */}
+      <SaveBtn saving={saving} onPress={handleSaveNumber} label={t('common.save')} />
+    </View>
+  );
+}
+
+const VN_PROVINCES = [
+  'Hà Nội', 'Hồ Chí Minh', 'Bình Dương', 'Đồng Nai', 'Đà Nẵng',
+  'Hải Phòng', 'Cần Thơ', 'Bà Rịa - Vũng Tàu', 'Long An', 'Khánh Hòa',
+  'Bình Dịnh', 'Nghệ An', 'Thanh Hóa', 'Thừa Thiên Huế', 'Quảng Nam',
+];
+
+function TradeSection({ profile, onSaved }: { profile: WorkerProfile; onSaved: (p: Partial<WorkerProfile>) => void }) {
+  const { t, i18n } = useTranslation();
+  const [tradeId, setTradeId] = useState<number | null>(profile.primary_trade_id ?? null);
+  const [experienceMonths, setExperienceMonths] = useState(String(profile.experience_months ?? 0));
+  const [trades, setTrades] = useState<Array<{ id: number; nameKo?: string; nameVi?: string }>>([]);
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    const locale = i18n.language === 'vi' ? 'vi' : 'ko';
+    api.get<Array<{ id: number; nameKo?: string; nameVi?: string }>>(`/public/trades?locale=${locale}`)
+      .then(res => setTrades(Array.isArray(res) ? res : []))
+      .catch(() => {});
+  }, [i18n.language]);
+
+  async function handleSave() {
+    setSaving(true);
+    try {
+      await api.put('/workers/me', {
+        primaryTradeId: tradeId ?? null,
+        experienceMonths: parseInt(experienceMonths, 10) || 0,
+      });
+      onSaved({ primary_trade_id: tradeId, experience_months: parseInt(experienceMonths, 10) || 0 });
+      Alert.alert(t('common.save_complete'), t('worker.trade_save_success', '직종/경력이 저장되었습니다.'));
+    } catch (e) {
+      Alert.alert(t('common.error'), t('common.save_fail'));
+    } finally { setSaving(false); }
+  }
+
+  return (
+    <View style={sec.body}>
+      <FieldLabel label={t('worker.field_trade', '직종')} />
+      <View style={s.chipRow}>
+        {trades.map(tr => {
+          const label = i18n.language === 'vi' ? (tr.nameVi || tr.nameKo) : (tr.nameKo || tr.nameVi);
+          const isActive = tradeId === tr.id;
+          return (
+            <TouchableOpacity
+              key={tr.id}
+              style={[s.tradeChip, isActive && s.tradeChipActive]}
+              onPress={() => setTradeId(isActive ? null : tr.id)}
+              activeOpacity={0.7}
+            >
+              <Text style={[s.tradeChipText, isActive && s.tradeChipTextActive]}>{label}</Text>
+            </TouchableOpacity>
+          );
+        })}
+      </View>
+      <FieldLabel label={t('worker.field_experience', '경력 (개월)')} />
+      <TextInput
+        style={s.input}
+        value={experienceMonths}
+        onChangeText={setExperienceMonths}
+        placeholder="0"
+        placeholderTextColor="#C0C4CF"
+        keyboardType="number-pad"
+      />
+      <SaveBtn saving={saving} onPress={handleSave} />
+    </View>
+  );
+}
+
+function AddressSection({ profile, onSaved }: { profile: WorkerProfile; onSaved: (p: Partial<WorkerProfile>) => void }) {
+  const { t } = useTranslation();
+  const [province, setProvince] = useState(profile.current_province ?? '');
+  const [district, setDistrict] = useState(profile.current_district ?? '');
+  const [saving, setSaving] = useState(false);
+
+  async function handleSave() {
+    setSaving(true);
+    try {
+      await api.put('/workers/me', {
+        currentProvince: province.trim() || null,
+        currentDistrict: district.trim() || null,
+      });
+      onSaved({ current_province: province.trim() || null, current_district: district.trim() || null });
+      Alert.alert(t('common.save_complete'), t('worker.address_save_success', '주소가 저장되었습니다.'));
+    } catch {
+      Alert.alert(t('common.error'), t('common.save_fail'));
+    } finally { setSaving(false); }
+  }
+
+  return (
+    <View style={sec.body}>
+      <FieldLabel label={t('worker.field_province', '성/시 (Province)')} />
+      <View style={s.chipRow}>
+        {VN_PROVINCES.map(prov => {
+          const isActive = province === prov;
+          return (
+            <TouchableOpacity
+              key={prov}
+              style={[s.tradeChip, isActive && s.tradeChipActive]}
+              onPress={() => setProvince(isActive ? '' : prov)}
+              activeOpacity={0.7}
+            >
+              <Text style={[s.tradeChipText, isActive && s.tradeChipTextActive]}>{prov}</Text>
+            </TouchableOpacity>
+          );
+        })}
+      </View>
+      <FieldLabel label={t('worker.field_district', '구/군 (선택)')} />
+      <TextInput
+        style={s.input}
+        value={district}
+        onChangeText={setDistrict}
+        placeholder="예) Hai Bà Trưng"
+        placeholderTextColor="#C0C4CF"
+      />
+      <SaveBtn saving={saving} onPress={handleSave} />
+    </View>
+  );
+}
+
+function SignatureSection({ profile, onSaved }: { profile: WorkerProfile; onSaved: (p: Partial<WorkerProfile>) => void }) {
+  const { t } = useTranslation();
+  const [sigUrl, setSigUrl] = useState<string | null>(profile.signature_url);
+  const [saving, setSaving] = useState(false);
+
+  async function handlePickSignature() {
+    const dataUrl = await pickImage();
+    if (!dataUrl) return;
+    setSaving(true);
+    try {
+      const key = await uploadImageToApi(dataUrl, 'worker-signatures');
+      if (key) {
+        await api.put('/workers/me', { signatureS3Key: key });
+        setSigUrl(dataUrl);
+        onSaved({ signature_url: dataUrl });
+      }
+    } catch { Alert.alert(t('common.error'), t('common.upload_fail')); }
+    finally { setSaving(false); }
+  }
+
+  return (
+    <View style={sec.body}>
+      <Text style={s.fieldLabel}>{t('worker.signature_desc', '서명 이미지를 등록하면 계약서에 사용됩니다.')}</Text>
+      <TouchableOpacity style={s.photoZone} onPress={handlePickSignature} disabled={saving} activeOpacity={0.7}>
+        {sigUrl ? (
+          <Image source={{ uri: sigUrl }} style={s.photoZoneImg} resizeMode="contain" />
+        ) : (
+          <Text style={s.photoZonePlaceholder}>{t('worker.photo_select', '이미지 선택')}</Text>
+        )}
+      </TouchableOpacity>
       {saving && <ActivityIndicator color="#0669F7" style={{ marginTop: 8 }} />}
     </View>
   );
@@ -408,9 +582,14 @@ function SaveBtn({ saving, onPress, label }: { saving: boolean; onPress: () => v
 
 function CompletionBar({ profile }: { profile: WorkerProfile }) {
   const { t } = useTranslation();
+  // 6 profile completion items: basic info, trade, address, bank, ID, signature
   const checks = [
-    !!profile.full_name, !!profile.date_of_birth, !!profile.gender,
-    !!profile.bank_name, !!profile.id_front_url, !!profile.signature_url,
+    !!(profile.full_name && profile.gender),      // 기본정보
+    !!profile.primary_trade_id,                    // 직종/경력
+    !!profile.current_province,                    // 주소
+    !!(profile.bank_name && profile.bank_account_number), // 계좌
+    !!(profile.id_front_url && profile.id_back_url),      // 신분증
+    !!profile.signature_url,                       // 서명
   ];
   const done = checks.filter(Boolean).length;
   const pct = Math.round((done / checks.length) * 100);
@@ -435,7 +614,6 @@ export default function WorkerProfileEditScreen() {
   const [profile, setProfile] = useState<WorkerProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [openSection, setOpenSection] = useState<Section>('basic');
-  const [langModalVisible, setLangModalVisible] = useState(false);
 
   const load = useCallback(async () => {
     try {
@@ -469,8 +647,11 @@ export default function WorkerProfileEditScreen() {
 
   const p = profile!;
   const basicDone = !!(p.full_name && p.gender);
+  const tradeDone = !!p.primary_trade_id;
+  const addressDone = !!p.current_province;
   const bankDone = !!(p.bank_name && p.bank_account_number);
   const idDone = !!(p.id_front_url && p.id_back_url);
+  const sigDone = !!p.signature_url;
 
   return (
     <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
@@ -501,6 +682,7 @@ export default function WorkerProfileEditScreen() {
           </View>
         </View>
 
+        {/* 1. 기본 정보 */}
         <View style={sec.card}>
           <SectionHeader
             title={t('worker.section_basic')}
@@ -513,6 +695,33 @@ export default function WorkerProfileEditScreen() {
           {openSection === 'basic' && <BasicSection profile={p} onSaved={handleSaved} />}
         </View>
 
+        {/* 2. 직종/경력 */}
+        <View style={sec.card}>
+          <SectionHeader
+            title={t('worker.section_trade', '직종/경력')}
+            icon="🔧"
+            isOpen={openSection === 'trade'}
+            onToggle={() => toggleSection('trade')}
+            badge={tradeDone ? t('worker.badge_done') : t('worker.badge_unregistered')}
+            badgeDone={tradeDone}
+          />
+          {openSection === 'trade' && <TradeSection profile={p} onSaved={handleSaved} />}
+        </View>
+
+        {/* 3. 주소 */}
+        <View style={sec.card}>
+          <SectionHeader
+            title={t('worker.section_address', '주소')}
+            icon="📍"
+            isOpen={openSection === 'address'}
+            onToggle={() => toggleSection('address')}
+            badge={addressDone ? t('worker.badge_done') : t('worker.badge_unregistered')}
+            badgeDone={addressDone}
+          />
+          {openSection === 'address' && <AddressSection profile={p} onSaved={handleSaved} />}
+        </View>
+
+        {/* 4. 계좌 */}
         <View style={sec.card}>
           <SectionHeader
             title={t('worker.section_bank')}
@@ -525,6 +734,7 @@ export default function WorkerProfileEditScreen() {
           {openSection === 'bank' && <BankSection profile={p} onSaved={handleSaved} />}
         </View>
 
+        {/* 5. 신분증 */}
         <View style={sec.card}>
           <SectionHeader
             title={t('worker.section_id')}
@@ -537,56 +747,18 @@ export default function WorkerProfileEditScreen() {
           {openSection === 'id' && <IdSection profile={p} onSaved={handleSaved} />}
         </View>
 
+        {/* 6. 서명 */}
         <View style={sec.card}>
-          {[
-            { label: t('profile.push_notifications'), icon: '🔔' },
-            { label: t('profile.terms'), icon: '📄' },
-            { label: t('profile.privacy'), icon: '🔒' },
-          ].map((item, i) => (
-            <TouchableOpacity key={item.label} style={[sec.header, i > 0 && { borderTopWidth: 0.5, borderColor: '#F2F4F5' }]} activeOpacity={0.7}>
-              <View style={sec.headerLeft}>
-                <Text style={sec.icon}>{item.icon}</Text>
-                <Text style={sec.title}>{item.label}</Text>
-              </View>
-              <Text style={sec.arrow}>›</Text>
-            </TouchableOpacity>
-          ))}
-          <TouchableOpacity
-            style={[sec.header, { borderTopWidth: 0.5, borderColor: '#F2F4F5' }]}
-            onPress={() => setLangModalVisible(true)}
-            activeOpacity={0.7}
-          >
-            <View style={sec.headerLeft}>
-              <Text style={sec.icon}>🌐</Text>
-              <Text style={sec.title}>{t('profile.language')}</Text>
-            </View>
-            <Text style={[sec.arrow, { fontSize: 12, color: '#98A2B2' }]}>
-              {SUPPORTED_LANGUAGES.find(l => l.code === i18n.language)?.flag ?? '🌐'} ›
-            </Text>
-          </TouchableOpacity>
+          <SectionHeader
+            title={t('worker.section_signature', '서명')}
+            icon="✍️"
+            isOpen={openSection === 'signature'}
+            onToggle={() => toggleSection('signature')}
+            badge={sigDone ? t('worker.badge_done') : t('worker.badge_unregistered')}
+            badgeDone={sigDone}
+          />
+          {openSection === 'signature' && <SignatureSection profile={p} onSaved={handleSaved} />}
         </View>
-
-        <Modal visible={langModalVisible} transparent animationType="slide" onRequestClose={() => setLangModalVisible(false)}>
-          <TouchableOpacity style={s.modalOverlay} activeOpacity={1} onPress={() => setLangModalVisible(false)}>
-            <View style={s.modalSheet}>
-              <Text style={s.modalTitle}>{t('profile.language')}</Text>
-              {SUPPORTED_LANGUAGES.map(lang => (
-                <TouchableOpacity
-                  key={lang.code}
-                  style={[s.langOption, i18n.language === lang.code && s.langOptionActive]}
-                  onPress={async () => {
-                    await changeAppLanguage(lang.code as LangCode);
-                    setLangModalVisible(false);
-                  }}
-                >
-                  <Text style={s.langFlag}>{lang.flag}</Text>
-                  <Text style={[s.langLabel, i18n.language === lang.code && s.langLabelActive]}>{lang.label}</Text>
-                  {i18n.language === lang.code && <Text style={s.langCheck}>✓</Text>}
-                </TouchableOpacity>
-              ))}
-            </View>
-          </TouchableOpacity>
-        </Modal>
 
         {isManager && (
           <TouchableOpacity
@@ -691,4 +863,14 @@ const s = StyleSheet.create({
   bankItemFull: { fontSize: 11, color: '#98A2B2', marginTop: 1 },
   bankItemCheck: { fontSize: 14, color: '#0669F7', fontWeight: '700', marginLeft: 8 },
   bankEmptyText: { textAlign: 'center', color: '#98A2B2', fontSize: 14, paddingVertical: 24 },
+
+  // Trade/address chips
+  chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 4 },
+  tradeChip: {
+    paddingHorizontal: 12, paddingVertical: 7, borderRadius: 999,
+    borderWidth: 1, borderColor: '#E5E7EB', backgroundColor: '#F9FAFB',
+  },
+  tradeChipActive: { borderColor: '#0669F7', backgroundColor: '#EFF5FF' },
+  tradeChipText: { fontSize: 13, color: '#6B7280', fontWeight: '500' },
+  tradeChipTextActive: { color: '#0669F7', fontWeight: '700' },
 });

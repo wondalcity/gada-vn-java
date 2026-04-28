@@ -25,13 +25,14 @@ export default function WorkerLayout() {
         }}
       />
 
-      {/* 일자리 — job feed */}
+      {/* 일자리 — job feed (custom WorkerHeader handles header) */}
       <Tabs.Screen
         name="index"
         options={{
           title: t('jobs.nearby'),
           tabBarLabel: t('jobs.tab_label'),
           tabBarIcon: ({ color }) => <Text style={{ color, fontSize: 20 }}>💼</Text>,
+          headerShown: false,
         }}
       />
 

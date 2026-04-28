@@ -73,22 +73,43 @@ export default function WorkerMyPageScreen() {
   const [applications, setApplications] = useState<Application[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [managerStatus, setManagerStatus] = useState<'NONE' | 'PENDING' | 'APPROVED' | 'REJECTED'>('NONE');
+  const [applyingManager, setApplyingManager] = useState(false);
 
   useEffect(() => { setCurrentScreen('worker/mypage'); }, []);
 
   const load = useCallback(async () => {
     try {
-      const [workerRes, appsRes] = await Promise.all([
+      const [workerRes, appsRes, statusRes] = await Promise.all([
         api.get<WorkerInfo>('/workers/me').catch(() => ({} as WorkerInfo)),
         api.get<Application[]>('/applications/mine').catch(() => [] as Application[]),
+        api.get<{ status?: string }>('/managers/registration-status').catch(() => ({ status: 'NONE' })),
       ]);
       setWorker(workerRes ?? {});
       setApplications(Array.isArray(appsRes) ? appsRes : []);
+      const st = (statusRes as any)?.status ?? 'NONE';
+      setManagerStatus(st === 'PENDING' ? 'PENDING' : st === 'APPROVED' ? 'APPROVED' : st === 'REJECTED' ? 'REJECTED' : 'NONE');
     } finally {
       setLoading(false);
       setRefreshing(false);
     }
   }, []);
+
+  async function handleApplyManager() {
+    setApplyingManager(true);
+    try {
+      await api.post('/managers/register', {});
+      setManagerStatus('PENDING');
+      Alert.alert(
+        t('worker.manager_apply_success_title', '신청 완료'),
+        t('worker.manager_apply_success_body', '관리자 신청이 접수되었습니다. 검토 후 승인됩니다.'),
+      );
+    } catch {
+      Alert.alert(t('common.error'), t('common.process_fail'));
+    } finally {
+      setApplyingManager(false);
+    }
+  }
 
   useEffect(() => { load(); }, [load]);
 
@@ -107,7 +128,7 @@ export default function WorkerMyPageScreen() {
     { icon: '📋', label: t('worker.dashboard_applications', '지원현황'), onPress: () => router.push('/(worker)/work' as never) },
     { icon: '📄', label: t('worker.dashboard_contracts', '계약서'), onPress: () => router.push('/(worker)/work' as never) },
     { icon: '👤', label: t('worker.dashboard_profile', '프로필'), onPress: () => router.push('/(worker)/profile/edit' as never) },
-    { icon: '🔍', label: t('worker.dashboard_find_jobs', '일자리'), onPress: () => router.push('/(worker)/index' as never) },
+    { icon: '🔍', label: t('worker.dashboard_find_jobs', '일자리'), onPress: () => router.push('/(worker)/' as never) },
   ];
 
   if (loading) {
@@ -176,16 +197,37 @@ export default function WorkerMyPageScreen() {
           </View>
         </View>
 
-        {/* Switch to manager */}
-        {isManager && (
+        {/* Manager controls */}
+        {isManager ? (
           <TouchableOpacity
             style={s.managerBtn}
             onPress={() => router.navigate('/(manager)/' as never)}
             activeOpacity={0.8}
           >
-            <Text style={s.managerBtnText}>{t('worker.switch_to_manager', '관리자 모드')}</Text>
+            <Text style={s.managerBtnText}>{t('worker.switch_to_manager', '관리자 모드로 전환')}</Text>
           </TouchableOpacity>
-        )}
+        ) : managerStatus === 'PENDING' ? (
+          <View style={s.managerPendingBadge}>
+            <Text style={s.managerPendingText}>⏳ {t('worker.manager_apply_pending', '관리자 신청 검토 중')}</Text>
+          </View>
+        ) : managerStatus === 'NONE' || managerStatus === 'REJECTED' ? (
+          <TouchableOpacity
+            style={s.managerApplyBtn}
+            onPress={handleApplyManager}
+            disabled={applyingManager}
+            activeOpacity={0.8}
+          >
+            {applyingManager ? (
+              <ActivityIndicator size="small" color="#0669F7" />
+            ) : (
+              <Text style={s.managerApplyBtnText}>
+                {managerStatus === 'REJECTED'
+                  ? t('worker.manager_apply_again', '관리자 재신청하기')
+                  : t('worker.manager_apply', '관리자로 신청하기')}
+              </Text>
+            )}
+          </TouchableOpacity>
+        ) : null}
       </View>
 
       {/* ── Quick actions grid ── */}
@@ -214,7 +256,7 @@ export default function WorkerMyPageScreen() {
             <Text style={s.emptySubtitle}>{t('worker.dashboard_empty_sub', '일자리를 찾아 지원해 보세요')}</Text>
             <TouchableOpacity
               style={s.emptyBtn}
-              onPress={() => router.push('/(worker)/index' as never)}
+              onPress={() => router.push('/(worker)/' as never)}
               activeOpacity={0.85}
             >
               <Text style={s.emptyBtnText}>{t('worker.dashboard_find_jobs', '일자리 찾기')}</Text>
@@ -334,6 +376,21 @@ const s = StyleSheet.create({
     borderColor: 'rgba(255,255,255,0.2)',
   },
   managerBtnText: { color: '#fff', fontSize: 13, fontWeight: '600' },
+  managerApplyBtn: {
+    marginTop: 12,
+    backgroundColor: '#fff',
+    borderRadius: 10, paddingVertical: 10,
+    alignItems: 'center', minHeight: 38, justifyContent: 'center',
+  },
+  managerApplyBtnText: { color: '#0669F7', fontSize: 13, fontWeight: '700' },
+  managerPendingBadge: {
+    marginTop: 12,
+    backgroundColor: 'rgba(255,255,255,0.12)',
+    borderRadius: 10, paddingVertical: 10,
+    alignItems: 'center', borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.2)',
+  },
+  managerPendingText: { color: 'rgba(255,255,255,0.8)', fontSize: 12, fontWeight: '500' },
 
   // Quick actions
   quickActions: {

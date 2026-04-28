@@ -10,6 +10,7 @@ import { useTranslation } from 'react-i18next';
 import { api } from '../../lib/api-client';
 import { setCurrentScreen } from '../../lib/crashlytics';
 import { Colors } from '../../constants/theme';
+import WorkerHeader from '../../components/WorkerHeader';
 
 const CDN = process.env.EXPO_PUBLIC_CDN_URL ?? '';
 
@@ -190,6 +191,7 @@ export default function WorkerHomeScreen() {
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
       {/* ── Hero: dark construction gradient (matches web app) ── */}
       <View style={styles.hero}>
+        <WorkerHeader dark />
         <View style={styles.heroDecor1} />
         <View style={styles.heroDecor2} />
         <View style={styles.heroContent}>
@@ -415,7 +417,7 @@ const styles = StyleSheet.create({
   hero: {
     backgroundColor: '#1A1A2E',
     paddingHorizontal: 20,
-    paddingTop: 28,
+    paddingTop: 0,
     paddingBottom: 24,
     overflow: 'hidden',
     position: 'relative',
@@ -464,9 +466,9 @@ const styles = StyleSheet.create({
   pickerTextSelected: { color: '#25282A', fontWeight: '600' },
   pickerChevron: { fontSize: 12, color: '#9CA3AF' },
 
-  // Search button (orange — matches web's bg-brand)
+  // Search button (primary blue — GADA design system)
   searchBtn: {
-    backgroundColor: Colors.brand,
+    backgroundColor: Colors.primary,
     borderRadius: 12, paddingVertical: 13,
     alignItems: 'center',
   },
@@ -486,7 +488,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center', marginBottom: 16, gap: 0,
   },
   statItem: { flex: 1, alignItems: 'center' },
-  statValue: { fontSize: 22, fontWeight: '900', color: Colors.brand },
+  statValue: { fontSize: 22, fontWeight: '900', color: '#fff' },
   statLabel: { fontSize: 11, color: 'rgba(255,255,255,0.65)', marginTop: 2, textAlign: 'center' },
   statDivider: { width: 1, height: 30, backgroundColor: 'rgba(255,255,255,0.15)' },
 
@@ -507,7 +509,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between', marginBottom: 14,
   },
   sectionTitle: { fontSize: 18, fontWeight: '800', color: '#25282A', marginBottom: 12 },
-  viewAll: { fontSize: 13, color: Colors.brand, fontWeight: '600' },
+  viewAll: { fontSize: 13, color: Colors.primary, fontWeight: '600' },
   emptyText: { color: '#98A2B2', fontSize: 14, textAlign: 'center', paddingVertical: 24 },
 
   // ── Province cards (matches web province grid: white cards) ──
@@ -562,19 +564,19 @@ const styles = StyleSheet.create({
 
   allJobsBtn: {
     marginTop: 16, borderRadius: 12,
-    borderWidth: 1.5, borderColor: Colors.brand,
+    borderWidth: 1.5, borderColor: Colors.primary,
     paddingVertical: 13, alignItems: 'center',
   },
-  allJobsBtnText: { color: Colors.brand, fontSize: 14, fontWeight: '700' },
+  allJobsBtnText: { color: Colors.primary, fontSize: 14, fontWeight: '700' },
 
-  // ── Stats section (matches web's bg-brand-50) ──
+  // ── Stats section ──
   statsSection: {
-    backgroundColor: '#FFF3EE',
+    backgroundColor: '#EFF5FF',
     paddingVertical: 28, paddingHorizontal: 20,
     flexDirection: 'row', justifyContent: 'space-around',
   },
   statsSectionItem: { alignItems: 'center' },
-  statsSectionNum: { fontSize: 24, fontWeight: '900', color: Colors.brand },
+  statsSectionNum: { fontSize: 24, fontWeight: '900', color: Colors.primary },
   statsSectionLabel: { fontSize: 12, color: '#6B7280', marginTop: 4 },
 
   // ── CTA section (dark construction) ──
@@ -591,7 +593,7 @@ const styles = StyleSheet.create({
     textAlign: 'center', marginBottom: 20, lineHeight: 20,
   },
   ctaBtn: {
-    backgroundColor: Colors.brand, borderRadius: 14,
+    backgroundColor: Colors.primary, borderRadius: 14,
     paddingHorizontal: 32, paddingVertical: 14,
   },
   ctaBtnText: { color: '#fff', fontSize: 15, fontWeight: '700' },
@@ -617,6 +619,6 @@ const styles = StyleSheet.create({
     borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: '#F3F4F6',
   },
   pickerOptionText: { fontSize: 15, color: '#6B7280' },
-  pickerOptionTextActive: { color: Colors.brand, fontWeight: '700' },
-  pickerCheck: { fontSize: 16, color: Colors.brand, fontWeight: '700' },
+  pickerOptionTextActive: { color: Colors.primary, fontWeight: '700' },
+  pickerCheck: { fontSize: 16, color: Colors.primary, fontWeight: '700' },
 });
