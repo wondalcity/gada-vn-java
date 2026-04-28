@@ -130,7 +130,7 @@ MAIL_HOST=email-smtp.ap-southeast-1.amazonaws.com
 MAIL_PORT=587
 MAIL_USERNAME=${SES_SMTP_USERNAME}
 MAIL_PASSWORD=${SES_SMTP_PASSWORD}
-MAIL_FROM=noreply@gada.vn
+MAIL_FROM=kyle@worksmate.co.kr
 MAIL_ENABLED=true
 EOF
 chmod 600 "$DEPLOY_DIR/.env.admin"
