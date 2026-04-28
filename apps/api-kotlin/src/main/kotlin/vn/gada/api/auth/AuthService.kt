@@ -19,8 +19,11 @@ class AuthService(
     private val isDev: Boolean get() = activeProfile != "production" && activeProfile != "prod"
 
     fun verifyAndGetOrCreateUser(idToken: String, name: String? = null, emailOverride: String? = null): Map<String, Any?> {
+        if (!firebase.isInitialized()) {
+            throw vn.gada.api.common.exception.ServiceException("Firebase Admin SDK not initialized — check server credentials")
+        }
         val decoded = firebase.verifyIdToken(idToken)
-            ?: throw UnauthorizedException("Invalid token")
+            ?: throw UnauthorizedException("Firebase token verification failed")
         val existing = repo.findByFirebaseUid(decoded.uid)
         if (existing != null) {
             // If account was soft-deleted, treat as new registration

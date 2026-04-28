@@ -55,12 +55,17 @@ class FirebaseService(
         }
     }
 
+    fun isInitialized(): Boolean = initialized
+
     fun verifyIdToken(idToken: String): com.google.firebase.auth.FirebaseToken? {
-        if (!initialized) return null
+        if (!initialized) {
+            log.error("Firebase Admin SDK not initialized — cannot verify token (check FIREBASE_SERVICE_ACCOUNT_PATH)")
+            return null
+        }
         return try {
             FirebaseAuth.getInstance().verifyIdToken(idToken)
         } catch (e: FirebaseAuthException) {
-            log.debug("Firebase token verification failed: {}", e.message)
+            log.warn("Firebase token verification failed: code={} msg={}", e.authErrorCode, e.message)
             null
         }
     }
