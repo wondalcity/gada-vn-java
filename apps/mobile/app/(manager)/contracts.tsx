@@ -61,7 +61,7 @@ export default function ManagerContractsScreen() {
   const loadContracts = useCallback(async () => {
     try {
       const data = await api.get<Contract[]>('/contracts/mine-as-manager');
-      setContracts(data);
+      setContracts(Array.isArray(data) ? data : []);
     } catch {
       setContracts([]);
     } finally {

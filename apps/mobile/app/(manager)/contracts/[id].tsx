@@ -9,9 +9,9 @@ import { api } from '../../../lib/api-client';
 interface Contract {
   id: string;
   status: string;
-  contract_html: string;
-  worker_signed_at: string | null;
-  created_at: string;
+  contractHtml: string;
+  workerSignedAt: string | null;
+  createdAt: string;
 }
 
 export default function ManagerContractScreen() {
@@ -49,9 +49,9 @@ export default function ManagerContractScreen() {
         <Text style={[styles.statusText, { color: isSigned ? '#2E7D32' : '#E65100' }]}>
           {isSigned ? t('contract.worker_signed') : t('contract.worker_waiting')}
         </Text>
-        {isSigned && contract.worker_signed_at && (
+        {isSigned && contract.workerSignedAt && (
           <Text style={styles.statusSub}>
-            {t('contract.signed_date', { date: new Date(contract.worker_signed_at).toLocaleString('ko-KR') })}
+            {t('contract.signed_date', { date: new Date(contract.workerSignedAt).toLocaleString('ko-KR') })}
           </Text>
         )}
       </View>
@@ -60,7 +60,7 @@ export default function ManagerContractScreen() {
         <Text style={styles.contractTitle}>{t('contract.title')}</Text>
         <View style={styles.divider} />
         <Text style={styles.contractText}>
-          {contract.contract_html.replace(/<[^>]*>/g, '').trim()}
+          {(contract.contractHtml ?? '').replace(/<[^>]*>/g, '').trim()}
         </Text>
       </View>
     </ScrollView>

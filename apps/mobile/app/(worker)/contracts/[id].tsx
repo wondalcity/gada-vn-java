@@ -10,12 +10,12 @@ import { api, ApiError } from '../../../lib/api-client';
 interface Contract {
   id: string;
   status: string;
-  contract_html: string;
-  worker_signed_at: string | null;
-  manager_signed_at: string | null;
-  worker_sig_url: string | null;
-  manager_sig_url: string | null;
-  created_at: string;
+  contractHtml: string;
+  workerSignedAt: string | null;
+  managerSignedAt: string | null;
+  workerSigUrl: string | null;
+  managerSigUrl: string | null;
+  createdAt: string;
 }
 
 export default function WorkerContractScreen() {
@@ -64,8 +64,8 @@ export default function WorkerContractScreen() {
   if (!contract) return null;
 
   const canWorkerSign = contract.status === 'PENDING_WORKER_SIGN';
-  const workerSigned = !!contract.worker_signed_at;
-  const managerSigned = !!contract.manager_signed_at;
+  const workerSigned = !!contract.workerSignedAt;
+  const managerSigned = !!contract.managerSignedAt;
 
   return (
     <>
@@ -75,7 +75,7 @@ export default function WorkerContractScreen() {
           <Text style={styles.contractTitle}>{t('contract.title')}</Text>
           <View style={styles.divider} />
           <Text style={styles.contractText}>
-            {contract.contract_html.replace(/<[^>]*>/g, '').trim()}
+            {(contract.contractHtml ?? '').replace(/<[^>]*>/g, '').trim()}
           </Text>
         </View>
 

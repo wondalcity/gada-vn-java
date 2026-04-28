@@ -10,10 +10,10 @@ import { api, ApiError } from '../../../lib/api-client';
 interface Application {
   id: string;
   status: string;
-  worker_name: string;
-  experience_months: number | null;
-  current_province: string | null;
-  applied_at: string;
+  workerName: string;
+  experienceMonths: number | null;
+  currentProvince: string | null;
+  appliedAt: string;
 }
 
 interface Contract {
@@ -32,7 +32,7 @@ export default function ManagerJobDetailScreen() {
   const load = useCallback(async () => {
     try {
       const data = await api.get<Application[]>(`/applications/job/${id}`);
-      setApplications(data);
+      setApplications(Array.isArray(data) ? data : []);
     } catch {
       setApplications([]);
     } finally {
@@ -126,7 +126,7 @@ export default function ManagerJobDetailScreen() {
       renderItem={({ item }) => (
         <View style={styles.card}>
           <View style={styles.cardHeader}>
-            <Text style={styles.workerName}>{item.worker_name}</Text>
+            <Text style={styles.workerName}>{item.workerName}</Text>
             <View style={[styles.statusBadge, { backgroundColor: statusColor(item.status) + '20' }]}>
               <Text style={[styles.statusText, { color: statusColor(item.status) }]}>
                 {statusLabel(item.status)}
@@ -135,14 +135,14 @@ export default function ManagerJobDetailScreen() {
           </View>
 
           <View style={styles.cardMeta}>
-            {item.experience_months != null && (
-              <Text style={styles.metaText}>{t('jobs.experience_label', { years: Math.floor(item.experience_months / 12), months: item.experience_months % 12 })}</Text>
+            {item.experienceMonths != null && (
+              <Text style={styles.metaText}>{t('jobs.experience_label', { years: Math.floor(item.experienceMonths / 12), months: item.experienceMonths % 12 })}</Text>
             )}
-            {item.current_province && (
-              <Text style={styles.metaText}>📍 {item.current_province}</Text>
+            {item.currentProvince && (
+              <Text style={styles.metaText}>📍 {item.currentProvince}</Text>
             )}
             <Text style={styles.metaText}>
-              {t('jobs.applied_date', { date: new Date(item.applied_at).toLocaleDateString('ko-KR') })}
+              {t('jobs.applied_date', { date: new Date(item.appliedAt).toLocaleDateString('ko-KR') })}
             </Text>
           </View>
 

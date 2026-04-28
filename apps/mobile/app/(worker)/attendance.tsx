@@ -50,7 +50,7 @@ export default function WorkerAttendanceScreen() {
   const loadRecords = useCallback(async () => {
     try {
       const data = await api.get<AttendanceRecord[]>('/workers/attendance');
-      setRecords(data);
+      setRecords(Array.isArray(data) ? data : []);
     } catch {
       setRecords([]);
     } finally {

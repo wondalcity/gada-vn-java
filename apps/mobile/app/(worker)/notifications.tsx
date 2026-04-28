@@ -12,7 +12,7 @@ interface Notification {
   title: string;
   body: string;
   read: boolean;
-  created_at: string;
+  createdAt: string;
 }
 
 const TYPE_ICONS: Record<string, string> = {
@@ -31,9 +31,11 @@ export default function WorkerNotifications() {
 
   const load = useCallback(async () => {
     try {
-      const data = await api.get<{ data: Notification[]; unreadCount: number }>('/notifications');
-      setNotifications(data.data);
-      setUnreadCount(data.unreadCount);
+      // Notification endpoint returns { data: { data: [...], unreadCount: N } }
+      // api.get unwraps the outer data → returns { data: [...notifications], unreadCount: N }
+      const res = await api.get<{ data: Notification[]; unreadCount: number }>('/notifications');
+      setNotifications(Array.isArray(res.data) ? res.data : []);
+      setUnreadCount(res.unreadCount ?? 0);
     } catch {
       setNotifications([]);
     } finally {
@@ -105,7 +107,7 @@ export default function WorkerNotifications() {
             </Text>
             <Text style={styles.itemText} numberOfLines={2}>{item.body}</Text>
             <Text style={styles.itemTime}>
-              {new Date(item.created_at).toLocaleString('ko-KR', {
+              {new Date(item.createdAt).toLocaleString('ko-KR', {
                 month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit',
               })}
             </Text>
