@@ -13,7 +13,7 @@ interface TestAccount {
   created_at: string
 }
 
-const IN = 'w-full border border-[#EFF1F5] rounded-2xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#0669F7]'
+const IN = 'w-full border border-outline rounded-sm px-3 py-2.5 text-sm text-on-surface bg-surface focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary'
 
 function AddModal({ onSave, onCancel }: { onSave: () => void; onCancel: () => void }) {
   const { t } = useAdminTranslation()

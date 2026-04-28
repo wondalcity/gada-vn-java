@@ -15,7 +15,7 @@ interface AdminUserItem {
   last_login_at: string | null
 }
 
-const IN = 'w-full border border-[#EFF1F5] rounded-2xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#0669F7]'
+const IN = 'w-full border border-outline rounded-sm px-3 py-2.5 text-sm text-on-surface bg-surface focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary'
 const LABEL = 'block text-xs font-medium text-gray-500 mb-1'
 
 // Clipboard fallback for HTTP (navigator.clipboard requires HTTPS/localhost)

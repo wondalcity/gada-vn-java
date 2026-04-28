@@ -48,6 +48,13 @@ export class AuthService {
     // 1. Try to find by firebase_uid (existing user)
     const existing = await this.repo.findByFirebaseUid(decoded.uid);
     if (existing) {
+      // Backfill email and name from Google/social provider if not yet set
+      if (decoded.email && !existing.email) {
+        await this.repo.updateEmailIfNull(existing.id, decoded.email);
+      }
+      if (decoded.name) {
+        await this.repo.updateWorkerNameIfNull(existing.id, decoded.name);
+      }
       const profile = await this.repo.getMeProfile(existing.id);
       return { user: profile, isNew: false };
     }

@@ -45,7 +45,7 @@ const EMPTY_PROFILE: WorkerProfile = {
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
 function SkeletonField() {
-  return <div className="h-10 bg-[#EFF1F5] rounded-2xl animate-pulse w-full" />
+  return <div className="h-10 bg-surface-container rounded-3xl animate-pulse w-full" />
 }
 
 function SkeletonForm() {
@@ -53,11 +53,11 @@ function SkeletonForm() {
     <div className="space-y-4">
       {Array.from({ length: 6 }).map((_, i) => (
         <div key={i}>
-          <div className="h-4 bg-[#EFF1F5] rounded w-24 mb-1 animate-pulse" />
+          <div className="h-4 bg-surface-container rounded w-24 mb-1 animate-pulse" />
           <SkeletonField />
         </div>
       ))}
-      <div className="h-10 bg-[#EFF1F5] rounded-full animate-pulse mt-6" />
+      <div className="h-10 bg-surface-container rounded-full animate-pulse mt-6" />
     </div>
   )
 }
@@ -65,7 +65,7 @@ function SkeletonForm() {
 function Toast({ message, type }: { message: string; type: 'success' | 'error' }) {
   return (
     <div
-      className={`fixed top-4 left-1/2 -translate-x-1/2 z-50 px-4 py-3 rounded-2xl shadow-md text-sm font-medium text-white transition-all ${
+      className={`fixed top-4 left-1/2 -translate-x-1/2 z-50 px-4 py-3 rounded-3xl shadow-md text-sm font-medium text-white transition-all ${
         type === 'success' ? 'bg-[#00C800]' : 'bg-[#ED1C24]'
       }`}
     >
@@ -175,7 +175,7 @@ export default function WorkerProfileForm({ locale }: { locale: string }) {
 
       <div className="max-w-lg mx-auto px-4 py-6">
         {/* Header */}
-        <h1 className="text-xl font-semibold text-[#25282A] mb-6">{t('worker_profile_form.title')}</h1>
+        <h1 className="text-xl font-semibold text-on-surface mb-6">{t('worker_profile_form.title')}</h1>
 
         {/* Profile picture */}
         {profile.profilePictureUrl && (
@@ -183,7 +183,7 @@ export default function WorkerProfileForm({ locale }: { locale: string }) {
             <img
               src={profile.profilePictureUrl}
               alt={t('worker_profile_form.photo_alt')}
-              className="w-24 h-24 rounded-full object-cover border border-[#EFF1F5]"
+              className="w-24 h-24 rounded-full object-cover border border-outline"
             />
           </div>
         )}
@@ -195,7 +195,7 @@ export default function WorkerProfileForm({ locale }: { locale: string }) {
             className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium ${
               profile.idVerified
                 ? 'bg-[#E6F9E6] text-[#1A6B1A] border border-[#86D98A]'
-                : 'bg-[#EFF1F5] text-[#98A2B2] border border-[#EFF1F5]'
+                : 'bg-surface-container text-on-surface-variant border border-outline'
             }`}
           >
             {profile.idVerified ? (
@@ -229,7 +229,7 @@ export default function WorkerProfileForm({ locale }: { locale: string }) {
           ) : (
             <Link
               href={'/worker/profile/signature'}
-              className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium bg-[#EFF1F5] text-[#98A2B2] border border-[#EFF1F5] hover:border-[#0669F7] hover:text-[#0669F7] transition-colors"
+              className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium bg-surface-container text-on-surface-variant border border-outline hover:border-primary hover:text-[#0669F7] transition-colors"
             >
               {t('worker_profile_form.signature_register')}
             </Link>
@@ -237,7 +237,7 @@ export default function WorkerProfileForm({ locale }: { locale: string }) {
         </div>
 
         {/* Form card */}
-        <div className="bg-white rounded-2xl shadow-sm border border-[#EFF1F5] p-5">
+        <div className="bg-white rounded-3xl shadow-sm border border-outline p-5">
           {isLoading ? (
             <SkeletonForm />
           ) : (
@@ -245,22 +245,22 @@ export default function WorkerProfileForm({ locale }: { locale: string }) {
               {/* Phone — read-only */}
               {profile.phone && (
                 <div>
-                  <label className="block text-sm font-medium text-[#25282A] mb-1">
+                  <label className="block text-sm font-medium text-on-surface mb-1">
                     {t('worker_profile_form.field_phone')}
                   </label>
                   <input
                     type="text"
                     readOnly
                     value={profile.phone}
-                    className="w-full px-3 py-2 rounded-2xl border border-[#EFF1F5] bg-[#F2F4F5] text-sm text-[#98A2B2] cursor-default"
+                    className="w-full px-3 py-2 rounded-sm border border-outline bg-surface-container text-sm text-on-surface-variant cursor-default"
                   />
                 </div>
               )}
 
               {/* Full name */}
               <div>
-                <label htmlFor="fullName" className="block text-sm font-medium text-[#25282A] mb-1">
-                  {t('worker_profile_form.field_name')} <span className="text-[#ED1C24]">*</span>
+                <label htmlFor="fullName" className="block text-sm font-medium text-on-surface mb-1">
+                  {t('worker_profile_form.field_name')} <span className="text-error">*</span>
                 </label>
                 <input
                   id="fullName"
@@ -270,13 +270,13 @@ export default function WorkerProfileForm({ locale }: { locale: string }) {
                   value={profile.fullName}
                   onChange={handleChange}
                   placeholder={t('worker_profile_form.placeholder_name')}
-                  className="w-full px-3 py-2 rounded-2xl border border-[#EFF1F5] focus:outline-none focus:border-[#0669F7] text-sm text-[#25282A]"
+                  className="w-full px-3 py-2 rounded-sm border border-outline focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary text-sm text-on-surface"
                 />
               </div>
 
               {/* Date of birth */}
               <div>
-                <label className="block text-sm font-medium text-[#25282A] mb-1">
+                <label className="block text-sm font-medium text-on-surface mb-1">
                   {t('worker_profile_form.field_dob')}
                 </label>
                 <DatePicker
@@ -288,7 +288,7 @@ export default function WorkerProfileForm({ locale }: { locale: string }) {
 
               {/* Gender */}
               <div>
-                <label htmlFor="gender" className="block text-sm font-medium text-[#25282A] mb-1">
+                <label htmlFor="gender" className="block text-sm font-medium text-on-surface mb-1">
                   {t('worker_profile_form.field_gender')}
                 </label>
                 <select
@@ -296,7 +296,7 @@ export default function WorkerProfileForm({ locale }: { locale: string }) {
                   name="gender"
                   value={profile.gender}
                   onChange={handleChange}
-                  className="w-full px-3 py-2 rounded-2xl border border-[#EFF1F5] focus:outline-none focus:border-[#0669F7] text-sm text-[#25282A] bg-white"
+                  className="w-full px-3 py-2 rounded-sm border border-outline focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary text-sm text-on-surface bg-surface"
                 >
                   <option value="" disabled>
                     {t('worker_profile_form.placeholder_gender')}
@@ -309,7 +309,7 @@ export default function WorkerProfileForm({ locale }: { locale: string }) {
 
               {/* Bio */}
               <div>
-                <label htmlFor="bio" className="block text-sm font-medium text-[#25282A] mb-1">
+                <label htmlFor="bio" className="block text-sm font-medium text-on-surface mb-1">
                   {t('worker_profile_form.field_bio')}
                 </label>
                 <textarea
@@ -320,14 +320,14 @@ export default function WorkerProfileForm({ locale }: { locale: string }) {
                   value={profile.bio}
                   onChange={handleChange}
                   placeholder={t('worker_profile_form.placeholder_bio')}
-                  className="w-full px-3 py-2 rounded-2xl border border-[#EFF1F5] focus:outline-none focus:border-[#0669F7] text-sm text-[#25282A] resize-none"
+                  className="w-full px-3 py-2 rounded-sm border border-outline focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary text-sm text-on-surface resize-none"
                 />
-                <p className="text-xs text-[#98A2B2] mt-1 text-right">{profile.bio.length}/500</p>
+                <p className="text-xs text-on-surface-variant mt-1 text-right">{profile.bio.length}/500</p>
               </div>
 
               {/* Bank name */}
               <div>
-                <label htmlFor="bankName" className="block text-sm font-medium text-[#25282A] mb-1">
+                <label htmlFor="bankName" className="block text-sm font-medium text-on-surface mb-1">
                   {t('worker_profile_form.field_bank_name')}
                 </label>
                 <input
@@ -337,13 +337,13 @@ export default function WorkerProfileForm({ locale }: { locale: string }) {
                   value={profile.bankName}
                   onChange={handleChange}
                   placeholder="예: Vietcombank"
-                  className="w-full px-3 py-2 rounded-2xl border border-[#EFF1F5] focus:outline-none focus:border-[#0669F7] text-sm text-[#25282A]"
+                  className="w-full px-3 py-2 rounded-sm border border-outline focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary text-sm text-on-surface"
                 />
               </div>
 
               {/* Bank account number */}
               <div>
-                <label htmlFor="bankAccountNumber" className="block text-sm font-medium text-[#25282A] mb-1">
+                <label htmlFor="bankAccountNumber" className="block text-sm font-medium text-on-surface mb-1">
                   {t('worker_profile_form.field_bank_account')}
                 </label>
                 <input
@@ -353,22 +353,22 @@ export default function WorkerProfileForm({ locale }: { locale: string }) {
                   value={profile.bankAccountNumber}
                   onChange={handleChange}
                   placeholder={t('worker_profile_form.placeholder_bank_account')}
-                  className="w-full px-3 py-2 rounded-2xl border border-[#EFF1F5] focus:outline-none focus:border-[#0669F7] text-sm text-[#25282A]"
+                  className="w-full px-3 py-2 rounded-sm border border-outline focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary text-sm text-on-surface"
                 />
               </div>
 
               {/* Primary trade selector */}
               <div>
-                <label htmlFor="primaryTradeId" className="block text-sm font-medium text-[#25282A] mb-1">
+                <label htmlFor="primaryTradeId" className="block text-sm font-medium text-on-surface mb-1">
                   {t('worker_profile_form.field_trade')}
-                  <span className="ml-1 text-xs text-[#98A2B2] font-normal">{t('worker_profile_form.field_trade_hint')}</span>
+                  <span className="ml-1 text-xs text-on-surface-variant font-normal">{t('worker_profile_form.field_trade_hint')}</span>
                 </label>
                 <select
                   id="primaryTradeId"
                   name="primaryTradeId"
                   value={profile.primaryTradeId}
                   onChange={handleChange}
-                  className="w-full px-3 py-2 rounded-2xl border border-[#EFF1F5] focus:outline-none focus:border-[#0669F7] text-sm text-[#25282A] bg-white"
+                  className="w-full px-3 py-2 rounded-sm border border-outline focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary text-sm text-on-surface bg-surface"
                 >
                   <option value="">{t('worker_profile_form.placeholder_trade')}</option>
                   {trades.map(tr => (
@@ -381,7 +381,7 @@ export default function WorkerProfileForm({ locale }: { locale: string }) {
 
               {/* Province */}
               <div>
-                <label htmlFor="province" className="block text-sm font-medium text-[#25282A] mb-1">
+                <label htmlFor="province" className="block text-sm font-medium text-on-surface mb-1">
                   {t('worker_profile_form.field_province')}
                 </label>
                 <input
@@ -391,7 +391,7 @@ export default function WorkerProfileForm({ locale }: { locale: string }) {
                   value={profile.province}
                   onChange={handleChange}
                   placeholder={t('worker_profile_form.placeholder_province')}
-                  className="w-full px-3 py-2 rounded-2xl border border-[#EFF1F5] focus:outline-none focus:border-[#0669F7] text-sm text-[#25282A]"
+                  className="w-full px-3 py-2 rounded-sm border border-outline focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary text-sm text-on-surface"
                 />
               </div>
 
@@ -411,28 +411,28 @@ export default function WorkerProfileForm({ locale }: { locale: string }) {
         <div className="mt-4 space-y-2">
           <Link
             href={'/worker/profile/experience'}
-            className="flex items-center justify-between w-full px-4 py-3 bg-white rounded-2xl shadow-sm border border-[#EFF1F5] text-sm text-[#25282A] hover:border-[#0669F7] transition-colors"
+            className="flex items-center justify-between w-full px-4 py-3 bg-surface rounded-sm shadow-sm border border-outline text-sm text-on-surface hover:border-primary transition-colors"
           >
             <span>{t('worker_profile_form.link_experience')}</span>
-            <svg className="w-4 h-4 text-[#98A2B2]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-4 h-4 text-on-surface-variant" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
             </svg>
           </Link>
           <Link
             href={'/worker/profile/id'}
-            className="flex items-center justify-between w-full px-4 py-3 bg-white rounded-2xl shadow-sm border border-[#EFF1F5] text-sm text-[#25282A] hover:border-[#0669F7] transition-colors"
+            className="flex items-center justify-between w-full px-4 py-3 bg-surface rounded-sm shadow-sm border border-outline text-sm text-on-surface hover:border-primary transition-colors"
           >
             <span>{t('worker_profile_form.link_id_upload')}</span>
-            <svg className="w-4 h-4 text-[#98A2B2]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-4 h-4 text-on-surface-variant" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
             </svg>
           </Link>
           <Link
             href={'/worker/profile/signature'}
-            className="flex items-center justify-between w-full px-4 py-3 bg-white rounded-2xl shadow-sm border border-[#EFF1F5] text-sm text-[#25282A] hover:border-[#0669F7] transition-colors"
+            className="flex items-center justify-between w-full px-4 py-3 bg-surface rounded-sm shadow-sm border border-outline text-sm text-on-surface hover:border-primary transition-colors"
           >
             <span>{t('worker_profile_form.link_signature')}</span>
-            <svg className="w-4 h-4 text-[#98A2B2]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-4 h-4 text-on-surface-variant" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
             </svg>
           </Link>

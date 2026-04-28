@@ -30,7 +30,7 @@ interface Worker {
   is_manager?: boolean
 }
 
-const IN = 'w-full border border-[#EFF1F5] rounded-2xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#0669F7]'
+const IN = 'w-full border border-outline rounded-sm px-3 py-2.5 text-sm text-on-surface bg-surface focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary'
 
 const COUNTRY_CODES = [
   { code: '+84', label: '🇻🇳 +84 (VN)' },
@@ -75,7 +75,7 @@ function CreateWorkerModal({ onSave, onCancel }: { onSave: (phone: string, fullN
               <select
                 value={countryCode}
                 onChange={e => setCountryCode(e.target.value)}
-                className="border border-[#EFF1F5] rounded-2xl px-2 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#0669F7] bg-white"
+                className="border border-outline rounded-sm px-2 py-2.5 text-sm text-on-surface bg-surface focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
               >
                 {COUNTRY_CODES.map(c => (
                   <option key={c.code} value={c.code}>{c.label}</option>
@@ -202,13 +202,13 @@ export default function Workers() {
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder={t('workers.search_placeholder')}
-          className="flex-1 border border-[#EFF1F5] rounded-2xl px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0669F7]"
+          className="flex-1 border border-outline rounded-sm px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
         />
         <button type="submit" className="bg-[#0669F7] text-white px-4 py-2 rounded-2xl text-sm font-medium">{t('common.search')}</button>
         <select
           value={limit}
           onChange={(e) => setSearchParams({ search, page: '1', limit: e.target.value })}
-          className="border border-[#EFF1F5] rounded-2xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0669F7] bg-white"
+          className="border border-outline rounded-sm px-3 py-2 text-sm text-on-surface bg-surface focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
         >
           {LIMIT_OPTIONS.map(n => <option key={n} value={n}>{n}{t('common.per_page')}</option>)}
         </select>

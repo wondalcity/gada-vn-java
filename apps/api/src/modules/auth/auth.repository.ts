@@ -188,4 +188,23 @@ export class AuthRepository {
       [userId, name],
     );
   }
+
+  /** Update email in auth.users only if currently NULL (e.g. after Google sign-in). */
+  async updateEmailIfNull(userId: string, email: string): Promise<void> {
+    await this.db.query(
+      'UPDATE auth.users SET email = $1, updated_at = NOW() WHERE id = $2 AND email IS NULL',
+      [email, userId],
+    );
+  }
+
+  /** Update worker full_name only if currently NULL or empty (e.g. after Google sign-in). */
+  async updateWorkerNameIfNull(userId: string, name: string): Promise<void> {
+    await this.db.query(
+      `INSERT INTO app.worker_profiles (user_id, full_name)
+       VALUES ($1, $2)
+       ON CONFLICT (user_id) DO UPDATE SET full_name = $2, updated_at = NOW()
+       WHERE app.worker_profiles.full_name IS NULL OR app.worker_profiles.full_name = ''`,
+      [userId, name],
+    );
+  }
 }

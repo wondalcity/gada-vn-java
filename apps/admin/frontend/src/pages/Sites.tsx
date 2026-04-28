@@ -86,7 +86,7 @@ const JOB_STATUS_BADGE: Record<string, string> = {
 }
 
 
-const IN = 'w-full border border-[#EFF1F5] rounded-2xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#0669F7]'
+const IN = 'w-full border border-outline rounded-sm px-3 py-2.5 text-sm text-on-surface bg-surface focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary'
 
 function managerLabel(m: Manager): string {
   const phone = m.phone ? m.phone : ''
@@ -149,15 +149,15 @@ function ManagerSearchSelect({
       <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs">▾</span>
 
       {open && (
-        <div className="absolute z-50 mt-1 w-full bg-white border border-[#EFF1F5] rounded-2xl shadow-lg max-h-52 overflow-y-auto">
+        <div className="absolute z-50 mt-1 w-full bg-surface border border-outline rounded-3xl shadow-lg max-h-52 overflow-y-auto">
           {filtered.length === 0 ? (
-            <div className="px-4 py-3 text-sm text-gray-400">{noResultsText}</div>
+            <div className="px-4 py-3 text-sm text-on-surface-variant">{noResultsText}</div>
           ) : (
             filtered.map(m => (
               <button
                 key={m.id}
                 type="button"
-                className={`w-full text-left px-4 py-2.5 text-sm hover:bg-[#F2F4F5] transition-colors ${m.id === value ? 'bg-[#EFF1F5] font-semibold' : ''}`}
+                className={`w-full text-left px-4 py-2.5 text-sm transition-colors ${m.id === value ? 'bg-primary-8 text-primary font-semibold' : 'text-on-surface hover:bg-surface-container'}`}
                 onMouseDown={() => handleSelect(m)}
               >
                 {managerLabel(m)}
@@ -238,9 +238,9 @@ function SiteFormModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
-      <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg p-6 overflow-y-auto max-h-[90vh]">
-        <h3 className="text-base font-bold text-gray-900 mb-4">{isEdit ? t('sites.modal.edit_title') : t('sites.modal.create_title')}</h3>
-        {error && <div className="bg-[#FDE8EE] border border-[#F4B0C0] text-[#D81A48] rounded-xl p-3 mb-4 text-sm">{error}</div>}
+      <div className="bg-surface rounded-3xl shadow-xl w-full max-w-lg p-6 overflow-y-auto max-h-[90vh]">
+        <h3 className="text-base font-bold text-on-surface mb-4">{isEdit ? t('sites.modal.edit_title') : t('sites.modal.create_title')}</h3>
+        {error && <div className="bg-error-container border border-error text-error rounded-sm p-3 mb-4 text-sm">{error}</div>}
         <form onSubmit={handleSubmit} className="space-y-3">
           <div>
             <div className="flex items-center justify-between mb-1">
@@ -249,14 +249,14 @@ function SiteFormModal({
                 <button
                   type="button"
                   onClick={() => setShowNewCompany(true)}
-                  className="text-xs text-[#0669F7] hover:underline"
+                  className="text-xs text-primary hover:underline"
                 >
                   {t('sites.modal.new_company_btn')}
                 </button>
               )}
             </div>
             {showNewCompany ? (
-              <div className="border border-[#B8D4FD] rounded-2xl p-3 bg-[#F0F6FF] space-y-2">
+              <div className="border border-primary/30 rounded-sm p-3 bg-primary-8 space-y-2">
                 <input
                   type="text"
                   value={newCompanyForm.name}
@@ -282,7 +282,7 @@ function SiteFormModal({
                   <button
                     type="button"
                     onClick={() => { setShowNewCompany(false); setNewCompanyForm({ name: '', contactName: '', contactPhone: '' }) }}
-                    className="flex-1 py-2 rounded-xl text-xs font-medium border border-[#EFF1F5] text-gray-600 hover:bg-[#F2F4F5]"
+                    className="flex-1 py-2 rounded-sm text-xs font-medium border border-outline text-on-surface hover:bg-surface-container"
                   >
                     {t('sites.modal.new_company_cancel')}
                   </button>
@@ -290,7 +290,7 @@ function SiteFormModal({
                     type="button"
                     disabled={creatingCompany || !newCompanyForm.name.trim()}
                     onClick={handleCreateCompany}
-                    className="flex-1 py-2 rounded-xl text-xs font-bold bg-[#0669F7] text-white hover:bg-[#0550C4] disabled:opacity-50"
+                    className="flex-1 py-2 rounded-sm text-xs font-bold bg-primary text-white hover:bg-primary-hover disabled:opacity-50"
                   >
                     {creatingCompany ? t('sites.modal.new_company_creating') : t('sites.modal.new_company_save')}
                   </button>
@@ -346,8 +346,8 @@ function SiteFormModal({
             </div>
           )}
           <div className="flex gap-2 pt-2">
-            <button type="button" onClick={onCancel} className="flex-1 py-2.5 rounded-xl text-sm font-medium border border-[#EFF1F5] text-gray-600 hover:bg-[#F2F4F5]">{t('common.cancel')}</button>
-            <button type="submit" disabled={saving} className="flex-1 py-2.5 rounded-xl text-sm font-bold bg-[#0669F7] text-white hover:bg-[#0550C4] disabled:opacity-50">
+            <button type="button" onClick={onCancel} className="flex-1 py-2.5 rounded-sm text-sm font-medium border border-outline text-on-surface hover:bg-surface-container">{t('common.cancel')}</button>
+            <button type="submit" disabled={saving} className="flex-1 py-2.5 rounded-sm text-sm font-bold bg-primary text-white hover:bg-primary-hover disabled:opacity-50">
               {saving ? t('sites.modal.saving') : isEdit ? t('sites.modal.save_edit') : t('sites.modal.save_create')}
             </button>
           </div>
@@ -742,7 +742,7 @@ export default function Sites() {
         <h1 className="text-2xl font-bold text-gray-900">{t('sites.title')}</h1>
         <button
           onClick={() => setShowCreate(true)}
-          className="flex items-center gap-2 px-4 py-2 bg-[#0669F7] hover:bg-[#0550C4] text-white text-sm font-medium rounded-2xl transition-colors"
+          className="flex items-center gap-2 px-4 py-2 bg-primary hover:bg-primary-hover text-white text-sm font-medium rounded-sm transition-colors"
         >
           {t('sites.new')}
         </button>
@@ -754,13 +754,13 @@ export default function Sites() {
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder={t('sites.search_placeholder')}
-          className="flex-1 border border-[#EFF1F5] rounded-2xl px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0669F7]"
+          className="flex-1 border border-outline rounded-sm px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
         />
-        <button type="submit" className="bg-[#0669F7] text-white px-4 py-2 rounded-2xl text-sm font-medium">{t('common.search')}</button>
+        <button type="submit" className="bg-primary text-white px-4 py-2 rounded-sm text-sm font-medium">{t('common.search')}</button>
         <select
           value={limit}
           onChange={(e) => setSearchParams({ search, page: '1', limit: e.target.value })}
-          className="border border-[#EFF1F5] rounded-2xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0669F7] bg-white"
+          className="border border-outline rounded-sm px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary bg-surface"
         >
           {LIMIT_OPTIONS.map(n => <option key={n} value={n}>{n}{t('common.per_page')}</option>)}
         </select>
@@ -833,7 +833,7 @@ export default function Sites() {
       {total > limit && (
         <div className="mt-4 flex items-center justify-center gap-1">
           <button onClick={() => goToPage(page - 1)} disabled={page <= 1}
-            className="px-3 py-1.5 rounded-xl text-sm border border-[#EFF1F5] text-gray-600 hover:bg-[#F2F4F5] disabled:opacity-40">‹</button>
+            className="px-3 py-1.5 rounded-sm text-sm border border-outline text-on-surface hover:bg-surface-container disabled:opacity-40">‹</button>
           {Array.from({ length: Math.ceil(total / limit) }, (_, i) => i + 1)
             .filter(p => p === 1 || p === Math.ceil(total / limit) || Math.abs(p - page) <= 2)
             .reduce<(number | '...')[]>((acc, p, idx, arr) => {
@@ -846,13 +846,13 @@ export default function Sites() {
                 <span key={`e${i}`} className="px-2 text-gray-400 text-sm">…</span>
               ) : (
                 <button key={p} onClick={() => goToPage(p as number)}
-                  className={`px-3 py-1.5 rounded-xl text-sm border transition-colors ${p === page ? 'bg-[#0669F7] text-white border-[#0669F7] font-semibold' : 'border-[#EFF1F5] text-gray-600 hover:bg-[#F2F4F5]'}`}>
+                  className={`px-3 py-1.5 rounded-sm text-sm border transition-colors ${p === page ? 'bg-primary text-white border-primary font-semibold' : 'border-outline text-on-surface hover:bg-surface-container'}`}>
                   {p}
                 </button>
               )
             )}
           <button onClick={() => goToPage(page + 1)} disabled={page >= Math.ceil(total / limit)}
-            className="px-3 py-1.5 rounded-xl text-sm border border-[#EFF1F5] text-gray-600 hover:bg-[#F2F4F5] disabled:opacity-40">›</button>
+            className="px-3 py-1.5 rounded-sm text-sm border border-outline text-on-surface hover:bg-surface-container disabled:opacity-40">›</button>
         </div>
       )}
 

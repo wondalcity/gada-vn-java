@@ -2,7 +2,8 @@
  * GADA Design System — Form Controls
  *
  * Wraps native select / date / time inputs with GADA-consistent styling:
- *   - rounded-2xl, #0669F7 focus ring, #EFF1F5 border
+ *   - rounded-sm (4px) for triggers/inputs, rounded-3xl (24px) for floating panels
+ *   - primary focus ring, outline border
  *   - Custom chevron / calendar / clock icons (hides browser defaults)
  */
 
@@ -10,8 +11,9 @@ import * as React from 'react'
 
 // ── Shared base class ─────────────────────────────────────────────────────────
 const BASE =
-  'w-full border border-[#EFF1F5] rounded-2xl px-3 py-2.5 text-sm text-[#25282A] bg-white ' +
-  'focus:outline-none focus:ring-2 focus:ring-[#0669F7] disabled:opacity-60 disabled:cursor-not-allowed'
+  'w-full border border-outline rounded-sm px-3 py-2.5 text-sm text-on-surface bg-surface ' +
+  'focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary ' +
+  'disabled:opacity-60 disabled:cursor-not-allowed'
 
 // ── GadaSelect ────────────────────────────────────────────────────────────────
 interface GadaSelectProps extends React.SelectHTMLAttributes<HTMLSelectElement> {}
@@ -26,7 +28,7 @@ export function GadaSelect({ className = '', children, ...props }: GadaSelectPro
         {children}
       </select>
       <div className="pointer-events-none absolute inset-y-0 right-3 flex items-center">
-        <svg className="w-4 h-4 text-[#98A2B2]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+        <svg className="w-4 h-4 text-on-surface-variant" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
           <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
         </svg>
       </div>
@@ -119,22 +121,22 @@ function GadaCalendar({ value, locale, onSelect, onClear, onClose, clearLabel, t
 
   return (
     <div
-      className="absolute z-50 mt-1 bg-white border border-[#EFF1F5] rounded-2xl shadow-lg p-3 w-64"
+      className="absolute z-50 mt-1 bg-surface border border-outline rounded-3xl shadow-lg p-3 w-64"
       onMouseDown={(e) => e.preventDefault()} // prevent input blur
     >
       {/* Header */}
       <div className="flex items-center justify-between mb-2">
         <button type="button" onClick={prevMonth}
-          className="p-1 rounded-lg hover:bg-[#F2F4F5] text-[#25282A]">
+          className="p-1 rounded-lg hover:bg-surface-container text-on-surface">
           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
           </svg>
         </button>
-        <span className="text-sm font-medium text-[#25282A]">
+        <span className="text-sm font-medium text-on-surface">
           {getMonthLabel(viewYear, viewMonth, locale)}
         </span>
         <button type="button" onClick={nextMonth}
-          className="p-1 rounded-lg hover:bg-[#F2F4F5] text-[#25282A]">
+          className="p-1 rounded-lg hover:bg-surface-container text-on-surface">
           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
           </svg>
@@ -144,7 +146,7 @@ function GadaCalendar({ value, locale, onSelect, onClear, onClose, clearLabel, t
       {/* Day headers */}
       <div className="grid grid-cols-7 mb-1">
         {dayHeaders.map((d) => (
-          <div key={d} className="text-center text-[10px] font-medium text-[#98A2B2] py-1">{d}</div>
+          <div key={d} className="text-center text-[10px] font-medium text-on-surface-variant py-1">{d}</div>
         ))}
       </div>
 
@@ -162,10 +164,10 @@ function GadaCalendar({ value, locale, onSelect, onClear, onClose, clearLabel, t
               className={`
                 text-xs py-1.5 rounded-lg text-center transition-colors
                 ${isSelected
-                  ? 'bg-[#0669F7] text-white font-semibold'
+                  ? 'bg-primary text-white font-semibold'
                   : isToday
-                  ? 'bg-[#E6F0FE] text-[#0669F7] font-semibold'
-                  : 'text-[#25282A] hover:bg-[#F2F4F5]'}
+                  ? 'bg-primary-8 text-primary font-semibold'
+                  : 'text-on-surface hover:bg-surface-container'}
               `}
             >
               {day}
@@ -175,11 +177,11 @@ function GadaCalendar({ value, locale, onSelect, onClear, onClose, clearLabel, t
       </div>
 
       {/* Footer */}
-      <div className="flex justify-between mt-2 pt-2 border-t border-[#EFF1F5]">
+      <div className="flex justify-between mt-2 pt-2 border-t border-outline">
         <button type="button" onClick={() => { onClear(); onClose() }}
-          className="text-xs text-[#0669F7] hover:underline px-1">{clearLabel}</button>
+          className="text-xs text-primary hover:underline px-1">{clearLabel}</button>
         <button type="button" onClick={goToday}
-          className="text-xs text-[#0669F7] hover:underline px-1">{todayLabel}</button>
+          className="text-xs text-primary hover:underline px-1">{todayLabel}</button>
       </div>
     </div>
   )
@@ -244,14 +246,14 @@ export function GadaDateInput({ className = '', locale = 'ko', value = '', onCha
       <button
         type="button"
         onClick={() => setOpen(o => !o)}
-        className={`${BASE} pr-9 text-left ${!displayText ? 'text-[#98A2B2]' : ''} ${className}`}
+        className={`${BASE} pr-9 text-left ${!displayText ? 'text-on-surface-variant' : ''} ${open ? 'border-primary ring-2 ring-primary/20' : ''} ${className}`}
       >
         {displayText || (locale === 'ko' ? 'YYYY-MM-DD' : 'DD/MMM/YYYY')}
       </button>
 
       {/* Calendar icon */}
       <div className="pointer-events-none absolute inset-y-0 right-3 flex items-center">
-        <svg className="w-4 h-4 text-[#98A2B2]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+        <svg className={`w-4 h-4 ${open ? 'text-primary' : 'text-on-surface-variant'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
           <path strokeLinecap="round" strokeLinejoin="round"
             d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
         </svg>
@@ -293,7 +295,7 @@ export function GadaTimeInput({ className = '', ...props }: GadaTimeInputProps) 
         {...props}
       />
       <div className="pointer-events-none absolute inset-y-0 right-3 flex items-center">
-        <svg className="w-4 h-4 text-[#98A2B2]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+        <svg className="w-4 h-4 text-on-surface-variant" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
           <path strokeLinecap="round" strokeLinejoin="round"
             d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
         </svg>

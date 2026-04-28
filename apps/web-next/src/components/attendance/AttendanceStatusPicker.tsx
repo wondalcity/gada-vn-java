@@ -45,7 +45,7 @@ export default function AttendanceStatusPicker({ value, onChange, disabled }: Pr
     {
       status: 'ABSENT',
       label: t('worker_attendance.absent'),
-      selectedClass: 'border-[#ED1C24] bg-[#FDE8EE] text-[#ED1C24]',
+      selectedClass: 'border-error bg-[#FDE8EE] text-error',
       icon: (
         <svg className="w-4 h-4" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" aria-hidden="true">
           <line x1="3" y1="3" x2="13" y2="13" />
@@ -56,7 +56,7 @@ export default function AttendanceStatusPicker({ value, onChange, disabled }: Pr
     {
       status: 'PENDING',
       label: t('worker_attendance.pending'),
-      selectedClass: 'border-[#EFF1F5] bg-[#EFF1F5] text-[#98A2B2]',
+      selectedClass: 'border-outline bg-surface-container text-on-surface-variant',
       icon: (
         <svg className="w-4 h-4" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" aria-hidden="true">
           <circle cx="8" cy="8" r="6" />
@@ -79,10 +79,10 @@ export default function AttendanceStatusPicker({ value, onChange, disabled }: Pr
             disabled={disabled}
             aria-pressed={isSelected}
             className={[
-              'flex-1 py-3 rounded-2xl text-sm font-medium border-2 transition-all flex flex-col items-center gap-1',
+              'flex-1 py-3 rounded-3xl text-sm font-medium border-2 transition-all flex flex-col items-center gap-1',
               isSelected
                 ? selectedClass
-                : 'border-[#EFF1F5] text-[#98A2B2] hover:border-[#DDDDDD]',
+                : 'border-outline text-on-surface-variant hover:border-outline',
               disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer',
             ].join(' ')}
           >

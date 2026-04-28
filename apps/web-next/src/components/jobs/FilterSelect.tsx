@@ -109,16 +109,16 @@ export function FilterSelect({
         type="button"
         onClick={() => select(opt.value)}
         className={[
-          'w-full text-left px-4 py-2.5 flex items-center justify-between gap-2 transition-colors border-b border-[#EFF1F5] last:border-0 text-sm group',
+          'w-full text-left px-4 py-2.5 flex items-center justify-between gap-2 transition-colors border-b border-outline last:border-0 text-sm group',
           isSelected
-            ? 'bg-[#EEF4FF] text-[#0669F7] font-medium'
-            : 'text-[#25282A] hover:bg-[#F2F4F5]',
+            ? 'bg-primary-8 text-primary font-semibold'
+            : 'text-on-surface hover:bg-surface-container',
         ].join(' ')}
       >
         <span className="truncate flex-1">{opt.label}</span>
         <div className="flex items-center gap-1 shrink-0">
           {isSelected && (
-            <svg className="w-4 h-4 text-[#0669F7]" fill="currentColor" viewBox="0 0 20 20">
+            <svg className="w-4 h-4 text-primary" fill="currentColor" viewBox="0 0 20 20">
               <path
                 fillRule="evenodd"
                 d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
@@ -134,8 +134,8 @@ export function FilterSelect({
               className={[
                 'w-6 h-6 flex items-center justify-center rounded transition-opacity text-base leading-none',
                 opt.pinned
-                  ? 'opacity-100 text-[#0669F7]'
-                  : 'opacity-0 group-hover:opacity-60 text-[#98A2B2]',
+                  ? 'opacity-100 text-primary'
+                  : 'opacity-0 group-hover:opacity-60 text-on-surface-variant',
               ].join(' ')}
             >
               {opt.pinned ? '★' : '☆'}
@@ -152,16 +152,16 @@ export function FilterSelect({
         type="button"
         onClick={openDropdown}
         className={[
-          'w-full px-3 py-2.5 rounded-xl border text-sm text-left flex items-center justify-between min-h-[44px] bg-white transition-colors',
+          'w-full px-3 py-2.5 rounded-sm border text-sm text-left flex items-center justify-between min-h-[44px] bg-surface transition-colors',
           open
-            ? 'border-[#0669F7] ring-2 ring-[#0669F7]/10'
-            : 'border-[#EFF1F5] hover:border-[#0669F7]',
-          value ? 'text-[#25282A]' : 'text-[#98A2B2]',
+            ? 'border-primary ring-1 ring-primary'
+            : 'border-outline hover:border-primary',
+          value ? 'text-on-surface' : 'text-on-surface-variant',
         ].join(' ')}
       >
         <span className="truncate">{selectedLabel || placeholder}</span>
         <svg
-          className={`w-4 h-4 shrink-0 ml-2 transition-transform ${open ? 'rotate-180 text-[#0669F7]' : 'text-[#98A2B2]'}`}
+          className={`w-4 h-4 shrink-0 ml-2 transition-transform ${open ? 'rotate-180 text-primary' : 'text-on-surface-variant'}`}
           fill="none"
           stroke="currentColor"
           viewBox="0 0 24 24"
@@ -173,14 +173,14 @@ export function FilterSelect({
       {open && (
         <div
           id="filter-select-portal"
-          className="bg-white rounded-2xl shadow-2xl border border-[#EFF1F5] overflow-hidden"
+          className="bg-surface rounded-3xl shadow-2xl border border-outline overflow-hidden"
           style={{ position: 'fixed', top: fixedTop, left: fixedLeft, zIndex: 9999, width: dropdownWidth }}
         >
           {searchable && (
-            <div className="p-2 border-b border-[#EFF1F5]">
+            <div className="p-2 border-b border-outline">
               <div className="relative">
                 <svg
-                  className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#98A2B2] pointer-events-none"
+                  className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-on-surface-variant pointer-events-none"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -194,7 +194,7 @@ export function FilterSelect({
                   value={search}
                   onChange={e => setSearch(e.target.value)}
                   placeholder={searchPlaceholder}
-                  className="w-full pl-9 pr-3 py-2 rounded-xl border border-[#EFF1F5] text-sm text-[#25282A] placeholder-[#98A2B2] focus:outline-none focus:border-[#0669F7]"
+                  className="w-full pl-9 pr-3 py-2 rounded-sm border border-outline text-sm text-on-surface placeholder:text-on-surface-variant focus:outline-none focus:border-primary"
                 />
               </div>
             </div>
@@ -202,7 +202,7 @@ export function FilterSelect({
           <div className="max-h-60 overflow-y-auto">
             {isSearching ? (
               filtered.length === 0 ? (
-                <p className="text-center text-sm text-[#98A2B2] py-6">검색 결과가 없습니다</p>
+                <p className="text-center text-sm text-on-surface-variant py-6">검색 결과가 없습니다</p>
               ) : (
                 filtered.map(opt => renderOption(opt))
               )
@@ -212,15 +212,15 @@ export function FilterSelect({
                 {hasPinnedSection && (
                   <>
                     <div className="px-4 py-1.5 flex items-center gap-2">
-                      <span className="text-xs font-medium text-[#0669F7]">★ 즐겨찾는 지역</span>
+                      <span className="text-xs font-semibold text-primary">★ 즐겨찾는 지역</span>
                     </div>
                     {pinnedFiltered.map(opt => renderOption(opt))}
-                    <div className="h-px bg-[#EFF1F5] mx-2 my-1" />
+                    <div className="h-px bg-outline mx-2 my-1" />
                   </>
                 )}
                 {/* Regular section */}
                 {regularFiltered.length === 0 ? (
-                  <p className="text-center text-sm text-[#98A2B2] py-6">검색 결과가 없습니다</p>
+                  <p className="text-center text-sm text-on-surface-variant py-6">검색 결과가 없습니다</p>
                 ) : (
                   regularFiltered.map(opt => renderOption(opt))
                 )}

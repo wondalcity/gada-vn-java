@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useSearchParams, useNavigate } from 'react-router-dom'
 
-const IN = 'w-full border border-[#EFF1F5] rounded-2xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#0669F7]'
+const IN = 'w-full border border-outline rounded-sm px-4 py-3 text-sm text-on-surface bg-surface focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary'
 
 export default function AcceptInvite() {
   const [searchParams] = useSearchParams()

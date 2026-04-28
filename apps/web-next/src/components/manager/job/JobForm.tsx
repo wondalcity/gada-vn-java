@@ -187,8 +187,8 @@ export default function JobForm({
   }
 
   const inputClass =
-    'w-full px-3 py-2.5 rounded-2xl border border-[#EFF1F5] focus:outline-none focus:border-[#0669F7] text-sm text-[#25282A] bg-white'
-  const labelClass = 'block text-sm font-medium text-[#25282A] mb-1.5'
+    'w-full px-3 py-2.5 rounded-sm border border-outline focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary text-sm text-on-surface bg-surface'
+  const labelClass = 'block text-sm font-medium text-on-surface mb-1.5'
 
   const BENEFITS = [
     { key: 'meals',         label: t('benefit_meals'),         value: meals,         setter: setMeals },
@@ -250,13 +250,13 @@ export default function JobForm({
                 className={inputClass}
               />
               {showTradeDropdown && filteredTrades.length > 0 && (
-                <div className="absolute z-20 top-full left-0 right-0 bg-white border border-[#EFF1F5] rounded-2xl shadow-lg max-h-48 overflow-y-auto mt-1">
+                <div className="absolute z-20 top-full left-0 right-0 bg-surface border border-outline rounded-3xl shadow-lg max-h-48 overflow-y-auto mt-1">
                   {filteredTrades.map((tr) => (
                     <button
                       key={tr.id}
                       type="button"
                       onMouseDown={() => selectTrade(tr)}
-                      className="w-full text-left px-3 py-2 text-sm text-[#25282A] hover:bg-[#F2F4F5]"
+                      className="w-full text-left px-3 py-2 text-sm text-on-surface hover:bg-surface-container"
                     >
                       {getTradeName(tr, locale)}
                     </button>

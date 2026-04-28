@@ -37,7 +37,7 @@ interface Company {
 }
 
 
-const IN = 'w-full border border-[#EFF1F5] rounded-2xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#0669F7]'
+const IN = 'w-full border border-outline rounded-sm px-3 py-2.5 text-sm text-on-surface bg-surface focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary'
 const LIMIT_OPTIONS = [10, 30, 50]
 
 // ── Company Form Modal ──────────────────────────────────────────────────────
@@ -482,13 +482,13 @@ export default function Companies() {
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder={t('companies.search_placeholder')}
-          className="flex-1 border border-[#EFF1F5] rounded-2xl px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0669F7]"
+          className="flex-1 border border-outline rounded-sm px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
         />
         <button type="submit" className="bg-[#0669F7] text-white px-4 py-2 rounded-2xl text-sm font-medium">{t('common.search')}</button>
         <select
           value={limit}
           onChange={(e) => setSearchParams({ search, page: '1', limit: e.target.value })}
-          className="border border-[#EFF1F5] rounded-2xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0669F7] bg-white"
+          className="border border-outline rounded-sm px-3 py-2 text-sm text-on-surface bg-surface focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
         >
           {LIMIT_OPTIONS.map(n => <option key={n} value={n}>{n}{t('common.per_page')}</option>)}
         </select>

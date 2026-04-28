@@ -368,21 +368,13 @@ export default function ManagerSearchModal({
             <div className="flex flex-col gap-3">
               {/* 1. Province */}
               <div>
-                <label
-                  className="block text-[13px] font-medium mb-1.5"
-                  style={{ color: '#25282A' }}
-                >
+                <label className="block text-[13px] font-medium text-on-surface mb-1.5">
                   {t('province_label')}
                 </label>
                 <select
                   value={province}
                   onChange={(e) => setProvince(e.target.value)}
-                  className="w-full rounded-xl px-3 py-2.5 text-[14px] appearance-none outline-none"
-                  style={{
-                    background: '#F2F4F5',
-                    border: '1.5px solid #EFF1F5',
-                    color: province ? '#25282A' : '#98A2B2',
-                  }}
+                  className={`w-full rounded-sm px-3 py-2.5 text-[14px] appearance-none border border-outline focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary bg-surface-container ${province ? 'text-on-surface' : 'text-on-surface-variant'}`}
                 >
                   <option value="">{t('all_provinces')}</option>
                   {provinces.map((p) => (
@@ -396,21 +388,13 @@ export default function ManagerSearchModal({
               {/* 2. Site — only show when sites loaded */}
               {sites.length > 0 && (
                 <div>
-                  <label
-                    className="block text-[13px] font-medium mb-1.5"
-                    style={{ color: '#25282A' }}
-                  >
+                  <label className="block text-[13px] font-medium text-on-surface mb-1.5">
                     {t('site_label')}
                   </label>
                   <select
                     value={siteId}
                     onChange={(e) => setSiteId(e.target.value)}
-                    className="w-full rounded-xl px-3 py-2.5 text-[14px] appearance-none outline-none"
-                    style={{
-                      background: '#F2F4F5',
-                      border: '1.5px solid #EFF1F5',
-                      color: siteId ? '#25282A' : '#98A2B2',
-                    }}
+                    className={`w-full rounded-sm px-3 py-2.5 text-[14px] appearance-none border border-outline focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary bg-surface-container ${siteId ? 'text-on-surface' : 'text-on-surface-variant'}`}
                   >
                     <option value="">{t('all_sites')}</option>
                     {sites.map((s) => (

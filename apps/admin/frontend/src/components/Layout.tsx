@@ -4,7 +4,7 @@ import { useAuth } from '../context/AuthContext'
 import { useAdminTranslation } from '../context/LanguageContext'
 import { api } from '../lib/api'
 
-const IN = 'w-full border border-[#EFF1F5] rounded-2xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#0669F7]'
+const IN = 'w-full border border-outline rounded-sm px-3 py-2.5 text-sm text-on-surface bg-surface focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary'
 
 type NavPermission = 'dashboard' | 'managers' | 'workers' | 'jobs' | 'sites' | 'notifications' | 'admin_users'
 

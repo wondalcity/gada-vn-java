@@ -119,7 +119,7 @@ function Column({ items, selected, onSelect, renderLabel, width }: ColumnProps) 
       />
       {/* Center highlight band */}
       <div
-        className="pointer-events-none absolute inset-x-0 z-10 border-y border-[#E5E7EB]"
+        className="pointer-events-none absolute inset-x-0 z-10 border-y border-outline"
         style={{ top: ITEM_H * 2, height: ITEM_H, background: 'rgba(239,241,245,0.7)' }}
       />
       {/* Bottom fade */}
@@ -150,8 +150,8 @@ function Column({ items, selected, onSelect, renderLabel, width }: ColumnProps) 
               style={{ height: ITEM_H, scrollSnapAlign: 'center' }}
               className={`relative z-20 flex items-center justify-center cursor-pointer select-none transition-all duration-150 ${
                 isSel
-                  ? 'text-[#0669F7] font-bold text-lg'
-                  : 'text-[#9CA3AF] font-normal text-base'
+                  ? 'text-primary font-bold text-lg'
+                  : 'text-on-surface-variant font-normal text-base'
               }`}
             >
               {renderLabel ? renderLabel(item) : item}
@@ -238,11 +238,11 @@ export function TimePicker({
     : ''
 
   const inputBase = [
-    'w-full px-3 py-2.5 rounded-2xl border text-sm bg-white flex items-center justify-between transition-colors',
+    'w-full px-3 py-2.5 rounded-sm border text-sm bg-surface flex items-center justify-between transition-colors',
     disabled
-      ? 'border-[#EFF1F5] bg-[#F2F4F5] cursor-not-allowed text-[#98A2B2]'
-      : 'border-[#EFF1F5] text-[#25282A] hover:border-[#0669F7] cursor-pointer',
-    open ? 'border-[#0669F7] ring-2 ring-[#0669F7]/10' : '',
+      ? 'border-outline bg-surface-container cursor-not-allowed text-on-surface-variant'
+      : 'border-outline text-on-surface hover:border-primary cursor-pointer',
+    open ? 'border-primary ring-2 ring-primary/10' : '',
     className,
   ].join(' ')
 
@@ -257,11 +257,11 @@ export function TimePicker({
         aria-haspopup="dialog"
         aria-expanded={open}
       >
-        <span className={value ? 'text-[#25282A]' : 'text-[#98A2B2]'}>
+        <span className={value ? 'text-on-surface' : 'text-on-surface-variant'}>
           {value ? displayValue : (placeholder ?? t('title'))}
         </span>
         <svg
-          className={`w-4 h-4 shrink-0 transition-colors ${open ? 'text-[#0669F7]' : 'text-[#98A2B2]'}`}
+          className={`w-4 h-4 shrink-0 transition-colors ${open ? 'text-primary' : 'text-on-surface-variant'}`}
           fill="none" stroke="currentColor" viewBox="0 0 24 24"
         >
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8}
@@ -275,32 +275,32 @@ export function TimePicker({
           id="timepicker-portal"
           role="dialog"
           aria-modal="true"
-          className="bg-white rounded-2xl shadow-2xl border border-[#EFF1F5] overflow-hidden"
+          className="bg-surface rounded-3xl shadow-2xl border border-outline overflow-hidden"
           style={{ position: 'fixed', top: fixedTop, left: fixedLeft, zIndex: 9999, width: 252 }}
         >
           {/* Header */}
-          <div className="flex items-center justify-between px-4 py-3 border-b border-[#EFF1F5]">
-            <span className="text-sm font-semibold text-[#25282A]">{t('title')}</span>
+          <div className="flex items-center justify-between px-4 py-3 border-b border-outline">
+            <span className="text-sm font-semibold text-on-surface">{t('title')}</span>
             <button
               type="button"
               onClick={() => setOpen(false)}
-              className="text-sm font-semibold text-[#0669F7] hover:opacity-70 transition-opacity"
+              className="text-sm font-semibold text-primary hover:opacity-70 transition-opacity"
             >
               {t('confirm')}
             </button>
           </div>
 
           {/* Column headers */}
-          <div className="flex border-b border-[#EFF1F5] divide-x divide-[#EFF1F5]">
+          <div className="flex border-b border-outline divide-x divide-outline">
             {[t('am') + '/' + t('pm'), t('hour_label'), t('minute_label')].map((label) => (
-              <div key={label} className="flex-1 text-center text-[10px] font-medium text-[#9CA3AF] py-1">
+              <div key={label} className="flex-1 text-center text-[10px] font-medium text-on-surface-variant py-1">
                 {label}
               </div>
             ))}
           </div>
 
           {/* 3 drum columns */}
-          <div className="flex divide-x divide-[#EFF1F5]">
+          <div className="flex divide-x divide-outline">
             <Column
               items={PERIODS}
               selected={period}
@@ -322,11 +322,11 @@ export function TimePicker({
 
           {/* Footer */}
           {value && (
-            <div className="border-t border-[#EFF1F5] px-4 py-2.5 flex justify-end">
+            <div className="border-t border-outline px-4 py-2.5 flex justify-end">
               <button
                 type="button"
                 onClick={() => { onChange(''); setOpen(false) }}
-                className="text-xs text-[#9CA3AF] hover:text-[#ED1C24] transition-colors"
+                className="text-xs text-on-surface-variant hover:text-error transition-colors"
               >
                 {t('clear')}
               </button>

@@ -121,7 +121,7 @@ export default function JobForm() {
       <Link to="/jobs" className="text-gray-400 hover:text-gray-600 text-sm mb-4 inline-block">{t('jobs.form.back')}</Link>
       <h1 className="text-2xl font-bold text-gray-900 mb-6">{isEdit ? t('jobs.form.title_edit') : t('jobs.form.title_new')}</h1>
 
-      {error && <div className="bg-[#FDE8EE] border border-[#F4B0C0] text-[#D81A48] rounded-2xl p-3 mb-4 text-sm">{error}</div>}
+      {error && <div className="bg-error-container border border-error text-error rounded-sm p-3 mb-4 text-sm">{error}</div>}
 
       <form onSubmit={save} className="bg-white rounded-2xl shadow-sm p-6 space-y-4">
         <F label={t('jobs.form.field_site')}>
@@ -130,24 +130,24 @@ export default function JobForm() {
             <button
               type="button"
               onClick={() => { setShowSiteDropdown(v => !v); setSiteSearch('') }}
-              className={`${IN} text-left flex items-center justify-between ${!form.siteId ? 'text-gray-400' : 'text-[#25282A]'}`}
+              className={`${IN} text-left flex items-center justify-between ${!form.siteId ? 'text-on-surface-variant' : 'text-on-surface'} ${showSiteDropdown ? 'border-primary ring-2 ring-primary/20' : ''}`}
             >
               <span className="truncate">
                 {form.siteId
                   ? (() => { const s = sites.find(s => s.id === form.siteId); return s ? `${s.name}${s.province ? ` (${s.province})` : ''}` : t('jobs.form.site_placeholder') })()
                   : t('jobs.form.site_placeholder')}
               </span>
-              <svg className="w-4 h-4 text-gray-400 shrink-0 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+              <svg className="w-4 h-4 text-on-surface-variant shrink-0 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
             </button>
             {/* Hidden required input for form validation */}
             <input type="text" required value={form.siteId} onChange={() => {}} className="sr-only" tabIndex={-1} />
             {showSiteDropdown && (
-              <div className="absolute z-30 w-full mt-1 bg-white border border-[#EFF1F5] rounded-2xl shadow-lg overflow-hidden">
-                <div className="p-2 border-b border-[#EFF1F5]">
+              <div className="absolute z-30 w-full mt-1 bg-surface border border-outline rounded-3xl shadow-lg overflow-hidden">
+                <div className="p-2 border-b border-outline">
                   <input
                     autoFocus
                     type="text"
-                    className="w-full px-3 py-1.5 text-sm border border-[#EFF1F5] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0669F7]"
+                    className="w-full px-3 py-1.5 text-sm border border-outline rounded-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
                     placeholder={t('jobs.form.site_search_placeholder')}
                     value={siteSearch}
                     onChange={(e) => setSiteSearch(e.target.value)}
@@ -163,18 +163,18 @@ export default function JobForm() {
                       type="button"
                       onClick={() => { setForm({ ...form, siteId: s.id }); setShowSiteDropdown(false); setSiteSearch('') }}
                       className={`w-full text-left px-4 py-2.5 text-sm transition-colors ${
-                        form.siteId === s.id ? 'bg-[#E6F0FE] text-[#0669F7] font-medium' : 'text-[#25282A] hover:bg-[#F2F4F5]'
+                        form.siteId === s.id ? 'bg-primary-8 text-primary font-medium' : 'text-on-surface hover:bg-surface-container'
                       }`}
                     >
                       <span className="font-medium">{s.name}</span>
-                      {s.province && <span className="text-gray-400 text-xs ml-1">({s.province})</span>}
+                      {s.province && <span className="text-on-surface-variant text-xs ml-1">({s.province})</span>}
                     </button>
                   ))}
                   {sites.filter(s =>
                     s.name.toLowerCase().includes(siteSearch.toLowerCase()) ||
                     (s.province ?? '').toLowerCase().includes(siteSearch.toLowerCase())
                   ).length === 0 && (
-                    <div className="px-4 py-4 text-sm text-gray-400 text-center">{t('jobs.form.site_no_results')}</div>
+                    <div className="px-4 py-4 text-sm text-on-surface-variant text-center">{t('jobs.form.site_no_results')}</div>
                   )}
                 </div>
               </div>
@@ -231,7 +231,7 @@ export default function JobForm() {
                   type="checkbox"
                   checked={benefits[key]}
                   onChange={(e) => setBenefits({ ...benefits, [key]: e.target.checked })}
-                  className="w-4 h-4 rounded border-[#EFF1F5] text-[#0669F7] accent-[#0669F7]"
+                  className="w-4 h-4 rounded border-outline text-primary accent-primary"
                 />
                 <span className="text-sm text-gray-700">{label}</span>
               </label>
@@ -263,7 +263,7 @@ export default function JobForm() {
           </F>
         </div>
 
-        <button type="submit" disabled={saving} className="w-full bg-[#0669F7] hover:bg-[#0550C4] text-white font-semibold py-2.5 rounded-2xl transition-colors text-sm disabled:opacity-50">
+        <button type="submit" disabled={saving} className="w-full bg-primary hover:bg-primary-hover text-white font-semibold py-2.5 rounded-sm transition-colors text-sm disabled:opacity-50">
           {saving ? t('jobs.form.saving') : isEdit ? t('jobs.form.save_edit') : t('jobs.form.save_new')}
         </button>
       </form>
@@ -271,7 +271,7 @@ export default function JobForm() {
   )
 }
 
-const IN = 'w-full border border-[#EFF1F5] rounded-2xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#0669F7]'
+const IN = 'w-full border border-outline rounded-sm px-3 py-2.5 text-sm text-on-surface bg-surface focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary'
 function F({ label, children }: { label: string; children: React.ReactNode }) {
   return <div><label className="block text-xs font-medium text-gray-500 mb-1">{label}</label>{children}</div>
 }

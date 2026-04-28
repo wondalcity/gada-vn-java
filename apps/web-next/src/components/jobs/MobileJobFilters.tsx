@@ -105,7 +105,7 @@ function WageRangeSlider({
 
   return (
     <div className="px-1">
-      <div className="flex justify-between text-sm font-semibold text-[#25282A] mb-3">
+      <div className="flex justify-between text-sm font-semibold text-on-surface mb-3">
         <span>{formatVndShort(valueMin)} ₫</span>
         <span>{formatVndShort(valueMax)} ₫</span>
       </div>
@@ -115,21 +115,21 @@ function WageRangeSlider({
         onMouseDown={e => startDrag(e.clientX)}
         onTouchStart={e => { if (e.touches[0]) startDrag(e.touches[0].clientX) }}
       >
-        <div className="absolute left-0 right-0 h-1.5 bg-[#EFF1F5] rounded-full" />
+        <div className="absolute left-0 right-0 h-1.5 bg-surface-container rounded-full" />
         <div
-          className="absolute h-1.5 bg-[#0669F7] rounded-full"
+          className="absolute h-1.5 bg-primary rounded-full"
           style={{ left: `${pct(valueMin)}%`, right: `${100 - pct(valueMax)}%` }}
         />
         <div
-          className="absolute w-5 h-5 rounded-full bg-white border-2 border-[#0669F7] shadow"
+          className="absolute w-5 h-5 rounded-full bg-white border-2 border-primary shadow"
           style={{ left: `calc(${pct(valueMin)}% - 10px)` }}
         />
         <div
-          className="absolute w-5 h-5 rounded-full bg-white border-2 border-[#0669F7] shadow"
+          className="absolute w-5 h-5 rounded-full bg-white border-2 border-primary shadow"
           style={{ left: `calc(${pct(valueMax)}% - 10px)` }}
         />
       </div>
-      <div className="flex justify-between text-[11px] text-[#98A2B2] mt-2">
+      <div className="flex justify-between text-[11px] text-on-surface-variant mt-2">
         <span>{formatVndShort(min)} ₫</span>
         <span>{formatVndShort(max)} ₫</span>
       </div>
@@ -140,20 +140,20 @@ function WageRangeSlider({
 const STATUS_DOT_COLORS = {
   '':             'bg-[#00C800]',
   'CLOSING_SOON': 'bg-[#FFC72C]',
-  'CLOSED':       'bg-[#7A7B7A]',
+  'CLOSED':       'bg-on-surface-variant',
 } as const
 
 const RADIUS_OPTIONS = [10, 30, 50, 100]
 
 function FilterChip({ label, onRemove, removeLabel = 'Remove' }: { label: string; onRemove: () => void; removeLabel?: string }) {
   return (
-    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-[#EEF4FF] border border-[#0669F7] text-xs font-medium text-[#0669F7] shrink-0 whitespace-nowrap">
+    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-primary-8 border border-primary text-xs font-medium text-primary shrink-0 whitespace-nowrap">
       {label}
       <button
         type="button"
         onClick={(e) => { e.stopPropagation(); onRemove() }}
         aria-label={removeLabel}
-        className="ml-0.5 w-3.5 h-3.5 flex items-center justify-center rounded-full hover:bg-[#B3D9FF] transition-colors"
+        className="ml-0.5 w-3.5 h-3.5 flex items-center justify-center rounded-full hover:bg-primary-8 transition-colors"
       >
         <svg className="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M6 18L18 6M6 6l12 12" />
@@ -364,23 +364,23 @@ export function MobileJobFilters({
     <>
       {/* ── Sticky filter bar ─────────────────────────────────────────── */}
       <div
-        className="sticky z-30 bg-white border-b border-[#DDDDDD] px-3 py-2.5"
+        className="sticky z-30 bg-surface border-b border-outline px-3 py-2.5"
         style={{ top: 'calc(var(--app-bar-height) + env(safe-area-inset-top, 0px))' }}
       >
         {/* Main row: 총 n개 공고 + 필터 (left) | 리스트/지도 (right) */}
         <div className="flex items-center justify-between gap-2">
           {/* Left: job count + filter button */}
           <div className="flex items-center gap-2 min-w-0">
-            <p className="text-sm font-medium text-[#25282A] whitespace-nowrap shrink-0">
+            <p className="text-sm font-medium text-on-surface whitespace-nowrap shrink-0">
               {t('listing.total_count', { n: totalJobs.toLocaleString() })}
               {geoActive && (
-                <span className="ml-1.5 text-xs text-[#0669F7] font-medium">· {selectedRadius}km</span>
+                <span className="ml-1.5 text-xs text-primary font-medium">· {selectedRadius}km</span>
               )}
             </p>
             <button
               type="button"
               onClick={() => setDrawerOpen(true)}
-              className="relative flex items-center gap-1 px-2.5 py-1.5 rounded-full border border-[#DDDDDD] bg-white text-xs font-medium text-[#25282A] shrink-0"
+              className="relative flex items-center gap-1 px-2.5 py-1.5 rounded-full border border-outline bg-surface text-xs font-medium text-on-surface shrink-0"
             >
               <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
@@ -388,7 +388,7 @@ export function MobileJobFilters({
               </svg>
               {t('listing.filter_title')}
               {activeFilterCount > 0 && (
-                <span className="absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full bg-[#0669F7] text-white text-[9px] font-bold flex items-center justify-center">
+                <span className="absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full bg-primary text-white text-[9px] font-bold flex items-center justify-center">
                   {activeFilterCount}
                 </span>
               )}
@@ -448,7 +448,7 @@ export function MobileJobFilters({
             <button
               type="button"
               onClick={clearAll}
-              className="text-xs text-[#7A7B7A] whitespace-nowrap shrink-0 px-1"
+              className="text-xs text-on-surface-variant whitespace-nowrap shrink-0 px-1"
             >
               {t('listing.filter.reset')}
             </button>
@@ -461,7 +461,7 @@ export function MobileJobFilters({
         <div className="fixed inset-0 z-[60] flex flex-col justify-end">
           {/* Backdrop */}
           <div
-            className="absolute inset-0 bg-black/40"
+            className="absolute inset-0 bg-scrim"
             onClick={() => setDrawerOpen(false)}
           />
 
@@ -471,16 +471,16 @@ export function MobileJobFilters({
             style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
           >
             {/* Handle bar + header */}
-            <div className="shrink-0 pt-3 pb-3 px-5 border-b border-[#F5F7FA]">
-              <div className="w-8 h-1 rounded-full bg-[#DDDDDD] mx-auto mb-3" />
+            <div className="shrink-0 pt-3 pb-3 px-5 border-b border-outline">
+              <div className="w-8 h-1 rounded-full bg-outline mx-auto mb-3" />
               <div className="flex items-center justify-between">
-                <p className="text-base font-bold text-[#25282A]">{t('listing.filter_title')}</p>
+                <p className="text-base font-bold text-on-surface">{t('listing.filter_title')}</p>
                 <button
                   type="button"
                   onClick={() => setDrawerOpen(false)}
-                  className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-[#EFF1F5]"
+                  className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-surface-container"
                 >
-                  <svg className="w-5 h-5 text-[#7A7B7A]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-5 h-5 text-on-surface-variant" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                   </svg>
                 </button>
@@ -492,7 +492,7 @@ export function MobileJobFilters({
 
               {/* Province */}
               <div>
-                <label className="block text-sm font-semibold text-[#25282A] mb-2">{t('listing.filter.province')}</label>
+                <label className="block text-sm font-semibold text-on-surface mb-2">{t('listing.filter.province')}</label>
                 <FilterSelect
                   value={selectedProvince ?? ''}
                   options={provinceOptions}
@@ -506,7 +506,7 @@ export function MobileJobFilters({
 
               {/* Trade */}
               <div>
-                <label className="block text-sm font-semibold text-[#25282A] mb-2">{t('listing.filter.trade')}</label>
+                <label className="block text-sm font-semibold text-on-surface mb-2">{t('listing.filter.trade')}</label>
                 <FilterSelect
                   value={String(selectedTrade ?? '')}
                   options={tradeOptions}
@@ -517,7 +517,7 @@ export function MobileJobFilters({
 
               {/* Experience */}
               <div>
-                <label className="block text-sm font-semibold text-[#25282A] mb-2">{t('listing.filter.experience')}</label>
+                <label className="block text-sm font-semibold text-on-surface mb-2">{t('listing.filter.experience')}</label>
                 <FilterSelect
                   value={selectedMinExp ?? ''}
                   options={expOptions}
@@ -528,17 +528,17 @@ export function MobileJobFilters({
 
               {/* Status */}
               <div>
-                <label className="block text-sm font-semibold text-[#25282A] mb-2">{t('listing.filter.status')}</label>
+                <label className="block text-sm font-semibold text-on-surface mb-2">{t('listing.filter.status')}</label>
                 <div className="flex gap-2">
                   {statusOptions.map(opt => (
                     <button
                       key={opt.value}
                       type="button"
                       onClick={() => updateParam('status', opt.value || undefined)}
-                      className={`flex-1 flex flex-col items-center gap-1 py-3 rounded-xl border-2 text-sm font-medium transition-all ${
+                      className={`flex-1 flex flex-col items-center gap-1 py-3 rounded-3xl border-2 text-sm font-medium transition-all ${
                         (selectedStatus ?? '') === opt.value
-                          ? 'bg-[#EEF4FF] border-[#0669F7] text-[#0669F7]'
-                          : 'border-[#DDDDDD] text-[#25282A]'
+                          ? 'bg-primary-8 border-primary text-primary'
+                          : 'border-outline text-on-surface'
                       }`}
                     >
                       <span className={`w-2 h-2 rounded-full ${opt.dotColor}`} />
@@ -551,7 +551,7 @@ export function MobileJobFilters({
               {/* Wage range */}
               {hasWageRange && (
                 <div>
-                  <label className="block text-sm font-semibold text-[#25282A] mb-3">{t('listing.filter.wage_range')}</label>
+                  <label className="block text-sm font-semibold text-on-surface mb-3">{t('listing.filter.wage_range')}</label>
                   <WageRangeSlider
                     min={wageMin}
                     max={wageMax}
@@ -571,7 +571,7 @@ export function MobileJobFilters({
                           setLocalMaxWage(wageMax)
                           applyWageFilter(wageMin, wageMax)
                         }}
-                        className="flex-1 py-2.5 rounded-xl text-sm border border-[#DDDDDD] text-[#7A7B7A] font-medium"
+                        className="flex-1 py-2.5 rounded-3xl text-sm border border-outline text-on-surface-variant font-medium"
                       >
                         {t('listing.filter.reset_wage')}
                       </button>
@@ -579,7 +579,7 @@ export function MobileJobFilters({
                     <button
                       type="button"
                       onClick={() => applyWageFilter(localMinWage, localMaxWage)}
-                      className="flex-1 py-2.5 rounded-xl text-sm bg-[#0669F7] text-white font-semibold"
+                      className="flex-1 py-2.5 rounded-3xl text-sm bg-primary text-white font-semibold"
                     >
                       {t('listing.filter.apply_wage')}
                     </button>
@@ -589,18 +589,18 @@ export function MobileJobFilters({
 
               {/* Location */}
               <div>
-                <label className="block text-sm font-semibold text-[#25282A] mb-2">{t('listing.filter.my_location')}</label>
+                <label className="block text-sm font-semibold text-on-surface mb-2">{t('listing.filter.my_location')}</label>
 
                 {geoActive ? (
-                  <div className="flex items-center gap-2 px-3 py-3 bg-[#EEF4FF] border border-[#0669F7] rounded-xl">
+                  <div className="flex items-center gap-2 px-3 py-3 bg-primary-8 border border-primary rounded-3xl">
                     <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.8}><path strokeLinecap="round" strokeLinejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path strokeLinecap="round" strokeLinejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
-                    <span className="flex-1 text-sm font-medium text-[#0669F7] truncate">
+                    <span className="flex-1 text-sm font-medium text-primary truncate">
                       {activeLabel || t('listing.filter.active_location')}
                     </span>
                     <button
                       type="button"
                       onClick={clearGeo}
-                      className="text-[#0669F7] font-bold p-1"
+                      className="text-primary font-bold p-1"
                     >
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
@@ -612,7 +612,7 @@ export function MobileJobFilters({
                     type="button"
                     onClick={useGPS}
                     disabled={geoLoading}
-                    className="w-full flex items-center justify-center gap-2 py-3 text-sm border border-[#DDDDDD] rounded-xl bg-white text-[#25282A] hover:border-[#0669F7] hover:text-[#0669F7] disabled:opacity-50 transition-colors"
+                    className="w-full flex items-center justify-center gap-2 py-3 text-sm border border-outline rounded-3xl bg-surface text-on-surface hover:border-primary hover:text-primary disabled:opacity-50 transition-colors"
                   >
                     {geoLoading
                       ? <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>
@@ -622,7 +622,7 @@ export function MobileJobFilters({
                   </button>
                 )}
 
-                {geoError && <p className="text-xs text-[#ED1C24] mt-1.5">{geoError}</p>}
+                {geoError && <p className="text-xs text-error mt-1.5">{geoError}</p>}
 
                 {!geoActive && savedLocations.length > 0 && (
                   <div className="mt-2 flex flex-col gap-2">
@@ -631,7 +631,7 @@ export function MobileJobFilters({
                         key={loc.id}
                         type="button"
                         onClick={() => { setActiveLabel(loc.label); activateGeo(Number(loc.lat), Number(loc.lng), loc.label) }}
-                        className="w-full flex items-center gap-2 px-3 py-3 text-sm border border-[#DDDDDD] rounded-xl bg-white hover:border-[#0669F7] hover:text-[#0669F7] text-left transition-colors"
+                        className="w-full flex items-center gap-2 px-3 py-3 text-sm border border-outline rounded-3xl bg-surface hover:border-primary hover:text-primary text-left transition-colors"
                       >
                         <span className="shrink-0 text-base">{'•'}</span>
                         <span className="truncate">{loc.label}</span>
@@ -642,17 +642,17 @@ export function MobileJobFilters({
 
                 {geoActive && (
                   <div className="mt-3">
-                    <p className="text-xs font-medium text-[#7A7B7A] mb-2">{t('listing.search_radius')}</p>
+                    <p className="text-xs font-medium text-on-surface-variant mb-2">{t('listing.search_radius')}</p>
                     <div className="flex gap-2">
                       {RADIUS_OPTIONS.map(r => (
                         <button
                           key={r}
                           type="button"
                           onClick={() => changeRadius(r)}
-                          className={`flex-1 py-2 rounded-xl text-xs font-semibold transition-colors ${
+                          className={`flex-1 py-2 rounded-3xl text-xs font-semibold transition-colors ${
                             selectedRadius === r
-                              ? 'bg-[#0669F7] text-white'
-                              : 'bg-[#F5F7FA] text-[#7A7B7A] hover:bg-[#DDDDDD]'
+                              ? 'bg-primary text-white'
+                              : 'bg-surface-container text-on-surface-variant hover:bg-outline'
                           }`}
                         >
                           {r}km
@@ -665,11 +665,11 @@ export function MobileJobFilters({
             </div>
 
             {/* Apply button */}
-            <div className="shrink-0 px-5 pt-3 pb-4 border-t border-[#DDDDDD] bg-white">
+            <div className="shrink-0 px-5 pt-3 pb-4 border-t border-outline bg-surface">
               <button
                 type="button"
                 onClick={() => setDrawerOpen(false)}
-                className="w-full py-3.5 rounded-full bg-[#0669F7] text-white font-semibold hover:bg-[#0557D4] transition-colors text-sm"
+                className="w-full py-3.5 rounded-full bg-primary text-white font-semibold hover:bg-[#0557D4] transition-colors text-sm"
               >
                 {activeFilterCount > 0 ? t('listing.filter_applied', { n: activeFilterCount }) : t('listing.close')}
               </button>

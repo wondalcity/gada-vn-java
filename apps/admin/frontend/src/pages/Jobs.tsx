@@ -100,19 +100,19 @@ export default function Jobs() {
     <div className="p-8">
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold text-gray-900">{t('jobs.title')}</h1>
-        <Link to="/jobs/new" className="flex items-center gap-2 px-4 py-2 bg-[#0669F7] hover:bg-[#0550C4] text-white text-sm font-medium rounded-2xl transition-colors">
+        <Link to="/jobs/new" className="flex items-center gap-2 px-4 py-2 bg-primary hover:bg-primary-hover text-white text-sm font-medium rounded-sm transition-colors">
           {t('jobs.new')}
         </Link>
       </div>
 
       {flash === 'created' && <div className="bg-green-50 border border-green-200 text-green-700 rounded-2xl p-3 mb-4 text-sm">{t('jobs.flash_created')}</div>}
       {flash === 'updated' && <div className="bg-green-50 border border-green-200 text-green-700 rounded-2xl p-3 mb-4 text-sm">{t('jobs.flash_updated')}</div>}
-      {flash === 'deleted' && <div className="bg-[#F2F4F5] border border-[#EFF1F5] text-gray-600 rounded-2xl p-3 mb-4 text-sm">{t('jobs.flash_deleted')}</div>}
+      {flash === 'deleted' && <div className="bg-surface-container border border-outline text-on-surface rounded-sm p-3 mb-4 text-sm">{t('jobs.flash_deleted')}</div>}
 
       <div className="flex flex-wrap gap-2 mb-4">
         {STATUS_TABS.map((t) => (
           <button key={t.key} onClick={() => setSearchParams({ tab: t.key, search, page: '1', limit: String(limit) })}
-            className={`px-4 py-2 rounded-2xl text-sm font-medium transition-colors ${tab === t.key ? 'bg-[#0669F7] text-white' : 'bg-white text-gray-600 hover:bg-[#F2F4F5] border border-[#EFF1F5]'} ${t.key === 'CLOSING_SOON' ? 'border-orange-300 text-orange-600 hover:bg-orange-50' : ''} ${tab === t.key && t.key === 'CLOSING_SOON' ? '!bg-orange-500 !text-white !border-orange-500' : ''}`}>
+            className={`px-4 py-2 rounded-sm text-sm font-medium transition-colors ${tab === t.key ? 'bg-primary text-white' : 'bg-surface text-on-surface hover:bg-surface-container border border-outline'} ${t.key === 'CLOSING_SOON' ? 'border-orange-300 text-orange-600 hover:bg-orange-50' : ''} ${tab === t.key && t.key === 'CLOSING_SOON' ? '!bg-orange-500 !text-white !border-orange-500' : ''}`}>
             {t.label}
           </button>
         ))}
@@ -124,13 +124,13 @@ export default function Jobs() {
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder={t('jobs.search_placeholder')}
-          className="flex-1 border border-[#EFF1F5] rounded-2xl px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0669F7]"
+          className="flex-1 border border-outline rounded-sm px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
         />
-        <button type="submit" className="bg-[#0669F7] text-white px-4 py-2 rounded-2xl text-sm font-medium">{t('common.search')}</button>
+        <button type="submit" className="bg-primary text-white px-4 py-2 rounded-sm text-sm font-medium">{t('common.search')}</button>
         <select
           value={limit}
           onChange={(e) => setSearchParams({ status, search, page: '1', limit: e.target.value })}
-          className="border border-[#EFF1F5] rounded-2xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0669F7] bg-white"
+          className="border border-outline rounded-sm px-3 py-2 text-sm text-on-surface bg-surface focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
         >
           {LIMIT_OPTIONS.map(n => <option key={n} value={n}>{n}{t('common.per_page')}</option>)}
         </select>
@@ -143,7 +143,7 @@ export default function Jobs() {
           <div className="py-16 text-center text-gray-400">
             <p className="text-4xl mb-3">🏗️</p>
             <p className="text-sm mb-4">{t('jobs.empty')}</p>
-            <Link to="/jobs/new" className="inline-flex items-center gap-2 px-4 py-2 bg-[#0669F7] text-white text-sm font-medium rounded-2xl">{t('jobs.first_register')}</Link>
+            <Link to="/jobs/new" className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-white text-sm font-medium rounded-sm">{t('jobs.first_register')}</Link>
           </div>
         ) : (
           <div className="overflow-x-auto">
@@ -210,7 +210,7 @@ export default function Jobs() {
       {total > limit && (
         <div className="mt-4 flex items-center justify-center gap-1">
           <button onClick={() => goToPage(page - 1)} disabled={page <= 1}
-            className="px-3 py-1.5 rounded-xl text-sm border border-[#EFF1F5] text-gray-600 hover:bg-[#F2F4F5] disabled:opacity-40">‹</button>
+            className="px-3 py-1.5 rounded-sm text-sm border border-outline text-on-surface hover:bg-surface-container disabled:opacity-40">‹</button>
           {Array.from({ length: Math.ceil(total / limit) }, (_, i) => i + 1)
             .filter(p => p === 1 || p === Math.ceil(total / limit) || Math.abs(p - page) <= 2)
             .reduce<(number | '...')[]>((acc, p, idx, arr) => {
@@ -223,13 +223,13 @@ export default function Jobs() {
                 <span key={`e${i}`} className="px-2 text-gray-400 text-sm">…</span>
               ) : (
                 <button key={p} onClick={() => goToPage(p as number)}
-                  className={`px-3 py-1.5 rounded-xl text-sm border transition-colors ${p === page ? 'bg-[#0669F7] text-white border-[#0669F7] font-semibold' : 'border-[#EFF1F5] text-gray-600 hover:bg-[#F2F4F5]'}`}>
+                  className={`px-3 py-1.5 rounded-sm text-sm border transition-colors ${p === page ? 'bg-primary text-white border-primary font-semibold' : 'border-outline text-on-surface hover:bg-surface-container'}`}>
                   {p}
                 </button>
               )
             )}
           <button onClick={() => goToPage(page + 1)} disabled={page >= Math.ceil(total / limit)}
-            className="px-3 py-1.5 rounded-xl text-sm border border-[#EFF1F5] text-gray-600 hover:bg-[#F2F4F5] disabled:opacity-40">›</button>
+            className="px-3 py-1.5 rounded-sm text-sm border border-outline text-on-surface hover:bg-surface-container disabled:opacity-40">›</button>
         </div>
       )}
 

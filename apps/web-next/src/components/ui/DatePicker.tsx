@@ -185,9 +185,9 @@ export function DatePicker({
   ]
   while (cells.length % 7 !== 0) cells.push(null)
 
-  const inputBase = `w-full px-3 py-2.5 rounded-lg border text-sm bg-white flex items-center justify-between cursor-pointer transition-colors ${
-    disabled ? 'border-[#EFF1F5] bg-[#F2F4F5] cursor-not-allowed text-[#98A2B2]' : 'border-[#EFF1F5] text-[#25282A] hover:border-[#0669F7]'
-  } ${open ? 'border-[#0669F7] ring-2 ring-[#0669F7]/10' : ''} ${className}`
+  const inputBase = `w-full px-3 py-2.5 rounded-sm border text-sm bg-surface flex items-center justify-between cursor-pointer transition-colors ${
+    disabled ? 'border-outline bg-surface-container cursor-not-allowed text-on-surface-variant' : 'border-outline text-on-surface hover:border-primary'
+  } ${open ? 'border-primary ring-2 ring-primary/10' : ''} ${className}`
 
   return (
     <div ref={containerRef} className="relative w-full">
@@ -200,10 +200,10 @@ export function DatePicker({
         aria-haspopup="dialog"
         aria-expanded={open}
       >
-        <span className={displayValue ? 'text-[#25282A]' : 'text-[#98A2B2]'}>
+        <span className={displayValue ? 'text-on-surface' : 'text-on-surface-variant'}>
           {displayValue || placeholder}
         </span>
-        <svg className={`w-4 h-4 shrink-0 transition-colors ${open ? 'text-[#0669F7]' : 'text-[#98A2B2]'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <svg className={`w-4 h-4 shrink-0 transition-colors ${open ? 'text-primary' : 'text-on-surface-variant'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
         </svg>
       </button>
@@ -213,7 +213,7 @@ export function DatePicker({
         <div
           id="datepicker-portal"
           role="dialog"
-          className="w-80 bg-white rounded-2xl shadow-2xl border border-[#EFF1F5] overflow-hidden"
+          className="w-80 bg-surface rounded-3xl shadow-2xl border border-outline overflow-hidden"
           style={{ position: 'fixed', top: fixedTop, left: fixedLeft, zIndex: 9999, maxWidth: 'calc(100vw - 2rem)' }}
         >
           {/* ── Calendar view ── */}
@@ -222,21 +222,21 @@ export function DatePicker({
               {/* Header */}
               <div className="flex items-center justify-between mb-3">
                 <button type="button" onClick={prevMonth}
-                  className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-[#F8F8FA] text-[#98A2B2] hover:text-[#25282A] transition-colors">
+                  className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-surface-container text-on-surface-variant hover:text-on-surface transition-colors">
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                   </svg>
                 </button>
                 <button type="button"
                   onClick={() => setView('month')}
-                  className="flex items-center gap-1 px-3 py-1 rounded-lg hover:bg-[#F8F8FA] transition-colors">
-                  <span className="text-sm font-semibold text-[#25282A]">{calendarHeader}</span>
-                  <svg className="w-3.5 h-3.5 text-[#98A2B2]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  className="flex items-center gap-1 px-3 py-1 rounded-lg hover:bg-surface-container transition-colors">
+                  <span className="text-sm font-semibold text-on-surface">{calendarHeader}</span>
+                  <svg className="w-3.5 h-3.5 text-on-surface-variant" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                   </svg>
                 </button>
                 <button type="button" onClick={nextMonth}
-                  className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-[#F8F8FA] text-[#98A2B2] hover:text-[#25282A] transition-colors">
+                  className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-surface-container text-on-surface-variant hover:text-on-surface transition-colors">
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                   </svg>
@@ -246,7 +246,7 @@ export function DatePicker({
               {/* Week days */}
               <div className="grid grid-cols-7 mb-1">
                 {weekDayNames.map((d, i) => (
-                  <div key={i} className={`text-center text-xs font-medium py-1 ${i === 0 ? 'text-[#ED1C24]' : i === 6 ? 'text-[#0669F7]' : 'text-[#98A2B2]'}`}>
+                  <div key={i} className={`text-center text-xs font-medium py-1 ${i === 0 ? 'text-error' : i === 6 ? 'text-primary' : 'text-on-surface-variant'}`}>
                     {d}
                   </div>
                 ))}
@@ -270,12 +270,12 @@ export function DatePicker({
                       onClick={() => selectDay(day)}
                       className={`
                         w-full aspect-square flex items-center justify-center rounded-full text-sm font-medium transition-all
-                        ${isSelected ? 'bg-[#0669F7] text-white shadow-sm' : ''}
-                        ${!isSelected && isToday ? 'border border-[#0669F7] text-[#0669F7]' : ''}
+                        ${isSelected ? 'bg-primary text-white shadow-sm' : ''}
+                        ${!isSelected && isToday ? 'border border-primary text-primary' : ''}
                         ${!isSelected && !isToday && !isDisabled ? (
-                          isSunday ? 'text-[#ED1C24] hover:bg-[#FDE8EE]' :
-                          isSaturday ? 'text-[#0669F7] hover:bg-[#E6F0FE]' :
-                          'text-[#25282A] hover:bg-[#F8F8FA]'
+                          isSunday ? 'text-error hover:bg-[#FDE8EE]' :
+                          isSaturday ? 'text-primary hover:bg-primary-8' :
+                          'text-on-surface hover:bg-surface-container'
                         ) : ''}
                         ${isDisabled ? 'text-[#DDDDDD] cursor-not-allowed' : 'cursor-pointer'}
                       `}
@@ -287,7 +287,7 @@ export function DatePicker({
               </div>
 
               {/* Today button */}
-              <div className="mt-3 pt-3 border-t border-[#EFF1F5]">
+              <div className="mt-3 pt-3 border-t border-outline">
                 <button
                   type="button"
                   onClick={() => {
@@ -305,7 +305,7 @@ export function DatePicker({
                       }
                     }
                   }}
-                  className="w-full py-2 rounded-lg text-xs font-medium text-[#0669F7] hover:bg-[#E6F0FE] transition-colors"
+                  className="w-full py-2 rounded-lg text-xs font-medium text-primary hover:bg-primary-8 transition-colors"
                 >
                   {t('manager_attendance.today')}
                 </button>
@@ -318,20 +318,20 @@ export function DatePicker({
             <div className="p-4">
               <div className="flex items-center justify-between mb-4">
                 <button type="button" onClick={() => setViewYear(y => y - 1)}
-                  className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-[#F8F8FA] text-[#98A2B2]">
+                  className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-surface-container text-on-surface-variant">
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                   </svg>
                 </button>
                 <button type="button" onClick={() => setView('year')}
-                  className="flex items-center gap-1 px-3 py-1 rounded-lg hover:bg-[#F8F8FA]">
-                  <span className="text-sm font-semibold text-[#25282A]">{yearLabel}</span>
-                  <svg className="w-3.5 h-3.5 text-[#98A2B2]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  className="flex items-center gap-1 px-3 py-1 rounded-lg hover:bg-surface-container">
+                  <span className="text-sm font-semibold text-on-surface">{yearLabel}</span>
+                  <svg className="w-3.5 h-3.5 text-on-surface-variant" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                   </svg>
                 </button>
                 <button type="button" onClick={() => setViewYear(y => y + 1)}
-                  className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-[#F8F8FA] text-[#98A2B2]">
+                  className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-surface-container text-on-surface-variant">
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                   </svg>
@@ -345,9 +345,9 @@ export function DatePicker({
                     <button key={idx} type="button"
                       onClick={() => { setViewMonth(idx); setView('calendar') }}
                       className={`py-2.5 rounded-xl text-sm font-medium transition-all ${
-                        isSelected ? 'bg-[#0669F7] text-white' :
-                        isCurrent ? 'border border-[#0669F7] text-[#0669F7]' :
-                        'text-[#25282A] hover:bg-[#F8F8FA]'
+                        isSelected ? 'bg-primary text-white' :
+                        isCurrent ? 'border border-primary text-primary' :
+                        'text-on-surface hover:bg-surface-container'
                       }`}>
                       {name}
                     </button>
@@ -361,9 +361,9 @@ export function DatePicker({
           {view === 'year' && (
             <div className="p-4">
               <div className="flex items-center justify-between mb-4">
-                <span className="text-sm font-semibold text-[#25282A]">{t('date_picker.select_year')}</span>
+                <span className="text-sm font-semibold text-on-surface">{t('date_picker.select_year')}</span>
                 <button type="button" onClick={() => setView('month')}
-                  className="text-xs text-[#0669F7] font-medium hover:underline">{t('button.close')}</button>
+                  className="text-xs text-primary font-medium hover:underline">{t('button.close')}</button>
               </div>
               <div className="grid grid-cols-4 gap-1.5 max-h-52 overflow-y-auto">
                 {Array.from({ length: yearMax - yearMin + 1 }, (_, i) => yearMax - i).map(year => {
@@ -373,9 +373,9 @@ export function DatePicker({
                     <button key={year} type="button"
                       onClick={() => { setViewYear(year); setView('month') }}
                       className={`py-2 rounded-lg text-sm font-medium transition-all ${
-                        isSelected ? 'bg-[#0669F7] text-white' :
-                        isCurrent ? 'border border-[#0669F7] text-[#0669F7]' :
-                        'text-[#25282A] hover:bg-[#F8F8FA]'
+                        isSelected ? 'bg-primary text-white' :
+                        isCurrent ? 'border border-primary text-primary' :
+                        'text-on-surface hover:bg-surface-container'
                       }`}>
                       {year}
                     </button>

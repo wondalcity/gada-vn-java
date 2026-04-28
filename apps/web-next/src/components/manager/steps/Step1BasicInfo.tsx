@@ -13,8 +13,8 @@ interface Props {
 const MAX_FILE_SIZE = 20 * 1024 * 1024
 
 const inputClass =
-  'w-full px-3 py-2.5 rounded-2xl border border-[#EFF1F5] focus:outline-none focus:border-[#0669F7] text-sm text-[#25282A] bg-white'
-const labelClass = 'block text-sm font-medium text-[#25282A] mb-1.5'
+  'w-full px-3 py-2.5 rounded-sm border border-outline focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary text-sm text-on-surface bg-surface'
+const labelClass = 'block text-sm font-medium text-on-surface mb-1.5'
 
 export default function Step1BasicInfo({ draft, onChange, onNext }: Props) {
   const fileInputRef = React.useRef<HTMLInputElement>(null)
@@ -42,14 +42,14 @@ export default function Step1BasicInfo({ draft, onChange, onNext }: Props) {
   return (
     <div className="space-y-5">
       <div>
-        <h2 className="text-lg font-semibold text-[#25282A]">기본 정보</h2>
-        <p className="text-sm text-[#98A2B2] mt-1">사업자 유형과 대표자 정보를 입력해주세요.</p>
+        <h2 className="text-lg font-semibold text-on-surface">기본 정보</h2>
+        <p className="text-sm text-on-surface-variant mt-1">사업자 유형과 대표자 정보를 입력해주세요.</p>
       </div>
 
       {/* ── Business type ─────────────────────────────── */}
       <div>
         <p className={labelClass}>
-          사업자 유형 <span className="text-[#ED1C24]">*</span>
+          사업자 유형 <span className="text-error">*</span>
         </p>
         <div className="flex gap-3">
           {[
@@ -82,14 +82,14 @@ export default function Step1BasicInfo({ draft, onChange, onNext }: Props) {
               onClick={() => onChange({ businessType: opt.value })}
               className={`flex-1 p-4 rounded-2xl border-2 flex flex-col items-center gap-2 transition-all ${
                 draft.businessType === opt.value
-                  ? 'border-[#0669F7] bg-[#E6F0FE] text-[#0669F7]'
-                  : 'border-[#EFF1F5] bg-white text-[#98A2B2] hover:border-[#0669F7]'
+                  ? 'border-primary bg-primary-8 text-primary'
+                  : 'border-outline bg-surface text-on-surface-variant hover:border-primary'
               }`}
             >
               {opt.icon}
               <div className="text-center">
-                <p className="text-sm font-semibold text-[#25282A]">{opt.label}</p>
-                <p className="text-xs text-[#98A2B2] mt-0.5">{opt.sub}</p>
+                <p className="text-sm font-semibold text-on-surface">{opt.label}</p>
+                <p className="text-xs text-on-surface-variant mt-0.5">{opt.sub}</p>
               </div>
             </button>
           ))}
@@ -100,7 +100,7 @@ export default function Step1BasicInfo({ draft, onChange, onNext }: Props) {
       {isCorporate && (
         <div>
           <label htmlFor="companyName" className={labelClass}>
-            회사명 <span className="text-[#ED1C24]">*</span>
+            회사명 <span className="text-error">*</span>
           </label>
           <input
             id="companyName"
@@ -116,7 +116,7 @@ export default function Step1BasicInfo({ draft, onChange, onNext }: Props) {
       {/* ── Representative name ────────────────────────── */}
       <div>
         <label htmlFor="representativeName" className={labelClass}>
-          대표자 성명 <span className="text-[#ED1C24]">*</span>
+          대표자 성명 <span className="text-error">*</span>
         </label>
         <input
           id="representativeName"
@@ -131,7 +131,7 @@ export default function Step1BasicInfo({ draft, onChange, onNext }: Props) {
       {/* ── Representative DOB ─────────────────────────── */}
       <div>
         <label className={labelClass}>
-          생년월일 <span className="text-[#ED1C24]">*</span>
+          생년월일 <span className="text-error">*</span>
         </label>
         <DatePicker
           value={draft.representativeDob}
@@ -143,7 +143,7 @@ export default function Step1BasicInfo({ draft, onChange, onNext }: Props) {
       {/* ── Representative gender ──────────────────────── */}
       <div>
         <label htmlFor="representativeGender" className={labelClass}>
-          성별 <span className="text-[#ED1C24]">*</span>
+          성별 <span className="text-error">*</span>
         </label>
         <select
           id="representativeGender"
@@ -162,7 +162,7 @@ export default function Step1BasicInfo({ draft, onChange, onNext }: Props) {
       <div>
         <label htmlFor="contactPhone" className={labelClass}>
           연락처
-          <span className="ml-1 text-xs font-normal text-[#98A2B2]">(선택)</span>
+          <span className="ml-1 text-xs font-normal text-on-surface-variant">(선택)</span>
         </label>
         <input
           id="contactPhone"
@@ -178,7 +178,7 @@ export default function Step1BasicInfo({ draft, onChange, onNext }: Props) {
       <div>
         <label htmlFor="contactAddress" className={labelClass}>
           사업장 주소
-          <span className="ml-1 text-xs font-normal text-[#98A2B2]">(선택)</span>
+          <span className="ml-1 text-xs font-normal text-on-surface-variant">(선택)</span>
         </label>
         <input
           id="contactAddress"
@@ -194,7 +194,7 @@ export default function Step1BasicInfo({ draft, onChange, onNext }: Props) {
       <div>
         <label htmlFor="businessRegNumber" className={labelClass}>
           사업자 등록번호
-          <span className="ml-1 text-xs font-normal text-[#98A2B2]">(선택)</span>
+          <span className="ml-1 text-xs font-normal text-on-surface-variant">(선택)</span>
         </label>
         <input
           id="businessRegNumber"
@@ -210,7 +210,7 @@ export default function Step1BasicInfo({ draft, onChange, onNext }: Props) {
       <div>
         <label className={labelClass}>
           사업자 등록증
-          <span className="ml-1 text-xs font-normal text-[#98A2B2]">(선택)</span>
+          <span className="ml-1 text-xs font-normal text-on-surface-variant">(선택)</span>
         </label>
         {draft.businessRegDocUrl && !draft.businessRegDoc && (
           <div className="flex items-center gap-2 mb-2">
@@ -227,8 +227,8 @@ export default function Step1BasicInfo({ draft, onChange, onNext }: Props) {
           onClick={() => fileInputRef.current?.click()}
           className={`w-full px-3 py-3 rounded-2xl border-2 border-dashed text-sm transition-colors flex items-center justify-center gap-2 ${
             draft.businessRegDoc
-              ? 'border-[#0669F7] text-[#0669F7] bg-[#E6F0FE]'
-              : 'border-[#EFF1F5] text-[#98A2B2] hover:border-[#0669F7]'
+              ? 'border-primary text-primary bg-primary-8'
+              : 'border-outline text-on-surface-variant hover:border-primary'
           }`}
         >
           {draft.businessRegDoc ? (
@@ -248,7 +248,7 @@ export default function Step1BasicInfo({ draft, onChange, onNext }: Props) {
           )}
         </button>
         <input ref={fileInputRef} type="file" accept="application/pdf,image/jpeg,image/png" className="hidden" onChange={handleFileChange} />
-        {fileError && <p className="text-xs text-[#ED1C24] mt-1">{fileError}</p>}
+        {fileError && <p className="text-xs text-error mt-1">{fileError}</p>}
       </div>
 
       <button

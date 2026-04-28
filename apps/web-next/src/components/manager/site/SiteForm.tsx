@@ -44,13 +44,15 @@ function CustomSelect({ value, onChange, options, placeholder }: CustomSelectPro
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
-        className="w-full flex items-center justify-between gap-2 px-3 py-2.5 rounded-2xl border border-[#EFF1F5] focus:outline-none focus:border-[#0669F7] text-sm bg-white"
+        className={`w-full flex items-center justify-between gap-2 px-3 py-2.5 rounded-sm border text-sm bg-surface transition-colors focus:outline-none ${
+          open ? 'border-primary ring-1 ring-primary' : 'border-outline hover:border-primary'
+        }`}
       >
-        <span className={selectedLabel ? 'text-[#25282A]' : 'text-[#98A2B2]'}>
+        <span className={selectedLabel ? 'text-on-surface' : 'text-on-surface-variant'}>
           {selectedLabel ?? placeholder}
         </span>
         <svg
-          className={`w-4 h-4 text-[#98A2B2] shrink-0 transition-transform duration-150 ${open ? 'rotate-180' : ''}`}
+          className={`w-4 h-4 shrink-0 transition-transform duration-150 ${open ? 'rotate-180 text-primary' : 'text-on-surface-variant'}`}
           fill="none"
           viewBox="0 0 24 24"
           stroke="currentColor"
@@ -61,7 +63,7 @@ function CustomSelect({ value, onChange, options, placeholder }: CustomSelectPro
       </button>
 
       {open && (
-        <div className="absolute z-20 top-full left-0 right-0 mt-1 bg-white rounded-2xl border border-[#EFF1F5] shadow-lg overflow-hidden">
+        <div className="absolute z-20 top-full left-0 right-0 mt-1 bg-surface rounded-3xl border border-outline shadow-lg overflow-hidden">
           {options.map((opt) => (
             <button
               key={opt.value}
@@ -70,12 +72,12 @@ function CustomSelect({ value, onChange, options, placeholder }: CustomSelectPro
                 onChange(opt.value)
                 setOpen(false)
               }}
-              className={`w-full text-left px-4 py-2.5 text-sm transition-colors hover:bg-[#E6F0FE] hover:text-[#0669F7] ${
+              className={`w-full text-left px-4 py-2.5 text-sm transition-colors hover:bg-primary-8 hover:text-primary ${
                 opt.value === value
-                  ? 'bg-[#E6F0FE] text-[#0669F7] font-semibold'
+                  ? 'bg-primary-8 text-primary font-semibold'
                   : opt.value === ''
-                    ? 'text-[#98A2B2]'
-                    : 'text-[#25282A]'
+                    ? 'text-on-surface-variant'
+                    : 'text-on-surface'
               }`}
             >
               {opt.label}

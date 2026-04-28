@@ -115,7 +115,7 @@ function WageRangeSlider({
 
   return (
     <div className="px-1">
-      <div className="flex justify-between text-xs font-semibold text-[#25282A] mb-3">
+      <div className="flex justify-between text-xs font-semibold text-on-surface mb-3">
         <span>{formatVndShort(valueMin)} ₫</span>
         <span>{formatVndShort(valueMax)} ₫</span>
       </div>
@@ -125,21 +125,21 @@ function WageRangeSlider({
         onMouseDown={e => startDrag(e.clientX)}
         onTouchStart={e => { if (e.touches[0]) startDrag(e.touches[0].clientX) }}
       >
-        <div className="absolute left-0 right-0 h-1.5 bg-[#EFF1F5] rounded-full" />
+        <div className="absolute left-0 right-0 h-1.5 bg-surface-container rounded-full" />
         <div
-          className="absolute h-1.5 bg-[#0669F7] rounded-full"
+          className="absolute h-1.5 bg-primary rounded-full"
           style={{ left: `${pct(valueMin)}%`, right: `${100 - pct(valueMax)}%` }}
         />
         <div
-          className="absolute w-4 h-4 rounded-full bg-white border-2 border-[#0669F7] shadow-sm"
+          className="absolute w-4 h-4 rounded-full bg-white border-2 border-primary shadow-sm"
           style={{ left: `calc(${pct(valueMin)}% - 8px)` }}
         />
         <div
-          className="absolute w-4 h-4 rounded-full bg-white border-2 border-[#0669F7] shadow-sm"
+          className="absolute w-4 h-4 rounded-full bg-white border-2 border-primary shadow-sm"
           style={{ left: `calc(${pct(valueMax)}% - 8px)` }}
         />
       </div>
-      <div className="flex justify-between text-[10px] text-[#98A2B2] mt-2">
+      <div className="flex justify-between text-[10px] text-on-surface-variant mt-2">
         <span>{formatVndShort(min)} ₫</span>
         <span>{formatVndShort(max)} ₫</span>
       </div>
@@ -148,9 +148,9 @@ function WageRangeSlider({
 }
 
 const STATUS_VALUES = [
-  { value: '',              dotColor: 'bg-[#00C800]', key: 'listing.filter.status_open' },
-  { value: 'CLOSING_SOON',  dotColor: 'bg-[#FFC72C]', key: 'listing.filter.status_closing_soon' },
-  { value: 'CLOSED',        dotColor: 'bg-[#7A7B7A]', key: 'listing.filter.status_closed' },
+  { value: '',              dotColor: 'bg-[#00C800]',          key: 'listing.filter.status_open' },
+  { value: 'CLOSING_SOON',  dotColor: 'bg-[#FFC72C]',          key: 'listing.filter.status_closing_soon' },
+  { value: 'CLOSED',        dotColor: 'bg-on-surface-variant',  key: 'listing.filter.status_closed' },
 ] as const
 
 const RADIUS_OPTIONS = [10, 30, 50, 100]
@@ -331,7 +331,7 @@ export function JobFilters({
       {/* Province filter */}
       <div className="flex flex-col sm:flex-row md:flex-col gap-3">
         <div className="flex-1 md:flex-none">
-          <label className="block text-xs font-medium text-[#98A2B2] mb-1">{t('listing.filter.province')}</label>
+          <label className="block text-xs font-medium text-on-surface-variant mb-1">{t('listing.filter.province')}</label>
           <FilterSelect
             value={selectedProvince ?? ''}
             options={provinceOptions}
@@ -345,7 +345,7 @@ export function JobFilters({
 
         {/* Trade filter */}
         <div className="flex-1 md:flex-none">
-          <label className="block text-xs font-medium text-[#98A2B2] mb-1">{t('listing.filter.trade')}</label>
+          <label className="block text-xs font-medium text-on-surface-variant mb-1">{t('listing.filter.trade')}</label>
           <FilterSelect
             value={String(selectedTrade ?? '')}
             options={tradeOptions}
@@ -356,7 +356,7 @@ export function JobFilters({
 
         {/* Experience filter */}
         <div className="flex-1 md:flex-none">
-          <label className="block text-xs font-medium text-[#98A2B2] mb-1">{t('listing.filter.experience')}</label>
+          <label className="block text-xs font-medium text-on-surface-variant mb-1">{t('listing.filter.experience')}</label>
           <FilterSelect
             value={selectedMinExp ?? ''}
             options={EXP_OPTIONS.map(o => ({ value: o.value, label: t(o.key as any) }))}
@@ -368,17 +368,17 @@ export function JobFilters({
 
       {/* Status filter */}
       <div>
-        <label className="block text-xs font-medium text-[#98A2B2] mb-2">{t('listing.filter.status')}</label>
+        <label className="block text-xs font-medium text-on-surface-variant mb-2">{t('listing.filter.status')}</label>
         <div className="flex flex-col gap-1">
           {STATUS_VALUES.map(opt => (
             <button
               key={opt.value}
               type="button"
               onClick={() => updateParam('status', opt.value || undefined)}
-              className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors text-left border ${
+              className={`flex items-center gap-2 px-3 py-2 rounded-sm text-sm font-medium transition-colors text-left border ${
                 (selectedStatus ?? '') === opt.value
-                  ? 'bg-[#E6F0FE] border-[#0669F7] text-[#0669F7]'
-                  : 'bg-white border-[#EFF1F5] text-[#25282A] hover:border-[#0669F7] hover:text-[#0669F7]'
+                  ? 'bg-primary-8 border-primary text-primary'
+                  : 'bg-surface border-outline text-on-surface hover:border-primary hover:text-primary'
               }`}
             >
               <span className={`w-2 h-2 rounded-full shrink-0 ${opt.dotColor}`} />
@@ -391,7 +391,7 @@ export function JobFilters({
       {/* Wage range filter */}
       {hasWageRange && (
         <div>
-          <label className="block text-xs font-medium text-[#98A2B2] mb-3">{t('listing.filter.wage_range')}</label>
+          <label className="block text-xs font-medium text-on-surface-variant mb-3">{t('listing.filter.wage_range')}</label>
           <WageRangeSlider
             min={wageMin}
             max={wageMax}
@@ -406,7 +406,7 @@ export function JobFilters({
           <button
             type="button"
             onClick={() => applyWageFilter(localMinWage, localMaxWage)}
-            className="mt-3 w-full py-1.5 rounded-lg text-xs font-semibold bg-[#0669F7] text-white hover:bg-[#0557D4] transition-colors"
+            className="mt-3 w-full py-1.5 rounded-sm text-xs font-semibold bg-primary text-white hover:bg-[#0557D4] transition-colors"
           >
             {t('listing.filter.apply_wage')}
           </button>
@@ -418,7 +418,7 @@ export function JobFilters({
                 setLocalMaxWage(wageMax)
                 applyWageFilter(wageMin, wageMax)
               }}
-              className="mt-1.5 w-full text-xs text-[#98A2B2] hover:text-[#25282A] underline"
+              className="mt-1.5 w-full text-xs text-on-surface-variant hover:text-on-surface underline"
             >
               {t('listing.filter.reset_wage')}
             </button>
@@ -428,20 +428,20 @@ export function JobFilters({
 
       {/* Location filter */}
       <div>
-        <label className="block text-xs font-medium text-[#98A2B2] mb-2">{t('listing.filter.my_location')}</label>
+        <label className="block text-xs font-medium text-on-surface-variant mb-2">{t('listing.filter.my_location')}</label>
 
         {geoActive ? (
           /* Active location chip */
-          <div className="flex items-center gap-2 px-3 py-2 bg-[#E6F0FE] border border-[#0669F7] rounded-lg">
+          <div className="flex items-center gap-2 px-3 py-2 bg-primary-8 border border-primary rounded-sm">
             <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.8}><path strokeLinecap="round" strokeLinejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path strokeLinecap="round" strokeLinejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
-            <span className="flex-1 text-xs font-medium text-[#0669F7] truncate">
+            <span className="flex-1 text-xs font-medium text-primary truncate">
               {activeLabel || t('listing.filter.active_location')}
             </span>
             <button
               type="button"
               onClick={clearGeo}
               aria-label={t('listing.filter.clear_location_aria')}
-              className="text-[#0669F7] hover:text-[#0448B0] font-bold text-sm leading-none"
+              className="text-primary font-bold text-sm leading-none"
             >
               ×
             </button>
@@ -452,10 +452,10 @@ export function JobFilters({
             type="button"
             onClick={useGPS}
             disabled={geoLoading}
-            className="w-full flex items-center justify-center gap-2 px-3 py-2 text-sm border border-[#EFF1F5] rounded-lg bg-white text-[#25282A] hover:border-[#0669F7] hover:text-[#0669F7] disabled:opacity-50 transition-colors"
+            className="w-full flex items-center justify-center gap-2 px-3 py-2 text-sm border border-outline rounded-sm bg-surface text-on-surface hover:border-primary hover:text-primary disabled:opacity-50 transition-colors"
           >
             {geoLoading
-              ? <svg className="w-4 h-4 animate-spin text-[#0669F7]" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" /></svg>
+              ? <svg className="w-4 h-4 animate-spin text-primary" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" /></svg>
               : <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.8}><path strokeLinecap="round" strokeLinejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path strokeLinecap="round" strokeLinejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
             }
             <span>{geoLoading ? t('listing.filter.finding_location') : t('listing.filter.use_location')}</span>
@@ -463,7 +463,7 @@ export function JobFilters({
         )}
 
         {geoError && (
-          <p className="text-xs text-[#ED1C24] mt-1">{geoError}</p>
+          <p className="text-xs text-error mt-1">{geoError}</p>
         )}
 
         {/* Saved locations — only when no geo filter active and user is logged in */}
@@ -474,7 +474,7 @@ export function JobFilters({
                 key={loc.id}
                 type="button"
                 onClick={() => { setActiveLabel(loc.label); activateGeo(Number(loc.lat), Number(loc.lng), loc.label) }}
-                className="flex items-center gap-2 px-3 py-2 text-xs border border-[#EFF1F5] rounded-lg bg-white text-[#25282A] hover:border-[#0669F7] hover:text-[#0669F7] transition-colors text-left"
+                className="flex items-center gap-2 px-3 py-2 text-xs border border-outline rounded-sm bg-surface text-on-surface hover:border-primary hover:text-primary transition-colors text-left"
               >
                 <span>{'•'}</span>
                 <span className="truncate">{loc.label}</span>
@@ -486,17 +486,17 @@ export function JobFilters({
         {/* Radius selector — only when geo is active */}
         {geoActive && (
           <div className="mt-2">
-            <p className="text-xs text-[#98A2B2] mb-1.5">{t('listing.filter.radius')}</p>
+            <p className="text-xs text-on-surface-variant mb-1.5">{t('listing.filter.radius')}</p>
             <div className="flex gap-1">
               {RADIUS_OPTIONS.map(r => (
                 <button
                   key={r}
                   type="button"
                   onClick={() => changeRadius(r)}
-                  className={`flex-1 py-1.5 rounded-md text-xs font-medium transition-colors ${
+                  className={`flex-1 py-1.5 rounded-sm text-xs font-medium transition-colors ${
                     selectedRadius === r
-                      ? 'bg-[#0669F7] text-white'
-                      : 'bg-[#F2F4F5] text-[#98A2B2] hover:bg-[#DDDDDD]'
+                      ? 'bg-primary text-white'
+                      : 'bg-surface-container text-on-surface-variant hover:bg-outline'
                   }`}
                 >
                   {r}km
@@ -511,7 +511,7 @@ export function JobFilters({
       {hasFilters && (
         <button
           onClick={clearFilters}
-          className="text-xs text-[#98A2B2] hover:text-[#25282A] underline text-left transition-colors"
+          className="text-xs text-on-surface-variant hover:text-on-surface underline text-left transition-colors"
         >
           {t('listing.filter.reset')}
         </button>

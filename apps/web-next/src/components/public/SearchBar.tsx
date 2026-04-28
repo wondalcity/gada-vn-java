@@ -76,10 +76,10 @@ function CustomSelect({ options, value, onChange, placeholder, mobileTitle, onTo
         role="option"
         aria-selected={isSelected}
         onClick={() => { onChange(opt.value); setOpen(false) }}
-        className={`w-full text-left px-4 py-3 text-sm transition-colors border-b border-[#F2F4F5] last:border-0 flex items-center justify-between gap-2 group ${
+        className={`w-full text-left px-4 py-3 text-sm transition-colors border-b border-outline last:border-0 flex items-center justify-between gap-2 group ${
           isSelected
-            ? 'bg-[#E6F0FE] text-[#0669F7] font-semibold'
-            : 'text-[#25282A] hover:bg-[#F2F4F5]'
+            ? 'bg-primary-8 text-primary font-semibold'
+            : 'text-on-surface hover:bg-surface-container'
         }`}
       >
         <span className="flex-1 truncate">{opt.label}</span>
@@ -90,7 +90,7 @@ function CustomSelect({ options, value, onChange, placeholder, mobileTitle, onTo
             onClick={e => { e.stopPropagation(); onTogglePin(opt.value) }}
             className={[
               'w-5 h-5 flex items-center justify-center text-sm leading-none rounded shrink-0 transition-opacity',
-              opt.pinned ? 'opacity-100 text-[#0669F7]' : 'opacity-0 group-hover:opacity-50 text-[#98A2B2]',
+              opt.pinned ? 'opacity-100 text-primary' : 'opacity-0 group-hover:opacity-50 text-on-surface-variant',
             ].join(' ')}
           >
             {opt.pinned ? '★' : '☆'}
@@ -108,16 +108,16 @@ function CustomSelect({ options, value, onChange, placeholder, mobileTitle, onTo
         key={opt.value || '__all__'}
         type="button"
         onClick={() => { onChange(opt.value); setOpen(false) }}
-        className={`w-full flex items-center justify-between px-4 py-3.5 rounded-2xl text-sm font-medium transition-colors ${
+        className={`w-full flex items-center justify-between px-4 py-3.5 rounded-sm text-sm font-medium transition-colors ${
           isSelected
-            ? 'bg-[#E6F0FE] text-[#0669F7] border-2 border-[#0669F7]'
-            : 'bg-[#F2F4F5] text-[#25282A] border-2 border-transparent'
+            ? 'bg-primary-8 text-primary border-2 border-primary'
+            : 'bg-surface-container text-on-surface border-2 border-transparent'
         }`}
       >
         <span className="flex-1 truncate text-left">{opt.label}</span>
         <div className="flex items-center gap-1.5 shrink-0">
           {isSelected && (
-            <svg className="w-5 h-5 text-[#0669F7]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+            <svg className="w-5 h-5 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
             </svg>
           )}
@@ -128,7 +128,7 @@ function CustomSelect({ options, value, onChange, placeholder, mobileTitle, onTo
               onClick={e => { e.stopPropagation(); onTogglePin(opt.value) }}
               className={[
                 'w-6 h-6 flex items-center justify-center text-base leading-none rounded transition-opacity',
-                opt.pinned ? 'opacity-100 text-[#0669F7]' : 'opacity-40 text-[#98A2B2]',
+                opt.pinned ? 'opacity-100 text-primary' : 'opacity-40 text-on-surface-variant',
               ].join(' ')}
             >
               {opt.pinned ? '★' : '☆'}
@@ -148,12 +148,12 @@ function CustomSelect({ options, value, onChange, placeholder, mobileTitle, onTo
         onClick={() => setOpen(v => !v)}
         aria-haspopup="listbox"
         aria-expanded={open}
-        className="w-full flex items-center justify-between gap-2 px-4 py-3 rounded-xl bg-white text-sm shadow-lg focus:outline-none focus:ring-2 focus:ring-[#0669F7]/40 transition-colors"
+        className="w-full flex items-center justify-between gap-2 px-4 py-3 rounded-sm bg-surface text-sm shadow-lg focus:outline-none focus:ring-1 focus:ring-primary transition-colors"
       >
-        <span className={value ? 'text-[#25282A] font-medium' : 'text-[#98A2B2]'}>
+        <span className={value ? 'text-on-surface font-medium' : 'text-on-surface-variant'}>
           {value ? selectedLabel : placeholder}
         </span>
-        <svg className={`w-4 h-4 shrink-0 text-[#98A2B2] transition-transform ${open ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+        <svg className={`w-4 h-4 shrink-0 transition-transform ${open ? 'rotate-180 text-primary' : 'text-on-surface-variant'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
           <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
         </svg>
       </button>
@@ -161,7 +161,7 @@ function CustomSelect({ options, value, onChange, placeholder, mobileTitle, onTo
       {/* Desktop dropdown */}
       {open && (
         <div
-          className="hidden sm:block absolute top-full left-0 right-0 mt-1.5 bg-white rounded-2xl shadow-2xl border border-[#EFF1F5] z-[100] overflow-hidden max-h-64 overflow-y-auto"
+          className="hidden sm:block absolute top-full left-0 right-0 mt-1.5 bg-surface rounded-3xl shadow-2xl border border-outline z-[100] overflow-hidden max-h-64 overflow-y-auto"
           role="listbox"
           style={{ boxShadow: '0 8px 32px rgba(0,0,0,0.15)' }}
         >
@@ -169,10 +169,10 @@ function CustomSelect({ options, value, onChange, placeholder, mobileTitle, onTo
           {hasPinned && (
             <>
               <div className="px-4 py-1.5">
-                <span className="text-xs font-medium text-[#0669F7]">★ 즐겨찾는 지역</span>
+                <span className="text-xs font-semibold text-primary">★ 즐겨찾는 지역</span>
               </div>
               {pinnedOptions.map(opt => renderDesktopOption(opt))}
-              <div className="h-px bg-[#EFF1F5] mx-2" />
+              <div className="h-px bg-outline mx-2" />
             </>
           )}
           {/* Regular options (includes "all" placeholder) */}
@@ -187,25 +187,25 @@ function CustomSelect({ options, value, onChange, placeholder, mobileTitle, onTo
         <div className="sm:hidden fixed inset-0 z-[150] flex flex-col justify-end">
           {/* Backdrop */}
           <div
-            className="absolute inset-0 bg-black/40"
+            className="absolute inset-0 bg-scrim"
             onClick={() => setOpen(false)}
           />
           {/* Sheet */}
           <div
-            className="relative bg-white rounded-t-3xl z-10 flex flex-col"
+            className="relative bg-surface rounded-t-3xl z-10 flex flex-col"
             style={{ maxHeight: '70vh', paddingBottom: 'env(safe-area-inset-bottom, 16px)' }}
           >
             {/* Handle + title */}
-            <div className="shrink-0 pt-3 pb-4 px-5 border-b border-[#F2F4F5]">
-              <div className="w-8 h-1 rounded-full bg-[#DDDDDD] mx-auto mb-4" />
+            <div className="shrink-0 pt-3 pb-4 px-5 border-b border-outline">
+              <div className="w-8 h-1 rounded-full bg-outline mx-auto mb-4" />
               <div className="flex items-center justify-between">
-                <p className="text-base font-bold text-[#25282A]">{mobileTitle}</p>
+                <p className="text-base font-bold text-on-surface">{mobileTitle}</p>
                 <button
                   type="button"
                   onClick={() => setOpen(false)}
-                  className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-[#EFF1F5]"
+                  className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-surface-container"
                 >
-                  <svg className="w-5 h-5 text-[#7A7B7A]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <svg className="w-5 h-5 text-on-surface-variant" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
                   </svg>
                 </button>
@@ -216,9 +216,9 @@ function CustomSelect({ options, value, onChange, placeholder, mobileTitle, onTo
               {/* Pinned section */}
               {hasPinned && (
                 <>
-                  <p className="text-xs font-semibold text-[#0669F7] px-1 pb-1">★ 즐겨찾는 지역</p>
+                  <p className="text-xs font-semibold text-primary px-1 pb-1">★ 즐겨찾는 지역</p>
                   {pinnedOptions.map(opt => renderMobileOption(opt))}
-                  <div className="h-px bg-[#EFF1F5] my-2" />
+                  <div className="h-px bg-outline my-2" />
                 </>
               )}
               {/* Regular options */}
