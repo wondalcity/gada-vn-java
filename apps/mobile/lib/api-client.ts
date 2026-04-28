@@ -110,12 +110,34 @@ async function requestPaginated<T>(
     throw new ApiError(response.status, message);
   }
 
-  const data = camelizeKeys<T[]>(Array.isArray(json.data) ? json.data : []);
-  const meta = camelizeKeys<{ total: number; page: number; totalPages: number }>(json.meta ?? {
-    total: Array.isArray(json.data) ? json.data.length : 0,
-    page: 1,
-    totalPages: 1,
-  });
+  // Handle both direct-array response ({ data: [...] }) and
+  // paginated-object response ({ data: { jobs: [...], total, page, totalPages } })
+  let rawItems: unknown[];
+  let rawTotal: number;
+  let rawPage: number;
+  let rawTotalPages: number;
+
+  if (Array.isArray(json.data)) {
+    rawItems = json.data;
+    rawTotal = (json.meta?.total as number) ?? (json.total as number) ?? json.data.length;
+    rawPage = (json.meta?.page as number) ?? (json.page as number) ?? 1;
+    rawTotalPages = (json.meta?.totalPages as number) ?? (json.totalPages as number) ?? 1;
+  } else if (json.data && typeof json.data === 'object') {
+    const dataObj = json.data as Record<string, unknown>;
+    const arrayKey = Object.keys(dataObj).find(k => Array.isArray(dataObj[k]));
+    rawItems = arrayKey ? (dataObj[arrayKey] as unknown[]) : [];
+    rawTotal = (dataObj.total as number) ?? rawItems.length;
+    rawPage = (dataObj.page as number) ?? 1;
+    rawTotalPages = (dataObj.totalPages as number) ?? 1;
+  } else {
+    rawItems = [];
+    rawTotal = 0;
+    rawPage = 1;
+    rawTotalPages = 1;
+  }
+
+  const data = camelizeKeys<T[]>(rawItems);
+  const meta = { total: rawTotal, page: rawPage, totalPages: rawTotalPages };
   return { data, meta };
 }
 

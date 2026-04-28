@@ -15,26 +15,32 @@ const CDN = process.env.EXPO_PUBLIC_CDN_URL ?? '';
 
 interface Province {
   code: string;
-  nameKo: string;
-  nameVi: string;
+  nameKo?: string;
+  nameVi?: string;
+  nameEn?: string;
   jobCount?: number;
 }
 
 interface Trade {
   id: number;
-  nameKo: string;
+  nameKo?: string;
   nameVi?: string;
 }
 
 interface Job {
   id: string;
   slug?: string | null;
-  title: string;
+  titleKo?: string;
+  titleVi?: string;
+  title?: string;
+  siteName?: string;
+  siteNameKo?: string;
   site?: { name: string; address?: string; province?: string } | null;
   dailyWage: number;
   workDate?: string | null;
   slotsTotal: number;
   slotsFilled: number;
+  coverImageUrl?: string;
   imageS3Keys?: string[];
   coverImageIdx?: number;
   status?: string;
@@ -52,16 +58,19 @@ const PROVINCE_QUICK_LINKS = [
 // Web-style job card for the home screen (matches web JobListingCard)
 function HomeJobCard({ job, onPress }: { job: Job; onPress: () => void }) {
   const isFull = job.status === 'FILLED' || job.slotsFilled >= job.slotsTotal;
-  const coverKey = job.imageS3Keys?.[job.coverImageIdx ?? 0];
+  const displayTitle = job.titleKo || job.titleVi || job.title || '';
+  const displaySite = job.siteName || job.siteNameKo || job.site?.name || '';
+  const coverUri = job.coverImageUrl
+    || (job.imageS3Keys?.[job.coverImageIdx ?? 0] ? `${CDN}/${job.imageS3Keys[job.coverImageIdx ?? 0]}` : null);
   const workDate = job.workDate
     ? new Date(job.workDate).toLocaleDateString('ko-KR', { year: 'numeric', month: 'short', day: 'numeric' })
     : '';
 
   return (
     <TouchableOpacity style={styles.jobCard} onPress={onPress} activeOpacity={0.85}>
-      {coverKey ? (
+      {coverUri ? (
         <Image
-          source={{ uri: `${CDN}/${coverKey}` }}
+          source={{ uri: coverUri }}
           style={styles.jobCardImage}
           contentFit="cover"
           transition={200}
@@ -72,8 +81,8 @@ function HomeJobCard({ job, onPress }: { job: Job; onPress: () => void }) {
         </View>
       )}
       <View style={styles.jobCardBody}>
-        <Text style={styles.jobCardSiteName} numberOfLines={1}>{job.site?.name ?? ''}</Text>
-        <Text style={styles.jobCardTitle} numberOfLines={2}>{job.title}</Text>
+        <Text style={styles.jobCardSiteName} numberOfLines={1}>{displaySite}</Text>
+        <Text style={styles.jobCardTitle} numberOfLines={2}>{displayTitle}</Text>
         <View style={styles.jobCardMeta}>
           <Text style={styles.jobCardWage}>₫{job.dailyWage.toLocaleString()}</Text>
           <View style={[styles.statusBadge, isFull && styles.statusBadgeFull]}>
@@ -129,12 +138,12 @@ export default function WorkerHomeScreen() {
     Promise.all([
       api.get<Province[]>('/public/provinces').catch(() => [] as Province[]),
       api.get<Trade[]>(`/public/trades?locale=${locale}`).catch(() => [] as Trade[]),
-      api.get<Job[]>('/public/jobs', { page: 1, limit: 6 }).catch(() => [] as Job[]),
-    ]).then(([pRes, trRes, jRes]) => {
+      api.getPaginated<Job>('/public/jobs', { page: 1, limit: 6, locale }).catch(() => ({ data: [] as Job[], meta: { total: 0, page: 1, totalPages: 1 } })),
+    ]).then(([pRes, trRes, jPaged]) => {
       const p = Array.isArray(pRes) ? pRes : [];
       const tr = Array.isArray(trRes) ? trRes : [];
-      const j = Array.isArray(jRes) ? jRes : [];
-      const total = j.length;
+      const j = jPaged.data ?? [];
+      const total = jPaged.meta?.total ?? j.length;
       setProvinces(p.slice(0, 8));
       setTrades(tr);
       setJobs(j.slice(0, 6));
@@ -154,8 +163,9 @@ export default function WorkerHomeScreen() {
     router.push({ pathname: '/(worker)/', params: { viewMode: 'map' } } as any);
   }, [router]);
 
+  const selectedProvinceObj = provinces.find(p => p.code === selectedProvince);
   const selectedProvinceName = selectedProvince
-    ? (provinces.find(p => p.code === selectedProvince)?.nameKo ?? selectedProvince)
+    ? (selectedProvinceObj?.nameKo || selectedProvinceObj?.nameVi || selectedProvince)
     : t('jobs.filter_province_all') || '전체 지역';
 
   const selectedTradeName = selectedTradeId

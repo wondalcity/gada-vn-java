@@ -6,7 +6,7 @@ import {
 import MapView, { Marker, Region, MapPressEvent } from 'react-native-maps';
 import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
-import type { JobWithSite } from '@gada-vn/core';
+import type { JobCardItem } from './JobCard';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -25,7 +25,13 @@ function formatDate(dateStr: string): string {
 
 // ── Custom wage pill marker ──────────────────────────────────────────────────
 
-function WageMarker({ job, isSelected }: { job: JobWithSite; isSelected: boolean }) {
+function getJobCoords(job: JobCardItem) {
+  const lat = job.siteLat ?? job.site?.lat ?? null;
+  const lng = job.siteLng ?? job.site?.lng ?? null;
+  return (lat != null && lng != null) ? { lat, lng } : null;
+}
+
+function WageMarker({ job, isSelected }: { job: JobCardItem; isSelected: boolean }) {
   return (
     <View style={[styles.markerPill, isSelected && styles.markerPillSelected]}>
       <Text style={[styles.markerText, isSelected && styles.markerTextSelected]}>
@@ -42,14 +48,19 @@ function JobCard({
   onClose,
   slideAnim,
 }: {
-  job: JobWithSite;
+  job: JobCardItem;
   onClose: () => void;
   slideAnim: Animated.Value;
 }) {
   const router = useRouter();
-  const isFull = job.slotsFilled >= job.slotsTotal;
+  const isFull = job.status === 'FILLED' || job.slotsFilled >= job.slotsTotal;
   const remaining = job.slotsTotal - job.slotsFilled;
-  const coverImage = job.imageS3Keys?.[job.coverImageIdx ?? 0];
+  const displayTitle = job.titleKo || job.titleVi || job.title || '';
+  const displaySite = job.siteName || job.siteNameKo || job.site?.name || '';
+  const coverUri = job.coverImageUrl
+    || (job.imageS3Keys?.[job.coverImageIdx ?? 0]
+      ? `${process.env.EXPO_PUBLIC_CDN_URL}/${job.imageS3Keys[job.coverImageIdx ?? 0]}`
+      : null);
 
   return (
     <Animated.View
@@ -64,9 +75,9 @@ function JobCard({
       <View style={styles.cardInner}>
         {/* Cover image */}
         <View style={styles.cardImage}>
-          {coverImage ? (
+          {coverUri ? (
             <Image
-              source={{ uri: `${process.env.EXPO_PUBLIC_CDN_URL}/${coverImage}` }}
+              source={{ uri: coverUri }}
               style={StyleSheet.absoluteFill}
               contentFit="cover"
             />
@@ -80,10 +91,10 @@ function JobCard({
           <View style={styles.cardInfoTop}>
             <View style={styles.cardInfoTopLeft}>
               <Text style={styles.cardSite} numberOfLines={1}>
-                {job.site?.name ?? ''}
+                {displaySite}
               </Text>
               <Text style={styles.cardTitle} numberOfLines={2}>
-                {job.title}
+                {displayTitle}
               </Text>
             </View>
             <TouchableOpacity style={styles.closeBtn} onPress={onClose} hitSlop={8}>
@@ -125,7 +136,7 @@ function JobCard({
 // ── Main map view ────────────────────────────────────────────────────────────
 
 interface Props {
-  jobs: JobWithSite[];
+  jobs: JobCardItem[];
   initialRegion?: Region;
   focusJobId?: string | null;
   onFocused?: () => void;
@@ -136,10 +147,8 @@ export default function JobsMapView({ jobs, initialRegion, focusJobId, onFocused
   const [selectedJobId, setSelectedJobId] = useState<string | null>(null);
   const slideAnim = useRef(new Animated.Value(120)).current;
 
-  // Jobs with valid coordinates
-  const jobsWithCoords = jobs.filter(
-    j => j.site?.lat != null && j.site?.lng != null
-  );
+  // Jobs with valid coordinates (supports both internal job.site.lat and public API job.siteLat)
+  const jobsWithCoords = jobs.filter(j => getJobCoords(j) !== null);
 
   const selectedJob = selectedJobId
     ? jobsWithCoords.find(j => j.id === selectedJobId) ?? null
@@ -153,16 +162,17 @@ export default function JobsMapView({ jobs, initialRegion, focusJobId, onFocused
   };
 
   // Airbnb-style: animate map to selected job + slide card up
-  const selectJob = useCallback((job: JobWithSite) => {
-    if (job.site?.lat == null || job.site?.lng == null) return;
+  const selectJob = useCallback((job: JobCardItem) => {
+    const coords = getJobCoords(job);
+    if (!coords) return;
 
     setSelectedJobId(job.id);
 
     // Animate map to zoom in on selected location
     mapRef.current?.animateToRegion(
       {
-        latitude: job.site.lat,
-        longitude: job.site.lng,
+        latitude: coords.lat,
+        longitude: coords.lng,
         latitudeDelta: SELECTED_DELTA,
         longitudeDelta: SELECTED_DELTA,
       },
@@ -212,12 +222,14 @@ export default function JobsMapView({ jobs, initialRegion, focusJobId, onFocused
         toolbarEnabled={false}
         moveOnMarkerPress={false}
       >
-        {jobsWithCoords.map(job => (
+        {jobsWithCoords.map(job => {
+          const coords = getJobCoords(job)!;
+          return (
           <Marker
             key={job.id}
             coordinate={{
-              latitude: job.site!.lat as number,
-              longitude: job.site!.lng as number,
+              latitude: coords.lat,
+              longitude: coords.lng,
             }}
             onPress={() => selectJob(job)}
             anchor={{ x: 0.5, y: 0.5 }}
@@ -226,7 +238,8 @@ export default function JobsMapView({ jobs, initialRegion, focusJobId, onFocused
           >
             <WageMarker job={job} isSelected={selectedJobId === job.id} />
           </Marker>
-        ))}
+          );
+        })}
       </MapView>
 
       {/* Airbnb-style bottom card */}

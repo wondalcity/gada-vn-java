@@ -1,9 +1,9 @@
 import { create } from 'zustand';
-import type { JobWithSite } from '@gada-vn/core';
+import type { JobCardItem } from '../components/jobs/JobCard';
 
 interface JobState {
-  jobs: JobWithSite[];
-  setJobs: (jobs: JobWithSite[]) => void;
+  jobs: JobCardItem[];
+  setJobs: (jobs: JobCardItem[]) => void;
 }
 
 export const useJobStore = create<JobState>((set) => ({

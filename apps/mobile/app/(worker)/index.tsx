@@ -10,8 +10,7 @@ import { useLocalSearchParams } from 'expo-router';
 import { ApiError } from '../../lib/api-client';
 import { useJobStore } from '../../store/job.store';
 import { api } from '../../lib/api-client';
-import type { JobWithSite } from '@gada-vn/core';
-import JobCard from '../../components/jobs/JobCard';
+import JobCard, { type JobCardItem } from '../../components/jobs/JobCard';
 import JobsMapView from '../../components/jobs/JobsMapView';
 import { Colors, Spacing, Radius, Font } from '../../constants/theme';
 
@@ -22,8 +21,8 @@ const CARD_WIDTH = (SCREEN_WIDTH - 32 - CARD_GAP) / 2;
 type ViewMode = 'list' | 'map';
 type StatusFilter = '' | 'OPEN' | 'FILLED';
 
-interface Trade { id: number; nameKo: string; nameVi?: string; }
-interface Province { code: string; id?: string; nameKo: string; nameVi?: string; }
+interface Trade { id: number; nameKo?: string; nameVi?: string; }
+interface Province { code: string; id?: string; nameKo?: string; nameVi?: string; }
 
 export default function WorkerJobFeed() {
   const { t, i18n } = useTranslation();
@@ -97,7 +96,7 @@ export default function WorkerJobFeed() {
       if (appliedMin) params.minWage = appliedMin;
       if (appliedMax) params.maxWage = appliedMax;
 
-      const { data: items, meta } = await api.getPaginated<JobWithSite>('/public/jobs', params);
+      const { data: items, meta } = await api.getPaginated<JobCardItem>('/public/jobs', params);
       if (meta?.totalPages) setTotalPages(meta.totalPages);
       if (meta?.total) setTotalCount(meta.total);
       setPage(pageNum);
@@ -224,16 +223,22 @@ export default function WorkerJobFeed() {
           {appliedSearch ? (
             <View style={styles.activeChip}><Text style={styles.activeChipText}>"{appliedSearch}"</Text></View>
           ) : null}
-          {appliedProvince ? (
-            <View style={styles.activeChip}><Text style={styles.activeChipText}>
-              {provinces.find(p => (p.code ?? p.id) === appliedProvince)?.nameKo ?? appliedProvince}
-            </Text></View>
-          ) : null}
-          {appliedTradeId ? (
-            <View style={styles.activeChip}><Text style={styles.activeChipText}>
-              {trades.find(tr => tr.id === appliedTradeId)?.nameKo ?? String(appliedTradeId)}
-            </Text></View>
-          ) : null}
+          {appliedProvince ? (() => {
+            const p = provinces.find(pr => (pr.code ?? pr.id) === appliedProvince);
+            return (
+              <View style={styles.activeChip}><Text style={styles.activeChipText}>
+                {p?.nameKo || p?.nameVi || appliedProvince}
+              </Text></View>
+            );
+          })() : null}
+          {appliedTradeId ? (() => {
+            const tr = trades.find(t => t.id === appliedTradeId);
+            return (
+              <View style={styles.activeChip}><Text style={styles.activeChipText}>
+                {tr?.nameKo || tr?.nameVi || String(appliedTradeId)}
+              </Text></View>
+            );
+          })() : null}
           {appliedStatus ? (
             <View style={styles.activeChip}><Text style={styles.activeChipText}>
               {statusOptions.find(s => s.value === appliedStatus)?.label}

@@ -1,18 +1,45 @@
-import { View, Text, TouchableOpacity, StyleSheet, Dimensions } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
-import type { JobWithSite } from '@gada-vn/core';
 import { Colors, Font, Radius } from '../../constants/theme';
 
+// Accepts both internal JobWithSite and public API PublicJob shapes
+export interface JobCardItem {
+  id: string;
+  slug?: string | null;
+  titleKo?: string;
+  titleVi?: string;
+  title?: string;
+  siteName?: string;
+  siteNameKo?: string;
+  siteAddress?: string;
+  siteLat?: number;
+  siteLng?: number;
+  site?: { name: string; address?: string; lat?: number | null; lng?: number | null } | null;
+  dailyWage: number;
+  workDate?: string | Date | null;
+  slotsTotal: number;
+  slotsFilled: number;
+  status?: string;
+  coverImageUrl?: string;
+  imageS3Keys?: string[];
+  coverImageIdx?: number;
+}
+
 interface Props {
-  job: JobWithSite;
+  job: JobCardItem;
 }
 
 export default function JobCard({ job }: Props) {
   const router = useRouter();
 
-  const isFull = job.slotsFilled >= job.slotsTotal;
-  const coverImage = job.imageS3Keys?.[job.coverImageIdx ?? 0];
+  const isFull = job.status === 'FILLED' || job.slotsFilled >= job.slotsTotal;
+  const displayTitle = job.titleKo || job.titleVi || job.title || job.site?.name || '';
+  const displaySite = job.siteName || job.siteNameKo || job.site?.name || '';
+  const coverUri = job.coverImageUrl
+    || (job.imageS3Keys?.[job.coverImageIdx ?? 0]
+      ? `${process.env.EXPO_PUBLIC_CDN_URL}/${job.imageS3Keys[job.coverImageIdx ?? 0]}`
+      : null);
   const workDate = job.workDate
     ? new Date(job.workDate).toLocaleDateString('ko-KR', { month: 'numeric', day: 'numeric' })
     : '';
@@ -30,9 +57,9 @@ export default function JobCard({ job }: Props) {
     >
       {/* Square cover image */}
       <View style={styles.imageWrap}>
-        {coverImage ? (
+        {coverUri ? (
           <Image
-            source={{ uri: `${process.env.EXPO_PUBLIC_CDN_URL}/${coverImage}` }}
+            source={{ uri: coverUri }}
             style={StyleSheet.absoluteFill}
             contentFit="cover"
             transition={200}
@@ -51,13 +78,13 @@ export default function JobCard({ job }: Props) {
 
       {/* Card body */}
       <View style={styles.body}>
-        {/* Site / title */}
-        <Text style={styles.title} numberOfLines={2}>{job.site?.name ?? job.title}</Text>
-
-        {/* Address */}
-        {(job.site?.address) ? (
-          <Text style={styles.address} numberOfLines={1}>{job.site.address}</Text>
+        {/* Site name */}
+        {displaySite ? (
+          <Text style={styles.address} numberOfLines={1}>{displaySite}</Text>
         ) : null}
+
+        {/* Title */}
+        <Text style={styles.title} numberOfLines={2}>{displayTitle}</Text>
 
         {/* Wage */}
         <Text style={styles.wage}>₫{job.dailyWage.toLocaleString()}</Text>
