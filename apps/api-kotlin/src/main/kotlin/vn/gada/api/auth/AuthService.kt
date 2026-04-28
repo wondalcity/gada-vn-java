@@ -16,7 +16,7 @@ class AuthService(
     @Value("\${gada.firebase.web-api-key:}") private val firebaseWebApiKey: String
 ) {
     private val log = LoggerFactory.getLogger(AuthService::class.java)
-    private val isDev: Boolean get() = activeProfile != "production" && activeProfile != "prod"
+    private val isDev: Boolean get() = activeProfile == "local" || activeProfile == "dev" || activeProfile == "default"
 
     fun verifyAndGetOrCreateUser(idToken: String, name: String? = null, emailOverride: String? = null): Map<String, Any?> {
         if (!firebase.isInitialized()) {
