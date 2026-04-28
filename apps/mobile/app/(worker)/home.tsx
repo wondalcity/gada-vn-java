@@ -272,8 +272,8 @@ export default function WorkerHomeScreen() {
             {provinces.map((p) => (
               <ProvinceCard
                 key={p.code}
-                nameKo={p.nameKo}
-                nameVi={p.nameVi}
+                nameKo={p.nameKo ?? ''}
+                nameVi={p.nameVi ?? ''}
                 onPress={() => router.push({ pathname: '/(worker)/', params: { province: p.code } } as any)}
               />
             ))}
