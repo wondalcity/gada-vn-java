@@ -30,7 +30,7 @@
         "backgroundColor": "#FFFFFF"
       },
       "package": "com.wondalcity.gadavn",
-      "versionCode": 56,
+      "versionCode": 57,
       "usesCleartextTraffic": true,
       "config": {
         "googleMaps": {
