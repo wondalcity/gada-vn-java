@@ -1,14 +1,14 @@
 import { useEffect, useState, useCallback } from 'react';
 import {
   View, Text, FlatList, StyleSheet,
-  TouchableOpacity, RefreshControl, ActivityIndicator, Alert,
+  TouchableOpacity, RefreshControl, ActivityIndicator, Alert, ScrollView,
 } from 'react-native';
 import { api } from '../../lib/api-client';
 import { Colors, Spacing, Radius, Font } from '../../constants/theme';
 import { useTranslation } from 'react-i18next';
 import { showToast } from '../../lib/toast';
 
-type AttendanceStatus = 'PRESENT' | 'ABSENT' | 'PENDING';
+type AttendanceStatus = 'ATTENDED' | 'ABSENT' | 'HALF_DAY' | 'PENDING';
 
 interface AttendanceRecord {
   id: string;
@@ -35,17 +35,21 @@ function formatWage(n: number) {
   return new Intl.NumberFormat('ko-KR').format(n) + ' ₫';
 }
 
+type FilterTab = 'ALL' | 'ATTENDED' | 'ABSENT' | 'HALF_DAY' | 'PENDING';
+
 export default function WorkerAttendanceScreen() {
   const { t } = useTranslation();
   const [records, setRecords] = useState<AttendanceRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [checkingIn, setCheckingIn] = useState(false);
+  const [activeTab, setActiveTab] = useState<FilterTab>('ALL');
 
   const STATUS_CONFIG: Record<AttendanceStatus, { label: string; bg: string; text: string }> = {
-    PRESENT: { label: t('attendance.status_present'), bg: Colors.successContainer, text: Colors.onSuccessContainer },
-    ABSENT:  { label: t('attendance.status_absent'),  bg: Colors.errorContainer,   text: Colors.onErrorContainer },
-    PENDING: { label: t('attendance.status_pending'), bg: Colors.primaryContainer,  text: Colors.primary },
+    ATTENDED: { label: t('attendance.status_present', '출근'), bg: Colors.successContainer, text: Colors.onSuccessContainer },
+    ABSENT:   { label: t('attendance.status_absent',  '결근'), bg: Colors.errorContainer,   text: Colors.onErrorContainer },
+    HALF_DAY: { label: t('attendance.status_half_day', '반차'), bg: '#FFF8E6',               text: '#92620A' },
+    PENDING:  { label: t('attendance.status_pending', '미확인'), bg: Colors.primaryContainer, text: Colors.primary },
   };
 
   const loadRecords = useCallback(async () => {
@@ -95,6 +99,16 @@ export default function WorkerAttendanceScreen() {
 
   const todayStr = new Date().toISOString().split('T')[0];
   const todayRecord = records.find(r => r.workDate === todayStr && r.status === 'PENDING');
+
+  const TABS: { key: FilterTab; label: string }[] = [
+    { key: 'ALL',      label: t('common.all', '전체') },
+    { key: 'ATTENDED', label: t('attendance.status_present', '출근') },
+    { key: 'ABSENT',   label: t('attendance.status_absent', '결근') },
+    { key: 'HALF_DAY', label: t('attendance.status_half_day', '반차') },
+    { key: 'PENDING',  label: t('attendance.status_pending', '미확인') },
+  ];
+
+  const filteredRecords = activeTab === 'ALL' ? records : records.filter(r => r.status === activeTab);
 
   if (loading) {
     return (
@@ -155,8 +169,29 @@ export default function WorkerAttendanceScreen() {
         </View>
       )}
 
+      {/* Filter tabs */}
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={styles.tabsContainer}
+        style={styles.tabsRow}
+      >
+        {TABS.map(tab => (
+          <TouchableOpacity
+            key={tab.key}
+            style={[styles.tabBtn, activeTab === tab.key && styles.tabBtnActive]}
+            onPress={() => setActiveTab(tab.key)}
+            activeOpacity={0.7}
+          >
+            <Text style={[styles.tabLabel, activeTab === tab.key && styles.tabLabelActive]}>
+              {tab.label}
+            </Text>
+          </TouchableOpacity>
+        ))}
+      </ScrollView>
+
       <FlatList
-        data={records}
+        data={filteredRecords}
         keyExtractor={(item) => item.id}
         refreshControl={
           <RefreshControl
@@ -166,7 +201,7 @@ export default function WorkerAttendanceScreen() {
           />
         }
         contentContainerStyle={styles.list}
-        ListHeaderComponent={<Text style={styles.sectionTitle}>{t('attendance.title')}</Text>}
+        ListHeaderComponent={null}
         ListEmptyComponent={
           <View style={styles.empty}>
             <Text style={styles.emptyIcon}>⏱️</Text>
@@ -265,4 +300,16 @@ const styles = StyleSheet.create({
   empty: { alignItems: 'center', paddingTop: 80, gap: 12 },
   emptyIcon: { fontSize: 40 },
   emptyText: { ...Font.body3, color: Colors.onSurfaceVariant },
+
+  tabsRow: { backgroundColor: Colors.surface, borderBottomWidth: 1, borderBottomColor: Colors.outline },
+  tabsContainer: { flexDirection: 'row', paddingHorizontal: 12, paddingVertical: 8, gap: 8 },
+  tabBtn: {
+    paddingHorizontal: 14, paddingVertical: 6,
+    borderRadius: 999, borderWidth: 1,
+    borderColor: Colors.outline,
+    backgroundColor: Colors.surface,
+  },
+  tabBtnActive: { backgroundColor: Colors.primary, borderColor: Colors.primary },
+  tabLabel: { fontSize: 13, fontWeight: '500', color: Colors.onSurfaceVariant },
+  tabLabelActive: { color: '#fff', fontWeight: '700' },
 });
