@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import {
   View, FlatList, Text, StyleSheet,
-  TouchableOpacity, RefreshControl, Alert,
+  TouchableOpacity, RefreshControl,
   Modal, TextInput, KeyboardAvoidingView, Platform,
   ScrollView, Dimensions,
 } from 'react-native';
@@ -14,6 +14,7 @@ import JobCard, { type JobCardItem } from '../../components/jobs/JobCard';
 import JobsMapView from '../../components/jobs/JobsMapView';
 import { Colors, Spacing, Radius, Font } from '../../constants/theme';
 import WorkerHeader from '../../components/WorkerHeader';
+import { showToast } from '../../lib/toast';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const CARD_GAP = 12;
@@ -112,8 +113,8 @@ export default function WorkerJobFeed() {
     } catch (e) {
       if (!append) setJobs([]);
       if (!refreshing) {
-        const msg = e instanceof ApiError ? e.message : t('jobs.load_fail');
-        Alert.alert(t('common.error'), msg, [{ text: t('common.confirm') }]);
+        const msg = e instanceof ApiError ? e.message : t('jobs.load_fail', '일자리 목록을 불러오지 못했습니다');
+        showToast({ message: msg, type: 'error' });
       }
     } finally {
       setLoading(false);

@@ -1,11 +1,12 @@
 import { useEffect, useState, useCallback } from 'react';
 import {
   View, Text, FlatList, TouchableOpacity,
-  StyleSheet, Alert, ActivityIndicator,
+  StyleSheet, ActivityIndicator,
 } from 'react-native';
 import { useLocalSearchParams } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { api } from '../../../../lib/api-client';
+import { showToast } from '../../../../lib/toast';
 
 type AttendanceStatus = 'ATTENDED' | 'ABSENT' | 'HALF_DAY' | 'PENDING';
 
@@ -57,7 +58,7 @@ export default function AttendanceScreen() {
       await api.put(`/attendance/${recordId}`, { status });
       setRecords((prev) => prev.map((r) => r.id === recordId ? { ...r, status } : r));
     } catch {
-      Alert.alert(t('common.error'), t('attendance.status_update_fail'));
+      showToast({ message: t('attendance.status_update_fail', '출결 상태 업데이트에 실패했습니다'), type: 'error' });
       // revert
       setPendingStatus((s) => {
         const next = { ...s };
@@ -72,7 +73,7 @@ export default function AttendanceScreen() {
   async function handleBulkConfirm() {
     const changes = Object.entries(pendingStatus);
     if (changes.length === 0) {
-      Alert.alert(t('common.notice'), t('common.no_changes'));
+      showToast({ message: t('common.no_changes', '변경 사항이 없습니다'), type: 'info' });
       return;
     }
 
@@ -97,9 +98,9 @@ export default function AttendanceScreen() {
               await api.post(`/jobs/${jobId}/attendance/bulk`, { records: bulkRecords });
               setPendingStatus({});
               load();
-              Alert.alert(t('common.save_complete'), t('common.bulk_save_complete'));
+              showToast({ message: t('common.bulk_save_complete', '출결이 저장되었습니다'), type: 'success' });
             } catch {
-              Alert.alert(t('common.error'), t('common.save_fail'));
+              showToast({ message: t('common.save_fail', '저장에 실패했습니다'), type: 'error' });
             }
           },
         },

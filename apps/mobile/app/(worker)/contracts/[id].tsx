@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback, useRef } from 'react';
 import {
   View, Text, ScrollView, TouchableOpacity,
-  StyleSheet, Alert, ActivityIndicator,
+  StyleSheet, ActivityIndicator,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
@@ -33,9 +33,8 @@ export default function WorkerContractScreen() {
       const data = await api.get<Contract>(`/contracts/${id}`);
       setContract(data);
     } catch {
-      Alert.alert(t('common.error'), t('contract.load_fail'), [
-        { text: t('common.confirm'), onPress: () => router.back() },
-      ]);
+      showToast({ message: t('contract.load_fail', '계약서를 불러오지 못했습니다'), type: 'error' });
+      router.back();
     } finally {
       setLoading(false);
     }

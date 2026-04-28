@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import {
   View, Text, TextInput, TouchableOpacity, StyleSheet,
-  ActivityIndicator, Alert, SafeAreaView, KeyboardAvoidingView,
+  ActivityIndicator, SafeAreaView, KeyboardAvoidingView,
   Platform, ScrollView,
 } from 'react-native';
 import { useRouter } from 'expo-router';
@@ -9,6 +9,7 @@ import { useTranslation } from 'react-i18next';
 import { useAuthStore } from '../../store/auth.store';
 import { api, ApiError } from '../../lib/api-client';
 import { Colors, Radius, Spacing, Font } from '../../constants/theme';
+import { showToast } from '../../lib/toast';
 
 type Role = 'WORKER' | 'MANAGER';
 
@@ -39,8 +40,8 @@ export default function RoleSelectScreen() {
         router.replace('/(worker)/');
       }
     } catch (err) {
-      const msg = err instanceof ApiError ? err.message : t('auth.role_register_fail');
-      Alert.alert(t('common.error'), msg);
+      const msg = err instanceof ApiError ? err.message : t('auth.role_register_fail', '역할 등록에 실패했습니다');
+      showToast({ message: msg, type: 'error' });
     } finally {
       setLoading(false);
     }

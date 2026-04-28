@@ -1,7 +1,7 @@
 import { useRef, useState } from 'react';
 import {
   View, Text, TextInput, TouchableOpacity,
-  StyleSheet, ScrollView, Alert, ActivityIndicator,
+  StyleSheet, ScrollView, ActivityIndicator,
   Platform, KeyboardAvoidingView,
 } from 'react-native';
 import { useRouter } from 'expo-router';
@@ -12,6 +12,7 @@ import {
 } from 'react-native-google-places-autocomplete';
 import { api } from '../../../lib/api-client';
 import { Colors, Spacing, Radius, Font } from '../../../constants/theme';
+import { showToast } from '../../../lib/toast';
 
 const PLACES_KEY = process.env.EXPO_PUBLIC_GOOGLE_PLACES_API_KEY ?? '';
 
@@ -56,15 +57,15 @@ export default function CreateSiteScreen() {
 
   async function handleSubmit() {
     if (!name.trim()) {
-      Alert.alert(t('common.error'), '현장명을 입력해주세요.');
+      showToast({ message: '현장명을 입력해주세요', type: 'warning' });
       return;
     }
     if (!address.trim()) {
-      Alert.alert(t('common.error'), '주소를 입력해주세요.');
+      showToast({ message: '주소를 입력해주세요', type: 'warning' });
       return;
     }
     if (!province.trim()) {
-      Alert.alert(t('common.error'), '도시/성을 입력해주세요.');
+      showToast({ message: '도시/성을 입력해주세요', type: 'warning' });
       return;
     }
 
@@ -82,7 +83,7 @@ export default function CreateSiteScreen() {
       });
       router.back();
     } catch {
-      Alert.alert(t('common.error'), t('common.process_fail'));
+      showToast({ message: t('common.process_fail', '처리 중 오류가 발생했습니다'), type: 'error' });
     } finally {
       setLoading(false);
     }

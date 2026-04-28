@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react';
 import {
   View, Text, TextInput, TouchableOpacity,
-  StyleSheet, ScrollView, Alert, ActivityIndicator, Switch,
+  StyleSheet, ScrollView, ActivityIndicator, Switch,
 } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { api, ApiError } from '../../../lib/api-client';
+import { showToast } from '../../../lib/toast';
 
 interface Benefits {
   meals: boolean;
@@ -67,7 +68,7 @@ export default function CreateJobScreen() {
           });
         }
       })
-      .catch(() => Alert.alert(t('common.error'), t('jobs.copy_error')))
+      .catch(() => showToast({ message: t('jobs.copy_error', '일자리 복사에 실패했습니다'), type: 'error' }))
       .finally(() => setPrefilling(false));
   }, [copyFrom]);
 
@@ -100,12 +101,11 @@ export default function CreateJobScreen() {
         slotsTotal: parseInt(slotsTotal, 10),
         benefits,
       });
-      Alert.alert(t('jobs.register_success_title'), t('jobs.register_success_body'), [
-        { text: t('common.confirm'), onPress: () => router.replace('/(manager)/') },
-      ]);
+      showToast({ message: t('jobs.register_success_body', '일자리 공고가 등록되었습니다'), type: 'success' });
+      router.replace('/(manager)/');
     } catch (err) {
-      const msg = err instanceof ApiError ? err.message : t('jobs.register_fail');
-      Alert.alert(t('common.error'), msg);
+      const msg = err instanceof ApiError ? err.message : t('jobs.register_fail', '일자리 등록에 실패했습니다');
+      showToast({ message: msg, type: 'error' });
     } finally {
       setLoading(false);
     }

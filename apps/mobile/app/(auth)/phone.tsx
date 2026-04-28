@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import {
   View, Text, TextInput, TouchableOpacity,
-  StyleSheet, KeyboardAvoidingView, Platform, Alert, ScrollView,
+  StyleSheet, KeyboardAvoidingView, Platform, ScrollView,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
@@ -11,6 +11,7 @@ import { useAuthStore } from '../../store/auth.store';
 import { SUPPORTED_LANGUAGES, changeAppLanguage, type LangCode } from '../../lib/i18n';
 import { Colors, Radius, Spacing, Font } from '../../constants/theme';
 import { setCurrentScreen, logEvent } from '../../lib/crashlytics';
+import { showToast } from '../../lib/toast';
 import CountryPicker from '../../components/CountryPicker';
 
 // 프로덕션 빌드 여부 — 테스트폰 분기에만 사용
@@ -64,7 +65,7 @@ export default function PhoneScreen() {
       const code = (e as any)?.code ?? (e as any)?.statusCode ?? 'unknown';
       const msg = e instanceof Error ? e.message : String(e);
       logEvent(`Auth: OTP send failed — code=${code} msg=${msg}`);
-      Alert.alert(t('common.error'), `${t('auth.otp_send_fail')}\n${msg || code}`);
+      showToast({ message: `${t('auth.otp_send_fail', 'OTP 전송에 실패했습니다')}: ${msg || code}`, type: 'error' });
     } finally {
       setLoading(false);
     }
@@ -84,7 +85,7 @@ export default function PhoneScreen() {
         return;
       }
       logEvent(`Auth: Google sign-in failed — code=${code}`);
-      Alert.alert(t('common.error'), t('auth.google_login_fail'));
+      showToast({ message: t('auth.google_login_fail', 'Google 로그인에 실패했습니다'), type: 'error' });
     } finally {
       setGoogleLoading(false);
     }

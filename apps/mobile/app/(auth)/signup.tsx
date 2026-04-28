@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import {
   View, Text, TextInput, TouchableOpacity,
-  StyleSheet, KeyboardAvoidingView, Platform, Alert, ScrollView,
+  StyleSheet, KeyboardAvoidingView, Platform, ScrollView,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
@@ -11,6 +11,7 @@ import { SUPPORTED_LANGUAGES, changeAppLanguage, type LangCode } from '../../lib
 import { Colors, Radius, Spacing, Font } from '../../constants/theme';
 import CountryPicker from '../../components/CountryPicker';
 import { logEvent } from '../../lib/crashlytics';
+import { showToast } from '../../lib/toast';
 
 export default function SignupScreen() {
   const { t, i18n } = useTranslation();
@@ -44,7 +45,7 @@ export default function SignupScreen() {
       const code = (e as any)?.code ?? (e as any)?.statusCode ?? 'unknown';
       const msg = e instanceof Error ? e.message : String(e);
       logEvent(`Auth: signup OTP send failed — code=${code} msg=${msg}`);
-      Alert.alert(t('common.error'), `${t('auth.otp_send_fail')}\n${msg || code}`);
+      showToast({ message: `${t('auth.otp_send_fail', 'OTP 전송에 실패했습니다')}: ${msg || code}`, type: 'error' });
     } finally {
       setLoading(false);
     }
@@ -64,7 +65,7 @@ export default function SignupScreen() {
         return;
       }
       logEvent(`Auth: signup Google sign-in failed — code=${code}`);
-      Alert.alert(t('common.error'), t('auth.google_login_fail'));
+      showToast({ message: t('auth.google_login_fail', 'Google 로그인에 실패했습니다'), type: 'error' });
     } finally {
       setGoogleLoading(false);
     }

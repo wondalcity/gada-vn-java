@@ -1,11 +1,12 @@
 import { useState } from 'react';
 import {
   View, Text, TextInput, TouchableOpacity,
-  StyleSheet, ScrollView, Alert, ActivityIndicator,
+  StyleSheet, ScrollView, ActivityIndicator,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { api, ApiError } from '../../lib/api-client';
+import { showToast } from '../../lib/toast';
 
 type BusinessType = 'INDIVIDUAL' | 'COMPANY';
 
@@ -30,14 +31,11 @@ export default function ManagerRegisterScreen() {
         companyName: companyName.trim() || undefined,
         contactPhone: contactPhone.trim() || undefined,
       });
-      Alert.alert(
-        t('manager.register_success_title'),
-        t('manager.register_success_body'),
-        [{ text: t('common.confirm'), onPress: () => router.replace('/(manager)/') }],
-      );
+      showToast({ message: t('manager.register_success_body', '관리자 등록이 완료되었습니다'), type: 'success' });
+      router.replace('/(manager)/');
     } catch (err) {
-      const msg = err instanceof ApiError ? err.message : t('manager.register_fail');
-      Alert.alert(t('common.error'), msg);
+      const msg = err instanceof ApiError ? err.message : t('manager.register_fail', '관리자 등록에 실패했습니다');
+      showToast({ message: msg, type: 'error' });
     } finally {
       setLoading(false);
     }

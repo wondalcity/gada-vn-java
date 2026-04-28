@@ -1,11 +1,12 @@
 import { useEffect, useState, useCallback } from 'react';
 import {
   View, Text, FlatList, TouchableOpacity,
-  StyleSheet, Alert, ActivityIndicator, RefreshControl,
+  StyleSheet, ActivityIndicator, RefreshControl,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { api, ApiError } from '../../../lib/api-client';
+import { showToast } from '../../../lib/toast';
 
 interface Application {
   id: string;
@@ -48,14 +49,12 @@ export default function ManagerJobDetailScreen() {
       await api.put(`/applications/${applicationId}/status`, { status: 'ACCEPTED' });
       // Generate contract immediately after acceptance
       const contract = await api.post<Contract>('/contracts/generate', { applicationId });
-      Alert.alert(t('jobs.accept_success_title'), t('jobs.accept_success_body'), [
-        { text: t('jobs.view_contract'), onPress: () => router.push({ pathname: '/(manager)/contracts/[id]', params: { id: contract.id } }) },
-        { text: t('common.close') },
-      ]);
+      showToast({ message: t('jobs.accept_success_body', '채용 완료. 계약서가 생성되었습니다'), type: 'success' });
+      router.push({ pathname: '/(manager)/contracts/[id]', params: { id: contract.id } });
       load();
     } catch (err) {
-      const msg = err instanceof ApiError ? err.message : t('common.process_fail');
-      Alert.alert(t('common.error'), msg);
+      const msg = err instanceof ApiError ? err.message : t('common.process_fail', '처리 중 오류가 발생했습니다');
+      showToast({ message: msg, type: 'error' });
     } finally {
       setActionLoading(null);
     }
@@ -73,7 +72,7 @@ export default function ManagerJobDetailScreen() {
             await api.put(`/applications/${applicationId}/status`, { status: 'REJECTED' });
             load();
           } catch {
-            Alert.alert(t('common.error'), t('common.process_fail'));
+            showToast({ message: t('common.process_fail', '처리 중 오류가 발생했습니다'), type: 'error' });
           } finally {
             setActionLoading(null);
           }

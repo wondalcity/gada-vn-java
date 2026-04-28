@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import {
   View, Text, TextInput, TouchableOpacity,
-  StyleSheet, Alert,
+  StyleSheet,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
@@ -11,6 +11,7 @@ import { useAuthStore } from '../../store/auth.store';
 import { syncAuthToken } from '../../lib/firebase';
 import { api } from '../../lib/api-client';
 import { Colors, Radius, Spacing, Font } from '../../constants/theme';
+import { showToast } from '../../lib/toast';
 import { setCurrentScreen, logEvent } from '../../lib/crashlytics';
 
 export default function OtpScreen() {
@@ -121,11 +122,11 @@ export default function OtpScreen() {
       logEvent(`Auth: OTP verification failed — code=${code} msg=${msg}`);
       // Firebase 오류 코드 → 사용자 메시지 매핑
       if (code === 'auth/invalid-verification-code' || code === 'auth/invalid-credential') {
-        Alert.alert(t('common.error'), t('auth.otp_error'));
+        showToast({ message: t('auth.otp_error', '인증번호가 올바르지 않습니다'), type: 'error' });
       } else if (code === 'auth/code-expired' || code === 'auth/session-expired') {
-        Alert.alert(t('common.error'), t('auth.otp_expired') ?? t('auth.otp_error'));
+        showToast({ message: t('auth.otp_expired', '인증번호가 만료되었습니다. 다시 요청해주세요'), type: 'error' });
       } else {
-        Alert.alert(t('common.error'), t('common.process_fail'));
+        showToast({ message: t('common.process_fail', '처리 중 오류가 발생했습니다'), type: 'error' });
       }
     } finally {
       setLoading(false);

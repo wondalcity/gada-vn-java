@@ -8,6 +8,7 @@ import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { api } from '../../lib/api-client';
 import { Colors, Spacing, Radius, Font } from '../../constants/theme';
+import { showToast } from '../../lib/toast';
 
 type ApplicationStatus = 'PENDING' | 'ACCEPTED' | 'REJECTED' | 'CONTRACTED';
 
@@ -92,7 +93,7 @@ export default function ManagerWorkersScreen() {
       await api.patch(`/manager/applications/${applicationId}/accept`);
       loadApplications();
     } catch {
-      Alert.alert(t('common.error'), t('manager.worker_hire_fail'));
+      showToast({ message: t('manager.worker_hire_fail', '채용 처리에 실패했습니다'), type: 'error' });
     }
   }
 
@@ -106,7 +107,7 @@ export default function ManagerWorkersScreen() {
             await api.patch(`/manager/applications/${applicationId}/reject`);
             loadApplications();
           } catch {
-            Alert.alert(t('common.error'), t('manager.worker_reject_fail'));
+            showToast({ message: t('manager.worker_reject_fail', '거절 처리에 실패했습니다'), type: 'error' });
           }
         },
       },
@@ -118,8 +119,8 @@ export default function ManagerWorkersScreen() {
     try {
       await api.post('/contracts/generate', { applicationId });
       loadApplications();
-    } catch (e) {
-      Alert.alert(t('common.error'), t('common.process_fail'));
+    } catch {
+      showToast({ message: t('common.process_fail', '처리 중 오류가 발생했습니다'), type: 'error' });
     } finally {
       setCreatingContractFor(null);
     }

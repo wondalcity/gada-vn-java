@@ -1,12 +1,13 @@
 import { useEffect, useState, useCallback } from 'react';
 import {
   View, Text, ScrollView, StyleSheet,
-  TouchableOpacity, ActivityIndicator, Alert, Modal,
+  TouchableOpacity, ActivityIndicator, Modal,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { api } from '../../../lib/api-client';
 import { Colors, Spacing, Radius, Font } from '../../../constants/theme';
+import { showToast } from '../../../lib/toast';
 
 type SiteStatus = 'ACTIVE' | 'PAUSED' | 'COMPLETED';
 type JobStatus = 'OPEN' | 'FILLED' | 'CANCELLED' | 'COMPLETED';
@@ -65,7 +66,7 @@ export default function SiteDetailScreen() {
       setSite(siteData);
       setJobs(Array.isArray(jobsData) ? jobsData : []);
     } catch {
-      Alert.alert(t('common.error'), t('common.load_fail'));
+      showToast({ message: t('common.load_fail', '정보를 불러오지 못했습니다'), type: 'error' });
     } finally {
       setLoading(false);
     }
@@ -80,7 +81,7 @@ export default function SiteDetailScreen() {
       await api.patch(`/manager/sites/${id}/status`, { status: newStatus });
       setSite(prev => prev ? { ...prev, status: newStatus } : prev);
     } catch {
-      Alert.alert(t('common.error'), t('common.process_fail'));
+      showToast({ message: t('common.process_fail', '처리 중 오류가 발생했습니다'), type: 'error' });
     } finally {
       setUpdatingStatus(false);
     }

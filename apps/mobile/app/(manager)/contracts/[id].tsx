@@ -1,10 +1,11 @@
 import { useEffect, useState, useCallback } from 'react';
 import {
-  View, Text, ScrollView, StyleSheet, ActivityIndicator, Alert,
+  View, Text, ScrollView, StyleSheet, ActivityIndicator,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { api } from '../../../lib/api-client';
+import { showToast } from '../../../lib/toast';
 
 interface Contract {
   id: string;
@@ -26,9 +27,8 @@ export default function ManagerContractScreen() {
       const data = await api.get<Contract>(`/contracts/${id}`);
       setContract(data);
     } catch {
-      Alert.alert(t('common.error'), t('contract.load_fail'), [
-        { text: t('common.confirm'), onPress: () => router.back() },
-      ]);
+      showToast({ message: t('contract.load_fail', '계약서를 불러오지 못했습니다'), type: 'error' });
+      router.back();
     } finally {
       setLoading(false);
     }

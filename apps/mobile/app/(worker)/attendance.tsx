@@ -6,6 +6,7 @@ import {
 import { api } from '../../lib/api-client';
 import { Colors, Spacing, Radius, Font } from '../../constants/theme';
 import { useTranslation } from 'react-i18next';
+import { showToast } from '../../lib/toast';
 
 type AttendanceStatus = 'PRESENT' | 'ABSENT' | 'PENDING';
 
@@ -67,7 +68,7 @@ export default function WorkerAttendanceScreen() {
       await api.post(`/attendance/${recordId}/check-in`);
       await loadRecords();
     } catch {
-      Alert.alert(t('common.error'), t('attendance.check_in_fail'));
+      showToast({ message: t('attendance.check_in_fail', '체크인에 실패했습니다'), type: 'error' });
     } finally {
       setCheckingIn(false);
     }
@@ -83,7 +84,7 @@ export default function WorkerAttendanceScreen() {
             await api.post(`/attendance/${recordId}/check-out`);
             await loadRecords();
           } catch {
-            Alert.alert(t('common.error'), t('attendance.check_out_fail'));
+            showToast({ message: t('attendance.check_out_fail', '체크아웃에 실패했습니다'), type: 'error' });
           } finally {
             setCheckingIn(false);
           }
