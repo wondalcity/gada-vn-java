@@ -6,6 +6,7 @@ import {
 import MapView, { Marker, Region, MapPressEvent } from 'react-native-maps';
 import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 import type { JobCardItem } from './JobCard';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
@@ -18,9 +19,10 @@ function formatVnd(n: number): string {
   return `₫${(n / 1000).toFixed(0)}K`;
 }
 
-function formatDate(dateStr: string): string {
+function formatDate(dateStr: string, lang: string): string {
   const d = new Date(dateStr);
-  return `${d.getMonth() + 1}/${d.getDate()}(${['일','월','화','수','목','금','토'][d.getDay()]})`;
+  const locale = lang === 'vi' ? 'vi-VN' : lang === 'en' ? 'en-US' : 'ko-KR';
+  return d.toLocaleDateString(locale, { month: 'numeric', day: 'numeric', weekday: 'short' });
 }
 
 // ── Custom wage pill marker ──────────────────────────────────────────────────
@@ -53,9 +55,12 @@ function JobCard({
   slideAnim: Animated.Value;
 }) {
   const router = useRouter();
+  const { t, i18n } = useTranslation();
   const isFull = job.status === 'FILLED' || job.slotsFilled >= job.slotsTotal;
   const remaining = job.slotsTotal - job.slotsFilled;
-  const displayTitle = job.titleKo || job.titleVi || job.title || '';
+  const displayTitle = i18n.language === 'vi'
+    ? (job.titleVi || job.titleKo || job.title || '')
+    : (job.titleKo || job.titleVi || job.title || '');
   const displaySite = job.siteName || job.siteNameKo || job.site?.name || '';
   const coverUri = job.coverImageUrl
     || (job.imageS3Keys?.[job.coverImageIdx ?? 0]
@@ -109,12 +114,12 @@ function JobCard({
             </Text>
             {remaining > 0 && !isFull && (
               <View style={styles.remainingBadge}>
-                <Text style={styles.remainingText}>잔여 {remaining}명</Text>
+                <Text style={styles.remainingText}>{t('jobs.map_remaining', { count: remaining })}</Text>
               </View>
             )}
           </View>
 
-          <Text style={styles.cardDate}>{formatDate(job.workDate instanceof Date ? job.workDate.toISOString() : (job.workDate ?? ''))}</Text>
+          <Text style={styles.cardDate}>{formatDate(job.workDate instanceof Date ? job.workDate.toISOString() : (job.workDate ?? ''), i18n.language)}</Text>
         </View>
       </View>
 
@@ -126,7 +131,7 @@ function JobCard({
         activeOpacity={0.85}
       >
         <Text style={styles.ctaBtnText}>
-          {isFull ? '마감됨' : '자세히 보기'}
+          {isFull ? t('jobs.map_view_closed') : t('jobs.map_view_detail')}
         </Text>
       </TouchableOpacity>
     </Animated.View>
@@ -143,6 +148,7 @@ interface Props {
 }
 
 export default function JobsMapView({ jobs, initialRegion, focusJobId, onFocused }: Props) {
+  const { t } = useTranslation();
   const mapRef = useRef<MapView>(null);
   const [selectedJobId, setSelectedJobId] = useState<string | null>(null);
   const slideAnim = useRef(new Animated.Value(120)).current;
@@ -255,7 +261,7 @@ export default function JobsMapView({ jobs, initialRegion, focusJobId, onFocused
 
       {/* Job count badge */}
       <View style={styles.countBadge} pointerEvents="none">
-        <Text style={styles.countText}>{jobsWithCoords.length}개 공고</Text>
+        <Text style={styles.countText}>{t('jobs.map_count', { count: jobsWithCoords.length })}</Text>
       </View>
     </View>
   );

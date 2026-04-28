@@ -1,6 +1,7 @@
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 import { Colors, Font, Radius } from '../../constants/theme';
 
 // Accepts both internal JobWithSite and public API PublicJob shapes
@@ -32,9 +33,12 @@ interface Props {
 
 export default function JobCard({ job }: Props) {
   const router = useRouter();
+  const { t, i18n } = useTranslation();
 
   const isFull = job.status === 'FILLED' || job.slotsFilled >= job.slotsTotal;
-  const displayTitle = job.titleKo || job.titleVi || job.title || job.site?.name || '';
+  const displayTitle = i18n.language === 'vi'
+    ? (job.titleVi || job.titleKo || job.title || job.site?.name || '')
+    : (job.titleKo || job.titleVi || job.title || job.site?.name || '');
   const displaySite = job.siteName || job.siteNameKo || job.site?.name || '';
   const coverUri = job.coverImageUrl
     || (job.imageS3Keys?.[job.coverImageIdx ?? 0]
@@ -46,8 +50,8 @@ export default function JobCard({ job }: Props) {
 
   // Status config matching web app
   const status = isFull
-    ? { label: '마감', bg: Colors.surfaceContainer, text: Colors.onSurfaceVariant, dot: Colors.disabled }
-    : { label: '모집 중', bg: '#E8FBE8', text: '#1A6B1A', dot: Colors.success };
+    ? { label: t('jobs.closed_label'), bg: Colors.surfaceContainer, text: Colors.onSurfaceVariant, dot: Colors.disabled }
+    : { label: t('jobs.status_open_label'), bg: '#E8FBE8', text: '#1A6B1A', dot: Colors.success };
 
   return (
     <TouchableOpacity

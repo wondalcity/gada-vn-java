@@ -57,13 +57,17 @@ const PROVINCE_QUICK_LINKS = [
 
 // Web-style job card for the home screen (matches web JobListingCard)
 function HomeJobCard({ job, onPress }: { job: Job; onPress: () => void }) {
+  const { t, i18n } = useTranslation();
   const isFull = job.status === 'FILLED' || job.slotsFilled >= job.slotsTotal;
-  const displayTitle = job.titleKo || job.titleVi || job.title || '';
+  const displayTitle = i18n.language === 'vi'
+    ? (job.titleVi || job.titleKo || job.title || '')
+    : (job.titleKo || job.titleVi || job.title || '');
   const displaySite = job.siteName || job.siteNameKo || job.site?.name || '';
   const coverUri = job.coverImageUrl
     || (job.imageS3Keys?.[job.coverImageIdx ?? 0] ? `${CDN}/${job.imageS3Keys[job.coverImageIdx ?? 0]}` : null);
+  const locale = i18n.language === 'vi' ? 'vi-VN' : i18n.language === 'en' ? 'en-US' : 'ko-KR';
   const workDate = job.workDate
-    ? new Date(job.workDate).toLocaleDateString('ko-KR', { year: 'numeric', month: 'short', day: 'numeric' })
+    ? new Date(job.workDate).toLocaleDateString(locale, { year: 'numeric', month: 'short', day: 'numeric' })
     : '';
 
   return (
@@ -87,7 +91,7 @@ function HomeJobCard({ job, onPress }: { job: Job; onPress: () => void }) {
           <Text style={styles.jobCardWage}>₫{job.dailyWage.toLocaleString()}</Text>
           <View style={[styles.statusBadge, isFull && styles.statusBadgeFull]}>
             <Text style={[styles.statusBadgeText, isFull && styles.statusBadgeTextFull]}>
-              {isFull ? '마감' : '모집 중'}
+              {isFull ? t('jobs.closed_label') : t('jobs.status_open_label')}
             </Text>
           </View>
         </View>
@@ -102,10 +106,12 @@ function HomeJobCard({ job, onPress }: { job: Job; onPress: () => void }) {
 
 // Province card for "지역별 공고 찾기" section
 function ProvinceCard({ nameKo, nameVi, onPress }: { nameKo: string; nameVi: string; onPress: () => void }) {
+  const { t, i18n } = useTranslation();
+  const displayName = i18n.language === 'vi' ? (nameVi || nameKo) : (nameKo || nameVi);
   return (
     <TouchableOpacity style={styles.provinceCard} onPress={onPress} activeOpacity={0.8}>
-      <Text style={styles.provinceCardName}>{nameKo || nameVi}</Text>
-      <Text style={styles.provinceCardLink}>공고 보기 →</Text>
+      <Text style={styles.provinceCardName}>{displayName}</Text>
+      <Text style={styles.provinceCardLink}>{t('landing.province_view_link')}</Text>
     </TouchableOpacity>
   );
 }
@@ -199,7 +205,7 @@ export default function WorkerHomeScreen() {
                 style={styles.searchInput}
                 value={searchQuery}
                 onChangeText={setSearchQuery}
-                placeholder="공고명 또는 현장명 검색..."
+                placeholder={t('landing.search_placeholder')}
                 placeholderTextColor="#9CA3AF"
                 returnKeyType="search"
                 onSubmitEditing={handleSearch}
@@ -224,7 +230,7 @@ export default function WorkerHomeScreen() {
               <Text style={styles.searchBtnText}>🔍  {t('landing.find_jobs_btn') || '검색하기'}</Text>
             </TouchableOpacity>
             <TouchableOpacity style={styles.mapBtn} onPress={handleMapView} activeOpacity={0.85}>
-              <Text style={styles.mapBtnText}>🗺  지도로 보기</Text>
+              <Text style={styles.mapBtnText}>🗺  {t('landing.map_view_btn')}</Text>
             </TouchableOpacity>
           </View>
 
@@ -267,7 +273,7 @@ export default function WorkerHomeScreen() {
       {/* ── 지역별 공고 찾기 (province cards — matches web's province grid) ── */}
       {provinces.length > 0 && (
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>지역별 공고 찾기</Text>
+          <Text style={styles.sectionTitle}>{t('landing.provinces_title')}</Text>
           <View style={styles.provinceGrid}>
             {provinces.map((p) => (
               <ProvinceCard
@@ -286,7 +292,7 @@ export default function WorkerHomeScreen() {
         <View style={styles.sectionHeader}>
           <Text style={styles.sectionTitle}>{t('landing.latest_jobs_title') || '오늘의 일자리'}</Text>
           <TouchableOpacity onPress={() => router.push('/(worker)/' as any)}>
-            <Text style={styles.viewAll}>전체 보기 →</Text>
+            <Text style={styles.viewAll}>{t('landing.view_all_link')}</Text>
           </TouchableOpacity>
         </View>
         {jobs.length === 0 ? (
@@ -314,13 +320,13 @@ export default function WorkerHomeScreen() {
       {/* ── Stats section (matches web's bg-brand-50 stats) ── */}
       <View style={styles.statsSection}>
         {[
-          { num: '5,000+', label: '등록 근로자' },
-          { num: '200+', label: '현장 관리자' },
-          { num: '₫500K', label: '최고 일당' },
-        ].map(({ num, label }) => (
-          <View key={label} style={styles.statsSectionItem}>
+          { num: '5,000+', labelKey: 'landing.stats_workers' },
+          { num: '200+', labelKey: 'landing.stats_managers' },
+          { num: '₫500K', labelKey: 'landing.stats_top_wage' },
+        ].map(({ num, labelKey }) => (
+          <View key={labelKey} style={styles.statsSectionItem}>
             <Text style={styles.statsSectionNum}>{num}</Text>
-            <Text style={styles.statsSectionLabel}>{label}</Text>
+            <Text style={styles.statsSectionLabel}>{t(labelKey)}</Text>
           </View>
         ))}
       </View>
@@ -345,9 +351,9 @@ export default function WorkerHomeScreen() {
         <TouchableOpacity style={styles.modalOverlay} activeOpacity={1} onPress={() => setShowProvincePicker(false)}>
           <View style={styles.pickerSheet} onStartShouldSetResponder={() => true}>
             <View style={styles.modalHandle} />
-            <Text style={styles.pickerSheetTitle}>지역 선택</Text>
+            <Text style={styles.pickerSheetTitle}>{t('landing.province_select')}</Text>
             <TouchableOpacity style={styles.pickerOption} onPress={() => { setSelectedProvince(''); setShowProvincePicker(false); }}>
-              <Text style={[styles.pickerOptionText, !selectedProvince && styles.pickerOptionTextActive]}>전체 지역</Text>
+              <Text style={[styles.pickerOptionText, !selectedProvince && styles.pickerOptionTextActive]}>{t('jobs.filter_province_all')}</Text>
               {!selectedProvince && <Text style={styles.pickerCheck}>✓</Text>}
             </TouchableOpacity>
             <FlatList
@@ -374,9 +380,9 @@ export default function WorkerHomeScreen() {
         <TouchableOpacity style={styles.modalOverlay} activeOpacity={1} onPress={() => setShowTradePicker(false)}>
           <View style={styles.pickerSheet} onStartShouldSetResponder={() => true}>
             <View style={styles.modalHandle} />
-            <Text style={styles.pickerSheetTitle}>직종 선택</Text>
+            <Text style={styles.pickerSheetTitle}>{t('landing.trade_select')}</Text>
             <TouchableOpacity style={styles.pickerOption} onPress={() => { setSelectedTradeId(null); setShowTradePicker(false); }}>
-              <Text style={[styles.pickerOptionText, !selectedTradeId && styles.pickerOptionTextActive]}>전체 직종</Text>
+              <Text style={[styles.pickerOptionText, !selectedTradeId && styles.pickerOptionTextActive]}>{t('jobs.filter_trade_all')}</Text>
               {!selectedTradeId && <Text style={styles.pickerCheck}>✓</Text>}
             </TouchableOpacity>
             <FlatList
@@ -388,7 +394,7 @@ export default function WorkerHomeScreen() {
                   onPress={() => { setSelectedTradeId(item.id); setShowTradePicker(false); }}
                 >
                   <Text style={[styles.pickerOptionText, selectedTradeId === item.id && styles.pickerOptionTextActive]}>
-                    {item.nameKo}
+                    {i18n.language === 'vi' ? (item.nameVi || item.nameKo) : (item.nameKo || item.nameVi)}
                   </Text>
                   {selectedTradeId === item.id && <Text style={styles.pickerCheck}>✓</Text>}
                 </TouchableOpacity>

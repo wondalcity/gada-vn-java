@@ -156,9 +156,9 @@ export default function WorkerJobFeed() {
   }
 
   const statusOptions: { value: StatusFilter; label: string; dotColor: string; bg: string; textColor: string }[] = [
-    { value: '', label: '전체', dotColor: Colors.disabled, bg: Colors.surfaceContainer, textColor: Colors.onSurfaceVariant },
-    { value: 'OPEN', label: '모집 중', dotColor: Colors.success, bg: '#E8FBE8', textColor: '#1A6B1A' },
-    { value: 'FILLED', label: '마감', dotColor: Colors.disabled, bg: Colors.surfaceContainer, textColor: Colors.onSurfaceVariant },
+    { value: '', label: t('common.all'), dotColor: Colors.disabled, bg: Colors.surfaceContainer, textColor: Colors.onSurfaceVariant },
+    { value: 'OPEN', label: t('jobs.status_open_label'), dotColor: Colors.success, bg: '#E8FBE8', textColor: '#1A6B1A' },
+    { value: 'FILLED', label: t('jobs.closed_label'), dotColor: Colors.disabled, bg: Colors.surfaceContainer, textColor: Colors.onSurfaceVariant },
   ];
 
   return (
@@ -166,7 +166,7 @@ export default function WorkerJobFeed() {
       {/* ── Top bar: job count + filter + view toggle ── */}
       <View style={styles.topBar}>
         <Text style={styles.jobCount}>
-          {loading ? '로딩 중...' : `총 ${totalCount > 0 ? totalCount : (jobs?.length ?? 0)}개 공고`}
+          {loading ? t('common.loading') : t('jobs.job_count', { count: totalCount > 0 ? totalCount : (jobs?.length ?? 0) })}
         </Text>
 
         <View style={styles.topBarRight}>
@@ -253,7 +253,7 @@ export default function WorkerJobFeed() {
             </Text></View>
           ) : null}
           <TouchableOpacity style={styles.clearAllBtn} onPress={clearAllFilters}>
-            <Text style={styles.clearAllText}>전체 해제 ✕</Text>
+            <Text style={styles.clearAllText}>{t('jobs.filter_clear_chips')}</Text>
           </TouchableOpacity>
         </ScrollView>
       )}
@@ -291,7 +291,7 @@ export default function WorkerJobFeed() {
                 </Text>
                 {isFilterActive && (
                   <TouchableOpacity style={styles.clearEmptyBtn} onPress={clearAllFilters}>
-                    <Text style={styles.clearEmptyText}>필터 초기화</Text>
+                    <Text style={styles.clearEmptyText}>{t('jobs.filter_clear_all')}</Text>
                   </TouchableOpacity>
                 )}
               </View>
@@ -326,21 +326,21 @@ export default function WorkerJobFeed() {
               keyboardShouldPersistTaps="handled"
             >
               <View style={styles.modalHandle} />
-              <Text style={styles.filterTitle}>필터</Text>
+              <Text style={styles.filterTitle}>{t('jobs.filter_title')}</Text>
 
               {/* Search */}
-              <Text style={styles.filterLabel}>검색</Text>
+              <Text style={styles.filterLabel}>{t('jobs.filter_search')}</Text>
               <TextInput
                 style={styles.filterInput}
                 value={pendingSearch}
                 onChangeText={setPendingSearch}
-                placeholder="공사명, 직종으로 검색"
+                placeholder={t('jobs.filter_name_placeholder')}
                 placeholderTextColor={Colors.disabled}
                 returnKeyType="search"
               />
 
               {/* Status */}
-              <Text style={styles.filterLabel}>모집 상태</Text>
+              <Text style={styles.filterLabel}>{t('jobs.filter_status_label')}</Text>
               <View style={styles.statusRow}>
                 {statusOptions.map(opt => (
                   <TouchableOpacity
@@ -362,14 +362,14 @@ export default function WorkerJobFeed() {
               </View>
 
               {/* Province */}
-              <Text style={styles.filterLabel}>지역</Text>
+              <Text style={styles.filterLabel}>{t('jobs.filter_province')}</Text>
               <ScrollView horizontal showsHorizontalScrollIndicator={false}>
                 <View style={styles.chipRow}>
                   <TouchableOpacity
                     style={[styles.chip, !pendingProvince && styles.chipActive]}
                     onPress={() => setPendingProvince('')}
                   >
-                    <Text style={[styles.chipText, !pendingProvince && styles.chipTextActive]}>전체</Text>
+                    <Text style={[styles.chipText, !pendingProvince && styles.chipTextActive]}>{t('common.all')}</Text>
                   </TouchableOpacity>
                   {provinces.map(p => {
                     const pKey = p.code ?? p.id ?? '';
@@ -389,14 +389,14 @@ export default function WorkerJobFeed() {
               </ScrollView>
 
               {/* Trade */}
-              <Text style={styles.filterLabel}>직종</Text>
+              <Text style={styles.filterLabel}>{t('jobs.filter_trade')}</Text>
               <ScrollView horizontal showsHorizontalScrollIndicator={false}>
                 <View style={styles.chipRow}>
                   <TouchableOpacity
                     style={[styles.chip, !pendingTradeId && styles.chipActive]}
                     onPress={() => setPendingTradeId(null)}
                   >
-                    <Text style={[styles.chipText, !pendingTradeId && styles.chipTextActive]}>전체</Text>
+                    <Text style={[styles.chipText, !pendingTradeId && styles.chipTextActive]}>{t('common.all')}</Text>
                   </TouchableOpacity>
                   {trades.map(tr => (
                     <TouchableOpacity
@@ -413,10 +413,10 @@ export default function WorkerJobFeed() {
               </ScrollView>
 
               {/* Wage */}
-              <Text style={styles.filterLabel}>일당 범위 (₫)</Text>
+              <Text style={styles.filterLabel}>{t('jobs.filter_wage_range')}</Text>
               <View style={styles.wageRow}>
                 <View style={{ flex: 1 }}>
-                  <Text style={styles.wageSubLabel}>최소</Text>
+                  <Text style={styles.wageSubLabel}>{t('jobs.filter_wage_min_label')}</Text>
                   <TextInput
                     style={styles.filterInput}
                     value={wageMin}
@@ -428,12 +428,12 @@ export default function WorkerJobFeed() {
                 </View>
                 <Text style={styles.wageDash}>–</Text>
                 <View style={{ flex: 1 }}>
-                  <Text style={styles.wageSubLabel}>최대</Text>
+                  <Text style={styles.wageSubLabel}>{t('jobs.filter_wage_max_label')}</Text>
                   <TextInput
                     style={styles.filterInput}
                     value={wageMax}
                     onChangeText={setWageMax}
-                    placeholder="제한 없음"
+                    placeholder={t('jobs.filter_wage_no_max')}
                     placeholderTextColor={Colors.disabled}
                     keyboardType="number-pad"
                   />
@@ -443,10 +443,10 @@ export default function WorkerJobFeed() {
               {/* Actions */}
               <View style={styles.filterActions}>
                 <TouchableOpacity style={styles.resetBtn} onPress={resetFilter}>
-                  <Text style={styles.resetBtnText}>초기화</Text>
+                  <Text style={styles.resetBtnText}>{t('jobs.wage_filter_reset')}</Text>
                 </TouchableOpacity>
                 <TouchableOpacity style={styles.applyBtn} onPress={applyFilter}>
-                  <Text style={styles.applyBtnText}>적용하기</Text>
+                  <Text style={styles.applyBtnText}>{t('jobs.filter_apply')}</Text>
                 </TouchableOpacity>
               </View>
             </ScrollView>
