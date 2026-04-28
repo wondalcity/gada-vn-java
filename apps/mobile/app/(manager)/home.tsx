@@ -133,7 +133,7 @@ const styles = StyleSheet.create({
   center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
 
   hero: {
-    backgroundColor: '#0669F7',
+    backgroundColor: '#1A1A2E',
     paddingHorizontal: 20,
     paddingTop: 28,
     paddingBottom: 24,

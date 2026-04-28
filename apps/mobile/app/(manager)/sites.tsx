@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import {
   View, Text, FlatList, StyleSheet,
-  TouchableOpacity, RefreshControl, ActivityIndicator,
+  TouchableOpacity, RefreshControl, ActivityIndicator, Alert,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
@@ -77,12 +77,7 @@ export default function ManagerSitesScreen() {
           <TouchableOpacity
             style={styles.card}
             activeOpacity={0.7}
-            onPress={() => {
-              Alert.alert(item.name, '이 현장에서 무엇을 하시겠습니까?', [
-                { text: t('common.cancel'), style: 'cancel' },
-                { text: '공고 등록', onPress: () => router.push({ pathname: '/(manager)/jobs/create', params: { siteId: item.id } }) },
-              ]);
-            }}
+            onPress={() => router.push({ pathname: '/(manager)/sites/[id]', params: { id: item.id } })}
           >
             <View style={styles.cardTop}>
               <View style={styles.iconBox}>

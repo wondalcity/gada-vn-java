@@ -1,8 +1,9 @@
 import { useEffect, useState, useCallback } from 'react';
 import {
   View, FlatList, Text, StyleSheet,
-  ScrollView, TouchableOpacity, RefreshControl, Alert,
+  TouchableOpacity, RefreshControl, Alert,
   Modal, TextInput, KeyboardAvoidingView, Platform,
+  ScrollView, Dimensions,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { ApiError } from '../../lib/api-client';
@@ -11,259 +12,427 @@ import { api } from '../../lib/api-client';
 import type { JobWithSite } from '@gada-vn/core';
 import JobCard from '../../components/jobs/JobCard';
 import JobsMapView from '../../components/jobs/JobsMapView';
+import { Colors, Spacing, Radius, Font } from '../../constants/theme';
+
+const { width: SCREEN_WIDTH } = Dimensions.get('window');
+const CARD_GAP = 12;
+const CARD_WIDTH = (SCREEN_WIDTH - 32 - CARD_GAP) / 2;
 
 type ViewMode = 'list' | 'map';
+type StatusFilter = '' | 'OPEN' | 'FILLED';
 
-function getDatesAround(centerDate: string, count = 7): string[] {
-  const center = new Date(centerDate);
-  return Array.from({ length: count }, (_, i) => {
-    const d = new Date(center);
-    d.setDate(center.getDate() + i - Math.floor(count / 2));
-    return d.toISOString().split('T')[0];
-  });
-}
+interface Trade { id: number; nameKo: string; nameVi?: string; }
+interface Province { code: string; id?: string; nameKo: string; nameVi?: string; }
 
 export default function WorkerJobFeed() {
   const { t, i18n } = useTranslation();
-  const { selectedDate, setSelectedDate, jobs, setJobs } = useJobStore();
+  const { jobs, setJobs } = useJobStore();
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [viewMode, setViewMode] = useState<ViewMode>('list');
   const [focusJobId, setFocusJobId] = useState<string | null>(null);
 
-  // Wage filter state
-  const [showWageFilter, setShowWageFilter] = useState(false);
-  const [wageMinInput, setWageMinInput] = useState('');
-  const [wageMaxInput, setWageMaxInput] = useState('');
+  // Filter state (pending — inside modal)
+  const [showFilterModal, setShowFilterModal] = useState(false);
+  const [pendingSearch, setPendingSearch] = useState('');
+  const [pendingTradeId, setPendingTradeId] = useState<number | null>(null);
+  const [pendingProvince, setPendingProvince] = useState('');
+  const [pendingStatus, setPendingStatus] = useState<StatusFilter>('');
+  const [wageMin, setWageMin] = useState('');
+  const [wageMax, setWageMax] = useState('');
+
+  // Applied filters
+  const [appliedSearch, setAppliedSearch] = useState('');
+  const [appliedTradeId, setAppliedTradeId] = useState<number | null>(null);
+  const [appliedProvince, setAppliedProvince] = useState('');
+  const [appliedStatus, setAppliedStatus] = useState<StatusFilter>('');
   const [appliedMin, setAppliedMin] = useState<number | null>(null);
   const [appliedMax, setAppliedMax] = useState<number | null>(null);
 
-  const isFilterActive = appliedMin !== null || appliedMax !== null;
+  const [trades, setTrades] = useState<Trade[]>([]);
+  const [provinces, setProvinces] = useState<Province[]>([]);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalCount, setTotalCount] = useState(0);
 
-  const dates = getDatesAround(selectedDate);
+  const isFilterActive = !!(appliedSearch || appliedTradeId || appliedProvince || appliedStatus || appliedMin || appliedMax);
+  const activeFilterCount = [appliedSearch, appliedTradeId, appliedProvince, appliedStatus, appliedMin ?? appliedMax].filter(Boolean).length;
 
-  function applyWageFilter() {
-    const min = wageMinInput ? parseInt(wageMinInput.replace(/,/g, ''), 10) : null;
-    const max = wageMaxInput ? parseInt(wageMaxInput.replace(/,/g, ''), 10) : null;
-    setAppliedMin(isNaN(min as number) ? null : min);
-    setAppliedMax(isNaN(max as number) ? null : max);
-    setShowWageFilter(false);
-  }
+  // Load reference data
+  useEffect(() => {
+    const locale = i18n.language === 'vi' ? 'vi' : 'ko';
+    Promise.all([
+      api.get<Trade[]>(`/public/trades?locale=${locale}`).catch(() => []),
+      api.get<Province[]>(`/public/provinces?locale=${locale}`).catch(() => []),
+    ]).then(([tr, pr]) => {
+      setTrades(Array.isArray(tr) ? tr : []);
+      setProvinces(Array.isArray(pr) ? pr : []);
+    });
+  }, [i18n.language]);
 
-  function resetWageFilter() {
-    setWageMinInput('');
-    setWageMaxInput('');
-    setAppliedMin(null);
-    setAppliedMax(null);
-    setShowWageFilter(false);
-  }
-
-  const filteredJobs = jobs.filter((job) => {
-    if (appliedMin !== null && job.dailyWage < appliedMin) return false;
-    if (appliedMax !== null && job.dailyWage > appliedMax) return false;
-    return true;
-  });
-
-  const loadJobs = useCallback(async () => {
-    setLoading(true);
+  const loadJobs = useCallback(async (pageNum = 1, append = false) => {
+    if (pageNum === 1) setLoading(true);
     try {
-      const data = await api.get<JobWithSite[]>('/jobs/date/' + selectedDate, { limit: 20 });
-      setJobs(data);
+      const params: Record<string, string | number> = {
+        page: pageNum,
+        limit: 20,
+        locale: i18n.language === 'vi' ? 'vi' : 'ko',
+      };
+      if (appliedSearch) params.q = appliedSearch;
+      if (appliedTradeId) params.tradeId = appliedTradeId;
+      if (appliedProvince) params.province = appliedProvince;
+      if (appliedStatus) params.status = appliedStatus;
+      if (appliedMin) params.minWage = appliedMin;
+      if (appliedMax) params.maxWage = appliedMax;
+
+      const { data: items, meta } = await api.getPaginated<JobWithSite>('/public/jobs', params);
+      if (meta?.totalPages) setTotalPages(meta.totalPages);
+      if (meta?.total) setTotalCount(meta.total);
+      setPage(pageNum);
+      setJobs(append ? [...jobs, ...items] : items);
     } catch (e) {
-      setJobs([]);
+      if (!append) setJobs([]);
       if (!refreshing) {
         const msg = e instanceof ApiError ? e.message : t('jobs.load_fail');
         Alert.alert(t('common.error'), msg, [{ text: t('common.confirm') }]);
       }
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
-  }, [selectedDate]);
+  }, [appliedSearch, appliedTradeId, appliedProvince, appliedStatus, appliedMin, appliedMax, i18n.language]);
 
-  useEffect(() => { loadJobs(); }, [loadJobs]);
+  useEffect(() => { loadJobs(1); }, [loadJobs]);
 
-  function formatDateLabel(dateStr: string): string {
-    const date = new Date(dateStr);
-    const today = new Date().toISOString().split('T')[0];
-    const { language } = i18n;
-    if (dateStr === today) {
-      return t('jobs.today');
-    }
-    const month = date.getMonth() + 1;
-    const day = date.getDate();
-    if (language === 'ko') {
-      const days = ['일', '월', '화', '수', '목', '금', '토'];
-      return `${month}월 ${day}일(${days[date.getDay()]})`;
-    }
-    const MONTHS = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
-    return `${String(day).padStart(2,'0')}.${MONTHS[date.getMonth()]}`;
+  function openFilter() {
+    setPendingSearch(appliedSearch);
+    setPendingTradeId(appliedTradeId);
+    setPendingProvince(appliedProvince);
+    setPendingStatus(appliedStatus);
+    setWageMin(appliedMin ? String(appliedMin) : '');
+    setWageMax(appliedMax ? String(appliedMax) : '');
+    setShowFilterModal(true);
   }
+
+  function applyFilter() {
+    setAppliedSearch(pendingSearch.trim());
+    setAppliedTradeId(pendingTradeId);
+    setAppliedProvince(pendingProvince);
+    setAppliedStatus(pendingStatus);
+    const min = wageMin ? parseInt(wageMin.replace(/,/g, ''), 10) : null;
+    const max = wageMax ? parseInt(wageMax.replace(/,/g, ''), 10) : null;
+    setAppliedMin(isNaN(min as number) ? null : min);
+    setAppliedMax(isNaN(max as number) ? null : max);
+    setShowFilterModal(false);
+  }
+
+  function resetFilter() {
+    setPendingSearch('');
+    setPendingTradeId(null);
+    setPendingProvince('');
+    setPendingStatus('');
+    setWageMin('');
+    setWageMax('');
+  }
+
+  function clearAllFilters() {
+    setAppliedSearch('');
+    setAppliedTradeId(null);
+    setAppliedProvince('');
+    setAppliedStatus('');
+    setAppliedMin(null);
+    setAppliedMax(null);
+  }
+
+  const statusOptions: { value: StatusFilter; label: string; dotColor: string; bg: string; textColor: string }[] = [
+    { value: '', label: '전체', dotColor: Colors.disabled, bg: Colors.surfaceContainer, textColor: Colors.onSurfaceVariant },
+    { value: 'OPEN', label: '모집 중', dotColor: Colors.success, bg: '#E8FBE8', textColor: '#1A6B1A' },
+    { value: 'FILLED', label: '마감', dotColor: Colors.disabled, bg: Colors.surfaceContainer, textColor: Colors.onSurfaceVariant },
+  ];
 
   return (
     <View style={styles.container}>
-      {/* ── Top bar: date slider + filter + view toggle ── */}
+      {/* ── Top bar: job count + filter + view toggle ── */}
       <View style={styles.topBar}>
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          style={styles.dateBar}
-          contentContainerStyle={styles.dateBarContent}
-        >
-          {dates.map((date) => (
-            <TouchableOpacity
-              key={date}
-              style={[styles.dateChip, date === selectedDate && styles.dateChipActive]}
-              onPress={() => setSelectedDate(date)}
-            >
-              <Text style={[styles.dateChipText, date === selectedDate && styles.dateChipTextActive]}>
-                {formatDateLabel(date)}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </ScrollView>
+        <Text style={styles.jobCount}>
+          {loading ? '로딩 중...' : `총 ${totalCount > 0 ? totalCount : jobs.length}개 공고`}
+        </Text>
 
-        {/* Wage filter button + List / Map toggle */}
-        <View style={styles.viewToggle}>
+        <View style={styles.topBarRight}>
+          {/* Filter button */}
           <TouchableOpacity
-            style={[styles.toggleBtn, isFilterActive && styles.toggleBtnFilterActive]}
-            onPress={() => {
-              setWageMinInput(appliedMin ? String(appliedMin) : '');
-              setWageMaxInput(appliedMax ? String(appliedMax) : '');
-              setShowWageFilter(true);
-            }}
+            style={[styles.filterBtn, isFilterActive && styles.filterBtnActive]}
+            onPress={openFilter}
             activeOpacity={0.8}
           >
-            <View style={styles.toggleIcon}>
-              {[0, 1, 2].map((i) => (
-                <View key={i} style={[
-                  styles.filterIconLine,
-                  { width: 16 - i * 4 },
-                  isFilterActive && styles.filterIconLineActive,
-                ]} />
+            <View style={styles.filterLines}>
+              {[16, 12, 8].map((w, i) => (
+                <View key={i} style={[styles.filterLine, { width: w }, isFilterActive && styles.filterLineActive]} />
               ))}
             </View>
+            {activeFilterCount > 0 && (
+              <View style={styles.filterBadge}>
+                <Text style={styles.filterBadgeText}>{activeFilterCount}</Text>
+              </View>
+            )}
           </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.toggleBtn, viewMode === 'list' && styles.toggleBtnActive]}
-            onPress={() => setViewMode('list')}
-            activeOpacity={0.8}
-          >
-            {/* List icon */}
-            <View style={styles.toggleIcon}>
-              {[0, 1, 2].map(i => (
-                <View key={i} style={[
-                  styles.listIconLine,
-                  viewMode === 'list' && styles.listIconLineActive,
-                ]} />
-              ))}
-            </View>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.toggleBtn, viewMode === 'map' && styles.toggleBtnActive]}
-            onPress={() => setViewMode('map')}
-            activeOpacity={0.8}
-          >
-            {/* Map pin icon */}
-            <View style={styles.toggleIcon}>
-              <View style={[styles.mapIconPin, viewMode === 'map' && styles.mapIconPinActive]} />
-            </View>
-          </TouchableOpacity>
+
+          {/* View toggle */}
+          <View style={styles.viewToggleGroup}>
+            <TouchableOpacity
+              style={[styles.viewToggleBtn, viewMode === 'list' && styles.viewToggleBtnActive]}
+              onPress={() => setViewMode('list')}
+              activeOpacity={0.8}
+            >
+              <View style={styles.listIcon}>
+                {[0, 1, 2].map(i => (
+                  <View key={i} style={[styles.listIconLine, viewMode === 'list' && styles.listIconLineActive]} />
+                ))}
+              </View>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.viewToggleBtn, viewMode === 'map' && styles.viewToggleBtnActive]}
+              onPress={() => setViewMode('map')}
+              activeOpacity={0.8}
+            >
+              <View style={[styles.mapPin, viewMode === 'map' && styles.mapPinActive]} />
+            </TouchableOpacity>
+          </View>
         </View>
       </View>
 
-      {/* ── Active filter indicator ── */}
+      {/* Active filter chips */}
       {isFilterActive && (
-        <TouchableOpacity style={styles.filterBadge} onPress={resetWageFilter} activeOpacity={0.8}>
-          <Text style={styles.filterBadgeText}>
-            {appliedMin && appliedMax
-              ? `₫${(appliedMin / 1000).toFixed(0)}K – ₫${(appliedMax / 1000).toFixed(0)}K`
-              : appliedMin
-              ? `₫${(appliedMin / 1000).toFixed(0)}K 이상`
-              : `₫${(appliedMax! / 1000).toFixed(0)}K 이하`}
-          </Text>
-          <Text style={styles.filterBadgeClear}>✕</Text>
-        </TouchableOpacity>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          style={styles.activeFilterBar}
+          contentContainerStyle={styles.activeFilterContent}
+        >
+          {appliedSearch ? (
+            <View style={styles.activeChip}><Text style={styles.activeChipText}>"{appliedSearch}"</Text></View>
+          ) : null}
+          {appliedProvince ? (
+            <View style={styles.activeChip}><Text style={styles.activeChipText}>
+              {provinces.find(p => (p.code ?? p.id) === appliedProvince)?.nameKo ?? appliedProvince}
+            </Text></View>
+          ) : null}
+          {appliedTradeId ? (
+            <View style={styles.activeChip}><Text style={styles.activeChipText}>
+              {trades.find(tr => tr.id === appliedTradeId)?.nameKo ?? String(appliedTradeId)}
+            </Text></View>
+          ) : null}
+          {appliedStatus ? (
+            <View style={styles.activeChip}><Text style={styles.activeChipText}>
+              {statusOptions.find(s => s.value === appliedStatus)?.label}
+            </Text></View>
+          ) : null}
+          {(appliedMin || appliedMax) ? (
+            <View style={styles.activeChip}><Text style={styles.activeChipText}>
+              {appliedMin && appliedMax
+                ? `₫${(appliedMin / 1000).toFixed(0)}K–₫${(appliedMax / 1000).toFixed(0)}K`
+                : appliedMin ? `₫${(appliedMin / 1000).toFixed(0)}K+`
+                : `~₫${(appliedMax! / 1000).toFixed(0)}K`}
+            </Text></View>
+          ) : null}
+          <TouchableOpacity style={styles.clearAllBtn} onPress={clearAllFilters}>
+            <Text style={styles.clearAllText}>전체 해제 ✕</Text>
+          </TouchableOpacity>
+        </ScrollView>
       )}
 
-      {/* ── Content ── */}
+      {/* Content */}
       {viewMode === 'list' ? (
         <FlatList
-          data={filteredJobs}
+          data={jobs}
           keyExtractor={(item) => item.id}
+          numColumns={2}
+          columnWrapperStyle={styles.row}
           renderItem={({ item }) => (
-            <JobCard
-              job={item}
-              onWagePress={() => {
-                setFocusJobId(item.id);
-                setViewMode('map');
-              }}
-            />
-          )}
-          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={loadJobs} colors={['#FF6B2C']} />}
-          contentContainerStyle={styles.list}
-          ListEmptyComponent={
-            <View style={styles.empty}>
-              <Text style={styles.emptyText}>{t('jobs.no_jobs_today')}</Text>
+            <View style={{ width: CARD_WIDTH }}>
+              <JobCard job={item} />
             </View>
+          )}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={() => { setRefreshing(true); loadJobs(1); }}
+              colors={[Colors.primary]}
+            />
+          }
+          contentContainerStyle={styles.list}
+          onEndReached={() => {
+            if (!loading && page < totalPages) loadJobs(page + 1, true);
+          }}
+          onEndReachedThreshold={0.3}
+          ListEmptyComponent={
+            !loading ? (
+              <View style={styles.empty}>
+                <Text style={styles.emptyIcon}>🔍</Text>
+                <Text style={styles.emptyText}>
+                  {isFilterActive ? t('jobs.no_jobs_filtered') : t('jobs.no_jobs_today')}
+                </Text>
+                {isFilterActive && (
+                  <TouchableOpacity style={styles.clearEmptyBtn} onPress={clearAllFilters}>
+                    <Text style={styles.clearEmptyText}>필터 초기화</Text>
+                  </TouchableOpacity>
+                )}
+              </View>
+            ) : null
           }
         />
       ) : (
         <JobsMapView
-          jobs={filteredJobs}
+          jobs={jobs}
           focusJobId={focusJobId}
           onFocused={() => setFocusJobId(null)}
         />
       )}
 
-      {/* ── Wage Filter Modal ── */}
+      {/* ── Filter Modal ── */}
       <Modal
-        visible={showWageFilter}
+        visible={showFilterModal}
         transparent
         animationType="slide"
-        onRequestClose={() => setShowWageFilter(false)}
+        onRequestClose={() => setShowFilterModal(false)}
       >
         <TouchableOpacity
-          style={styles.filterOverlay}
+          style={styles.modalOverlay}
           activeOpacity={1}
-          onPress={() => setShowWageFilter(false)}
+          onPress={() => setShowFilterModal(false)}
         >
           <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-            <View style={styles.filterSheet} onStartShouldSetResponder={() => true}>
-              <Text style={styles.filterSheetTitle}>{t('jobs.wage_filter_title')}</Text>
-              <View style={styles.filterRow}>
-                <View style={styles.filterInputWrap}>
-                  <Text style={styles.filterInputLabel}>{t('jobs.wage_filter_min')}</Text>
+            <ScrollView
+              style={styles.filterSheet}
+              contentContainerStyle={styles.filterSheetContent}
+              onStartShouldSetResponder={() => true}
+              keyboardShouldPersistTaps="handled"
+            >
+              <View style={styles.modalHandle} />
+              <Text style={styles.filterTitle}>필터</Text>
+
+              {/* Search */}
+              <Text style={styles.filterLabel}>검색</Text>
+              <TextInput
+                style={styles.filterInput}
+                value={pendingSearch}
+                onChangeText={setPendingSearch}
+                placeholder="공사명, 직종으로 검색"
+                placeholderTextColor={Colors.disabled}
+                returnKeyType="search"
+              />
+
+              {/* Status */}
+              <Text style={styles.filterLabel}>모집 상태</Text>
+              <View style={styles.statusRow}>
+                {statusOptions.map(opt => (
+                  <TouchableOpacity
+                    key={opt.value}
+                    style={[
+                      styles.statusBtn,
+                      pendingStatus === opt.value && styles.statusBtnActive,
+                    ]}
+                    onPress={() => setPendingStatus(opt.value)}
+                    activeOpacity={0.7}
+                  >
+                    <View style={[styles.statusDot, { backgroundColor: opt.dotColor }]} />
+                    <Text style={[
+                      styles.statusBtnText,
+                      pendingStatus === opt.value && styles.statusBtnTextActive,
+                    ]}>{opt.label}</Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+
+              {/* Province */}
+              <Text style={styles.filterLabel}>지역</Text>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                <View style={styles.chipRow}>
+                  <TouchableOpacity
+                    style={[styles.chip, !pendingProvince && styles.chipActive]}
+                    onPress={() => setPendingProvince('')}
+                  >
+                    <Text style={[styles.chipText, !pendingProvince && styles.chipTextActive]}>전체</Text>
+                  </TouchableOpacity>
+                  {provinces.map(p => {
+                    const pKey = p.code ?? p.id ?? '';
+                    return (
+                      <TouchableOpacity
+                        key={pKey}
+                        style={[styles.chip, pendingProvince === pKey && styles.chipActive]}
+                        onPress={() => setPendingProvince(pendingProvince === pKey ? '' : pKey)}
+                      >
+                        <Text style={[styles.chipText, pendingProvince === pKey && styles.chipTextActive]}>
+                          {p.nameKo}
+                        </Text>
+                      </TouchableOpacity>
+                    );
+                  })}
+                </View>
+              </ScrollView>
+
+              {/* Trade */}
+              <Text style={styles.filterLabel}>직종</Text>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                <View style={styles.chipRow}>
+                  <TouchableOpacity
+                    style={[styles.chip, !pendingTradeId && styles.chipActive]}
+                    onPress={() => setPendingTradeId(null)}
+                  >
+                    <Text style={[styles.chipText, !pendingTradeId && styles.chipTextActive]}>전체</Text>
+                  </TouchableOpacity>
+                  {trades.map(tr => (
+                    <TouchableOpacity
+                      key={tr.id}
+                      style={[styles.chip, pendingTradeId === tr.id && styles.chipActive]}
+                      onPress={() => setPendingTradeId(pendingTradeId === tr.id ? null : tr.id)}
+                    >
+                      <Text style={[styles.chipText, pendingTradeId === tr.id && styles.chipTextActive]}>
+                        {tr.nameKo}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              </ScrollView>
+
+              {/* Wage */}
+              <Text style={styles.filterLabel}>일당 범위 (₫)</Text>
+              <View style={styles.wageRow}>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.wageSubLabel}>최소</Text>
                   <TextInput
                     style={styles.filterInput}
-                    value={wageMinInput}
-                    onChangeText={setWageMinInput}
-                    placeholder={t('jobs.wage_filter_placeholder')}
-                    placeholderTextColor="#B2B2B2"
+                    value={wageMin}
+                    onChangeText={setWageMin}
+                    placeholder="0"
+                    placeholderTextColor={Colors.disabled}
                     keyboardType="number-pad"
                   />
                 </View>
-                <Text style={styles.filterSep}>–</Text>
-                <View style={styles.filterInputWrap}>
-                  <Text style={styles.filterInputLabel}>{t('jobs.wage_filter_max')}</Text>
+                <Text style={styles.wageDash}>–</Text>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.wageSubLabel}>최대</Text>
                   <TextInput
                     style={styles.filterInput}
-                    value={wageMaxInput}
-                    onChangeText={setWageMaxInput}
-                    placeholder={t('jobs.wage_filter_placeholder')}
-                    placeholderTextColor="#B2B2B2"
+                    value={wageMax}
+                    onChangeText={setWageMax}
+                    placeholder="제한 없음"
+                    placeholderTextColor={Colors.disabled}
                     keyboardType="number-pad"
                   />
                 </View>
               </View>
+
+              {/* Actions */}
               <View style={styles.filterActions}>
-                <TouchableOpacity style={styles.filterResetBtn} onPress={resetWageFilter}>
-                  <Text style={styles.filterResetText}>{t('jobs.wage_filter_reset')}</Text>
+                <TouchableOpacity style={styles.resetBtn} onPress={resetFilter}>
+                  <Text style={styles.resetBtnText}>초기화</Text>
                 </TouchableOpacity>
-                <TouchableOpacity style={styles.filterApplyBtn} onPress={applyWageFilter}>
-                  <Text style={styles.filterApplyText}>{t('jobs.wage_filter_apply')}</Text>
+                <TouchableOpacity style={styles.applyBtn} onPress={applyFilter}>
+                  <Text style={styles.applyBtnText}>적용하기</Text>
                 </TouchableOpacity>
               </View>
-            </View>
+            </ScrollView>
           </KeyboardAvoidingView>
         </TouchableOpacity>
       </Modal>
@@ -272,135 +441,127 @@ export default function WorkerJobFeed() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#F5F5F5' },
+  container: { flex: 1, backgroundColor: Colors.background },
 
+  // Top bar
   topBar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#fff',
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: '#E8E8E8',
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+    backgroundColor: Colors.surface, borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: Colors.outline, paddingHorizontal: 16, paddingVertical: 10,
   },
-  dateBar: { flex: 1, maxHeight: 56 },
-  dateBarContent: { paddingHorizontal: 12, paddingVertical: 10, gap: 8, flexDirection: 'row' },
-  dateChip: {
-    paddingHorizontal: 14, paddingVertical: 6, borderRadius: 20,
-    backgroundColor: '#F0F0F0', alignItems: 'center',
+  jobCount: { ...Font.body3, color: Colors.onSurfaceVariant, fontWeight: '500' },
+  topBarRight: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+
+  // Filter button
+  filterBtn: {
+    width: 36, height: 36, borderRadius: 8,
+    backgroundColor: Colors.surfaceContainer,
+    alignItems: 'center', justifyContent: 'center',
+    position: 'relative',
   },
-  dateChipActive: { backgroundColor: '#FF6B2C' },
-  dateChipText: { fontSize: 13, color: '#555' },
-  dateChipTextActive: { color: '#fff', fontWeight: '600' },
+  filterBtnActive: { backgroundColor: 'rgba(6,105,247,0.08)', borderWidth: 1, borderColor: Colors.primary },
+  filterLines: { gap: 3, alignItems: 'center' },
+  filterLine: { height: 2, borderRadius: 1, backgroundColor: Colors.disabled },
+  filterLineActive: { backgroundColor: Colors.primary },
+  filterBadge: {
+    position: 'absolute', top: 4, right: 4,
+    width: 14, height: 14, borderRadius: 7,
+    backgroundColor: Colors.primary, alignItems: 'center', justifyContent: 'center',
+  },
+  filterBadgeText: { color: '#fff', fontSize: 9, fontWeight: '700' },
 
   // View toggle
-  viewToggle: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 2,
-    paddingRight: 12,
-    paddingLeft: 4,
+  viewToggleGroup: {
+    flexDirection: 'row', backgroundColor: Colors.surfaceContainer,
+    borderRadius: 8, padding: 2, gap: 2,
   },
-  toggleBtn: {
-    width: 36,
-    height: 36,
-    borderRadius: 10,
-    backgroundColor: 'transparent',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  toggleBtnActive: {
-    backgroundColor: '#FFF0EB',
-  },
-  toggleIcon: {
-    width: 20,
-    height: 20,
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 3,
-  },
+  viewToggleBtn: { width: 32, height: 32, borderRadius: 6, alignItems: 'center', justifyContent: 'center' },
+  viewToggleBtnActive: { backgroundColor: Colors.surface },
+  listIcon: { gap: 3 },
+  listIconLine: { width: 16, height: 2, borderRadius: 1, backgroundColor: Colors.disabled },
+  listIconLineActive: { backgroundColor: Colors.onSurface },
+  mapPin: { width: 10, height: 14, borderRadius: 5, borderWidth: 2, borderColor: Colors.disabled },
+  mapPinActive: { borderColor: Colors.onSurface },
 
-  // List icon lines
-  listIconLine: {
-    width: 16,
-    height: 2.5,
-    borderRadius: 2,
-    backgroundColor: '#B2B2B2',
+  // Active filter bar
+  activeFilterBar: {
+    backgroundColor: 'rgba(6,105,247,0.06)', maxHeight: 40,
+    borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: Colors.outline,
   },
-  listIconLineActive: { backgroundColor: '#FF6B2C' },
-
-  // Map pin icon (simplified)
-  mapIconPin: {
-    width: 12,
-    height: 16,
-    borderRadius: 6,
-    borderWidth: 2.5,
-    borderColor: '#B2B2B2',
-    backgroundColor: 'transparent',
+  activeFilterContent: { paddingHorizontal: 12, paddingVertical: 6, gap: 6, flexDirection: 'row', alignItems: 'center' },
+  activeChip: {
+    backgroundColor: Colors.surface, borderRadius: Radius.pill,
+    paddingHorizontal: 10, paddingVertical: 2,
+    borderWidth: 1, borderColor: Colors.primary,
   },
-  mapIconPinActive: { borderColor: '#FF6B2C' },
+  activeChipText: { ...Font.caption, color: Colors.primary, fontWeight: '600' },
+  clearAllBtn: { paddingHorizontal: 8, paddingVertical: 2 },
+  clearAllText: { ...Font.caption, color: Colors.primary, fontWeight: '700' },
 
-  // List styles
-  list: { padding: 16, gap: 12 },
-  empty: { alignItems: 'center', paddingTop: 60 },
-  emptyText: { color: '#999', fontSize: 15 },
+  // List
+  list: { padding: 16, paddingBottom: 32 },
+  row: { justifyContent: 'space-between', marginBottom: 12 },
+  empty: { alignItems: 'center', paddingTop: 80, gap: 12 },
+  emptyIcon: { fontSize: 40 },
+  emptyText: { ...Font.body3, color: Colors.onSurfaceVariant, textAlign: 'center', paddingHorizontal: 32 },
+  clearEmptyBtn: { marginTop: 8, paddingHorizontal: 24, paddingVertical: 10, borderRadius: Radius.pill, backgroundColor: Colors.primary },
+  clearEmptyText: { ...Font.t4, color: '#fff', fontWeight: '700' },
 
-  // Filter button active state
-  toggleBtnFilterActive: { backgroundColor: '#FFF0EB' },
-
-  // Filter icon (funnel shape via 3 lines of decreasing width)
-  filterIconLine: {
-    height: 2.5,
-    borderRadius: 2,
-    backgroundColor: '#B2B2B2',
-  },
-  filterIconLineActive: { backgroundColor: '#FF6B2C' },
-
-  // Active filter badge
-  filterBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#FFF0EB',
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: '#FFD4C2',
-    paddingHorizontal: 16,
-    paddingVertical: 7,
-    gap: 6,
-  },
-  filterBadgeText: { fontSize: 12, color: '#FF6B2C', fontWeight: '600', flex: 1 },
-  filterBadgeClear: { fontSize: 13, color: '#FF6B2C', fontWeight: '700' },
-
-  // Filter bottom sheet
-  filterOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'flex-end' },
+  // Filter modal
+  modalOverlay: { flex: 1, backgroundColor: Colors.overlay30, justifyContent: 'flex-end' },
   filterSheet: {
-    backgroundColor: '#fff',
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    padding: 24,
-    paddingBottom: 40,
-    gap: 16,
+    backgroundColor: Colors.surface,
+    borderTopLeftRadius: 24, borderTopRightRadius: 24,
+    maxHeight: '90%',
   },
-  filterSheetTitle: { fontSize: 16, fontWeight: '700', color: '#25282A', textAlign: 'center' },
-  filterRow: { flexDirection: 'row', alignItems: 'flex-end', gap: 8 },
-  filterInputWrap: { flex: 1, gap: 4 },
-  filterInputLabel: { fontSize: 12, color: '#777', fontWeight: '500' },
+  filterSheetContent: { padding: 16, paddingBottom: 48 },
+  modalHandle: { width: 40, height: 4, borderRadius: 2, backgroundColor: Colors.outline, alignSelf: 'center', marginBottom: 12 },
+  filterTitle: { ...Font.t3, color: Colors.onSurface, textAlign: 'center', marginBottom: 16 },
+  filterLabel: { ...Font.caption, color: Colors.onSurfaceVariant, fontWeight: '600', marginTop: 16, marginBottom: 8 },
   filterInput: {
-    borderWidth: 1,
-    borderColor: '#E0E0E0',
-    borderRadius: 12,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    fontSize: 15,
-    color: '#25282A',
+    borderWidth: 1.5, borderColor: Colors.outline, borderRadius: 4,
+    paddingHorizontal: 12, paddingVertical: 10,
+    ...Font.body3, color: Colors.onSurface, backgroundColor: Colors.surface,
   },
-  filterSep: { fontSize: 18, color: '#B2B2B2', marginBottom: 10 },
-  filterActions: { flexDirection: 'row', gap: 10, marginTop: 4 },
-  filterResetBtn: {
-    flex: 1, paddingVertical: 12, borderRadius: 12,
-    borderWidth: 1, borderColor: '#E0E0E0', alignItems: 'center',
+
+  // Status
+  statusRow: { flexDirection: 'row', gap: 8 },
+  statusBtn: {
+    flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6,
+    paddingVertical: 10, borderRadius: 4,
+    borderWidth: 1.5, borderColor: Colors.outline, backgroundColor: Colors.surface,
   },
-  filterResetText: { fontSize: 14, fontWeight: '600', color: '#666' },
-  filterApplyBtn: {
-    flex: 2, paddingVertical: 12, borderRadius: 12,
-    backgroundColor: '#FF6B2C', alignItems: 'center',
+  statusBtnActive: { borderColor: Colors.primary, backgroundColor: 'rgba(6,105,247,0.06)' },
+  statusDot: { width: 8, height: 8, borderRadius: 4 },
+  statusBtnText: { ...Font.caption, color: Colors.onSurfaceVariant, fontWeight: '600' },
+  statusBtnTextActive: { color: Colors.primary },
+
+  // Chips
+  chipRow: { flexDirection: 'row', gap: 6, paddingVertical: 2 },
+  chip: {
+    paddingHorizontal: 14, paddingVertical: 7,
+    borderRadius: Radius.pill, borderWidth: 1,
+    borderColor: Colors.outline, backgroundColor: Colors.surfaceContainer,
   },
-  filterApplyText: { fontSize: 14, fontWeight: '700', color: '#fff' },
+  chipActive: { backgroundColor: Colors.primary, borderColor: Colors.primary },
+  chipText: { ...Font.caption, color: Colors.onSurfaceVariant, fontWeight: '600' },
+  chipTextActive: { color: '#fff' },
+
+  // Wage range
+  wageRow: { flexDirection: 'row', alignItems: 'flex-end', gap: 8 },
+  wageSubLabel: { ...Font.caption, color: Colors.onSurfaceVariant, marginBottom: 4 },
+  wageDash: { ...Font.body2, color: Colors.disabled, marginBottom: 10 },
+
+  // Actions
+  filterActions: { flexDirection: 'row', gap: 10, marginTop: 24 },
+  resetBtn: {
+    flex: 1, paddingVertical: 14, borderRadius: Radius.pill,
+    borderWidth: 1.5, borderColor: Colors.outline, alignItems: 'center',
+  },
+  resetBtnText: { ...Font.t4, color: Colors.onSurfaceVariant, fontWeight: '600' },
+  applyBtn: {
+    flex: 2, paddingVertical: 14, borderRadius: Radius.pill,
+    backgroundColor: Colors.primary, alignItems: 'center',
+  },
+  applyBtnText: { ...Font.t4, color: '#fff', fontWeight: '700' },
 });

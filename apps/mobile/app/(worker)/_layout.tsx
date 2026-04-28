@@ -10,17 +10,18 @@ export default function WorkerLayout() {
         tabBarActiveTintColor: '#0669F7',
         tabBarInactiveTintColor: '#98A2B2',
         tabBarStyle: { height: 60, paddingBottom: 8, backgroundColor: '#fff', borderTopColor: '#EFF1F5' },
-        headerStyle: { backgroundColor: '#0669F7' },
+        headerStyle: { backgroundColor: '#1A1A2E' },
         headerTintColor: '#fff',
       }}
     >
-      {/* 홈 — landing page */}
+      {/* 홈 — landing page (hero section acts as visual header) */}
       <Tabs.Screen
         name="home"
         options={{
           title: t('landing.home'),
           tabBarLabel: t('landing.home'),
           tabBarIcon: ({ color }) => <Text style={{ color, fontSize: 20 }}>🏠</Text>,
+          headerShown: false,
         }}
       />
 
@@ -98,6 +99,15 @@ export default function WorkerLayout() {
         options={{
           href: null,
           title: t('manager.screen_contract'),
+          headerShown: true,
+          tabBarStyle: { display: 'none' },
+        }}
+      />
+      <Tabs.Screen
+        name="profile/edit"
+        options={{
+          href: null,
+          title: t('worker.section_basic', '프로필 편집'),
           headerShown: true,
           tabBarStyle: { display: 'none' },
         }}

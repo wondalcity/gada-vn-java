@@ -18,17 +18,12 @@ export default function OtpScreen() {
   const router = useRouter();
   const {
     pendingPhone, confirmationResult,
-    devOtp, clearPendingPhone, setConfirmationResult, setDevOtp, setUser,
+    clearPendingPhone, setConfirmationResult, setDevOtp, setUser,
   } = useAuthStore();
   const [otp, setOtp] = useState('');
   const [loading, setLoading] = useState(false);
 
   useEffect(() => { setCurrentScreen('auth/otp'); }, []);
-
-  // 스테이징 devOtp 자동 입력
-  useEffect(() => {
-    if (devOtp) setOtp(devOtp);
-  }, [devOtp]);
 
   async function handleVerify() {
     if (otp.length < 6) return;
@@ -152,11 +147,6 @@ export default function OtpScreen() {
         textAlign="center"
       />
 
-      {/* 스테이징 devOtp 힌트 */}
-      {devOtp ? (
-        <Text style={styles.devHint}>개발 코드: {devOtp}</Text>
-      ) : null}
-
       <TouchableOpacity
         style={[styles.button, (loading || otp.length < 6) && styles.buttonDisabled]}
         onPress={handleVerify}
@@ -181,10 +171,6 @@ const styles = StyleSheet.create({
     borderWidth: 1.5, borderColor: Colors.outline, borderRadius: Radius.md,
     padding: Spacing.lg, fontSize: 32, letterSpacing: 8,
     marginBottom: Spacing.sm, color: Colors.onSurface,
-  },
-  devHint: {
-    ...Font.caption, color: Colors.primary, textAlign: 'center',
-    marginBottom: Spacing.xl, fontWeight: '600',
   },
   button: {
     backgroundColor: Colors.primary, borderRadius: Radius.pill,

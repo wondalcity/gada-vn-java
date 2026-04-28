@@ -10,7 +10,7 @@ export default function ManagerLayout() {
         tabBarActiveTintColor: '#0669F7',
         tabBarInactiveTintColor: '#98A2B2',
         tabBarStyle: { height: 60, paddingBottom: 8, backgroundColor: '#fff', borderTopColor: '#EFF1F5' },
-        headerStyle: { backgroundColor: '#0669F7' },
+        headerStyle: { backgroundColor: '#1A1A2E' },
         headerTintColor: '#fff',
       }}
     >
@@ -138,6 +138,15 @@ export default function ManagerLayout() {
         options={{
           href: null,
           title: '현장 등록',
+          headerShown: true,
+          tabBarStyle: { display: 'none' },
+        }}
+      />
+      <Tabs.Screen
+        name="sites/[id]"
+        options={{
+          href: null,
+          title: '현장 상세',
           headerShown: true,
           tabBarStyle: { display: 'none' },
         }}

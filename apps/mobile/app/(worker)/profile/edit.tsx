@@ -6,9 +6,9 @@ import {
 import * as ImagePicker from 'expo-image-picker';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
-import i18n, { SUPPORTED_LANGUAGES, changeAppLanguage, LangCode } from '../../lib/i18n';
-import { api, ApiError } from '../../lib/api-client';
-import { useAuthStore } from '../../store/auth.store';
+import i18n, { SUPPORTED_LANGUAGES, changeAppLanguage, LangCode } from '../../../lib/i18n';
+import { api, ApiError } from '../../../lib/api-client';
+import { useAuthStore } from '../../../store/auth.store';
 
 function formatPhone(phone: string | null | undefined): string {
   if (!phone) return '-'
@@ -23,8 +23,6 @@ function formatPhone(phone: string | null | undefined): string {
   }
   return p
 }
-
-// ── Types ────────────────────────────────────────────────────────────────────
 
 interface WorkerProfile {
   full_name: string | null;
@@ -51,8 +49,6 @@ interface WorkerProfile {
 
 type Section = 'basic' | 'bank' | 'id' | null;
 
-// ── Helpers ──────────────────────────────────────────────────────────────────
-
 async function pickImage(): Promise<string | null> {
   const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
   if (status !== 'granted') {
@@ -71,16 +67,12 @@ async function pickImage(): Promise<string | null> {
 
 async function uploadImageToApi(dataUrl: string, folder: string): Promise<string | null> {
   try {
-    // Send base64 image to API for upload
     const res = await api.post<{ key: string }>('/files/upload-base64', { dataUrl, folder });
     return res.key;
   } catch {
-    // Return dataUrl as-is if upload fails (local dev)
     return dataUrl;
   }
 }
-
-// ── Section Header ────────────────────────────────────────────────────────────
 
 function SectionHeader({
   title, icon, isOpen, onToggle, badge, badgeDone,
@@ -104,8 +96,6 @@ function SectionHeader({
     </TouchableOpacity>
   );
 }
-
-// ── Basic Info Section ────────────────────────────────────────────────────────
 
 function BasicSection({ profile, onSaved }: { profile: WorkerProfile; onSaved: (p: Partial<WorkerProfile>) => void }) {
   const { t } = useTranslation();
@@ -150,7 +140,6 @@ function BasicSection({ profile, onSaved }: { profile: WorkerProfile; onSaved: (
 
   return (
     <View style={sec.body}>
-      {/* Avatar */}
       <TouchableOpacity style={s.avatarRow} onPress={handlePickAvatar} disabled={saving} activeOpacity={0.7}>
         <View style={s.avatar}>
           {avatarUrl ? (
@@ -195,47 +184,20 @@ function BasicSection({ profile, onSaved }: { profile: WorkerProfile; onSaved: (
   );
 }
 
-// ── Vietnam Bank List ────────────────────────────────────────────────────────
-
 const VN_BANKS = [
-  { code: 'VCB',     name: 'Vietcombank',       fullName: 'Ngân hàng TMCP Ngoại thương Việt Nam' },
-  { code: 'CTG',     name: 'VietinBank',         fullName: 'Ngân hàng TMCP Công thương Việt Nam' },
-  { code: 'BIDV',    name: 'BIDV',               fullName: 'Ngân hàng TMCP Đầu tư và Phát triển Việt Nam' },
-  { code: 'AGR',     name: 'Agribank',           fullName: 'Ngân hàng Nông nghiệp và Phát triển Nông thôn' },
-  { code: 'MBB',     name: 'MB Bank',            fullName: 'Ngân hàng TMCP Quân đội' },
-  { code: 'TCB',     name: 'Techcombank',        fullName: 'Ngân hàng TMCP Kỹ thương Việt Nam' },
-  { code: 'ACB',     name: 'ACB',                fullName: 'Ngân hàng TMCP Á Châu' },
-  { code: 'VPB',     name: 'VPBank',             fullName: 'Ngân hàng TMCP Việt Nam Thịnh Vượng' },
-  { code: 'HDB',     name: 'HDBank',             fullName: 'Ngân hàng TMCP Phát triển TP. Hồ Chí Minh' },
-  { code: 'SHB',     name: 'SHB',                fullName: 'Ngân hàng TMCP Sài Gòn - Hà Nội' },
-  { code: 'TPB',     name: 'TPBank',             fullName: 'Ngân hàng TMCP Tiên Phong' },
-  { code: 'STB',     name: 'Sacombank',          fullName: 'Ngân hàng TMCP Sài Gòn Thương Tín' },
-  { code: 'VIB',     name: 'VIB',                fullName: 'Ngân hàng TMCP Quốc Tế Việt Nam' },
-  { code: 'OCB',     name: 'OCB',                fullName: 'Ngân hàng TMCP Phương Đông' },
-  { code: 'MSB',     name: 'MSB',                fullName: 'Ngân hàng TMCP Hàng Hải Việt Nam' },
-  { code: 'SEAB',    name: 'SeABank',            fullName: 'Ngân hàng TMCP Đông Nam Á' },
-  { code: 'EIB',     name: 'Eximbank',           fullName: 'Ngân hàng TMCP Xuất Nhập Khẩu Việt Nam' },
-  { code: 'NCB',     name: 'NCB',                fullName: 'Ngân hàng TMCP Quốc Dân' },
-  { code: 'PVC',     name: 'PVcomBank',          fullName: 'Ngân hàng TMCP Đại chúng Việt Nam' },
-  { code: 'ABB',     name: 'ABBank',             fullName: 'Ngân hàng TMCP An Bình' },
-  { code: 'LPB',     name: 'LienVietPostBank',   fullName: 'Ngân hàng TMCP Bưu điện Liên Việt' },
-  { code: 'BVB',     name: 'BaoViet Bank',       fullName: 'Ngân hàng TMCP Bảo Việt' },
-  { code: 'KLB',     name: 'KienlongBank',       fullName: 'Ngân hàng TMCP Kiên Long' },
-  { code: 'NAB',     name: 'NamABank',           fullName: 'Ngân hàng TMCP Nam Á' },
-  { code: 'VBB',     name: 'VietBank',           fullName: 'Ngân hàng TMCP Việt Nam Thương Tín' },
-  { code: 'SGB',     name: 'Saigonbank',         fullName: 'Ngân hàng TMCP Sài Gòn Công Thương' },
-  { code: 'BANVIET', name: 'BVBank',             fullName: 'Ngân hàng TMCP Bản Việt' },
-  { code: 'GPB',     name: 'GPBank',             fullName: 'Ngân hàng TM TNHH MTV Dầu khí toàn cầu' },
-  { code: 'OJB',     name: 'OceanBank',          fullName: 'Ngân hàng TM TNHH MTV Đại Dương' },
-  { code: 'COOP',    name: 'Co-opBank',          fullName: 'Ngân hàng Hợp tác xã Việt Nam' },
-  { code: 'WOO',     name: 'Woori Bank',         fullName: 'Ngân hàng Woori Việt Nam' },
-  { code: 'SHINHAN', name: 'Shinhan Bank',       fullName: 'Ngân hàng Shinhan Việt Nam' },
-  { code: 'KBHN',    name: 'KB Kookmin Bank',    fullName: 'Ngân hàng KB Kookmin Việt Nam' },
-  { code: 'HSBC',    name: 'HSBC',               fullName: 'Ngân hàng HSBC Việt Nam' },
-  { code: 'SCBVN',   name: 'Standard Chartered', fullName: 'Ngân hàng Standard Chartered Việt Nam' },
+  { code: 'VCB', name: 'Vietcombank', fullName: 'Ngân hàng TMCP Ngoại thương Việt Nam' },
+  { code: 'CTG', name: 'VietinBank', fullName: 'Ngân hàng TMCP Công thương Việt Nam' },
+  { code: 'BIDV', name: 'BIDV', fullName: 'Ngân hàng TMCP Đầu tư và Phát triển Việt Nam' },
+  { code: 'AGR', name: 'Agribank', fullName: 'Ngân hàng Nông nghiệp và Phát triển Nông thôn' },
+  { code: 'MBB', name: 'MB Bank', fullName: 'Ngân hàng TMCP Quân đội' },
+  { code: 'TCB', name: 'Techcombank', fullName: 'Ngân hàng TMCP Kỹ thương Việt Nam' },
+  { code: 'ACB', name: 'ACB', fullName: 'Ngân hàng TMCP Á Châu' },
+  { code: 'VPB', name: 'VPBank', fullName: 'Ngân hàng TMCP Việt Nam Thịnh Vượng' },
+  { code: 'TPB', name: 'TPBank', fullName: 'Ngân hàng TMCP Tiên Phong' },
+  { code: 'STB', name: 'Sacombank', fullName: 'Ngân hàng TMCP Sài Gòn Thương Tín' },
+  { code: 'WOO', name: 'Woori Bank', fullName: 'Ngân hàng Woori Việt Nam' },
+  { code: 'SHINHAN', name: 'Shinhan Bank', fullName: 'Ngân hàng Shinhan Việt Nam' },
 ];
-
-// ── Bank Section ──────────────────────────────────────────────────────────────
 
 function BankSection({ profile, onSaved }: { profile: WorkerProfile; onSaved: (p: Partial<WorkerProfile>) => void }) {
   const { t } = useTranslation();
@@ -286,8 +248,6 @@ function BankSection({ profile, onSaved }: { profile: WorkerProfile; onSaved: (p
   return (
     <View style={sec.body}>
       <FieldLabel label={t('worker.field_bank_name')} />
-
-      {/* Bank picker button */}
       <TouchableOpacity
         style={[s.input, s.bankSelectBtn]}
         onPress={() => { setBankSearch(''); setBankSheetVisible(true); }}
@@ -299,23 +259,11 @@ function BankSection({ profile, onSaved }: { profile: WorkerProfile; onSaved: (p
         <Text style={s.bankSelectChevron}>▾</Text>
       </TouchableOpacity>
 
-      {/* Bank picker bottom sheet */}
-      <Modal
-        visible={bankSheetVisible}
-        transparent
-        animationType="slide"
-        onRequestClose={() => setBankSheetVisible(false)}
-      >
-        <TouchableOpacity
-          style={s.modalOverlay}
-          activeOpacity={1}
-          onPress={() => setBankSheetVisible(false)}
-        >
+      <Modal visible={bankSheetVisible} transparent animationType="slide" onRequestClose={() => setBankSheetVisible(false)}>
+        <TouchableOpacity style={s.modalOverlay} activeOpacity={1} onPress={() => setBankSheetVisible(false)}>
           <View style={s.bankSheet} onStartShouldSetResponder={() => true}>
             <View style={s.bankSheetHandle} />
             <Text style={s.modalTitle}>은행 선택</Text>
-
-            {/* Search input */}
             <TextInput
               style={s.bankSearchInput}
               value={bankSearch}
@@ -324,7 +272,6 @@ function BankSection({ profile, onSaved }: { profile: WorkerProfile; onSaved: (p
               placeholderTextColor="#C0C4CF"
               autoCorrect={false}
             />
-
             <FlatList
               data={filteredBanks}
               keyExtractor={b => b.code}
@@ -346,9 +293,7 @@ function BankSection({ profile, onSaved }: { profile: WorkerProfile; onSaved: (p
                   </TouchableOpacity>
                 );
               }}
-              ListEmptyComponent={
-                <Text style={s.bankEmptyText}>검색 결과가 없습니다</Text>
-              }
+              ListEmptyComponent={<Text style={s.bankEmptyText}>검색 결과가 없습니다</Text>}
             />
           </View>
         </TouchableOpacity>
@@ -370,8 +315,6 @@ function BankSection({ profile, onSaved }: { profile: WorkerProfile; onSaved: (p
     </View>
   );
 }
-
-// ── ID Section ────────────────────────────────────────────────────────────────
 
 function IdSection({ profile, onSaved }: { profile: WorkerProfile; onSaved: (p: Partial<WorkerProfile>) => void }) {
   const { t } = useTranslation();
@@ -414,11 +357,9 @@ function IdSection({ profile, onSaved }: { profile: WorkerProfile; onSaved: (p: 
           <Text style={s.verifiedText}>{t('worker.id_verified')}</Text>
         </View>
       )}
-
       <FieldLabel label={t('worker.field_id_number')} />
       <TextInput style={s.input} value={idNumber} onChangeText={setIdNumber} placeholder={t('worker.field_id_number_placeholder')} placeholderTextColor="#C0C4CF" />
       <SaveBtn saving={saving} onPress={handleSaveNumber} label={t('worker.number_save')} />
-
       <View style={{ height: 12 }} />
       <FieldLabel label={t('worker.field_id_photo')} />
       <View style={s.idPhotoRow}>
@@ -448,8 +389,6 @@ function IdSection({ profile, onSaved }: { profile: WorkerProfile; onSaved: (p: 
   );
 }
 
-// ── Shared UI ─────────────────────────────────────────────────────────────────
-
 function FieldLabel({ label }: { label: string }) {
   return <Text style={s.fieldLabel}>{label}</Text>;
 }
@@ -467,8 +406,6 @@ function SaveBtn({ saving, onPress, label }: { saving: boolean; onPress: () => v
   );
 }
 
-// ── Completion bar ────────────────────────────────────────────────────────────
-
 function CompletionBar({ profile }: { profile: WorkerProfile }) {
   const { t } = useTranslation();
   const checks = [
@@ -477,24 +414,21 @@ function CompletionBar({ profile }: { profile: WorkerProfile }) {
   ];
   const done = checks.filter(Boolean).length;
   const pct = Math.round((done / checks.length) * 100);
-  const barColor = '#0669F7';
   return (
     <View style={s.completionWrap}>
       <View style={s.completionRow}>
         <Text style={s.completionLabel}>{t('worker.profile_completion')}</Text>
-        <Text style={[s.completionPct, { color: barColor }]}>{pct}%</Text>
+        <Text style={[s.completionPct, { color: '#0669F7' }]}>{pct}%</Text>
       </View>
       <View style={s.completionTrack}>
-        <View style={[s.completionFill, { width: `${pct}%` as any, backgroundColor: barColor }]} />
+        <View style={[s.completionFill, { width: `${pct}%` as any, backgroundColor: '#0669F7' }]} />
       </View>
       <Text style={s.completionSub}>{t('worker.completion_items', { done, total: checks.length })}</Text>
     </View>
   );
 }
 
-// ── Main ──────────────────────────────────────────────────────────────────────
-
-export default function WorkerProfileScreen() {
+export default function WorkerProfileEditScreen() {
   const { t } = useTranslation();
   const router = useRouter();
   const { isManager } = useAuthStore();
@@ -567,7 +501,6 @@ export default function WorkerProfileScreen() {
           </View>
         </View>
 
-        {/* Basic Info */}
         <View style={sec.card}>
           <SectionHeader
             title={t('worker.section_basic')}
@@ -580,7 +513,6 @@ export default function WorkerProfileScreen() {
           {openSection === 'basic' && <BasicSection profile={p} onSaved={handleSaved} />}
         </View>
 
-        {/* Bank */}
         <View style={sec.card}>
           <SectionHeader
             title={t('worker.section_bank')}
@@ -593,7 +525,6 @@ export default function WorkerProfileScreen() {
           {openSection === 'bank' && <BankSection profile={p} onSaved={handleSaved} />}
         </View>
 
-        {/* ID */}
         <View style={sec.card}>
           <SectionHeader
             title={t('worker.section_id')}
@@ -606,30 +537,11 @@ export default function WorkerProfileScreen() {
           {openSection === 'id' && <IdSection profile={p} onSaved={handleSaved} />}
         </View>
 
-        {/* Signature - navigate to existing signature screen */}
-        <TouchableOpacity
-          style={[sec.card, { paddingVertical: 4 }]}
-          onPress={() => router.push('/(worker)/work')}
-          activeOpacity={0.7}
-        >
-          <View style={sec.header}>
-            <View style={sec.headerLeft}>
-              <Text style={sec.icon}>✍️</Text>
-              <Text style={sec.title}>{t('worker.section_signature')}</Text>
-              {p.signature_url && (
-                <View style={sec.badge}><Text style={sec.badgeText}>{t('worker.badge_registered')}</Text></View>
-              )}
-            </View>
-            <Text style={sec.arrow}>›</Text>
-          </View>
-        </TouchableOpacity>
-
-        {/* Settings rows */}
         <View style={sec.card}>
           {[
-            { label: t('profile.push_notifications'), icon: '🔔', onPress: undefined },
-            { label: t('profile.terms'), icon: '📄', onPress: undefined },
-            { label: t('profile.privacy'), icon: '🔒', onPress: undefined },
+            { label: t('profile.push_notifications'), icon: '🔔' },
+            { label: t('profile.terms'), icon: '📄' },
+            { label: t('profile.privacy'), icon: '🔒' },
           ].map((item, i) => (
             <TouchableOpacity key={item.label} style={[sec.header, i > 0 && { borderTopWidth: 0.5, borderColor: '#F2F4F5' }]} activeOpacity={0.7}>
               <View style={sec.headerLeft}>
@@ -654,7 +566,6 @@ export default function WorkerProfileScreen() {
           </TouchableOpacity>
         </View>
 
-        {/* Language selection modal */}
         <Modal visible={langModalVisible} transparent animationType="slide" onRequestClose={() => setLangModalVisible(false)}>
           <TouchableOpacity style={s.modalOverlay} activeOpacity={1} onPress={() => setLangModalVisible(false)}>
             <View style={s.modalSheet}>
@@ -692,8 +603,6 @@ export default function WorkerProfileScreen() {
     </KeyboardAvoidingView>
   );
 }
-
-// ── Styles ────────────────────────────────────────────────────────────────────
 
 const sec = StyleSheet.create({
   card: { backgroundColor: '#fff', borderRadius: 16, marginBottom: 12, overflow: 'hidden' },
@@ -767,7 +676,6 @@ const s = StyleSheet.create({
   langLabel: { fontSize: 15, fontWeight: '600', color: '#25282A', flex: 1 },
   langLabelActive: { color: '#0669F7' },
   langCheck: { fontSize: 16, color: '#0669F7', fontWeight: '700' },
-  // Bank picker
   bankSelectBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   bankSelectText: { fontSize: 14, color: '#25282A', flex: 1 },
   bankSelectPlaceholder: { fontSize: 14, color: '#C0C4CF', flex: 1 },

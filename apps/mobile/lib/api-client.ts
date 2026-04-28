@@ -81,9 +81,49 @@ async function request<T>(
   return camelizeKeys<T>(json.data);
 }
 
+async function requestPaginated<T>(
+  path: string,
+  params?: Record<string, string | number | boolean | undefined>,
+): Promise<{ data: T[]; meta: { total: number; page: number; totalPages: number } }> {
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+    'Accept-Language': 'ko',
+  };
+  const token = await getAuthToken();
+  if (token) headers['Authorization'] = `Bearer ${token}`;
+
+  let url = `${BASE_URL}${path}`;
+  if (params) {
+    const query = Object.entries(params)
+      .filter(([, v]) => v !== undefined)
+      .map(([k, v]) => `${k}=${encodeURIComponent(String(v))}`)
+      .join('&');
+    if (query) url += `?${query}`;
+  }
+
+  const response = await fetch(url, { method: 'GET', headers });
+  const json = await response.json();
+
+  if (!response.ok) {
+    const message = json.message || 'Request failed';
+    recordApiError('GET', path, response.status, message);
+    throw new ApiError(response.status, message);
+  }
+
+  const data = camelizeKeys<T[]>(json.data);
+  const meta = camelizeKeys<{ total: number; page: number; totalPages: number }>(json.meta ?? {
+    total: Array.isArray(json.data) ? json.data.length : 0,
+    page: 1,
+    totalPages: 1,
+  });
+  return { data, meta };
+}
+
 export const api = {
   get: <T>(path: string, params?: Record<string, string | number | boolean | undefined>) =>
     request<T>('GET', path, { params }),
+  getPaginated: <T>(path: string, params?: Record<string, string | number | boolean | undefined>) =>
+    requestPaginated<T>(path, params),
   post: <T>(path: string, body?: unknown) => request<T>('POST', path, { body }),
   put: <T>(path: string, body?: unknown) => request<T>('PUT', path, { body }),
   patch: <T>(path: string, body?: unknown) => request<T>('PATCH', path, { body }),

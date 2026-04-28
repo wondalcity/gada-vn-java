@@ -309,12 +309,12 @@ const styles = StyleSheet.create({
     width: 88,
     height: 88,
     borderRadius: 14,
-    backgroundColor: '#3186FF',
+    backgroundColor: '#0669F7',
     overflow: 'hidden',
   },
   cardImagePlaceholder: {
     flex: 1,
-    backgroundColor: '#D0E4FF',
+    backgroundColor: '#FFE4D4',
     opacity: 0.5,
   },
   cardInfo: {

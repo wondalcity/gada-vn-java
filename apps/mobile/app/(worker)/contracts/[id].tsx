@@ -59,7 +59,7 @@ export default function WorkerContractScreen() {
   }
 
   if (loading) {
-    return <View style={styles.center}><ActivityIndicator size="large" color="#FF6B2C" /></View>;
+    return <View style={styles.center}><ActivityIndicator size="large" color="#0669F7" /></View>;
   }
   if (!contract) return null;
 
@@ -268,7 +268,7 @@ const sig = StyleSheet.create({
   },
   cancelBtnText: { color: '#555', fontWeight: '600' },
   confirmBtn: {
-    flex: 1, backgroundColor: '#FF6B2C', borderRadius: 10,
+    flex: 1, backgroundColor: '#0669F7', borderRadius: 10,
     paddingVertical: 12, alignItems: 'center',
   },
   confirmBtnDisabled: { backgroundColor: '#ccc' },

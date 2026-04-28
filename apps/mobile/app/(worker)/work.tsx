@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import {
   View, Text, FlatList, StyleSheet,
-  TouchableOpacity, RefreshControl, ActivityIndicator,
+  TouchableOpacity, RefreshControl, ActivityIndicator, Alert,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
@@ -19,7 +19,10 @@ interface MyApplication {
   dailyWage: number;
   status: WorkStatus;
   contractId?: string;
+  contractStatus?: string;
 }
+
+type TabKey = WorkStatus | 'ALL';
 
 function formatDate(dateStr: string): string {
   const d = new Date(dateStr);
@@ -35,25 +38,28 @@ function formatVnd(n: number): string {
 export default function WorkerWorkScreen() {
   const { t } = useTranslation();
   const router = useRouter();
-  const [activeTab, setActiveTab] = useState<WorkStatus>('PENDING');
+  const [activeTab, setActiveTab] = useState<TabKey>('ALL');
 
-  const TAB_LABELS: { key: WorkStatus; label: string }[] = [
+  const TAB_LABELS: { key: TabKey; label: string }[] = [
+    { key: 'ALL',        label: t('common.all') },
     { key: 'PENDING',    label: t('worker.work_tab_applied') },
     { key: 'ACCEPTED',   label: t('worker.work_tab_hired') },
     { key: 'CONTRACTED', label: t('worker.work_tab_completed') },
+    { key: 'WITHDRAWN',  label: t('worker.work_tab_withdrawn') },
   ];
 
   const STATUS_CONFIG: Record<WorkStatus, { bg: string; text: string; label: string }> = {
-    PENDING:    { bg: Colors.primaryContainer, text: Colors.primary,           label: t('worker.work_status_applied') },
+    PENDING:    { bg: Colors.primaryContainer, text: Colors.primary,            label: t('worker.work_status_applied') },
     ACCEPTED:   { bg: Colors.successContainer, text: Colors.onSuccessContainer, label: t('worker.work_status_hired') },
-    CONTRACTED: { bg: '#E6F9E6',               text: '#1A6B1A',                 label: t('worker.work_status_completed') },
-    REJECTED:   { bg: Colors.errorContainer,   text: Colors.onErrorContainer,   label: '거절됨' },
-    WITHDRAWN:  { bg: Colors.surfaceContainer, text: Colors.onSurfaceVariant,   label: '취소됨' },
+    CONTRACTED: { bg: Colors.primaryContainer,  text: Colors.primaryDark,        label: t('worker.work_status_completed') },
+    REJECTED:   { bg: Colors.errorContainer,   text: Colors.onErrorContainer,   label: t('worker.work_status_rejected') },
+    WITHDRAWN:  { bg: Colors.surfaceContainer, text: Colors.onSurfaceVariant,   label: t('worker.work_status_withdrawn') },
   };
 
   const [allApplications, setAllApplications] = useState<MyApplication[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [withdrawingId, setWithdrawingId] = useState<string | null>(null);
 
   const loadApplications = useCallback(async () => {
     try {
@@ -74,12 +80,41 @@ export default function WorkerWorkScreen() {
     loadApplications();
   }
 
-  const filtered = allApplications.filter((j) => j.status === activeTab);
+  async function handleWithdraw(id: string) {
+    Alert.alert(
+      t('worker.withdraw_title'),
+      t('worker.withdraw_body'),
+      [
+        { text: t('common.cancel'), style: 'cancel' },
+        {
+          text: t('worker.withdraw_confirm'), style: 'destructive',
+          onPress: async () => {
+            setWithdrawingId(id);
+            try {
+              await api.delete(`/applications/${id}`);
+              await loadApplications();
+            } catch {
+              Alert.alert(t('common.error'), t('common.process_fail'));
+            } finally {
+              setWithdrawingId(null);
+            }
+          },
+        },
+      ],
+    );
+  }
 
-  const counts = {
+  const filtered = activeTab === 'ALL'
+    ? allApplications
+    : allApplications.filter((j) => j.status === activeTab);
+
+  const counts: Record<TabKey, number> = {
+    ALL:        allApplications.length,
     PENDING:    allApplications.filter(j => j.status === 'PENDING').length,
     ACCEPTED:   allApplications.filter(j => j.status === 'ACCEPTED').length,
     CONTRACTED: allApplications.filter(j => j.status === 'CONTRACTED').length,
+    REJECTED:   allApplications.filter(j => j.status === 'REJECTED').length,
+    WITHDRAWN:  allApplications.filter(j => j.status === 'WITHDRAWN').length,
   };
 
   if (loading) {
@@ -93,7 +128,7 @@ export default function WorkerWorkScreen() {
   return (
     <View style={styles.container}>
       {/* Tab bar */}
-      <View style={styles.tabs}>
+      <View style={styles.tabsRow}>
         {TAB_LABELS.map(({ key, label }) => (
           <TouchableOpacity
             key={key}
@@ -102,9 +137,9 @@ export default function WorkerWorkScreen() {
           >
             <Text style={[styles.tabText, activeTab === key && styles.tabTextActive]}>
               {label}
-              {counts[key as keyof typeof counts] > 0 && (
+              {counts[key] > 0 && (
                 <Text style={activeTab === key ? styles.tabCountActive : styles.tabCount}>
-                  {' '}{counts[key as keyof typeof counts]}
+                  {' '}{counts[key]}
                 </Text>
               )}
             </Text>
@@ -123,19 +158,17 @@ export default function WorkerWorkScreen() {
         ListEmptyComponent={
           <View style={styles.empty}>
             <Text style={styles.emptyIcon}>📋</Text>
-            <Text style={styles.emptyText}>
-              {activeTab === 'PENDING' ? t('worker.no_applied_jobs')
-               : activeTab === 'ACCEPTED' ? t('worker.no_hired_jobs')
-               : t('worker.no_completed_jobs')}
-            </Text>
+            <Text style={styles.emptyText}>{t('worker.no_applications')}</Text>
           </View>
         }
         renderItem={({ item }) => {
           const cfg = STATUS_CONFIG[item.status] ?? { bg: Colors.surfaceContainer, text: Colors.onSurfaceVariant, label: item.status };
+          const isFullySigned = !!item.contractId && item.contractStatus === 'FULLY_SIGNED';
           return (
             <TouchableOpacity
               style={styles.card}
               onPress={() => router.push({ pathname: '/(worker)/jobs/[id]', params: { id: item.jobId } })}
+              activeOpacity={0.8}
             >
               <View style={styles.cardTop}>
                 <Text style={styles.cardTitle} numberOfLines={2}>{item.jobTitle}</Text>
@@ -154,15 +187,32 @@ export default function WorkerWorkScreen() {
                 <Text style={styles.wage}>{formatVnd(item.dailyWage)}</Text>
               </View>
 
-              {item.status === 'ACCEPTED' && item.contractId && (
+              {/* Contract view button — ACCEPTED or CONTRACTED with contract */}
+              {(item.status === 'ACCEPTED' || item.status === 'CONTRACTED') && item.contractId && (
                 <TouchableOpacity
-                  style={styles.contractBtn}
+                  style={[styles.actionBtn, isFullySigned && styles.actionBtnGreen]}
                   onPress={(e) => {
                     e.stopPropagation();
                     router.push({ pathname: '/(worker)/contracts/[id]', params: { id: item.contractId! } });
                   }}
                 >
-                  <Text style={styles.contractBtnText}>{t('worker.view_contract')}</Text>
+                  <Text style={styles.actionBtnText}>{t('worker.view_contract')}</Text>
+                </TouchableOpacity>
+              )}
+
+              {/* Withdraw button — PENDING only */}
+              {item.status === 'PENDING' && (
+                <TouchableOpacity
+                  style={styles.withdrawBtn}
+                  onPress={(e) => {
+                    e.stopPropagation();
+                    handleWithdraw(item.id);
+                  }}
+                  disabled={withdrawingId === item.id}
+                >
+                  <Text style={styles.withdrawBtnText}>
+                    {withdrawingId === item.id ? t('common.loading') : t('worker.withdraw_button')}
+                  </Text>
                 </TouchableOpacity>
               )}
             </TouchableOpacity>
@@ -177,21 +227,21 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: Colors.background },
   center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
 
-  tabs: {
+  tabsRow: {
     flexDirection: 'row',
     backgroundColor: Colors.surface,
     borderBottomWidth: 1,
     borderBottomColor: Colors.outline,
-    paddingHorizontal: Spacing.lg,
+    paddingHorizontal: Spacing.sm,
   },
   tab: {
-    paddingVertical: 14,
-    paddingHorizontal: Spacing.md,
+    paddingVertical: 13,
+    paddingHorizontal: Spacing.sm,
     position: 'relative',
   },
   tabActive: {},
-  tabText: { ...Font.t4, color: Colors.onSurfaceVariant },
-  tabTextActive: { color: Colors.primary },
+  tabText: { ...Font.caption, color: Colors.onSurfaceVariant, fontWeight: '500' },
+  tabTextActive: { color: Colors.primary, fontWeight: '700' },
   tabCount: { color: Colors.onSurfaceVariant },
   tabCountActive: { color: Colors.primary },
   tabIndicator: {
@@ -222,13 +272,24 @@ const styles = StyleSheet.create({
   metaText: { ...Font.caption, color: Colors.onSurfaceVariant },
   wage: { ...Font.t3, color: Colors.primary },
 
-  contractBtn: {
+  actionBtn: {
     marginTop: 4,
     paddingTop: Spacing.sm,
     borderTopWidth: 1,
     borderTopColor: Colors.outline,
+    alignItems: 'center',
   },
-  contractBtnText: { ...Font.body3, color: Colors.primary, fontWeight: '600' },
+  actionBtnGreen: { borderTopColor: '#86EFAC' },
+  actionBtnText: { ...Font.body3, color: Colors.primary, fontWeight: '600' },
+
+  withdrawBtn: {
+    marginTop: 4,
+    paddingTop: Spacing.sm,
+    borderTopWidth: 1,
+    borderTopColor: Colors.outline,
+    alignItems: 'center',
+  },
+  withdrawBtnText: { ...Font.body3, color: Colors.onSurfaceVariant },
 
   empty: { alignItems: 'center', paddingTop: 80, gap: 12 },
   emptyIcon: { fontSize: 40 },

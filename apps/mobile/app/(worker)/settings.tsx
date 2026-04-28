@@ -87,9 +87,9 @@ const styles = StyleSheet.create({
   rowValue: { fontSize: 14, color: '#98A2B2' },
   logoutBtn: {
     margin: 24, padding: 16, borderRadius: 12,
-    borderWidth: 1, borderColor: '#FF6B2C', alignItems: 'center',
+    borderWidth: 1, borderColor: '#0669F7', alignItems: 'center',
   },
-  logoutText: { color: '#FF6B2C', fontSize: 16, fontWeight: '600' },
+  logoutText: { color: '#0669F7', fontSize: 16, fontWeight: '600' },
   overlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'flex-end' },
   sheet: {
     backgroundColor: '#fff', borderTopLeftRadius: 20, borderTopRightRadius: 20,

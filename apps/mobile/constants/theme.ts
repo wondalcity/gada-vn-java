@@ -1,13 +1,27 @@
 // GADA VN Design System — Mobile Theme
-// Source: docs/figma/design-tokens.md
+// Source: packages/ui/tokens.json (Figma l9T36IlqSYGhGxAiRseRV7)
+// Primary = #0669F7 (blue, MD3 primary role)
+// Brand = #FF6B2C (orange, web landing/wages/status display only)
 
 export const Colors = {
-  // Primary (Blue B-40)
+  // Primary (Blue — GADA design system MD3 primary)
   primary: '#0669F7',
   primaryDark: '#0454C5',
   primaryLight: '#3186FF',
   primaryContainer: '#C1DAFF',
   onPrimary: '#FFFFFF',
+  onPrimaryContainer: '#072857',
+
+  // Brand (Orange — wages, hero CTA, "모집 중" badge only)
+  brand: '#FF6B2C',
+  brandDark: '#E54D0D',
+  brandLight: '#FF844E',
+  brandContainer: '#FFE4D4',
+
+  // Construction (dark hero, aligned with web app)
+  constructionDark: '#1A1A2E',
+  constructionMid: '#2D2D44',
+  constructionLight: '#4A4A6A',
 
   // Secondary (Yellow Y-40) — worker badges
   secondary: '#FDBC08',
@@ -27,16 +41,16 @@ export const Colors = {
   onErrorContainer: '#540C0E',
 
   // Neutral (N scale)
-  onSurface: '#25282A',      // N-10 primary text
+  onSurface: '#25282A',        // N-10 primary text
   onSurfaceVariant: '#7A7B7A', // N-50 secondary text
-  disabled: '#B2B2B2',       // N-70
-  outline: '#DDDDDD',        // N-90
+  disabled: '#B2B2B2',         // N-70
+  outline: '#DDDDDD',          // N-90
   surfaceContainer: '#F2F2F2', // N-95
-  surfaceDim: '#F8F8FA',     // N-99
-  surface: '#FFFFFF',        // N-100
+  surfaceDim: '#F8F8FA',       // N-99
+  surface: '#FFFFFF',          // N-100
 
   // Background
-  background: '#F5F7FA',     // NV-99
+  background: '#F5F7FA',       // NV-99
 
   // Shadows / overlays
   shadowBlack: '#000000',
@@ -49,11 +63,11 @@ export const Colors = {
 } as const;
 
 export const Radius = {
-  xs: 4,   // cards, inputs
-  sm: 8,
+  xs: 4,
+  sm: 4,    // GADA design system: default = 4px
   md: 12,
   lg: 16,
-  pill: 24, // CTA buttons, chips
+  pill: 24, // GADA design system: pill = 24px
   full: 999,
 } as const;
 

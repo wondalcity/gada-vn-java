@@ -1,71 +1,71 @@
-import { View, Text, TouchableOpacity, StyleSheet, Alert } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Dimensions } from 'react-native';
 import { Image } from 'expo-image';
-import { useTranslation } from 'react-i18next';
 import { useRouter } from 'expo-router';
 import type { JobWithSite } from '@gada-vn/core';
-import { api } from '../../lib/api-client';
+import { Colors, Font, Radius } from '../../constants/theme';
 
 interface Props {
   job: JobWithSite;
-  onWagePress?: () => void;
 }
 
-export default function JobCard({ job, onWagePress }: Props) {
-  const { t } = useTranslation();
+export default function JobCard({ job }: Props) {
   const router = useRouter();
 
   const isFull = job.slotsFilled >= job.slotsTotal;
   const coverImage = job.imageS3Keys?.[job.coverImageIdx ?? 0];
+  const workDate = job.workDate
+    ? new Date(job.workDate).toLocaleDateString('ko-KR', { month: 'numeric', day: 'numeric' })
+    : '';
 
-  async function handleApply() {
-    try {
-      await api.post(`/jobs/${job.id}/apply`);
-      Alert.alert(t('jobs.apply_success_title'), t('jobs.apply_success_short'));
-    } catch (err) {
-      Alert.alert(t('common.error'), t('jobs.apply_fail_short'));
-    }
-  }
+  // Status config matching web app
+  const status = isFull
+    ? { label: '마감', bg: Colors.surfaceContainer, text: Colors.onSurfaceVariant, dot: Colors.disabled }
+    : { label: '모집 중', bg: '#E8FBE8', text: '#1A6B1A', dot: Colors.success };
 
   return (
     <TouchableOpacity
       style={styles.card}
       onPress={() => router.push({ pathname: '/(worker)/jobs/[id]', params: { id: job.id } })}
+      activeOpacity={0.85}
     >
-      {coverImage && (
-        <Image
-          source={{ uri: `${process.env.EXPO_PUBLIC_CDN_URL}/${coverImage}` }}
-          style={styles.image}
-          contentFit="cover"
-          transition={200}
-        />
-      )}
-
-      <View style={styles.body}>
-        <Text style={styles.siteName}>{job.site?.name ?? job.title}</Text>
-        <Text style={styles.address} numberOfLines={1}>{job.site?.address}</Text>
-
-        <View style={styles.meta}>
-          <TouchableOpacity onPress={onWagePress} activeOpacity={onWagePress ? 0.65 : 1} disabled={!onWagePress}>
-            <Text style={styles.wage}>₫{job.dailyWage.toLocaleString()}</Text>
-          </TouchableOpacity>
-          {job.distanceKm !== undefined && (
-            <Text style={styles.distance}>{t('jobs.distance', { km: job.distanceKm.toFixed(1) })}</Text>
-          )}
+      {/* Square cover image */}
+      <View style={styles.imageWrap}>
+        {coverImage ? (
+          <Image
+            source={{ uri: `${process.env.EXPO_PUBLIC_CDN_URL}/${coverImage}` }}
+            style={StyleSheet.absoluteFill}
+            contentFit="cover"
+            transition={200}
+          />
+        ) : (
+          <View style={styles.imagePlaceholder}>
+            <Text style={{ fontSize: 28 }}>🏗️</Text>
+          </View>
+        )}
+        {/* Status badge */}
+        <View style={[styles.statusBadge, { backgroundColor: status.bg }]}>
+          <View style={[styles.statusDot, { backgroundColor: status.dot }]} />
+          <Text style={[styles.statusText, { color: status.text }]}>{status.label}</Text>
         </View>
+      </View>
 
+      {/* Card body */}
+      <View style={styles.body}>
+        {/* Site / title */}
+        <Text style={styles.title} numberOfLines={2}>{job.site?.name ?? job.title}</Text>
+
+        {/* Address */}
+        {(job.site?.address) ? (
+          <Text style={styles.address} numberOfLines={1}>{job.site.address}</Text>
+        ) : null}
+
+        {/* Wage */}
+        <Text style={styles.wage}>₫{job.dailyWage.toLocaleString()}</Text>
+
+        {/* Date + Slots */}
         <View style={styles.footer}>
-          <Text style={styles.slots}>
-            {t('jobs.slots', { filled: job.slotsFilled, total: job.slotsTotal })}
-          </Text>
-          <TouchableOpacity
-            style={[styles.applyBtn, isFull && styles.closedBtn]}
-            onPress={isFull ? undefined : handleApply}
-            disabled={isFull}
-          >
-            <Text style={styles.applyBtnText}>
-              {isFull ? t('jobs.closed_button') : t('jobs.apply_button')}
-            </Text>
-          </TouchableOpacity>
+          {workDate ? <Text style={styles.footerText}>📅 {workDate}</Text> : null}
+          <Text style={styles.footerText}>👷 {job.slotsFilled}/{job.slotsTotal}</Text>
         </View>
       </View>
     </TouchableOpacity>
@@ -74,19 +74,38 @@ export default function JobCard({ job, onWagePress }: Props) {
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: '#fff', borderRadius: 16, overflow: 'hidden',
-    shadowColor: '#000', shadowOpacity: 0.08, shadowRadius: 8, elevation: 3,
+    backgroundColor: Colors.surface,
+    borderRadius: 16,
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOpacity: 0.07,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 2,
   },
-  image: { width: '100%', height: 160 },
-  body: { padding: 16 },
-  siteName: { fontSize: 17, fontWeight: '700', color: '#1A1A1A', marginBottom: 4 },
-  address: { fontSize: 13, color: '#888', marginBottom: 8 },
-  meta: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 12 },
-  wage: { fontSize: 18, fontWeight: '800', color: '#FF6B2C' },
-  distance: { fontSize: 13, color: '#666', alignSelf: 'center' },
-  footer: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  slots: { fontSize: 13, color: '#888' },
-  applyBtn: { backgroundColor: '#FF6B2C', borderRadius: 8, paddingVertical: 8, paddingHorizontal: 16 },
-  closedBtn: { backgroundColor: '#ccc' },
-  applyBtnText: { color: '#fff', fontWeight: '600', fontSize: 14 },
+  imageWrap: {
+    aspectRatio: 1,
+    backgroundColor: Colors.surfaceContainer,
+    position: 'relative',
+  },
+  imagePlaceholder: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#EEF1F6',
+  },
+  statusBadge: {
+    position: 'absolute', top: 8, right: 8,
+    flexDirection: 'row', alignItems: 'center', gap: 4,
+    paddingHorizontal: 8, paddingVertical: 3,
+    borderRadius: Radius.pill,
+  },
+  statusDot: { width: 6, height: 6, borderRadius: 3 },
+  statusText: { fontSize: 10, fontWeight: '700' },
+  body: { padding: 10, gap: 3 },
+  title: { ...Font.t4, color: Colors.onSurface, lineHeight: 18 },
+  address: { fontSize: 11, color: Colors.onSurfaceVariant, lineHeight: 15 },
+  wage: { fontSize: 15, fontWeight: '800', color: Colors.brand, marginTop: 4 },
+  footer: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 2 },
+  footerText: { fontSize: 10, color: Colors.onSurfaceVariant },
 });

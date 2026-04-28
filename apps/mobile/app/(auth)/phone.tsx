@@ -13,7 +13,7 @@ import { Colors, Radius, Spacing, Font } from '../../constants/theme';
 import { setCurrentScreen, logEvent } from '../../lib/crashlytics';
 import CountryPicker from '../../components/CountryPicker';
 
-// 프로덕션 빌드 여부 — EXPO_PUBLIC_APP_ENV=production 일 때만 Firebase SMS 사용
+// 프로덕션 빌드 여부 — 테스트폰 분기에만 사용
 const IS_PRODUCTION = process.env.EXPO_PUBLIC_APP_ENV === 'production';
 
 export default function PhoneScreen() {
@@ -45,7 +45,6 @@ export default function PhoneScreen() {
           // 테스트폰 → 서버 OTP (000000 고정)
           await api.post('/auth/otp/send', { phone: fullNumber });
           setPendingPhone(fullNumber);
-          setDevOtp(null); // 프로덕션 테스트폰은 000000 고정 (힌트 불필요)
           logEvent('Auth: test phone — server OTP');
         } else {
           // 일반폰 → Firebase Phone Auth (실제 SMS 발송)
@@ -54,13 +53,13 @@ export default function PhoneScreen() {
           logEvent('Auth: normal phone — Firebase SMS');
         }
       } else {
-        // 스테이징: 모든 번호에 서버 OTP (devOtp 화면 표시)
-        const resp = await api.post<{ message?: string; devOtp?: string; isTest?: boolean }>(
+        // 스테이징: 서버 OTP (Firebase SMS 불필요)
+        const res = await api.post<{ message: string; devOtp?: string }>(
           '/auth/otp/send', { phone: fullNumber },
         );
         setPendingPhone(fullNumber);
-        setDevOtp(resp?.devOtp ?? null);
-        logEvent('Auth: staging — server OTP');
+        if (res?.devOtp) setDevOtp(res.devOtp);
+        logEvent(`Auth: staging — server OTP${res?.devOtp ? ' (devOtp available)' : ''}`);
       }
 
       router.push('/(auth)/otp');
