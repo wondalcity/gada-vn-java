@@ -3,7 +3,7 @@ import {
   View, Text, TouchableOpacity, StyleSheet, Animated,
   Dimensions, Platform,
 } from 'react-native';
-import MapView, { Marker, Region, MapPressEvent } from 'react-native-maps';
+import MapView, { Marker, Region, MapPressEvent, PROVIDER_GOOGLE } from 'react-native-maps';
 import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
@@ -220,6 +220,7 @@ export default function JobsMapView({ jobs, initialRegion, focusJobId, onFocused
     <View style={styles.container}>
       <MapView
         ref={mapRef}
+        provider={PROVIDER_GOOGLE}
         style={StyleSheet.absoluteFill}
         initialRegion={defaultRegion}
         onPress={handleMapPress}

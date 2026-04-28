@@ -197,6 +197,9 @@ importers:
       react-native-gesture-handler:
         specifier: ~2.16.1
         version: 2.16.2(react-native@0.74.5(@babel/core@7.29.0)(@babel/preset-env@7.29.2(@babel/core@7.29.0))(@types/react@18.3.28)(react@18.2.0))(react@18.2.0)
+      react-native-google-places-autocomplete:
+        specifier: ^2.6.4
+        version: 2.6.4(react-native@0.74.5(@babel/core@7.29.0)(@babel/preset-env@7.29.2(@babel/core@7.29.0))(@types/react@18.3.28)(react@18.2.0))
       react-native-maps:
         specifier: 1.14.0
         version: 1.14.0(react-native@0.74.5(@babel/core@7.29.0)(@babel/preset-env@7.29.2(@babel/core@7.29.0))(@types/react@18.3.28)(react@18.2.0))(react@18.2.0)
@@ -7495,6 +7498,11 @@ packages:
       react: '*'
       react-native: '*'
 
+  react-native-google-places-autocomplete@2.6.4:
+    resolution: {integrity: sha512-/DjXEa20doSJYiykqLbTAPL3GtIHVRdjpAoPpxnLXK6uFi103wdqXZoqXnKdqlov/lJLIO8Wex6GIu6MZz3Osw==}
+    peerDependencies:
+      react-native: '>= 0.59'
+
   react-native-helmet-async@2.0.4:
     resolution: {integrity: sha512-m3CkXWss6B1dd6mCMleLpzDCJJGGaHOLQsUzZv8kAASJmMfmVT4d2fx375iXKTRWT25ThBfae3dECuX5cq/8hg==}
     peerDependencies:
@@ -7534,6 +7542,10 @@ packages:
     resolution: {integrity: sha512-8KbZ35yS2nchunk47mQ4lz8JQyvOgLs2rOX45TzqIcFSSIsmCMvbiqLzGH0gLYNq/A5s0Xg+CupzcOfvO5pjRA==}
     peerDependencies:
       react-native-webview: '>=13'
+
+  react-native-uuid@2.0.4:
+    resolution: {integrity: sha512-LSJNeh559qC17fgVPBsWuTSW/OygFp2dwTcf94IQBLYft5FzIQS9pCsuT36OPvyvDOMb6yiGr6TafaJDnz9PPQ==}
+    engines: {node: '>=18.0.0', npm: '>=9.0.0'}
 
   react-native-webview@13.16.1:
     resolution: {integrity: sha512-If0eHhoEdOYDcHsX+xBFwHMbWBGK1BvGDQDQdVkwtSIXiq1uiqjkpWVP2uQ1as94J0CzvFE9PUNDuhiX0Z6ubw==}
@@ -18365,6 +18377,13 @@ snapshots:
       react: 18.2.0
       react-native: 0.74.5(@babel/core@7.29.0)(@babel/preset-env@7.29.2(@babel/core@7.29.0))(@types/react@18.3.28)(react@18.2.0)
 
+  react-native-google-places-autocomplete@2.6.4(react-native@0.74.5(@babel/core@7.29.0)(@babel/preset-env@7.29.2(@babel/core@7.29.0))(@types/react@18.3.28)(react@18.2.0)):
+    dependencies:
+      lodash.debounce: 4.0.8
+      qs: 6.15.0
+      react-native: 0.74.5(@babel/core@7.29.0)(@babel/preset-env@7.29.2(@babel/core@7.29.0))(@types/react@18.3.28)(react@18.2.0)
+      react-native-uuid: 2.0.4
+
   react-native-helmet-async@2.0.4(react@18.2.0):
     dependencies:
       invariant: 2.2.4
@@ -18409,6 +18428,8 @@ snapshots:
   react-native-signature-canvas@4.7.4(react-native-webview@13.16.1(react-native@0.74.5(@babel/core@7.29.0)(@babel/preset-env@7.29.2(@babel/core@7.29.0))(@types/react@18.3.28)(react@18.2.0))(react@18.2.0)):
     dependencies:
       react-native-webview: 13.16.1(react-native@0.74.5(@babel/core@7.29.0)(@babel/preset-env@7.29.2(@babel/core@7.29.0))(@types/react@18.3.28)(react@18.2.0))(react@18.2.0)
+
+  react-native-uuid@2.0.4: {}
 
   react-native-webview@13.16.1(react-native@0.74.5(@babel/core@7.29.0)(@babel/preset-env@7.29.2(@babel/core@7.29.0))(@types/react@18.3.28)(react@18.2.0))(react@18.2.0):
     dependencies:
