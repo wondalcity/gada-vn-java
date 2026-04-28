@@ -35,6 +35,23 @@ jobs:
       - name: Install JS dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Bump versionCode (run_number + offset)
+        id: version
+        run: |
+          BASE=$(node -p "require('./apps/mobile/app.json').expo.android.versionCode")
+          # Use whichever is larger: current app.json value or run_number+offset
+          # Offset = 57 so CI builds never collide with manually-bumped builds
+          CI_CODE=$(( ${{ github.run_number }} + 57 ))
+          VERSION_CODE=$(( CI_CODE > BASE ? CI_CODE : BASE + 1 ))
+          echo "version_code=$VERSION_CODE" >> $GITHUB_OUTPUT
+          node -e "
+            const fs = require('fs');
+            const j = JSON.parse(fs.readFileSync('apps/mobile/app.json', 'utf8'));
+            j.expo.android.versionCode = $VERSION_CODE;
+            fs.writeFileSync('apps/mobile/app.json', JSON.stringify(j, null, 2) + '\n');
+          "
+          echo "versionCode set to $VERSION_CODE"
+
       - name: Write google-services.json
         run: |
           echo "${{ secrets.GOOGLE_SERVICES_JSON }}" | base64 -d \
@@ -119,7 +136,7 @@ jobs:
         run: |
           NOTES="${{ github.event.inputs.release_notes }}"
           if [ -z "$NOTES" ]; then
-            VERSION_CODE=$(node -e "console.log(require('./apps/mobile/app.json').expo.android.versionCode)")
+            VERSION_CODE=${{ steps.version.outputs.version_code }}
             COMMITS=$(git log --pretty=format:"- %s" -5)
             NOTES=$(printf '[versionCode %s] %s @ %s\n\n%s' \
               "$VERSION_CODE" "${{ github.ref_name }}" "${GITHUB_SHA::8}" "$COMMITS")
@@ -127,6 +144,7 @@ jobs:
           npx --yes firebase-tools appdistribution:distribute \
             apps/mobile/android/app/build/outputs/apk/release/app-release.apk \
             --app "1:359319234631:android:199915ce689bcad8c0a962" \
+            --testers "kyle@worksmate.co.kr,wondalcity@gmail.com" \
             --release-notes "$NOTES"
 
       - name: Upload APK artifact
