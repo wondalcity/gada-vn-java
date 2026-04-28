@@ -120,13 +120,13 @@ export default function WorkerSettings() {
         <Text style={styles.sectionLabel}>{t('profile.section_legal', '약관 및 정책')}</Text>
       </View>
       <View style={styles.card}>
-        <TouchableOpacity style={styles.row} activeOpacity={0.7}>
+        <TouchableOpacity style={styles.row} activeOpacity={0.7} onPress={() => Linking.openURL('http://54.255.223.214:3000/terms/vi')}>
           <Text style={styles.rowIcon}>📄</Text>
           <Text style={styles.rowLabel}>{t('profile.terms', '이용약관')}</Text>
           <Text style={styles.rowChevron}>›</Text>
         </TouchableOpacity>
         <View style={styles.divider} />
-        <TouchableOpacity style={styles.row} activeOpacity={0.7}>
+        <TouchableOpacity style={styles.row} activeOpacity={0.7} onPress={() => Linking.openURL('http://54.255.223.214:3000/policy/vi')}>
           <Text style={styles.rowIcon}>🔒</Text>
           <Text style={styles.rowLabel}>{t('profile.privacy', '개인정보보호방침')}</Text>
           <Text style={styles.rowChevron}>›</Text>
