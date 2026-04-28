@@ -81,7 +81,7 @@ fi
 mkdir -p "$SECRETS_DIR"
 chmod 700 "$SECRETS_DIR"
 echo "$FIREBASE_CREDENTIALS_B64" | base64 -d > "$SECRETS_DIR/firebase-service-account.json"
-chmod 600 "$SECRETS_DIR/firebase-service-account.json"
+chmod 644 "$SECRETS_DIR/firebase-service-account.json"
 log "Firebase credentials written to $SECRETS_DIR/firebase-service-account.json"
 
 # ── .env.api (Spring Boot API) ────────────────────────────────────────────────
