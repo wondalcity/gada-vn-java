@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "GADA VN 2",
-    "slug": "gada-vn",
+    "slug": "gada-vn-2",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -17,7 +17,7 @@
       "supportsTablet": false,
       "bundleIdentifier": "com.wondalcity.gadavn",
       "buildNumber": "1",
-      "googleServicesFile": "./GoogleService-Info.plist",
+      "googleServicesFile": "$GOOGLE_SERVICES_PLIST",
       "infoPlist": {
         "NSLocationWhenInUseUsageDescription": "가다 VN needs your location to show nearby construction jobs.",
         "NSCameraUsageDescription": "Used to capture ID documents and profile photos.",
@@ -71,7 +71,7 @@
     "scheme": "gadavn",
     "extra": {
       "eas": {
-        "projectId": "your-eas-project-id"
+        "projectId": "2b00710c-cb6d-4e3c-8650-dba16dae313c"
       }
     }
   }
