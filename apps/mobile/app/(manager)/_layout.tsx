@@ -1,7 +1,37 @@
 import { Tabs, useRouter } from 'expo-router';
-import { Text, TouchableOpacity, View, StyleSheet } from 'react-native';
+import { Text, TouchableOpacity, View, StyleSheet, Platform } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { Colors } from '../../constants/theme';
+
+function BackBtn() {
+  const router = useRouter();
+  return (
+    <TouchableOpacity
+      onPress={() => router.back()}
+      hitSlop={8}
+      activeOpacity={0.6}
+      style={{ paddingHorizontal: Platform.OS === 'ios' ? 8 : 4, paddingVertical: 4 }}
+    >
+      <Text style={{ fontSize: Platform.OS === 'ios' ? 32 : 24, lineHeight: Platform.OS === 'ios' ? 34 : 26, color: Colors.primary, fontWeight: Platform.OS === 'ios' ? '300' : '400' }}>
+        {Platform.OS === 'ios' ? '‹' : '←'}
+      </Text>
+    </TouchableOpacity>
+  );
+}
+
+function CloseBtn() {
+  const router = useRouter();
+  return (
+    <TouchableOpacity
+      onPress={() => router.back()}
+      hitSlop={8}
+      activeOpacity={0.6}
+      style={{ paddingHorizontal: Platform.OS === 'ios' ? 12 : 4, paddingVertical: 4 }}
+    >
+      <Text style={{ fontSize: 18, color: Colors.onSurface, lineHeight: 22 }}>✕</Text>
+    </TouchableOpacity>
+  );
+}
 
 function GadaLogo() {
   return (
@@ -99,46 +129,46 @@ export default function ManagerLayout() {
           tabBarIcon: ({ color }) => <Text style={{ color, fontSize: 20 }}>📄</Text>,
         }}
       />
-      {/* ── Hidden screens ── */}
+      {/* ── Hidden screens (platform-native back / close buttons) ── */}
       <Tabs.Screen
         name="notifications"
-        options={{ href: null, title: t('manager.tab_notifications'), headerShown: true, tabBarStyle: { display: 'none' } }}
+        options={{ href: null, title: t('manager.tab_notifications'), headerShown: true, tabBarStyle: { display: 'none' }, headerLeft: () => <BackBtn /> }}
       />
       <Tabs.Screen
         name="settings"
-        options={{ href: null, title: t('profile.settings'), headerShown: true, tabBarStyle: { display: 'none' } }}
+        options={{ href: null, title: t('profile.settings'), headerShown: true, tabBarStyle: { display: 'none' }, headerLeft: () => <BackBtn /> }}
       />
       <Tabs.Screen
         name="profile"
-        options={{ href: null, title: t('manager.profile_title'), headerShown: true, tabBarStyle: { display: 'none' } }}
+        options={{ href: null, title: t('manager.profile_title'), headerShown: true, tabBarStyle: { display: 'none' }, headerLeft: () => <BackBtn /> }}
       />
       <Tabs.Screen
         name="jobs/[id]"
-        options={{ href: null, title: t('manager.screen_job_detail'), headerShown: true, tabBarStyle: { display: 'none' } }}
+        options={{ href: null, title: t('manager.screen_job_detail'), headerShown: true, tabBarStyle: { display: 'none' }, headerLeft: () => <BackBtn /> }}
       />
       <Tabs.Screen
         name="jobs/[id]/attendance"
-        options={{ href: null, title: t('manager.screen_attendance'), headerShown: true, tabBarStyle: { display: 'none' } }}
+        options={{ href: null, title: t('manager.screen_attendance'), headerShown: true, tabBarStyle: { display: 'none' }, headerLeft: () => <BackBtn /> }}
       />
       <Tabs.Screen
         name="jobs/create"
-        options={{ href: null, title: t('manager.screen_create_job'), headerShown: true, tabBarStyle: { display: 'none' } }}
+        options={{ href: null, title: t('manager.screen_create_job'), headerShown: true, tabBarStyle: { display: 'none' }, headerLeft: () => <CloseBtn /> }}
       />
       <Tabs.Screen
         name="contracts/[id]"
-        options={{ href: null, title: t('manager.screen_contract'), headerShown: true, tabBarStyle: { display: 'none' } }}
+        options={{ href: null, title: t('manager.screen_contract'), headerShown: true, tabBarStyle: { display: 'none' }, headerLeft: () => <BackBtn /> }}
       />
       <Tabs.Screen
         name="register"
-        options={{ href: null, title: t('manager.screen_register'), headerShown: true, tabBarStyle: { display: 'none' } }}
+        options={{ href: null, title: t('manager.screen_register'), headerShown: true, tabBarStyle: { display: 'none' }, headerLeft: () => <CloseBtn /> }}
       />
       <Tabs.Screen
         name="sites/create"
-        options={{ href: null, title: '현장 등록', headerShown: true, tabBarStyle: { display: 'none' } }}
+        options={{ href: null, title: '현장 등록', headerShown: true, tabBarStyle: { display: 'none' }, headerLeft: () => <CloseBtn /> }}
       />
       <Tabs.Screen
         name="sites/[id]"
-        options={{ href: null, title: '현장 상세', headerShown: true, tabBarStyle: { display: 'none' } }}
+        options={{ href: null, title: '현장 상세', headerShown: true, tabBarStyle: { display: 'none' }, headerLeft: () => <BackBtn /> }}
       />
     </Tabs>
   );

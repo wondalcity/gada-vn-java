@@ -5,8 +5,50 @@ import {
 } from 'react-native';
 import MapView, { Marker, Region, MapPressEvent, PROVIDER_GOOGLE } from 'react-native-maps';
 
-// react-native-maps native module이 로드되지 않은 경우 안전하게 처리
-const SafeMapView = MapView as typeof MapView | undefined;
+// ── Error boundary: prevents map native-module crashes from killing the app ──
+class MapErrorBoundary extends React.Component<
+  { children: React.ReactNode },
+  { hasError: boolean; errorMessage: string }
+> {
+  state = { hasError: false, errorMessage: '' };
+
+  static getDerivedStateFromError(error: Error) {
+    return { hasError: true, errorMessage: error.message };
+  }
+
+  componentDidCatch(error: Error) {
+    console.warn('[JobsMapView] native crash caught by boundary:', error.message);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <View style={ebStyles.container}>
+          <Text style={ebStyles.icon}>🗺️</Text>
+          <Text style={ebStyles.title}>지도를 사용할 수 없습니다</Text>
+          <Text style={ebStyles.sub}>Google Maps 서비스를 불러오지 못했습니다</Text>
+          <TouchableOpacity
+            style={ebStyles.retry}
+            onPress={() => this.setState({ hasError: false, errorMessage: '' })}
+            activeOpacity={0.8}
+          >
+            <Text style={ebStyles.retryText}>다시 시도</Text>
+          </TouchableOpacity>
+        </View>
+      );
+    }
+    return this.props.children;
+  }
+}
+
+const ebStyles = StyleSheet.create({
+  container: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 8, padding: 32, backgroundColor: '#F5F7FA' },
+  icon: { fontSize: 48 },
+  title: { fontSize: 16, fontWeight: '700', color: '#25282A', textAlign: 'center' },
+  sub: { fontSize: 13, color: '#7A7B7A', textAlign: 'center' },
+  retry: { marginTop: 8, paddingHorizontal: 24, paddingVertical: 10, borderRadius: 999, backgroundColor: '#0669F7' },
+  retryText: { color: '#fff', fontWeight: '700', fontSize: 14 },
+});
 import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
@@ -224,64 +266,54 @@ export default function JobsMapView({ jobs, initialRegion, focusJobId, onFocused
     if (selectedJobId) deselectJob();
   }, [selectedJobId, deselectJob]);
 
-  // MapView native module이 로드되지 않은 환경 (에뮬레이터, Google Play Services 미설치 등) 방어
-  if (!SafeMapView) {
-    return (
-      <View style={[styles.container, { alignItems: 'center', justifyContent: 'center' }]}>
-        <Text style={{ color: '#888', fontSize: 14 }}>{t('jobs.map_unavailable', '지도를 사용할 수 없습니다')}</Text>
-      </View>
-    );
-  }
-
   return (
-    <View style={styles.container}>
-      <SafeMapView
-        ref={mapRef as React.RefObject<InstanceType<typeof MapView>>}
-        provider={PROVIDER_GOOGLE}
-        style={StyleSheet.absoluteFill}
-        initialRegion={defaultRegion}
-        onPress={handleMapPress}
-        showsUserLocation
-        showsMyLocationButton={false}
-        toolbarEnabled={false}
-        moveOnMarkerPress={false}
-      >
-        {jobsWithCoords.map(job => {
-          const coords = getJobCoords(job)!;
-          return (
-          <Marker
-            key={job.id}
-            coordinate={{
-              latitude: coords.lat,
-              longitude: coords.lng,
-            }}
-            onPress={() => selectJob(job)}
-            anchor={{ x: 0.5, y: 0.5 }}
-            tracksViewChanges={false}
-            zIndex={selectedJobId === job.id ? 10 : 1}
-          >
-            <WageMarker job={job} isSelected={selectedJobId === job.id} />
-          </Marker>
-          );
-        })}
-      </SafeMapView>
+    <MapErrorBoundary>
+      <View style={styles.container}>
+        <MapView
+          ref={mapRef}
+          provider={PROVIDER_GOOGLE}
+          style={StyleSheet.absoluteFill}
+          initialRegion={defaultRegion}
+          onPress={handleMapPress}
+          showsUserLocation={false}
+          showsMyLocationButton={false}
+          toolbarEnabled={false}
+          moveOnMarkerPress={false}
+        >
+          {jobsWithCoords.map(job => {
+            const coords = getJobCoords(job)!;
+            return (
+              <Marker
+                key={job.id}
+                coordinate={{ latitude: coords.lat, longitude: coords.lng }}
+                onPress={() => selectJob(job)}
+                anchor={{ x: 0.5, y: 0.5 }}
+                tracksViewChanges={false}
+                zIndex={selectedJobId === job.id ? 10 : 1}
+              >
+                <WageMarker job={job} isSelected={selectedJobId === job.id} />
+              </Marker>
+            );
+          })}
+        </MapView>
 
-      {/* Airbnb-style bottom card */}
-      {selectedJob && (
-        <View style={styles.cardWrapper} pointerEvents="box-none">
-          <JobCard
-            job={selectedJob}
-            onClose={deselectJob}
-            slideAnim={slideAnim}
-          />
+        {/* Airbnb-style bottom card */}
+        {selectedJob && (
+          <View style={styles.cardWrapper} pointerEvents="box-none">
+            <JobCard
+              job={selectedJob}
+              onClose={deselectJob}
+              slideAnim={slideAnim}
+            />
+          </View>
+        )}
+
+        {/* Job count badge */}
+        <View style={styles.countBadge} pointerEvents="none">
+          <Text style={styles.countText}>{t('jobs.map_count', { count: jobsWithCoords.length })}</Text>
         </View>
-      )}
-
-      {/* Job count badge */}
-      <View style={styles.countBadge} pointerEvents="none">
-        <Text style={styles.countText}>{t('jobs.map_count', { count: jobsWithCoords.length })}</Text>
       </View>
-    </View>
+    </MapErrorBoundary>
   );
 }
 

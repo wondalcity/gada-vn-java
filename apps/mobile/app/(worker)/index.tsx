@@ -207,18 +207,18 @@ export default function WorkerJobFeed() {
               onPress={() => setViewMode('list')}
               activeOpacity={0.8}
             >
-              <View style={styles.listIcon}>
-                {[0, 1, 2].map(i => (
-                  <View key={i} style={[styles.listIconLine, viewMode === 'list' && styles.listIconLineActive]} />
-                ))}
-              </View>
+              <Text style={[styles.viewToggleBtnText, viewMode === 'list' && styles.viewToggleBtnTextActive]}>
+                목록
+              </Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={[styles.viewToggleBtn, viewMode === 'map' && styles.viewToggleBtnActive]}
               onPress={() => setViewMode('map')}
               activeOpacity={0.8}
             >
-              <View style={[styles.mapPin, viewMode === 'map' && styles.mapPinActive]} />
+              <Text style={[styles.viewToggleBtnText, viewMode === 'map' && styles.viewToggleBtnTextActive]}>
+                지도
+              </Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -504,13 +504,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row', backgroundColor: Colors.surfaceContainer,
     borderRadius: 10, padding: 2, gap: 2,
   },
-  viewToggleBtn: { width: 40, height: 40, borderRadius: 8, alignItems: 'center', justifyContent: 'center' },
-  viewToggleBtnActive: { backgroundColor: Colors.surface },
-  listIcon: { gap: 3 },
-  listIconLine: { width: 16, height: 2, borderRadius: 1, backgroundColor: Colors.disabled },
-  listIconLineActive: { backgroundColor: Colors.onSurface },
-  mapPin: { width: 10, height: 14, borderRadius: 5, borderWidth: 2, borderColor: Colors.disabled },
-  mapPinActive: { borderColor: Colors.onSurface },
+  viewToggleBtn: { paddingHorizontal: 14, height: 40, borderRadius: 8, alignItems: 'center', justifyContent: 'center' },
+  viewToggleBtnActive: { backgroundColor: Colors.surface, shadowColor: '#000', shadowOpacity: 0.08, shadowRadius: 4, elevation: 2 },
+  viewToggleBtnText: { fontSize: 13, fontWeight: '500', color: Colors.onSurfaceVariant },
+  viewToggleBtnTextActive: { color: Colors.onSurface, fontWeight: '700' },
 
   // Active filter bar
   activeFilterBar: {
