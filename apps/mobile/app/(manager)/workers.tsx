@@ -54,17 +54,17 @@ export default function ManagerWorkersScreen() {
   const [applications, setApplications] = useState<WorkerApplication[]>([]);
 
   const STATUS_CONFIG: Record<ApplicationStatus, { bg: string; text: string; label: string }> = {
-    PENDING:    { bg: Colors.primaryContainer, text: Colors.primary,           label: t('manager.tab_filter_applied') },
-    ACCEPTED:   { bg: Colors.successContainer, text: Colors.onSuccessContainer, label: t('manager.tab_filter_hired') },
+    PENDING:    { bg: Colors.primaryContainer, text: Colors.primary,           label: t('manager.tab_filter_pending', 'Pending') },
+    ACCEPTED:   { bg: Colors.successContainer, text: Colors.onSuccessContainer, label: t('manager.tab_filter_accepted', 'Accepted') },
     REJECTED:   { bg: Colors.errorContainer,   text: Colors.onErrorContainer,   label: t('manager.worker_reject_button') },
-    CONTRACTED: { bg: '#E6F9E6',               text: '#1A6B1A',                 label: t('manager.tab_filter_completed') },
+    CONTRACTED: { bg: '#E6F9E6',               text: '#1A6B1A',                 label: t('manager.tab_filter_contracted', 'Contracted') },
   };
 
   const TAB_FILTERS: { key: ApplicationStatus | 'ALL'; label: string }[] = [
     { key: 'ALL',        label: t('manager.tab_filter_all') },
-    { key: 'PENDING',    label: t('manager.tab_filter_applied') },
-    { key: 'ACCEPTED',   label: t('manager.tab_filter_hired') },
-    { key: 'CONTRACTED', label: t('manager.tab_filter_completed') },
+    { key: 'PENDING',    label: t('manager.tab_filter_pending', 'Pending') },
+    { key: 'ACCEPTED',   label: t('manager.tab_filter_accepted', 'Accepted') },
+    { key: 'CONTRACTED', label: t('manager.tab_filter_contracted', 'Contracted') },
   ];
 
   const [loading, setLoading] = useState(true);
@@ -174,19 +174,17 @@ export default function ManagerWorkersScreen() {
         })}
       </View>
 
-      {/* Search box */}
-      {applications.length > 0 && (
-        <View style={styles.searchBox}>
-          <TextInput
-            style={styles.searchInput}
-            placeholder={t('manager.worker_search_placeholder', '이름, 전화번호, 공고 검색')}
-            placeholderTextColor={Colors.onSurfaceVariant}
-            value={searchQuery}
-            onChangeText={setSearchQuery}
-            returnKeyType="search"
-          />
-        </View>
-      )}
+      {/* Search box — always visible */}
+      <View style={styles.searchBox}>
+        <TextInput
+          style={styles.searchInput}
+          placeholder={t('manager.worker_search_placeholder', 'Search by name or phone')}
+          placeholderTextColor={Colors.onSurfaceVariant}
+          value={searchQuery}
+          onChangeText={setSearchQuery}
+          returnKeyType="search"
+        />
+      </View>
 
       <FlatList
         data={filtered}
@@ -203,7 +201,7 @@ export default function ManagerWorkersScreen() {
         }
         renderItem={({ item }) => {
           const cfg = STATUS_CONFIG[item.status] ?? { bg: Colors.surfaceContainer, text: Colors.onSurfaceVariant, label: item.status };
-          const isFullySigned = item.contractId && item.contractStatus === 'FULLY_SIGNED';
+          const hasContract = !!item.contractId;
           return (
             <View style={styles.card}>
               {/* Worker info header */}
@@ -271,24 +269,24 @@ export default function ManagerWorkersScreen() {
                   </>
                 )}
 
-                {item.status === 'ACCEPTED' && !isFullySigned && (
+                {item.status === 'ACCEPTED' && !hasContract && (
                   <TouchableOpacity
                     style={[styles.hireBtn, { flex: 2 }]}
                     onPress={() => handleCreateContract(item.id)}
                     disabled={creatingContractFor === item.id}
                   >
                     <Text style={styles.hireBtnText}>
-                      {creatingContractFor === item.id ? t('common.loading') : '계약서 생성'}
+                      {creatingContractFor === item.id ? t('common.loading') : t('manager.create_contract', 'Create Contract')}
                     </Text>
                   </TouchableOpacity>
                 )}
 
-                {(item.status === 'ACCEPTED' || item.status === 'CONTRACTED') && isFullySigned && item.contractId && (
+                {(item.status === 'CONTRACTED' || (item.status === 'ACCEPTED' && hasContract)) && item.contractId && (
                   <TouchableOpacity
                     style={[styles.hireBtn, { flex: 2, backgroundColor: '#1A6B1A' }]}
                     onPress={() => router.push({ pathname: '/(manager)/contracts/[id]', params: { id: item.contractId! } })}
                   >
-                    <Text style={styles.hireBtnText}>계약서 보기</Text>
+                    <Text style={styles.hireBtnText}>{t('jobs.view_contract', 'View Contract')}</Text>
                   </TouchableOpacity>
                 )}
               </View>

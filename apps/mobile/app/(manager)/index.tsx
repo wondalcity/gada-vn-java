@@ -155,6 +155,9 @@ export default function ManagerJobsScreen() {
         )}
         renderItem={({ item }) => {
           const color = STATUS_COLOR[item.status] ?? Colors.onSurfaceVariant;
+          const percent = item.slotsTotal > 0
+            ? Math.round((item.slotsFilled / item.slotsTotal) * 100)
+            : 0;
           return (
             <TouchableOpacity
               style={styles.card}
@@ -172,11 +175,18 @@ export default function ManagerJobsScreen() {
               <Text style={styles.cardDate}>
                 📅 {new Date(item.workDate).toLocaleDateString('ko-KR', { month: 'long', day: 'numeric', weekday: 'short' })}
               </Text>
-              <View style={styles.cardFooter}>
-                <Text style={styles.wage}>₫{new Intl.NumberFormat('ko-KR').format(item.dailyWage)}</Text>
-                <Text style={styles.slots}>
-                  {t('jobs.slots_count', { filled: item.slotsFilled, total: item.slotsTotal })}
+              <Text style={styles.wage}>
+                {new Intl.NumberFormat('ko-KR').format(item.dailyWage)} ₫
+              </Text>
+              {/* Progress bar */}
+              <View style={styles.progressRow}>
+                <View style={styles.progressTrack}>
+                  <View style={[styles.progressFill, { width: `${Math.min(percent, 100)}%` as any }]} />
+                </View>
+                <Text style={styles.progressText}>
+                  {t('jobs.slots_count', { filled: item.slotsFilled, total: item.slotsTotal })} hired
                 </Text>
+                <Text style={styles.progressPct}>{percent}%</Text>
               </View>
             </TouchableOpacity>
           );
@@ -247,9 +257,16 @@ const styles = StyleSheet.create({
   badge: { borderRadius: Radius.pill, paddingHorizontal: 10, paddingVertical: 4 },
   badgeText: { ...Font.caption, fontWeight: '700' },
   cardDate: { ...Font.caption, color: Colors.onSurfaceVariant },
-  cardFooter: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   wage: { ...Font.t4, color: Colors.primary },
-  slots: { ...Font.caption, color: Colors.onSurfaceVariant },
+  progressRow: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 2 },
+  progressTrack: {
+    flex: 1, height: 4, borderRadius: 2,
+    backgroundColor: Colors.surfaceContainer,
+    overflow: 'hidden',
+  },
+  progressFill: { height: 4, borderRadius: 2, backgroundColor: Colors.primary },
+  progressText: { ...Font.caption, color: Colors.onSurfaceVariant },
+  progressPct: { ...Font.caption, color: Colors.primary, fontWeight: '700', minWidth: 32, textAlign: 'right' },
 
   empty: { alignItems: 'center', paddingTop: 80, gap: 8 },
   emptyIcon: { fontSize: 40 },
