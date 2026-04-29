@@ -44,10 +44,16 @@ function withFixFirebaseMessagingColor(config) {
  * Configure iOS Podfile for @react-native-firebase with CocoaPods 1.15+.
  *
  * CocoaPods 1.15+ made "Swift pods cannot be integrated as static libraries"
- * a fatal error. The fix is:
+ * a fatal error. Firebase Swift pods (FirebaseCoreInternal, FirebaseCrashlytics,
+ * FirebaseSessions) depend on ObjC pods (GoogleUtilities, nanopb, etc.) that do
+ * not define modules by default.
+ *
+ * Fix:
  *   1. Set $RNFirebaseAsStaticFramework = true (tells RNFirebase to use static)
- *   2. Replace use_modular_headers! with use_frameworks! :linkage => :static
- *      (required for Firebase Swift pods to see their ObjC dependencies as modules)
+ *   2. In post_install, set DEFINES_MODULE = YES on the specific ObjC pods so
+ *      they generate module maps that Firebase Swift pods can import.
+ *      This is more reliable than global use_modular_headers! / use_frameworks!
+ *      which interact unpredictably with CocoaPods 1.15+ and the RN 0.74 template.
  */
 function withFirebaseStaticFramework(config) {
   return withDangerousMod(config, [
@@ -58,18 +64,40 @@ function withFirebaseStaticFramework(config) {
 
       let contents = fs.readFileSync(podfilePath, 'utf8');
 
-      // 1. Prepend $RNFirebaseAsStaticFramework if not already present
+      // 1. Prepend $RNFirebaseAsStaticFramework = true if not already present.
       if (!contents.includes('$RNFirebaseAsStaticFramework')) {
         contents = `$RNFirebaseAsStaticFramework = true\n${contents}`;
       }
 
-      // 2. Add use_frameworks! :linkage => :static after use_modular_headers!
-      //    Both are needed: use_modular_headers! generates module maps for ObjC pods
-      //    that Firebase Swift pods depend on; use_frameworks! :linkage => :static
-      //    makes all pods (including Swift ones) static frameworks (required for
-      //    CocoaPods 1.15+ which made dynamic Swift static linking a fatal error).
-      if (contents.includes('use_modular_headers!') && !contents.includes("use_frameworks! :linkage => :static")) {
-        contents = contents.replace(/^(use_modular_headers!)\s*$/m, "$1\nuse_frameworks! :linkage => :static");
+      // 2. Inject DEFINES_MODULE = YES for Firebase ObjC deps into the existing
+      //    post_install block. CocoaPods 1.15+ requires these pods to generate
+      //    module maps so Firebase Swift pods can import them as modules.
+      if (!contents.includes('DEFINES_MODULE')) {
+        const definesModuleFix = `
+  # Fix for CocoaPods 1.15+: generate module maps for Firebase ObjC dependencies
+  # so FirebaseCoreInternal / FirebaseCrashlytics / FirebaseSessions Swift pods
+  # can import them when building as static libraries.
+  firebase_objc_deps = %w[
+    GoogleUtilities nanopb FirebaseCore FirebaseInstallations
+    GoogleDataTransport FirebaseCoreExtension
+  ]
+  installer.pods_project.targets.each do |target|
+    next unless firebase_objc_deps.include?(target.name)
+    target.build_configurations.each do |config|
+      config.build_settings['DEFINES_MODULE'] = 'YES'
+    end
+  end
+`;
+        if (contents.includes('post_install do |installer|')) {
+          // Inject at the start of the existing post_install block.
+          contents = contents.replace(
+            'post_install do |installer|',
+            `post_install do |installer|${definesModuleFix}`
+          );
+        } else {
+          // No post_install block — append a new one.
+          contents += `\npost_install do |installer|${definesModuleFix}end\n`;
+        }
       }
 
       fs.writeFileSync(podfilePath, contents);
