@@ -5,6 +5,7 @@ import {
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
+import auth from '@react-native-firebase/auth';
 import { signInWithPhoneOtp, signInWithGoogle } from '../../lib/firebase';
 import { api } from '../../lib/api-client';
 import { useAuthStore } from '../../store/auth.store';
@@ -26,7 +27,13 @@ export default function PhoneScreen() {
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
 
-  useEffect(() => { setCurrentScreen('auth/phone'); }, []);
+  useEffect(() => {
+    setCurrentScreen('auth/phone');
+    // 비프로덕션 빌드에서 Firebase 테스트 번호 사용 시 앱 인증 우회
+    if (!IS_PRODUCTION) {
+      auth().settings.appVerificationDisabledForTesting = true;
+    }
+  }, []);
 
   async function handleSendOtp() {
     if (!phone.trim()) return;
