@@ -20,6 +20,7 @@ function mapJobRow(r: Record<string, unknown>): Record<string, unknown> {
   return {
     ...rest,
     site_cover_image_url: toImageUrl(keys[validIdx]) ?? null,
+    site_image_urls: keys.map(k => toImageUrl(k)).filter(Boolean) as string[],
   };
 }
 

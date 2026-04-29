@@ -41,6 +41,8 @@ export class PublicService {
     lng?: number;
     radiusKm?: number;
     statusFilter?: 'CLOSING_SOON' | 'CLOSED';
+    minWage?: number;
+    maxWage?: number;
   }) {
     const page = Math.max(1, params.page ?? 1);
     const limit = Math.min(50, params.limit ?? 20);
@@ -95,6 +97,14 @@ export class PublicService {
     if (params.site) {
       where += ` AND s.id::text = $${idx++}`;
       binds.push(params.site);
+    }
+    if (params.minWage != null && !isNaN(params.minWage)) {
+      where += ` AND j.daily_wage >= $${idx++}`;
+      binds.push(params.minWage);
+    }
+    if (params.maxWage != null && !isNaN(params.maxWage)) {
+      where += ` AND j.daily_wage <= $${idx++}`;
+      binds.push(params.maxWage);
     }
 
     const distanceExpr = useGeo

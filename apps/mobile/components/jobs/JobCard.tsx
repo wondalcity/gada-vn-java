@@ -136,7 +136,7 @@ const styles = StyleSheet.create({
   body: { padding: 10, gap: 3 },
   title: { ...Font.t4, color: Colors.onSurface, lineHeight: 18 },
   address: { fontSize: 11, color: Colors.onSurfaceVariant, lineHeight: 15 },
-  wage: { fontSize: 15, fontWeight: '800', color: Colors.brand, marginTop: 4 },
+  wage: { fontSize: 15, fontWeight: '800', color: Colors.primary, marginTop: 4 },
   footer: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 2 },
   footerText: { fontSize: 10, color: Colors.onSurfaceVariant },
 });

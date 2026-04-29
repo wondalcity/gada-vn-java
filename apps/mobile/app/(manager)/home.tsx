@@ -46,7 +46,7 @@ export default function ManagerHomeScreen() {
 
   const quickActions = [
     { icon: '🏗️', label: t('manager.tab_sites_label'), route: '/(manager)/sites' },
-    { icon: '📋', label: t('manager.tab_jobs_label'), route: '/(manager)/index' },
+    { icon: '📋', label: t('manager.tab_jobs_label'), route: '/(manager)/' },
     { icon: '👷', label: t('manager.tab_workers_label'), route: '/(manager)/workers' },
     { icon: '📄', label: t('manager.tab_contracts_label'), route: '/(manager)/contracts' },
   ] as const;
@@ -64,7 +64,7 @@ export default function ManagerHomeScreen() {
       title: t('manager.tab_jobs'),
       desc: t('manager.home_job_desc', 'Post, edit, and close job listings'),
       badge: stats.openJobs > 0 ? `Open ${stats.openJobs}` : undefined,
-      route: '/(manager)/index',
+      route: '/(manager)/',
     },
     {
       icon: '👷',

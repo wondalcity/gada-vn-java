@@ -3,8 +3,10 @@ import {
   View, FlatList, Text, StyleSheet,
   TouchableOpacity, RefreshControl,
   Modal, TextInput, KeyboardAvoidingView, Platform,
-  ScrollView, Dimensions,
+  ScrollView, Dimensions, ActivityIndicator,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import * as Location from 'expo-location';
 import { useTranslation } from 'react-i18next';
 import { useLocalSearchParams } from 'expo-router';
 import { ApiError } from '../../lib/api-client';
@@ -21,14 +23,20 @@ const CARD_GAP = 12;
 const CARD_WIDTH = (SCREEN_WIDTH - 32 - CARD_GAP) / 2;
 
 type ViewMode = 'list' | 'map';
-type StatusFilter = '' | 'OPEN' | 'FILLED';
+// '' = default (shows open jobs), 'CLOSING_SOON', 'CLOSED' map to API statusFilter param
+type StatusFilter = '' | 'CLOSING_SOON' | 'CLOSED';
+type MinExp = '' | 'none' | 'lt1' | '1to2' | '2to3' | 'gte3';
 
 interface Trade { id: number; nameKo?: string; nameVi?: string; }
 interface Province { code: string; id?: string; nameKo?: string; nameVi?: string; }
 
+const RADIUS_OPTIONS = [10, 30, 50, 100] as const;
+type RadiusKm = typeof RADIUS_OPTIONS[number];
+
 export default function WorkerJobFeed() {
   const { t, i18n } = useTranslation();
   const { jobs, setJobs } = useJobStore();
+  const insets = useSafeAreaInsets();
   // Read pre-applied filters from home screen navigation or header search
   const params = useLocalSearchParams<{ province?: string; tradeId?: string; q?: string; viewMode?: string; openFilter?: string }>();
   const [loading, setLoading] = useState(false);
@@ -42,16 +50,25 @@ export default function WorkerJobFeed() {
   const [pendingTradeId, setPendingTradeId] = useState<number | null>(null);
   const [pendingProvince, setPendingProvince] = useState('');
   const [pendingStatus, setPendingStatus] = useState<StatusFilter>('');
+  const [pendingMinExp, setPendingMinExp] = useState<MinExp>('');
   const [wageMin, setWageMin] = useState('');
   const [wageMax, setWageMax] = useState('');
+  const [pendingLat, setPendingLat] = useState<number | null>(null);
+  const [pendingLng, setPendingLng] = useState<number | null>(null);
+  const [pendingRadius, setPendingRadius] = useState<RadiusKm>(30);
+  const [locLoading, setLocLoading] = useState(false);
 
   // Applied filters
   const [appliedSearch, setAppliedSearch] = useState('');
   const [appliedTradeId, setAppliedTradeId] = useState<number | null>(null);
   const [appliedProvince, setAppliedProvince] = useState('');
   const [appliedStatus, setAppliedStatus] = useState<StatusFilter>('');
+  const [appliedMinExp, setAppliedMinExp] = useState<MinExp>('');
   const [appliedMin, setAppliedMin] = useState<number | null>(null);
   const [appliedMax, setAppliedMax] = useState<number | null>(null);
+  const [appliedLat, setAppliedLat] = useState<number | null>(null);
+  const [appliedLng, setAppliedLng] = useState<number | null>(null);
+  const [appliedRadius, setAppliedRadius] = useState<RadiusKm>(30);
 
   const [trades, setTrades] = useState<Trade[]>([]);
   const [provinces, setProvinces] = useState<Province[]>([]);
@@ -75,8 +92,8 @@ export default function WorkerJobFeed() {
   const [totalPages, setTotalPages] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
 
-  const isFilterActive = !!(appliedSearch || appliedTradeId || appliedProvince || appliedStatus || appliedMin || appliedMax);
-  const activeFilterCount = [appliedSearch, appliedTradeId, appliedProvince, appliedStatus, appliedMin ?? appliedMax].filter(Boolean).length;
+  const isFilterActive = !!(appliedSearch || appliedTradeId || appliedProvince || appliedStatus || appliedMinExp || appliedMin || appliedMax || appliedLat);
+  const activeFilterCount = [appliedSearch, appliedTradeId, appliedProvince, appliedStatus, appliedMinExp, appliedMin ?? appliedMax, appliedLat].filter(Boolean).length;
 
   // Load reference data
   useEffect(() => {
@@ -93,19 +110,25 @@ export default function WorkerJobFeed() {
   const loadJobs = useCallback(async (pageNum = 1, append = false) => {
     if (pageNum === 1) setLoading(true);
     try {
-      const params: Record<string, string | number> = {
+      const queryParams: Record<string, string | number> = {
         page: pageNum,
         limit: 20,
         locale: i18n.language === 'vi' ? 'vi' : 'ko',
       };
-      if (appliedSearch) params.q = appliedSearch;
-      if (appliedTradeId) params.tradeId = appliedTradeId;
-      if (appliedProvince) params.province = appliedProvince;
-      if (appliedStatus) params.status = appliedStatus;
-      if (appliedMin) params.minWage = appliedMin;
-      if (appliedMax) params.maxWage = appliedMax;
+      if (appliedSearch) queryParams.q = appliedSearch;
+      if (appliedTradeId) queryParams.tradeId = appliedTradeId;
+      if (appliedProvince) queryParams.province = appliedProvince;
+      // statusFilter maps to API's statusFilter param (CLOSING_SOON / CLOSED)
+      if (appliedStatus) queryParams.statusFilter = appliedStatus;
+      if (appliedMin) queryParams.minWage = appliedMin;
+      if (appliedMax) queryParams.maxWage = appliedMax;
+      if (appliedLat != null && appliedLng != null) {
+        queryParams.lat = appliedLat;
+        queryParams.lng = appliedLng;
+        queryParams.radiusKm = appliedRadius;
+      }
 
-      const { data: items, meta } = await api.getPaginated<JobCardItem>('/public/jobs', params);
+      const { data: items, meta } = await api.getPaginated<JobCardItem>('/public/jobs', queryParams);
       if (meta?.totalPages) setTotalPages(meta.totalPages);
       if (meta?.total) setTotalCount(meta.total);
       setPage(pageNum);
@@ -120,7 +143,7 @@ export default function WorkerJobFeed() {
       setLoading(false);
       setRefreshing(false);
     }
-  }, [appliedSearch, appliedTradeId, appliedProvince, appliedStatus, appliedMin, appliedMax, i18n.language]);
+  }, [appliedSearch, appliedTradeId, appliedProvince, appliedStatus, appliedMin, appliedMax, appliedLat, appliedLng, appliedRadius, i18n.language]);
 
   useEffect(() => { loadJobs(1); }, [loadJobs]);
 
@@ -129,8 +152,12 @@ export default function WorkerJobFeed() {
     setPendingTradeId(appliedTradeId);
     setPendingProvince(appliedProvince);
     setPendingStatus(appliedStatus);
+    setPendingMinExp(appliedMinExp);
     setWageMin(appliedMin ? String(appliedMin) : '');
     setWageMax(appliedMax ? String(appliedMax) : '');
+    setPendingLat(appliedLat);
+    setPendingLng(appliedLng);
+    setPendingRadius(appliedRadius);
     setShowFilterModal(true);
   }
 
@@ -139,10 +166,14 @@ export default function WorkerJobFeed() {
     setAppliedTradeId(pendingTradeId);
     setAppliedProvince(pendingProvince);
     setAppliedStatus(pendingStatus);
+    setAppliedMinExp(pendingMinExp);
     const min = wageMin ? parseInt(wageMin.replace(/,/g, ''), 10) : null;
     const max = wageMax ? parseInt(wageMax.replace(/,/g, ''), 10) : null;
     setAppliedMin(isNaN(min as number) ? null : min);
     setAppliedMax(isNaN(max as number) ? null : max);
+    setAppliedLat(pendingLat);
+    setAppliedLng(pendingLng);
+    setAppliedRadius(pendingRadius);
     setShowFilterModal(false);
   }
 
@@ -151,8 +182,12 @@ export default function WorkerJobFeed() {
     setPendingTradeId(null);
     setPendingProvince('');
     setPendingStatus('');
+    setPendingMinExp('');
     setWageMin('');
     setWageMax('');
+    setPendingLat(null);
+    setPendingLng(null);
+    setPendingRadius(30);
   }
 
   function clearAllFilters() {
@@ -160,14 +195,47 @@ export default function WorkerJobFeed() {
     setAppliedTradeId(null);
     setAppliedProvince('');
     setAppliedStatus('');
+    setAppliedMinExp('');
     setAppliedMin(null);
     setAppliedMax(null);
+    setAppliedLat(null);
+    setAppliedLng(null);
+    setAppliedRadius(30);
   }
 
-  const statusOptions: { value: StatusFilter; label: string; dotColor: string; bg: string; textColor: string }[] = [
-    { value: '', label: t('common.all'), dotColor: Colors.disabled, bg: Colors.surfaceContainer, textColor: Colors.onSurfaceVariant },
-    { value: 'OPEN', label: t('jobs.status_open_label'), dotColor: Colors.success, bg: '#E8FBE8', textColor: '#1A6B1A' },
-    { value: 'FILLED', label: t('jobs.closed_label'), dotColor: Colors.disabled, bg: Colors.surfaceContainer, textColor: Colors.onSurfaceVariant },
+  async function handleUseCurrentLocation() {
+    setLocLoading(true);
+    try {
+      const { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== 'granted') {
+        showToast({ message: t('jobs.location_permission_denied', '위치 권한이 필요합니다'), type: 'error' });
+        return;
+      }
+      const loc = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
+      setPendingLat(loc.coords.latitude);
+      setPendingLng(loc.coords.longitude);
+    } catch {
+      showToast({ message: t('jobs.location_fail', '위치를 가져오지 못했습니다'), type: 'error' });
+    } finally {
+      setLocLoading(false);
+    }
+  }
+
+  // Status options matching web app (Open = default/no filter, Closing Soon, Closed)
+  const statusOptions: { value: StatusFilter; label: string; dotColor: string }[] = [
+    { value: '', label: t('jobs.status_open_label', '모집중'), dotColor: Colors.success },
+    { value: 'CLOSING_SOON', label: t('jobs.status_closing_soon', '마감임박'), dotColor: Colors.secondary },
+    { value: 'CLOSED', label: t('jobs.closed_label', '마감'), dotColor: Colors.disabled },
+  ];
+
+  // Experience options matching web app
+  const expOptions: { value: MinExp; label: string }[] = [
+    { value: '', label: t('common.all', '전체') },
+    { value: 'none', label: t('jobs.exp_none', '무관') },
+    { value: 'lt1', label: t('jobs.exp_lt1', '1년 미만') },
+    { value: '1to2', label: t('jobs.exp_1to2', '1~2년') },
+    { value: '2to3', label: t('jobs.exp_2to3', '2~3년') },
+    { value: 'gte3', label: t('jobs.exp_gte3', '3년 이상') },
   ];
 
   return (
@@ -256,6 +324,16 @@ export default function WorkerJobFeed() {
               {statusOptions.find(s => s.value === appliedStatus)?.label}
             </Text></View>
           ) : null}
+          {appliedMinExp ? (
+            <View style={styles.activeChip}><Text style={styles.activeChipText}>
+              {expOptions.find(e => e.value === appliedMinExp)?.label}
+            </Text></View>
+          ) : null}
+          {appliedLat != null ? (
+            <View style={styles.activeChip}><Text style={styles.activeChipText}>
+              📍 {appliedRadius}km
+            </Text></View>
+          ) : null}
           {(appliedMin || appliedMax) ? (
             <View style={styles.activeChip}><Text style={styles.activeChipText}>
               {appliedMin && appliedMax
@@ -318,11 +396,12 @@ export default function WorkerJobFeed() {
         />
       )}
 
-      {/* ── Filter Modal ── */}
+      {/* ── Filter Bottom Sheet ── */}
       <Modal
         visible={showFilterModal}
         transparent
         animationType="slide"
+        statusBarTranslucent
         onRequestClose={() => setShowFilterModal(false)}
       >
         <TouchableOpacity
@@ -330,10 +409,13 @@ export default function WorkerJobFeed() {
           activeOpacity={1}
           onPress={() => setShowFilterModal(false)}
         >
-          <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+          <KeyboardAvoidingView
+            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+            style={styles.filterSheetWrap}
+          >
             <ScrollView
               style={styles.filterSheet}
-              contentContainerStyle={styles.filterSheetContent}
+              contentContainerStyle={[styles.filterSheetContent, { paddingBottom: 32 + insets.bottom }]}
               onStartShouldSetResponder={() => true}
               keyboardShouldPersistTaps="handled"
             >
@@ -351,8 +433,8 @@ export default function WorkerJobFeed() {
                 returnKeyType="search"
               />
 
-              {/* Status */}
-              <Text style={styles.filterLabel}>{t('jobs.filter_status_label')}</Text>
+              {/* Recruitment Status — matches web: Open / Closing Soon / Closed */}
+              <Text style={styles.filterLabel}>{t('jobs.filter_status_label', '모집 상태')}</Text>
               <View style={styles.statusRow}>
                 {statusOptions.map(opt => (
                   <TouchableOpacity
@@ -372,6 +454,24 @@ export default function WorkerJobFeed() {
                   </TouchableOpacity>
                 ))}
               </View>
+
+              {/* Experience Required */}
+              <Text style={styles.filterLabel}>{t('jobs.filter_experience', '경력 요건')}</Text>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                <View style={styles.chipRow}>
+                  {expOptions.map(opt => (
+                    <TouchableOpacity
+                      key={opt.value}
+                      style={[styles.chip, pendingMinExp === opt.value && styles.chipActive]}
+                      onPress={() => setPendingMinExp(opt.value)}
+                    >
+                      <Text style={[styles.chipText, pendingMinExp === opt.value && styles.chipTextActive]}>
+                        {opt.label}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              </ScrollView>
 
               {/* Province */}
               <Text style={styles.filterLabel}>{t('jobs.filter_province')}</Text>
@@ -452,6 +552,43 @@ export default function WorkerJobFeed() {
                 </View>
               </View>
 
+              {/* My Location */}
+              <Text style={styles.filterLabel}>{t('jobs.filter_location', '내 위치')}</Text>
+              <TouchableOpacity
+                style={[styles.locationBtn, pendingLat != null && styles.locationBtnActive]}
+                onPress={pendingLat != null ? () => { setPendingLat(null); setPendingLng(null); } : handleUseCurrentLocation}
+                activeOpacity={0.8}
+                disabled={locLoading}
+              >
+                {locLoading ? (
+                  <ActivityIndicator size="small" color={Colors.primary} />
+                ) : (
+                  <Text style={[styles.locationBtnText, pendingLat != null && styles.locationBtnTextActive]}>
+                    {pendingLat != null
+                      ? `📍 ${t('jobs.location_using', '현재 위치 사용 중')} — ${t('jobs.filter_location_clear', '해제')}`
+                      : `📍 ${t('jobs.location_use_current', '현재 위치 사용')}`}
+                  </Text>
+                )}
+              </TouchableOpacity>
+              {pendingLat != null && (
+                <View style={styles.radiusRow}>
+                  <Text style={styles.radiusLabel}>{t('jobs.filter_radius', '반경')}</Text>
+                  <View style={styles.radiusBtns}>
+                    {RADIUS_OPTIONS.map(r => (
+                      <TouchableOpacity
+                        key={r}
+                        style={[styles.radiusBtn, pendingRadius === r && styles.radiusBtnActive]}
+                        onPress={() => setPendingRadius(r)}
+                      >
+                        <Text style={[styles.radiusBtnText, pendingRadius === r && styles.radiusBtnTextActive]}>
+                          {r}km
+                        </Text>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                </View>
+              )}
+
               {/* Actions */}
               <View style={styles.filterActions}>
                 <TouchableOpacity style={styles.resetBtn} onPress={resetFilter}>
@@ -468,6 +605,7 @@ export default function WorkerJobFeed() {
     </View>
   );
 }
+
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: Colors.background },
@@ -534,11 +672,11 @@ const styles = StyleSheet.create({
   clearEmptyText: { ...Font.t4, color: '#fff', fontWeight: '700' },
 
   // Filter modal
-  modalOverlay: { flex: 1, backgroundColor: Colors.overlay30, justifyContent: 'flex-end' },
+  modalOverlay: { flex: 1, backgroundColor: Colors.overlay80, justifyContent: 'flex-end' },
+  filterSheetWrap: { maxHeight: '92%' },
   filterSheet: {
     backgroundColor: Colors.surface,
     borderTopLeftRadius: 24, borderTopRightRadius: 24,
-    maxHeight: '90%',
   },
   filterSheetContent: { padding: 16, paddingBottom: 48 },
   modalHandle: { width: 40, height: 4, borderRadius: 2, backgroundColor: Colors.outline, alignSelf: 'center', marginBottom: 12 },
@@ -577,6 +715,27 @@ const styles = StyleSheet.create({
   wageRow: { flexDirection: 'row', alignItems: 'flex-end', gap: 8 },
   wageSubLabel: { ...Font.caption, color: Colors.onSurfaceVariant, marginBottom: 4 },
   wageDash: { ...Font.body2, color: Colors.disabled, marginBottom: 10 },
+
+  // Location filter
+  locationBtn: {
+    borderWidth: 1.5, borderColor: Colors.outline, borderRadius: Radius.md,
+    paddingVertical: 12, paddingHorizontal: 14, alignItems: 'center',
+    backgroundColor: Colors.surface, marginTop: 4,
+  },
+  locationBtnActive: { borderColor: Colors.primary, backgroundColor: 'rgba(6,105,247,0.06)' },
+  locationBtnText: { ...Font.body3, color: Colors.onSurfaceVariant, fontWeight: '500' },
+  locationBtnTextActive: { color: Colors.primary, fontWeight: '600' },
+  radiusRow: { marginTop: 10, flexDirection: 'row', alignItems: 'center', gap: 8 },
+  radiusLabel: { ...Font.caption, color: Colors.onSurfaceVariant, fontWeight: '600', marginRight: 4 },
+  radiusBtns: { flexDirection: 'row', gap: 6, flex: 1 },
+  radiusBtn: {
+    flex: 1, paddingVertical: 6, borderRadius: Radius.full,
+    borderWidth: 1, borderColor: Colors.outline,
+    alignItems: 'center', backgroundColor: Colors.surface,
+  },
+  radiusBtnActive: { backgroundColor: Colors.primary, borderColor: Colors.primary },
+  radiusBtnText: { ...Font.caption, color: Colors.onSurfaceVariant, fontWeight: '600' },
+  radiusBtnTextActive: { color: '#fff', fontWeight: '700' },
 
   // Actions
   filterActions: { flexDirection: 'row', gap: 10, marginTop: 24 },

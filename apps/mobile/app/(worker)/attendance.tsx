@@ -301,13 +301,17 @@ const styles = StyleSheet.create({
   emptyIcon: { fontSize: 40 },
   emptyText: { ...Font.body3, color: Colors.onSurfaceVariant },
 
-  tabsRow: { backgroundColor: Colors.surface, borderBottomWidth: 1, borderBottomColor: Colors.outline },
-  tabsContainer: { flexDirection: 'row', paddingHorizontal: 12, paddingVertical: 8, gap: 8 },
+  tabsRow: {
+    backgroundColor: Colors.surface, borderBottomWidth: 1, borderBottomColor: Colors.outline,
+    height: 52, flexShrink: 0,
+  },
+  tabsContainer: { flexDirection: 'row', paddingHorizontal: 12, paddingVertical: 8, gap: 8, alignItems: 'center' },
   tabBtn: {
     paddingHorizontal: 14, paddingVertical: 6,
     borderRadius: 999, borderWidth: 1,
     borderColor: Colors.outline,
     backgroundColor: Colors.surface,
+    alignSelf: 'center',
   },
   tabBtnActive: { backgroundColor: Colors.primary, borderColor: Colors.primary },
   tabLabel: { fontSize: 13, fontWeight: '500', color: Colors.onSurfaceVariant },

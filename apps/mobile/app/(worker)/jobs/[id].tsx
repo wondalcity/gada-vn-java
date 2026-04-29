@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback, useRef } from 'react';
 import {
   View, Text, ScrollView, TouchableOpacity,
-  StyleSheet, ActivityIndicator, Modal, Platform, Dimensions,
+  StyleSheet, ActivityIndicator, Modal, Platform, Dimensions, Linking,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Image } from 'expo-image';
@@ -11,11 +11,8 @@ import { api, ApiError } from '../../../lib/api-client';
 import { Colors, Font, Spacing, Radius } from '../../../constants/theme';
 import { showToast } from '../../../lib/toast';
 
-const CDN = process.env.EXPO_PUBLIC_CDN_URL ?? '';
 const SCREEN_WIDTH = Dimensions.get('window').width;
 
-// The API returns flat data (site fields are not nested under 'site')
-// after camelizeKeys: site_name → siteName, s.address → address, etc.
 interface JobDetail {
   id: string;
   title: string;
@@ -29,18 +26,26 @@ interface JobDetail {
   startTime: string | null;
   endTime: string | null;
   dailyWage: number;
-  benefits: {
+  // benefits stored as JSONB object {meals: true, transport: true, ...}
+  benefits?: {
     meals?: boolean;
     transport?: boolean;
     accommodation?: boolean;
     insurance?: boolean;
-  };
+  } | null;
+  // requirements stored as JSONB {minExperienceMonths: 6, notes: '...'}
+  requirements?: {
+    minExperienceMonths?: number;
+    min_experience_months?: number;
+    notes?: string;
+  } | null;
   slotsTotal: number;
   slotsFilled: number;
   status: string;
-  imageS3Keys: string[];
-  coverImageIdx: number;
-  // Flat site fields from JOIN
+  // Site image fields from jobs repository mapJobRow
+  siteImageUrls?: string[];
+  siteCoverImageUrl?: string | null;
+  // Flat site fields
   siteName?: string | null;
   siteNameKo?: string | null;
   address?: string | null;
@@ -49,23 +54,31 @@ interface JobDetail {
   siteType?: string | null;
   lat?: number | null;
   lng?: number | null;
-  siteCoverImageUrl?: string | null;
   distanceKm?: number;
 }
 
-function ImageCarousel({ imageKeys, coverIdx = 0 }: { imageKeys: string[]; coverIdx?: number }) {
+function formatMinExp(months: number): string {
+  if (months === 0) return '경력 무관';
+  if (months < 12) return `최소 ${months}개월`;
+  const years = Math.floor(months / 12);
+  const rem = months % 12;
+  if (rem === 0) return `최소 ${years}년`;
+  return `최소 ${years}년 ${rem}개월`;
+}
+
+function openInMaps(lat: number, lng: number, name: string) {
+  const label = encodeURIComponent(name);
+  const url = Platform.OS === 'ios'
+    ? `maps://?ll=${lat},${lng}&q=${label}`
+    : `https://www.google.com/maps/search/?api=1&query=${lat},${lng}`;
+  Linking.openURL(url);
+}
+
+function ImageCarousel({ imageUrls }: { imageUrls: string[] }) {
   const scrollRef = useRef<ScrollView>(null);
-  const [activeIdx, setActiveIdx] = useState(coverIdx);
+  const [activeIdx, setActiveIdx] = useState(0);
 
-  useEffect(() => {
-    if (coverIdx > 0) {
-      setTimeout(() => {
-        scrollRef.current?.scrollTo({ x: coverIdx * SCREEN_WIDTH, animated: false });
-      }, 100);
-    }
-  }, [coverIdx]);
-
-  if (imageKeys.length === 0) {
+  if (imageUrls.length === 0) {
     return (
       <View style={[styles.cover, styles.coverPlaceholder]}>
         <Text style={styles.coverPlaceholderText}>🏗️</Text>
@@ -86,19 +99,26 @@ function ImageCarousel({ imageKeys, coverIdx = 0 }: { imageKeys: string[]; cover
         }}
         style={{ width: SCREEN_WIDTH, height: 240 }}
       >
-        {imageKeys.map((key, i) => (
+        {imageUrls.map((url, i) => (
           <Image
             key={i}
-            source={{ uri: `${CDN}/${key}` }}
+            source={{ uri: url }}
             style={{ width: SCREEN_WIDTH, height: 240 }}
             contentFit="cover"
             transition={250}
           />
         ))}
       </ScrollView>
-      {imageKeys.length > 1 && (
+      {/* Counter badge */}
+      {imageUrls.length > 1 && (
+        <View style={styles.counterBadge}>
+          <Text style={styles.counterText}>{activeIdx + 1}/{imageUrls.length}</Text>
+        </View>
+      )}
+      {/* Dot indicators */}
+      {imageUrls.length > 1 && (
         <View style={styles.dotRow}>
-          {imageKeys.map((_, i) => (
+          {imageUrls.map((_, i) => (
             <View
               key={i}
               style={[styles.dot, i === activeIdx && styles.dotActive]}
@@ -110,10 +130,22 @@ function ImageCarousel({ imageKeys, coverIdx = 0 }: { imageKeys: string[]; cover
   );
 }
 
-function BenefitChip({ label }: { label: string }) {
+function ProgressBar({ value, total }: { value: number; total: number }) {
+  const pct = total > 0 ? Math.min(1, value / total) : 0;
   return (
-    <View style={styles.chip}>
-      <Text style={styles.chipText}>{label}</Text>
+    <View style={styles.progressBg}>
+      <View style={[styles.progressFill, { width: `${Math.round(pct * 100)}%` as any }]} />
+    </View>
+  );
+}
+
+function BenefitRow({ icon, label }: { icon: string; label: string }) {
+  return (
+    <View style={styles.benefitRow}>
+      <View style={styles.benefitIconWrap}>
+        <Text style={styles.benefitIcon}>{icon}</Text>
+      </View>
+      <Text style={styles.benefitLabel}>{label}</Text>
     </View>
   );
 }
@@ -187,43 +219,63 @@ export default function JobDetailScreen() {
   const isFull = job.status === 'FILLED' || job.slotsFilled >= job.slotsTotal;
   const remaining = job.slotsTotal - job.slotsFilled;
 
-  // Language-aware title
   const displayTitle = i18n.language === 'vi'
     ? (job.titleVi || job.titleKo || job.title || '')
     : (job.titleKo || job.title || '');
 
-  // Site display
   const displaySiteName = job.siteNameKo || job.siteName || '';
   const displayAddress = job.address || '';
   const displayProvince = job.province || '';
-  const displayDistrict = job.district || '';
 
-  // Trade name
   const displayTrade = i18n.language === 'vi'
     ? (job.tradeNameVi || job.tradeNameKo || null)
     : (job.tradeNameKo || null);
 
-  // Work date
   const workDateLabel = (() => {
     const d = new Date(job.workDate);
     const locale = i18n.language === 'vi' ? 'vi-VN' : i18n.language === 'en' ? 'en-US' : 'ko-KR';
     return d.toLocaleDateString(locale, { year: 'numeric', month: 'long', day: 'numeric', weekday: 'short' });
   })();
 
+  const workDateShort = (() => {
+    const d = new Date(job.workDate);
+    const days = ['일', '월', '화', '수', '목', '금', '토'];
+    return `${d.getMonth() + 1}/${d.getDate()}(${days[d.getDay()]})`;
+  })();
+
   const timeLabel =
     job.startTime && job.endTime ? `${job.startTime} ~ ${job.endTime}` : t('jobs.time_tbd');
 
-  // Benefits
-  const benefitLabels: string[] = [];
-  if (job.benefits?.meals) benefitLabels.push(t('jobs.benefit_meals'));
-  if (job.benefits?.transport) benefitLabels.push(t('jobs.benefit_transport'));
-  if (job.benefits?.accommodation) benefitLabels.push(t('jobs.benefit_accommodation'));
-  if (job.benefits?.insurance) benefitLabels.push(t('jobs.benefit_insurance'));
+  // Benefits — JSONB object {meals: true, transport: false, ...}
+  type BenefitKey = 'meals' | 'transport' | 'accommodation' | 'insurance';
+  const BENEFIT_META: Record<BenefitKey, { icon: string; label: string }> = {
+    meals:         { icon: '🍱', label: t('jobs.benefit_meals') },
+    transport:     { icon: '🚌', label: t('jobs.benefit_transport') },
+    accommodation: { icon: '🏠', label: t('jobs.benefit_accommodation') },
+    insurance:     { icon: '🛡️', label: t('jobs.benefit_insurance') },
+  };
+  const activeBenefits = (Object.entries(job.benefits ?? {}) as [BenefitKey, boolean][])
+    .filter(([, v]) => v)
+    .map(([k]) => BENEFIT_META[k])
+    .filter(Boolean);
 
-  // Cover image (from job's own images or site cover)
-  const imageKeys = job.imageS3Keys ?? [];
+  // Requirements
+  const minExpMonths = job.requirements?.minExperienceMonths
+    ?? (job.requirements as any)?.min_experience_months
+    ?? null;
+  const reqNotes = job.requirements?.notes ?? null;
 
-  const bottomBarHeight = 68 + 16 + insets.bottom;
+  // Images
+  const imageUrls = (job.siteImageUrls ?? []).length > 0
+    ? job.siteImageUrls!
+    : job.siteCoverImageUrl ? [job.siteCoverImageUrl] : [];
+
+  // Site initials for avatar
+  const siteInitials = displaySiteName
+    ? displaySiteName.charAt(0).toUpperCase()
+    : '🏗';
+
+  const bottomBarHeight = 80 + insets.bottom;
 
   return (
     <>
@@ -231,15 +283,11 @@ export default function JobDetailScreen() {
         style={styles.container}
         contentContainerStyle={{ paddingBottom: bottomBarHeight + 16 }}
       >
-        {/* Image carousel */}
-        <ImageCarousel
-          imageKeys={imageKeys}
-          coverIdx={job.coverImageIdx ?? 0}
-        />
+        {/* ── Image carousel ── */}
+        <ImageCarousel imageUrls={imageUrls} />
 
-        {/* ── Title + Site ── */}
+        {/* ── Title + Site header ── */}
         <View style={styles.section}>
-          {/* Status badge */}
           <View style={[styles.statusBadge, isFull && styles.statusBadgeFull]}>
             <View style={[styles.statusDot, { backgroundColor: isFull ? Colors.disabled : Colors.success }]} />
             <Text style={[styles.statusText, isFull && styles.statusTextFull]}>
@@ -251,10 +299,8 @@ export default function JobDetailScreen() {
           {displaySiteName ? (
             <Text style={styles.siteName}>🏗️ {displaySiteName}</Text>
           ) : null}
-          {displayAddress ? (
-            <Text style={styles.address}>📍 {[displayAddress, displayDistrict, displayProvince].filter(Boolean).join(', ')}</Text>
-          ) : displayProvince ? (
-            <Text style={styles.address}>📍 {[displayDistrict, displayProvince].filter(Boolean).join(', ')}</Text>
+          {(displayAddress || displayProvince) ? (
+            <Text style={styles.address}>📍 {[displayAddress, displayProvince].filter(Boolean).join(', ')}</Text>
           ) : null}
           {job.distanceKm !== undefined && (
             <Text style={styles.distanceBadge}>
@@ -263,20 +309,40 @@ export default function JobDetailScreen() {
           )}
         </View>
 
-        {/* ── Wage + Slots grid ── */}
-        <View style={styles.wageGrid}>
-          <View style={styles.wageCard}>
+        {/* ── Wage card ── */}
+        <View style={styles.wageCard}>
+          <View style={styles.wageInfo}>
             <Text style={styles.wageLabel}>{t('jobs.wage_label')}</Text>
             <Text style={styles.wage}>₫{new Intl.NumberFormat('ko-KR').format(job.dailyWage)}</Text>
-            <Text style={styles.wageUnit}>{t('jobs.wage_unit', '/일')}</Text>
           </View>
-          <View style={styles.slotsCard}>
-            <Text style={styles.wageLabel}>{t('jobs.info_headcount')}</Text>
-            <Text style={styles.slotsValue}>{job.slotsFilled}<Text style={styles.slotsTotal}>/{job.slotsTotal}명</Text></Text>
+          <View style={styles.wageDivider} />
+          <View style={styles.wageInfo}>
+            <Text style={styles.wageLabel}>{workDateShort}</Text>
+            <Text style={styles.wageDateText}>{t('jobs.info_work_date')}</Text>
+          </View>
+        </View>
+
+        {/* ── Positions with progress bar ── */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>{t('jobs.info_headcount')}</Text>
+          <View style={styles.positionsRow}>
+            <Text style={styles.positionsFilled}>{job.slotsFilled}</Text>
+            <Text style={styles.positionsOf}>/{job.slotsTotal}명</Text>
             {!isFull && remaining > 0 && (
-              <Text style={styles.remainingText}>{t('jobs.slots_remaining', { count: remaining })}</Text>
+              <View style={styles.remainingBadge}>
+                <Text style={styles.remainingText}>{t('jobs.slots_remaining', { count: remaining })}</Text>
+              </View>
+            )}
+            {isFull && (
+              <View style={[styles.remainingBadge, styles.remainingBadgeFull]}>
+                <Text style={[styles.remainingText, styles.remainingTextFull]}>{t('jobs.closed_label')}</Text>
+              </View>
             )}
           </View>
+          <ProgressBar value={job.slotsFilled} total={job.slotsTotal} />
+          <Text style={styles.progressHint}>
+            {job.slotsFilled}명 지원 / {job.slotsTotal}명 모집
+          </Text>
         </View>
 
         {/* ── Work info ── */}
@@ -293,14 +359,25 @@ export default function JobDetailScreen() {
         </View>
 
         {/* ── Benefits ── */}
-        {benefitLabels.length > 0 && (
+        {activeBenefits.length > 0 && (
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>{t('jobs.section_benefits')}</Text>
-            <View style={styles.chipRow}>
-              {benefitLabels.map(label => (
-                <BenefitChip key={label} label={label} />
-              ))}
-            </View>
+            {activeBenefits.map((b, i) => (
+              <BenefitRow key={i} icon={b.icon} label={b.label} />
+            ))}
+          </View>
+        )}
+
+        {/* ── Requirements ── */}
+        {(minExpMonths != null || reqNotes) && (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>{t('jobs.requirements')}</Text>
+            {minExpMonths != null && (
+              <InfoRow icon="🎖️" label="최소 경력" value={formatMinExp(minExpMonths)} />
+            )}
+            {reqNotes ? (
+              <Text style={[styles.description, { marginTop: 8 }]}>{reqNotes}</Text>
+            ) : null}
           </View>
         )}
 
@@ -312,27 +389,46 @@ export default function JobDetailScreen() {
           </View>
         ) : null}
 
-        {/* ── Site info ── */}
+        {/* ── Work Site card ── */}
         {(displaySiteName || displayAddress) && (
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>{t('jobs.section_site_info')}</Text>
-            {displaySiteName ? (
-              <InfoRow icon="🏗️" label={t('jobs.info_site_name')} value={displaySiteName} />
-            ) : null}
-            {displayAddress ? (
-              <InfoRow icon="📍" label={t('jobs.info_address')} value={[displayAddress, displayDistrict, displayProvince].filter(Boolean).join(', ')} />
-            ) : displayProvince ? (
-              <InfoRow icon="📍" label={t('jobs.info_address')} value={[displayDistrict, displayProvince].filter(Boolean).join(', ')} />
-            ) : null}
+            <View style={styles.siteCard}>
+              {/* Site avatar */}
+              <View style={styles.siteAvatar}>
+                <Text style={styles.siteAvatarText}>{siteInitials}</Text>
+              </View>
+              <View style={styles.siteCardInfo}>
+                {displaySiteName ? (
+                  <Text style={styles.siteCardName} numberOfLines={1}>{displaySiteName}</Text>
+                ) : null}
+                {(displayAddress || displayProvince) ? (
+                  <Text style={styles.siteCardAddress} numberOfLines={2}>
+                    {[displayAddress, displayProvince].filter(Boolean).join(', ')}
+                  </Text>
+                ) : null}
+              </View>
+            </View>
             {job.lat != null && job.lng != null && (
-              <InfoRow icon="🌏" label={t('jobs.info_coords')} value={`${job.lat.toFixed(4)}, ${job.lng.toFixed(4)}`} />
+              <TouchableOpacity
+                style={styles.mapLinkBtn}
+                onPress={() => openInMaps(job.lat!, job.lng!, displaySiteName || displayAddress)}
+                activeOpacity={0.75}
+              >
+                <Text style={styles.mapLinkText}>🗺  지도에서 보기 →</Text>
+              </TouchableOpacity>
             )}
           </View>
         )}
       </ScrollView>
 
-      {/* Apply CTA */}
-      <View style={[styles.bottomBar, { paddingBottom: 16 + insets.bottom }]}>
+      {/* ── Sticky bottom bar ── */}
+      <View style={[styles.bottomBar, { paddingBottom: 12 + insets.bottom }]}>
+        <View style={styles.bottomBarLeft}>
+          <Text style={styles.bottomWageLabel}>{t('jobs.wage_label')}</Text>
+          <Text style={styles.bottomWage}>₫{new Intl.NumberFormat('ko-KR').format(job.dailyWage)}</Text>
+          <Text style={styles.bottomDate}>{workDateShort}</Text>
+        </View>
         <TouchableOpacity
           style={[styles.applyBtn, (isFull || applying) && styles.applyBtnDisabled]}
           onPress={() => setConfirmVisible(true)}
@@ -340,16 +436,16 @@ export default function JobDetailScreen() {
           activeOpacity={0.85}
         >
           {applying ? (
-            <ActivityIndicator color="#fff" />
+            <ActivityIndicator color="#fff" size="small" />
           ) : (
             <Text style={styles.applyBtnText}>
-              {isFull ? t('jobs.apply_confirm_closed') : t('jobs.apply_button')}
+              {isFull ? t('jobs.closed_label') : t('jobs.apply_button')}
             </Text>
           )}
         </TouchableOpacity>
       </View>
 
-      {/* Confirm modal */}
+      {/* ── Confirm modal ── */}
       <Modal visible={confirmVisible} transparent animationType="fade">
         <View style={styles.overlay}>
           <View style={styles.modal}>
@@ -363,7 +459,7 @@ export default function JobDetailScreen() {
                 <Text style={styles.cancelBtnText}>{t('common.cancel')}</Text>
               </TouchableOpacity>
               <TouchableOpacity style={styles.confirmBtn} onPress={handleApply}>
-                <Text style={styles.confirmBtnText}>{t('jobs.apply_button')}</Text>
+                <Text style={styles.confirmBtnText}>{t('common.confirm')}</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -381,6 +477,12 @@ const styles = StyleSheet.create({
   cover: { width: '100%', height: 240 },
   coverPlaceholder: { backgroundColor: Colors.surfaceContainer, justifyContent: 'center', alignItems: 'center' },
   coverPlaceholderText: { fontSize: 64 },
+  counterBadge: {
+    position: 'absolute', top: 12, right: 12,
+    backgroundColor: 'rgba(0,0,0,0.55)', borderRadius: Radius.pill,
+    paddingHorizontal: 10, paddingVertical: 4,
+  },
+  counterText: { color: '#fff', fontSize: 12, fontWeight: '600' },
   dotRow: {
     flexDirection: 'row', justifyContent: 'center', alignItems: 'center',
     gap: 6, paddingVertical: 10, backgroundColor: Colors.surface,
@@ -417,30 +519,41 @@ const styles = StyleSheet.create({
   },
   siteName: { fontSize: 14, color: Colors.onSurfaceVariant, marginBottom: 4 },
   address: { fontSize: 13, color: Colors.onSurfaceVariant, lineHeight: 18, marginBottom: 4 },
-  distanceBadge: {
-    fontSize: 12, fontWeight: '600', color: Colors.primary,
-    marginTop: 4,
-  },
+  distanceBadge: { fontSize: 12, fontWeight: '600', color: Colors.primary, marginTop: 4 },
 
-  // Wage + slots grid
-  wageGrid: {
-    flexDirection: 'row', gap: 10,
-    marginHorizontal: 16, marginTop: 12,
-  },
+  // Wage card
   wageCard: {
-    flex: 1, backgroundColor: Colors.primaryContainer,
-    borderRadius: Radius.lg, padding: 16,
+    flexDirection: 'row',
+    backgroundColor: Colors.primaryContainer,
+    borderRadius: Radius.lg,
+    marginHorizontal: 16, marginTop: 12,
+    padding: 16, alignItems: 'center',
   },
-  slotsCard: {
-    flex: 1, backgroundColor: Colors.surfaceContainer,
-    borderRadius: Radius.lg, padding: 16,
+  wageInfo: { flex: 1, alignItems: 'center' },
+  wageDivider: { width: 1, height: 40, backgroundColor: 'rgba(6,105,247,0.2)' },
+  wageLabel: { fontSize: 11, color: Colors.onSurfaceVariant, marginBottom: 4 },
+  wage: { fontSize: 22, fontWeight: '900', color: Colors.primary },
+  wageDateText: { fontSize: 14, fontWeight: '600', color: Colors.onSurface, marginTop: 2 },
+
+  // Positions
+  positionsRow: { flexDirection: 'row', alignItems: 'baseline', gap: 4, marginBottom: 10 },
+  positionsFilled: { fontSize: 24, fontWeight: '900', color: Colors.onSurface },
+  positionsOf: { fontSize: 16, color: Colors.onSurfaceVariant },
+  remainingBadge: {
+    marginLeft: 8, backgroundColor: Colors.successContainer,
+    borderRadius: Radius.pill, paddingHorizontal: 8, paddingVertical: 3,
+    alignSelf: 'center',
   },
-  wageLabel: { fontSize: 12, color: Colors.onSurfaceVariant, marginBottom: 4 },
-  wage: { fontSize: 22, fontWeight: '900', color: Colors.brand },
-  wageUnit: { fontSize: 11, color: Colors.onSurfaceVariant, marginTop: 2 },
-  slotsValue: { fontSize: 22, fontWeight: '900', color: Colors.onSurface },
-  slotsTotal: { fontSize: 14, fontWeight: '400', color: Colors.onSurfaceVariant },
-  remainingText: { fontSize: 11, color: Colors.success, fontWeight: '600', marginTop: 4 },
+  remainingBadgeFull: { backgroundColor: Colors.surfaceContainer },
+  remainingText: { fontSize: 11, fontWeight: '700', color: Colors.onSuccessContainer },
+  remainingTextFull: { color: Colors.onSurfaceVariant },
+  progressBg: {
+    height: 8, borderRadius: 4, backgroundColor: Colors.outline, overflow: 'hidden',
+  },
+  progressFill: {
+    height: 8, borderRadius: 4, backgroundColor: Colors.primary,
+  },
+  progressHint: { fontSize: 11, color: Colors.onSurfaceVariant, marginTop: 6 },
 
   // Info rows
   infoRow: { flexDirection: 'row', gap: 12, marginBottom: 12, alignItems: 'flex-start' },
@@ -454,29 +567,55 @@ const styles = StyleSheet.create({
   infoLabel: { fontSize: 11, color: Colors.onSurfaceVariant, marginBottom: 2 },
   infoValue: { fontSize: 14, color: Colors.onSurface, fontWeight: '500', lineHeight: 19 },
 
-  // Benefits chips
-  chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  chip: {
+  // Benefits rows
+  benefitRow: { flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 10 },
+  benefitIconWrap: {
+    width: 36, height: 36, borderRadius: 10,
     backgroundColor: Colors.primaryContainer,
-    borderRadius: Radius.pill, paddingHorizontal: 12, paddingVertical: 6,
+    alignItems: 'center', justifyContent: 'center',
   },
-  chipText: { color: Colors.primary, fontSize: 13, fontWeight: '600' },
+  benefitIcon: { fontSize: 16 },
+  benefitLabel: { fontSize: 14, color: Colors.onSurface, fontWeight: '500' },
 
   // Description
   description: { fontSize: 14, color: Colors.onSurface, lineHeight: 22 },
 
-  // Bottom bar + apply button
+  // Work Site card
+  siteCard: { flexDirection: 'row', gap: 12, alignItems: 'center', marginBottom: 12 },
+  siteAvatar: {
+    width: 44, height: 44, borderRadius: Radius.md,
+    backgroundColor: Colors.surfaceContainer,
+    alignItems: 'center', justifyContent: 'center',
+  },
+  siteAvatarText: { fontSize: 20, fontWeight: '700', color: Colors.primary },
+  siteCardInfo: { flex: 1 },
+  siteCardName: { fontSize: 15, fontWeight: '700', color: Colors.onSurface, marginBottom: 3 },
+  siteCardAddress: { fontSize: 13, color: Colors.onSurfaceVariant, lineHeight: 18 },
+  mapLinkBtn: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
+    paddingVertical: 10,
+    backgroundColor: Colors.surfaceContainer,
+    borderRadius: Radius.md,
+  },
+  mapLinkText: { fontSize: 14, fontWeight: '600', color: Colors.primary },
+
+  // Bottom bar
   bottomBar: {
     position: 'absolute', bottom: 0, left: 0, right: 0,
     backgroundColor: Colors.surface, paddingHorizontal: 16, paddingTop: 12,
     borderTopWidth: 1, borderTopColor: Colors.outline,
+    flexDirection: 'row', alignItems: 'center', gap: 12,
   },
+  bottomBarLeft: { flex: 1 },
+  bottomWageLabel: { fontSize: 11, color: Colors.onSurfaceVariant },
+  bottomWage: { fontSize: 18, fontWeight: '900', color: Colors.primary, lineHeight: 24 },
+  bottomDate: { fontSize: 11, color: Colors.onSurfaceVariant, marginTop: 2 },
   applyBtn: {
     backgroundColor: Colors.primary, borderRadius: Radius.pill,
-    paddingVertical: 16, alignItems: 'center',
+    paddingVertical: 14, paddingHorizontal: 24, alignItems: 'center',
   },
   applyBtnDisabled: { backgroundColor: Colors.disabled },
-  applyBtnText: { color: '#fff', fontSize: 16, fontWeight: '700' },
+  applyBtnText: { color: '#fff', fontSize: 15, fontWeight: '700' },
 
   // Confirm modal
   overlay: {

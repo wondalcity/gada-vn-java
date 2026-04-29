@@ -1,4 +1,4 @@
-import React, { useRef, useState, useCallback, useEffect } from 'react';
+import React, { useRef, useState, useCallback, useEffect, useLayoutEffect } from 'react';
 import {
   View, Text, TouchableOpacity, StyleSheet, Animated,
   Dimensions, Platform,
@@ -202,6 +202,13 @@ export default function JobsMapView({ jobs, initialRegion, focusJobId, onFocused
   const mapRef = useRef<MapView>(null);
   const [selectedJobId, setSelectedJobId] = useState<string | null>(null);
   const slideAnim = useRef(new Animated.Value(120)).current;
+  // Android: tracksViewChanges must be true initially so custom marker views render,
+  // then switched to false for performance after the map settles.
+  const [markersReady, setMarkersReady] = useState(false);
+  useEffect(() => {
+    const t = setTimeout(() => setMarkersReady(true), 800);
+    return () => clearTimeout(t);
+  }, []);
 
   // Jobs with valid coordinates (supports both internal job.site.lat and public API job.siteLat)
   const jobsWithCoords = jobs.filter(j => getJobCoords(j) !== null);
@@ -288,7 +295,7 @@ export default function JobsMapView({ jobs, initialRegion, focusJobId, onFocused
                 coordinate={{ latitude: coords.lat, longitude: coords.lng }}
                 onPress={() => selectJob(job)}
                 anchor={{ x: 0.5, y: 0.5 }}
-                tracksViewChanges={false}
+                tracksViewChanges={!markersReady || selectedJobId === job.id}
                 zIndex={selectedJobId === job.id ? 10 : 1}
               >
                 <WageMarker job={job} isSelected={selectedJobId === job.id} />

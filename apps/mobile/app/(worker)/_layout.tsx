@@ -1,39 +1,81 @@
 import { Tabs, useRouter } from 'expo-router';
 import { Text, TouchableOpacity, View, StyleSheet, Platform } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
-import { Colors } from '../../constants/theme';
+import { Colors, Radius, Spacing } from '../../constants/theme';
 
-/** Platform-native back chevron/arrow for pushed depth screens */
+// ── Tab icon pill (web-style: icon + bg pill when active) ──
+function TabIcon({ name, focused }: { name: React.ComponentProps<typeof Ionicons>['name']; focused: boolean }) {
+  return (
+    <View style={[tabIcon.wrap, focused && tabIcon.active]}>
+      <Ionicons name={name} size={22} color={focused ? Colors.primary : Colors.onSurfaceVariant} />
+    </View>
+  );
+}
+
+const tabIcon = StyleSheet.create({
+  wrap: { width: 40, height: 28, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
+  active: { backgroundColor: 'rgba(6,105,247,0.10)' },
+});
+
+/** GADA-style back button — circular surface container with platform arrow */
 function BackBtn() {
   const router = useRouter();
   return (
     <TouchableOpacity
       onPress={() => router.back()}
-      hitSlop={8}
-      activeOpacity={0.6}
-      style={{ paddingHorizontal: Platform.OS === 'ios' ? 8 : 4, paddingVertical: 4 }}
+      hitSlop={{ top: 12, bottom: 12, left: 8, right: 12 }}
+      activeOpacity={0.7}
+      style={btn.backWrap}
     >
-      <Text style={{ fontSize: Platform.OS === 'ios' ? 32 : 24, lineHeight: Platform.OS === 'ios' ? 34 : 26, color: Colors.primary, fontWeight: Platform.OS === 'ios' ? '300' : '400' }}>
-        {Platform.OS === 'ios' ? '‹' : '←'}
-      </Text>
+      <View style={btn.circle}>
+        <Text style={btn.backIcon}>
+          {Platform.OS === 'ios' ? '‹' : '←'}
+        </Text>
+      </View>
     </TouchableOpacity>
   );
 }
 
-/** X close button for modal-style screens */
+/** GADA-style close button — circular surface container with × */
 function CloseBtn() {
   const router = useRouter();
   return (
     <TouchableOpacity
       onPress={() => router.back()}
-      hitSlop={8}
-      activeOpacity={0.6}
-      style={{ paddingHorizontal: Platform.OS === 'ios' ? 12 : 4, paddingVertical: 4 }}
+      hitSlop={{ top: 12, bottom: 12, left: 12, right: 8 }}
+      activeOpacity={0.7}
+      style={btn.closeWrap}
     >
-      <Text style={{ fontSize: 18, color: Colors.onSurface, lineHeight: 22 }}>✕</Text>
+      <View style={btn.circle}>
+        <Text style={btn.closeIcon}>✕</Text>
+      </View>
     </TouchableOpacity>
   );
 }
+
+const btn = StyleSheet.create({
+  backWrap:  { paddingLeft: Spacing.sm, paddingRight: Spacing.xs },
+  closeWrap: { paddingLeft: Spacing.xs, paddingRight: Spacing.sm },
+  circle: {
+    width: 34, height: 34, borderRadius: Radius.full,
+    backgroundColor: Colors.surfaceContainer,
+    justifyContent: 'center', alignItems: 'center',
+  },
+  backIcon: {
+    fontSize: Platform.OS === 'ios' ? 22 : 18,
+    lineHeight: Platform.OS === 'ios' ? 26 : 22,
+    color: Colors.onSurface,
+    fontWeight: Platform.OS === 'ios' ? '300' : '400',
+    marginTop: Platform.OS === 'ios' ? -1 : 0,
+  },
+  closeIcon: {
+    fontSize: 14,
+    lineHeight: 18,
+    color: Colors.onSurface,
+    fontWeight: '600',
+  },
+});
 
 function GadaLogo() {
   return (
@@ -64,7 +106,8 @@ export default function WorkerLayout() {
       screenOptions={{
         tabBarActiveTintColor: Colors.primary,
         tabBarInactiveTintColor: Colors.onSurfaceVariant,
-        tabBarStyle: { height: 60, paddingBottom: 8, backgroundColor: Colors.surface, borderTopColor: Colors.outline },
+        tabBarStyle: { height: 60, paddingBottom: 8, backgroundColor: Colors.surface, borderTopColor: Colors.outline, borderTopWidth: 1 },
+        tabBarLabelStyle: { fontSize: 10, fontWeight: '500', marginTop: 0 },
         headerStyle: { backgroundColor: Colors.surface },
         headerShadowVisible: true,
         headerTintColor: Colors.onSurface,
@@ -78,27 +121,27 @@ export default function WorkerLayout() {
         ),
       }}
     >
-      {/* 홈 — landing page (custom header inside screen) */}
+      {/* 홈 */}
       <Tabs.Screen
         name="home"
         options={{
           headerShown: false,
           tabBarLabel: t('landing.home'),
-          tabBarIcon: ({ color }) => <Text style={{ color, fontSize: 20 }}>🏠</Text>,
+          tabBarIcon: ({ focused }) => <TabIcon name={focused ? 'home' : 'home-outline'} focused={focused} />,
         }}
       />
 
-      {/* 일자리 — job feed (custom WorkerHeader inside screen) */}
+      {/* 일자리 */}
       <Tabs.Screen
         name="index"
         options={{
           headerShown: false,
           tabBarLabel: t('jobs.tab_label'),
-          tabBarIcon: ({ color }) => <Text style={{ color, fontSize: 20 }}>💼</Text>,
+          tabBarIcon: ({ focused }) => <TabIcon name={focused ? 'briefcase' : 'briefcase-outline'} focused={focused} />,
         }}
       />
 
-      {/* 지원현황 — Applications */}
+      {/* 지원현황 */}
       <Tabs.Screen
         name="work"
         options={{
@@ -106,11 +149,11 @@ export default function WorkerLayout() {
           headerTitleAlign: 'left',
           title: t('worker.work_tab_title'),
           tabBarLabel: t('worker.work_tab_label'),
-          tabBarIcon: ({ color }) => <Text style={{ color, fontSize: 20 }}>📋</Text>,
+          tabBarIcon: ({ focused }) => <TabIcon name={focused ? 'document-text' : 'document-text-outline'} focused={focused} />,
         }}
       />
 
-      {/* 출퇴근 — Attendance */}
+      {/* 출퇴근 */}
       <Tabs.Screen
         name="attendance"
         options={{
@@ -118,7 +161,7 @@ export default function WorkerLayout() {
           headerTitleAlign: 'left',
           title: t('attendance.title'),
           tabBarLabel: t('attendance.tab_label'),
-          tabBarIcon: ({ color }) => <Text style={{ color, fontSize: 20 }}>⏱️</Text>,
+          tabBarIcon: ({ focused }) => <TabIcon name={focused ? 'calendar' : 'calendar-outline'} focused={focused} />,
         }}
       />
 
@@ -130,7 +173,7 @@ export default function WorkerLayout() {
           headerTitleAlign: 'left',
           title: t('landing.mypage'),
           tabBarLabel: t('landing.mypage'),
-          tabBarIcon: ({ color }) => <Text style={{ color, fontSize: 20 }}>👤</Text>,
+          tabBarIcon: ({ focused }) => <TabIcon name={focused ? 'person' : 'person-outline'} focused={focused} />,
         }}
       />
 

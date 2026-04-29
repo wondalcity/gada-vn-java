@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import {
-  View, Text, FlatList, StyleSheet,
-  TouchableOpacity, RefreshControl, ActivityIndicator, Alert,
+  View, Text, FlatList, StyleSheet, Modal,
+  TouchableOpacity, RefreshControl, ActivityIndicator,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
@@ -61,6 +61,7 @@ export default function WorkerWorkScreen() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [withdrawingId, setWithdrawingId] = useState<string | null>(null);
+  const [confirmTargetId, setConfirmTargetId] = useState<string | null>(null);
 
   const loadApplications = useCallback(async () => {
     try {
@@ -81,28 +82,23 @@ export default function WorkerWorkScreen() {
     loadApplications();
   }
 
-  async function handleWithdraw(id: string) {
-    Alert.alert(
-      t('worker.withdraw_title'),
-      t('worker.withdraw_body'),
-      [
-        { text: t('common.cancel'), style: 'cancel' },
-        {
-          text: t('worker.withdraw_confirm'), style: 'destructive',
-          onPress: async () => {
-            setWithdrawingId(id);
-            try {
-              await api.delete(`/applications/${id}`);
-              await loadApplications();
-            } catch {
-              showToast({ message: t('common.process_fail', '처리 중 오류가 발생했습니다'), type: 'error' });
-            } finally {
-              setWithdrawingId(null);
-            }
-          },
-        },
-      ],
-    );
+  function handleWithdraw(id: string) {
+    setConfirmTargetId(id);
+  }
+
+  async function confirmWithdraw() {
+    const id = confirmTargetId;
+    setConfirmTargetId(null);
+    if (!id) return;
+    setWithdrawingId(id);
+    try {
+      await api.delete(`/applications/${id}`);
+      await loadApplications();
+    } catch {
+      showToast({ message: t('common.process_fail', '처리 중 오류가 발생했습니다'), type: 'error' });
+    } finally {
+      setWithdrawingId(null);
+    }
   }
 
   const filtered = activeTab === 'ALL'
@@ -128,6 +124,24 @@ export default function WorkerWorkScreen() {
 
   return (
     <View style={styles.container}>
+      {/* Withdraw confirm modal */}
+      <Modal visible={!!confirmTargetId} transparent animationType="fade" onRequestClose={() => setConfirmTargetId(null)}>
+        <View style={styles.overlay}>
+          <View style={styles.modal}>
+            <Text style={styles.modalTitle}>{t('worker.withdraw_title')}</Text>
+            <Text style={styles.modalBody}>{t('worker.withdraw_body')}</Text>
+            <View style={styles.modalActions}>
+              <TouchableOpacity style={styles.modalCancelBtn} onPress={() => setConfirmTargetId(null)}>
+                <Text style={styles.modalCancelText}>{t('common.cancel')}</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.modalConfirmBtn} onPress={confirmWithdraw}>
+                <Text style={styles.modalConfirmText}>{t('common.confirm')}</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
       {/* Tab bar */}
       <View style={styles.tabsRow}>
         {TAB_LABELS.map(({ key, label }) => (
@@ -295,4 +309,27 @@ const styles = StyleSheet.create({
   empty: { alignItems: 'center', paddingTop: 80, gap: 12 },
   emptyIcon: { fontSize: 40 },
   emptyText: { ...Font.body3, color: Colors.onSurfaceVariant },
+
+  // Withdraw confirm modal
+  overlay: {
+    flex: 1, backgroundColor: Colors.overlay80,
+    justifyContent: 'center', alignItems: 'center',
+  },
+  modal: {
+    backgroundColor: Colors.surface, borderRadius: 20,
+    margin: 24, padding: 24, width: '85%',
+  },
+  modalTitle: { ...Font.t2, color: Colors.onSurface, marginBottom: 10 },
+  modalBody: { ...Font.body3, color: Colors.onSurfaceVariant, lineHeight: 22, marginBottom: 24 },
+  modalActions: { flexDirection: 'row', gap: 12 },
+  modalCancelBtn: {
+    flex: 1, borderWidth: 1, borderColor: Colors.outline,
+    borderRadius: Radius.md, paddingVertical: 14, alignItems: 'center',
+  },
+  modalCancelText: { color: Colors.onSurfaceVariant, fontWeight: '600', fontSize: 15 },
+  modalConfirmBtn: {
+    flex: 1, backgroundColor: Colors.error,
+    borderRadius: Radius.md, paddingVertical: 14, alignItems: 'center',
+  },
+  modalConfirmText: { color: '#fff', fontWeight: '700', fontSize: 15 },
 });

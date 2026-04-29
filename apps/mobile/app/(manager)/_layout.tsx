@@ -1,37 +1,80 @@
 import { Tabs, useRouter } from 'expo-router';
 import { Text, TouchableOpacity, View, StyleSheet, Platform } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
-import { Colors } from '../../constants/theme';
+import { Colors, Radius, Spacing } from '../../constants/theme';
 
+function TabIcon({ name, focused }: { name: React.ComponentProps<typeof Ionicons>['name']; focused: boolean }) {
+  return (
+    <View style={[tabIcon.wrap, focused && tabIcon.active]}>
+      <Ionicons name={name} size={22} color={focused ? Colors.primary : Colors.onSurfaceVariant} />
+    </View>
+  );
+}
+
+const tabIcon = StyleSheet.create({
+  wrap: { width: 40, height: 28, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
+  active: { backgroundColor: 'rgba(6,105,247,0.10)' },
+});
+
+/** GADA-style back button — circular surface container with platform arrow */
 function BackBtn() {
   const router = useRouter();
   return (
     <TouchableOpacity
       onPress={() => router.back()}
-      hitSlop={8}
-      activeOpacity={0.6}
-      style={{ paddingHorizontal: Platform.OS === 'ios' ? 8 : 4, paddingVertical: 4 }}
+      hitSlop={{ top: 12, bottom: 12, left: 8, right: 12 }}
+      activeOpacity={0.7}
+      style={btn.backWrap}
     >
-      <Text style={{ fontSize: Platform.OS === 'ios' ? 32 : 24, lineHeight: Platform.OS === 'ios' ? 34 : 26, color: Colors.primary, fontWeight: Platform.OS === 'ios' ? '300' : '400' }}>
-        {Platform.OS === 'ios' ? '‹' : '←'}
-      </Text>
+      <View style={btn.circle}>
+        <Text style={btn.backIcon}>
+          {Platform.OS === 'ios' ? '‹' : '←'}
+        </Text>
+      </View>
     </TouchableOpacity>
   );
 }
 
+/** GADA-style close button — circular surface container with × */
 function CloseBtn() {
   const router = useRouter();
   return (
     <TouchableOpacity
       onPress={() => router.back()}
-      hitSlop={8}
-      activeOpacity={0.6}
-      style={{ paddingHorizontal: Platform.OS === 'ios' ? 12 : 4, paddingVertical: 4 }}
+      hitSlop={{ top: 12, bottom: 12, left: 12, right: 8 }}
+      activeOpacity={0.7}
+      style={btn.closeWrap}
     >
-      <Text style={{ fontSize: 18, color: Colors.onSurface, lineHeight: 22 }}>✕</Text>
+      <View style={btn.circle}>
+        <Text style={btn.closeIcon}>✕</Text>
+      </View>
     </TouchableOpacity>
   );
 }
+
+const btn = StyleSheet.create({
+  backWrap:  { paddingLeft: Spacing.sm, paddingRight: Spacing.xs },
+  closeWrap: { paddingLeft: Spacing.xs, paddingRight: Spacing.sm },
+  circle: {
+    width: 34, height: 34, borderRadius: Radius.full,
+    backgroundColor: Colors.surfaceContainer,
+    justifyContent: 'center', alignItems: 'center',
+  },
+  backIcon: {
+    fontSize: Platform.OS === 'ios' ? 22 : 18,
+    lineHeight: Platform.OS === 'ios' ? 26 : 22,
+    color: Colors.onSurface,
+    fontWeight: Platform.OS === 'ios' ? '300' : '400',
+    marginTop: Platform.OS === 'ios' ? -1 : 0,
+  },
+  closeIcon: {
+    fontSize: 14,
+    lineHeight: 18,
+    color: Colors.onSurface,
+    fontWeight: '600',
+  },
+});
 
 function GadaLogo() {
   return (
@@ -62,7 +105,8 @@ export default function ManagerLayout() {
       screenOptions={{
         tabBarActiveTintColor: Colors.primary,
         tabBarInactiveTintColor: Colors.onSurfaceVariant,
-        tabBarStyle: { height: 60, paddingBottom: 8, backgroundColor: Colors.surface, borderTopColor: Colors.outline },
+        tabBarStyle: { height: 60, paddingBottom: 8, backgroundColor: Colors.surface, borderTopColor: Colors.outline, borderTopWidth: 1 },
+        tabBarLabelStyle: { fontSize: 10, fontWeight: '500', marginTop: 0 },
         headerStyle: { backgroundColor: Colors.surface },
         headerShadowVisible: true,
         headerTintColor: Colors.onSurface,
@@ -76,13 +120,13 @@ export default function ManagerLayout() {
         ),
       }}
     >
-      {/* Home — dashboard (custom header rendered inside screen) */}
+      {/* Home */}
       <Tabs.Screen
         name="home"
         options={{
           headerShown: false,
           tabBarLabel: t('manager.tab_home_label'),
-          tabBarIcon: ({ color }) => <Text style={{ color, fontSize: 20 }}>🏠</Text>,
+          tabBarIcon: ({ focused }) => <TabIcon name={focused ? 'home' : 'home-outline'} focused={focused} />,
         }}
       />
       {/* Sites */}
@@ -93,7 +137,7 @@ export default function ManagerLayout() {
           headerTitleAlign: 'left',
           title: t('manager.tab_sites'),
           tabBarLabel: t('manager.tab_sites_label'),
-          tabBarIcon: ({ color }) => <Text style={{ color, fontSize: 20 }}>🏗️</Text>,
+          tabBarIcon: ({ focused }) => <TabIcon name={focused ? 'business' : 'business-outline'} focused={focused} />,
         }}
       />
       {/* Jobs */}
@@ -104,7 +148,7 @@ export default function ManagerLayout() {
           headerTitleAlign: 'left',
           title: t('manager.tab_jobs'),
           tabBarLabel: t('manager.tab_jobs_label'),
-          tabBarIcon: ({ color }) => <Text style={{ color, fontSize: 20 }}>📋</Text>,
+          tabBarIcon: ({ focused }) => <TabIcon name={focused ? 'briefcase' : 'briefcase-outline'} focused={focused} />,
         }}
       />
       {/* Hires */}
@@ -115,7 +159,7 @@ export default function ManagerLayout() {
           headerTitleAlign: 'left',
           title: t('manager.tab_workers'),
           tabBarLabel: t('manager.tab_workers_label'),
-          tabBarIcon: ({ color }) => <Text style={{ color, fontSize: 20 }}>👷</Text>,
+          tabBarIcon: ({ focused }) => <TabIcon name={focused ? 'people' : 'people-outline'} focused={focused} />,
         }}
       />
       {/* Contracts */}
@@ -126,7 +170,7 @@ export default function ManagerLayout() {
           headerTitleAlign: 'left',
           title: t('manager.tab_contracts'),
           tabBarLabel: t('manager.tab_contracts_label'),
-          tabBarIcon: ({ color }) => <Text style={{ color, fontSize: 20 }}>📄</Text>,
+          tabBarIcon: ({ focused }) => <TabIcon name={focused ? 'document-text' : 'document-text-outline'} focused={focused} />,
         }}
       />
       {/* ── Hidden screens (platform-native back / close buttons) ── */}

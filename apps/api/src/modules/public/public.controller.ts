@@ -12,10 +12,13 @@ export class PublicController {
     @Query('tradeId') tradeId?: string,
     @Query('site') site?: string,
     @Query('page') page?: string,
+    @Query('limit') limit?: string,
     @Query('lat') lat?: string,
     @Query('lng') lng?: string,
     @Query('radiusKm') radiusKm?: string,
     @Query('statusFilter') statusFilter?: string,
+    @Query('minWage') minWage?: string,
+    @Query('maxWage') maxWage?: string,
   ) {
     const validStatus = ['CLOSING_SOON', 'CLOSED'] as const;
     const parsedStatus = validStatus.includes(statusFilter as typeof validStatus[number])
@@ -27,10 +30,13 @@ export class PublicController {
       tradeId: tradeId ? Number(tradeId) : undefined,
       site,
       page: page ? Number(page) : 1,
+      limit: limit ? Math.min(50, Number(limit)) : undefined,
       lat: lat ? Number(lat) : undefined,
       lng: lng ? Number(lng) : undefined,
       radiusKm: radiusKm ? Math.min(200, Number(radiusKm)) : undefined,
       statusFilter: parsedStatus,
+      minWage: minWage ? Number(minWage) : undefined,
+      maxWage: maxWage ? Number(maxWage) : undefined,
     });
   }
 

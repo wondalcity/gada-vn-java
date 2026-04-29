@@ -182,16 +182,18 @@ export default function WorkerHomeScreen() {
   if (loading) {
     return (
       <View style={styles.center}>
-        <ActivityIndicator size="large" color={Colors.brand} />
+        <ActivityIndicator size="large" color={Colors.primary} />
       </View>
     );
   }
 
   return (
+    <View style={{ flex: 1, backgroundColor: '#F8F8FA' }}>
+      {/* Fixed header — same as other tabs */}
+      <WorkerHeader />
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
       {/* ── Hero: dark construction gradient (matches web app) ── */}
       <View style={styles.hero}>
-        <WorkerHeader dark />
         <View style={styles.heroDecor1} />
         <View style={styles.heroDecor2} />
         <View style={styles.heroContent}>
@@ -406,6 +408,7 @@ export default function WorkerHomeScreen() {
         </TouchableOpacity>
       </Modal>
     </ScrollView>
+    </View>
   );
 }
 
@@ -425,7 +428,7 @@ const styles = StyleSheet.create({
   heroDecor1: {
     position: 'absolute', top: -50, right: -50,
     width: 180, height: 180, borderRadius: 90,
-    backgroundColor: 'rgba(255,107,44,0.08)',
+    backgroundColor: 'rgba(6,105,247,0.10)',
   },
   heroDecor2: {
     position: 'absolute', bottom: -40, left: -30,
@@ -547,13 +550,13 @@ const styles = StyleSheet.create({
     flexDirection: 'row', alignItems: 'center',
     justifyContent: 'space-between', marginTop: 6,
   },
-  jobCardWage: { fontSize: 15, fontWeight: '800', color: Colors.brand },
+  jobCardWage: { fontSize: 15, fontWeight: '800', color: Colors.primary },
   statusBadge: {
-    backgroundColor: '#FFF3EE', borderRadius: 999,
+    backgroundColor: '#E8F3FF', borderRadius: 999,
     paddingHorizontal: 8, paddingVertical: 3,
   },
   statusBadgeFull: { backgroundColor: '#F3F4F6' },
-  statusBadgeText: { fontSize: 10, fontWeight: '700', color: Colors.brand },
+  statusBadgeText: { fontSize: 10, fontWeight: '700', color: Colors.primary },
   statusBadgeTextFull: { color: '#9CA3AF' },
   jobCardFooter: {
     flexDirection: 'row', justifyContent: 'space-between',
