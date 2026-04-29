@@ -68,8 +68,6 @@ export default function WorkerLayout() {
         headerStyle: { backgroundColor: Colors.surface },
         headerShadowVisible: true,
         headerTintColor: Colors.onSurface,
-        headerTitle: () => <GadaLogo />,
-        headerTitleAlign: 'left',
         headerRight: () => (
           <TouchableOpacity
             onPress={() => router.push('/(worker)/notifications' as any)}
