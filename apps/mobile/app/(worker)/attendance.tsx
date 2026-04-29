@@ -248,9 +248,11 @@ const styles = StyleSheet.create({
 
   todayCard: {
     backgroundColor: Colors.primary,
-    margin: Spacing.lg,
+    marginHorizontal: Spacing.md,
+    marginTop: Spacing.sm,
+    marginBottom: 0,
     borderRadius: Radius.md,
-    padding: Spacing.lg,
+    padding: Spacing.md,
     gap: Spacing.xs,
   },
   todayTitle: { fontSize: 12, color: 'rgba(255,255,255,0.7)', fontWeight: '600', letterSpacing: 0.5 },
@@ -273,7 +275,7 @@ const styles = StyleSheet.create({
   hoursText: { ...Font.caption, color: 'rgba(255,255,255,0.85)', backgroundColor: 'rgba(255,255,255,0.2)', paddingHorizontal: 8, paddingVertical: 3, borderRadius: 12 },
 
   sectionTitle: { ...Font.t4, color: Colors.onSurface, marginBottom: Spacing.sm },
-  list: { padding: Spacing.lg, gap: Spacing.md, paddingBottom: 32 },
+  list: { paddingHorizontal: Spacing.md, paddingTop: Spacing.xs, gap: Spacing.md, paddingBottom: 32 },
 
   card: {
     backgroundColor: Colors.surface,
@@ -297,7 +299,7 @@ const styles = StyleSheet.create({
   hoursChip: { ...Font.caption, color: Colors.primary, fontWeight: '600', backgroundColor: Colors.primaryContainer, paddingHorizontal: 8, paddingVertical: 2, borderRadius: 12 },
   wageText: { ...Font.caption, color: Colors.primary, fontWeight: '700', marginLeft: 'auto' },
 
-  empty: { alignItems: 'center', paddingTop: 80, gap: 12 },
+  empty: { alignItems: 'center', paddingTop: 48, gap: 12 },
   emptyIcon: { fontSize: 40 },
   emptyText: { ...Font.body3, color: Colors.onSurfaceVariant },
 
