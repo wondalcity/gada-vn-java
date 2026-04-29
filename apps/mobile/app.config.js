@@ -63,10 +63,13 @@ function withFirebaseStaticFramework(config) {
         contents = `$RNFirebaseAsStaticFramework = true\n${contents}`;
       }
 
-      // 2. Replace use_modular_headers! with use_frameworks! :linkage => :static
-      //    (use_modular_headers! conflicts with the static framework approach)
-      if (contents.includes('use_modular_headers!') && !contents.includes("use_frameworks! :linkage => :static\n")) {
-        contents = contents.replace(/^use_modular_headers!\s*$/m, "use_frameworks! :linkage => :static");
+      // 2. Add use_frameworks! :linkage => :static after use_modular_headers!
+      //    Both are needed: use_modular_headers! generates module maps for ObjC pods
+      //    that Firebase Swift pods depend on; use_frameworks! :linkage => :static
+      //    makes all pods (including Swift ones) static frameworks (required for
+      //    CocoaPods 1.15+ which made dynamic Swift static linking a fatal error).
+      if (contents.includes('use_modular_headers!') && !contents.includes("use_frameworks! :linkage => :static")) {
+        contents = contents.replace(/^(use_modular_headers!)\s*$/m, "$1\nuse_frameworks! :linkage => :static");
       }
 
       fs.writeFileSync(podfilePath, contents);
