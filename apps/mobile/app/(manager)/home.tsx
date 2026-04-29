@@ -5,10 +5,10 @@ import {
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { api } from '../../lib/api-client';
 import { setCurrentScreen } from '../../lib/crashlytics';
 import { Colors, Spacing, Radius, Font } from '../../constants/theme';
+import AppHeader from '../../components/AppHeader';
 
 interface DashboardStats {
   openJobs: number;
@@ -19,7 +19,6 @@ interface DashboardStats {
 export default function ManagerHomeScreen() {
   const { t } = useTranslation();
   const router = useRouter();
-  const insets = useSafeAreaInsets();
   const [stats, setStats] = useState<DashboardStats>({ openJobs: 0, activeSites: 0, pendingApplications: 0 });
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -83,30 +82,10 @@ export default function ManagerHomeScreen() {
 
   return (
     <View style={styles.root}>
-      {/* Custom header */}
-      <View style={[styles.header, { paddingTop: insets.top }]}>
-        <View style={styles.headerLogo}>
-          <Text style={styles.headerLogoSub}>가다</Text>
-          <View style={styles.headerLogoRow}>
-            <Text style={styles.headerLogoMain}>GADA</Text>
-            <Text style={styles.headerLogoVn}>vn</Text>
-          </View>
-        </View>
-        <View style={styles.headerActions}>
-          <TouchableOpacity style={styles.headerBtn} onPress={() => {}}>
-            <Text style={{ fontSize: 20 }}>📞</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.headerBtn} onPress={() => {}}>
-            <Text style={{ fontSize: 20 }}>🇻🇳</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.headerBtn} onPress={() => {}}>
-            <Text style={{ fontSize: 20 }}>🔍</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.headerBtn} onPress={() => router.push('/(manager)/notifications')}>
-            <Text style={{ fontSize: 20 }}>🔔</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
+      <AppHeader
+        notificationsPath="/(manager)/notifications"
+        searchPath="/(manager)/"
+      />
 
       <ScrollView
         style={styles.scroll}
@@ -228,25 +207,6 @@ const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: Colors.background },
   center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   scroll: { flex: 1 },
-
-  // ── Custom header ──
-  header: {
-    backgroundColor: Colors.surface,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: Spacing.lg,
-    paddingBottom: Spacing.sm,
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.outline,
-  },
-  headerLogo: { flexDirection: 'column' },
-  headerLogoSub: { fontSize: 9, color: Colors.primary, fontWeight: '700', letterSpacing: 1.5, lineHeight: 12 },
-  headerLogoRow: { flexDirection: 'row', alignItems: 'baseline', gap: 2 },
-  headerLogoMain: { fontSize: 18, fontWeight: '900', color: Colors.primary },
-  headerLogoVn: { fontSize: 13, color: Colors.onSurfaceVariant },
-  headerActions: { flexDirection: 'row', gap: 2 },
-  headerBtn: { padding: 6 },
 
   // ── Profile card ──
   profileCard: {

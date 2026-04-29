@@ -10,7 +10,7 @@ import { useTranslation } from 'react-i18next';
 import { api } from '../../lib/api-client';
 import { setCurrentScreen } from '../../lib/crashlytics';
 import { Colors } from '../../constants/theme';
-import WorkerHeader from '../../components/WorkerHeader';
+import AppHeader from '../../components/AppHeader';
 
 const CDN = process.env.EXPO_PUBLIC_CDN_URL ?? '';
 
@@ -190,7 +190,7 @@ export default function WorkerHomeScreen() {
   return (
     <View style={{ flex: 1, backgroundColor: '#F8F8FA' }}>
       {/* Fixed header — same as other tabs */}
-      <WorkerHeader />
+      <AppHeader />
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
       {/* ── Hero: dark construction gradient (matches web app) ── */}
       <View style={styles.hero}>

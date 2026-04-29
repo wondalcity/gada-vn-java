@@ -15,7 +15,7 @@ import { api } from '../../lib/api-client';
 import JobCard, { type JobCardItem } from '../../components/jobs/JobCard';
 import JobsMapView from '../../components/jobs/JobsMapView';
 import { Colors, Spacing, Radius, Font } from '../../constants/theme';
-import WorkerHeader from '../../components/WorkerHeader';
+import AppHeader from '../../components/AppHeader';
 import { showToast } from '../../lib/toast';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
@@ -241,7 +241,7 @@ export default function WorkerJobFeed() {
   return (
     <View style={styles.container}>
       {/* Custom header replaces native Tabs header */}
-      <WorkerHeader />
+      <AppHeader />
 
       {/* ── Top bar: job count + filter + view toggle ── */}
       <View style={styles.topBar}>
