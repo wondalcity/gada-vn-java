@@ -49,13 +49,15 @@ function withFixFirebaseMessagingColor(config) {
  * not define modules by default.
  *
  * Root cause: the Expo SDK 51 Podfile template does NOT include use_modular_headers!
- * at the global scope, so CocoaPods 1.15+ raises the error for every build.
+ * at the global scope, and adding it globally causes "redefinition of module
+ * 'ReactCommon'" because React Native pods define their own module maps.
  *
  * Fix:
  *   1. Set $RNFirebaseAsStaticFramework = true (tells RNFirebase to use static)
- *   2. Unconditionally inject use_modular_headers! after the platform :ios line.
- *      This generates module maps for all pods, satisfying CocoaPods 1.15+'s
- *      requirement that ObjC deps of Swift pods define modules.
+ *   2. Add :modular_headers => true for the specific ObjC pods that Firebase
+ *      Swift pods depend on (GoogleUtilities, nanopb, FirebaseCore, etc.).
+ *      This generates module maps only for those pods without touching React
+ *      Native's module maps, satisfying CocoaPods 1.15+.
  */
 function withFirebaseStaticFramework(config) {
   return withDangerousMod(config, [
@@ -71,14 +73,26 @@ function withFirebaseStaticFramework(config) {
         contents = `$RNFirebaseAsStaticFramework = true\n${contents}`;
       }
 
-      // 2. Inject use_modular_headers! after the platform :ios declaration.
-      //    The Expo SDK 51 template does NOT include this by default.
-      //    CocoaPods 1.15+ requires it so that ObjC dependencies of Firebase
-      //    Swift pods (GoogleUtilities, nanopb, etc.) generate module maps.
-      if (!contents.includes('use_modular_headers!')) {
+      // 2. Add :modular_headers => true for specific Firebase ObjC pods.
+      //    The Expo SDK 51 template does NOT include use_modular_headers! globally,
+      //    and adding it globally causes "redefinition of module 'ReactCommon'" in
+      //    Xcode because React Native pods define their own module maps.
+      //    Using per-pod :modular_headers => true is the targeted fix: it generates
+      //    module maps only for the ObjC pods that Firebase Swift pods depend on,
+      //    satisfying CocoaPods 1.15+ without conflicting with React Native.
+      if (!contents.includes('modular_headers')) {
+        const modularHeadersPods = [
+          "  pod 'GoogleUtilities', :modular_headers => true",
+          "  pod 'nanopb', :modular_headers => true",
+          "  pod 'FirebaseCore', :modular_headers => true",
+          "  pod 'FirebaseInstallations', :modular_headers => true",
+          "  pod 'GoogleDataTransport', :modular_headers => true",
+          "  pod 'FirebaseCoreExtension', :modular_headers => true",
+        ].join('\n');
+        // Inject inside the target block, right before use_react_native!(
         contents = contents.replace(
-          /^(platform :ios[^\n]*)\n/m,
-          '$1\nuse_modular_headers!\n'
+          /^( {2}use_react_native!\()/m,
+          `${modularHeadersPods}\n\n$1`
         );
       }
 
