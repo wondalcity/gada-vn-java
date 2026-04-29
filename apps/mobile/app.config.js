@@ -14,7 +14,9 @@
  * After editing this file, run:  npx expo prebuild  (to regenerate android/ios native files)
  */
 
-const { withAndroidManifest } = require('@expo/config-plugins');
+const { withAndroidManifest, withDangerousMod } = require('@expo/config-plugins');
+const fs = require('fs');
+const path = require('path');
 
 /**
  * Fix manifest merger conflict between expo-notifications and
@@ -36,6 +38,28 @@ function withFixFirebaseMessagingColor(config) {
     }
     return cfg;
   });
+}
+
+/**
+ * Add $RNFirebaseAsStaticFramework = true to the iOS Podfile.
+ * Required for @react-native-firebase pods to build correctly as static
+ * libraries with CocoaPods 1.15+ (which made this a fatal error).
+ */
+function withFirebaseStaticFramework(config) {
+  return withDangerousMod(config, [
+    'ios',
+    (cfg) => {
+      const podfilePath = path.join(cfg.modRequest.platformProjectRoot, 'Podfile');
+      if (fs.existsSync(podfilePath)) {
+        let contents = fs.readFileSync(podfilePath, 'utf8');
+        if (!contents.includes('$RNFirebaseAsStaticFramework')) {
+          contents = `$RNFirebaseAsStaticFramework = true\n${contents}`;
+          fs.writeFileSync(podfilePath, contents);
+        }
+      }
+      return cfg;
+    },
+  ]);
 }
 
 /**
@@ -96,7 +120,7 @@ const buildConfig = ({ config }) => {
     },
   };
 
-  return withHardwareAcceleration(withFixFirebaseMessagingColor(base));
+  return withFirebaseStaticFramework(withHardwareAcceleration(withFixFirebaseMessagingColor(base)));
 };
 
 module.exports = buildConfig;
