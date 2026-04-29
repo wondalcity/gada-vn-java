@@ -2,7 +2,6 @@ import { useEffect, useRef } from 'react';
 import { Stack, useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import { useTranslation } from 'react-i18next';
 import * as SplashScreen from 'expo-splash-screen';
 import auth from '@react-native-firebase/auth';
 import i18n, { getSavedLanguage } from '../lib/i18n';
@@ -13,12 +12,12 @@ import { Colors } from '../constants/theme';
 import { initCrashlytics, setAuthUser, clearAuthUser, logEvent } from '../lib/crashlytics';
 import { showToast } from '../lib/toast';
 import ToastHost from '../components/ToastHost';
+import { RootErrorBoundary } from '../components/RootErrorBoundary';
 
 // 스플래시를 앱 초기화 완료 전까지 유지
 SplashScreen.preventAutoHideAsync().catch(() => {});
 
 export default function RootLayout() {
-  const { t } = useTranslation();
   const { setUser, setNew, clearUser } = useAuthStore();
   const router = useRouter();
   const authInitialized = useRef(false);
@@ -108,23 +107,25 @@ export default function RootLayout() {
   }, []);
 
   return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
-      <StatusBar style="dark" />
-      <ToastHost />
-      <Stack
-        screenOptions={{
-          headerStyle: { backgroundColor: Colors.surface },
-          headerTintColor: Colors.onSurface,
-          headerTitleStyle: { fontWeight: '600' },
-          headerBackTitle: '',
-        }}
-      >
-        <Stack.Screen name="index" options={{ headerShown: false }} />
-        <Stack.Screen name="(permissions)" options={{ headerShown: false }} />
-        <Stack.Screen name="(auth)" options={{ headerShown: false }} />
-        <Stack.Screen name="(worker)" options={{ headerShown: false }} />
-        <Stack.Screen name="(manager)" options={{ headerShown: false }} />
-      </Stack>
-    </GestureHandlerRootView>
+    <RootErrorBoundary>
+      <GestureHandlerRootView style={{ flex: 1 }}>
+        <StatusBar style="dark" />
+        <ToastHost />
+        <Stack
+          screenOptions={{
+            headerStyle: { backgroundColor: Colors.surface },
+            headerTintColor: Colors.onSurface,
+            headerTitleStyle: { fontWeight: '600' },
+            headerBackTitle: '',
+          }}
+        >
+          <Stack.Screen name="index" options={{ headerShown: false }} />
+          <Stack.Screen name="(permissions)" options={{ headerShown: false }} />
+          <Stack.Screen name="(auth)" options={{ headerShown: false }} />
+          <Stack.Screen name="(worker)" options={{ headerShown: false }} />
+          <Stack.Screen name="(manager)" options={{ headerShown: false }} />
+        </Stack>
+      </GestureHandlerRootView>
+    </RootErrorBoundary>
   );
 }
