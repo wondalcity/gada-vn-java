@@ -182,8 +182,8 @@ export class AuthRepository {
   async ensureWorkerProfile(userId: string, phone: string | null, fullName?: string | null): Promise<void> {
     const name = fullName || phone || '';
     await this.db.query(
-      `INSERT INTO app.worker_profiles (user_id, full_name)
-       VALUES ($1, $2)
+      `INSERT INTO app.worker_profiles (user_id, full_name, date_of_birth, experience_months)
+       VALUES ($1, $2, '1990-01-01', 0)
        ON CONFLICT (user_id) DO NOTHING`,
       [userId, name],
     );

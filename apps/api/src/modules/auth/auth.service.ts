@@ -45,42 +45,42 @@ export class AuthService {
       throw new UnauthorizedException(`Firebase 인증 실패: ${code || String(err)}`);
     }
 
-    // 1. Try to find by firebase_uid (existing user)
-    const existing = await this.repo.findByFirebaseUid(decoded.uid);
-    if (existing) {
-      // Backfill email and name from Google/social provider if not yet set
-      if (decoded.email && !existing.email) {
-        await this.repo.updateEmailIfNull(existing.id, decoded.email);
-      }
-      if (decoded.name) {
-        await this.repo.updateWorkerNameIfNull(existing.id, decoded.name);
-      }
-      const profile = await this.repo.getMeProfile(existing.id);
-      return { user: profile, isNew: false };
-    }
-
-    // 2. If phone is present, check if there's already a user with that phone
-    //    (can happen when Firebase account is recreated after deletion)
-    if (decoded.phone_number) {
-      const byPhone = await this.repo.findByPhone(decoded.phone_number);
-      if (byPhone) {
-        // Link new Firebase UID to the existing account
-        await this.repo.updateFirebaseUid(byPhone.id, decoded.uid);
-        const profile = await this.repo.getMeProfile(byPhone.id);
+    try {
+      // 1. Try to find by firebase_uid (existing user)
+      const existing = await this.repo.findByFirebaseUid(decoded.uid);
+      if (existing) {
+        // Backfill email and name from Google/social provider if not yet set
+        if (decoded.email && !existing.email) {
+          await this.repo.updateEmailIfNull(existing.id, decoded.email);
+        }
+        if (decoded.name) {
+          await this.repo.updateWorkerNameIfNull(existing.id, decoded.name);
+        }
+        const profile = await this.repo.getMeProfile(existing.id);
         return { user: profile, isNew: false };
       }
-    }
 
-    // 3. Create new user
-    const providerMap: Record<string, string> = {
-      'google.com': 'google',
-      'facebook.com': 'facebook',
-      'phone': 'phone',
-      'password': 'email',
-    };
-    const provider = providerMap[decoded.firebase?.sign_in_provider ?? 'phone'] ?? 'phone';
+      // 2. If phone is present, check if there's already a user with that phone
+      //    (can happen when Firebase account is recreated after deletion)
+      if (decoded.phone_number) {
+        const byPhone = await this.repo.findByPhone(decoded.phone_number);
+        if (byPhone) {
+          // Link new Firebase UID to the existing account
+          await this.repo.updateFirebaseUid(byPhone.id, decoded.uid);
+          const profile = await this.repo.getMeProfile(byPhone.id);
+          return { user: profile, isNew: false };
+        }
+      }
 
-    try {
+      // 3. Create new user
+      const providerMap: Record<string, string> = {
+        'google.com': 'google',
+        'facebook.com': 'facebook',
+        'phone': 'phone',
+        'password': 'email',
+      };
+      const provider = providerMap[decoded.firebase?.sign_in_provider ?? 'phone'] ?? 'phone';
+
       const user = await this.repo.create({
         firebaseUid: decoded.uid,
         phone: decoded.phone_number || null,
@@ -93,7 +93,7 @@ export class AuthService {
       return { user: profile, isNew: true };
     } catch (err: unknown) {
       const pgErr = err as { code?: string; constraint?: string };
-      this.logger.error(`DB error creating user uid=${decoded.uid}`, err);
+      this.logger.error(`DB error for uid=${decoded.uid}: code=${pgErr.code}`, err);
       if (pgErr.code === '23505') {
         // Unique violation — race condition or duplicate; find the existing user
         const fallback = await this.repo.findByFirebaseUid(decoded.uid);
