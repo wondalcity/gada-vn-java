@@ -24,7 +24,6 @@
         "simulator": false
       },
       "env": {
-        "EXPO_PUBLIC_APP_ENV": "production",
         "EXPO_PUBLIC_API_URL": "http://52.76.20.8/v1",
         "EXPO_PUBLIC_CDN_URL": "http://52.76.20.8",
         "EXPO_PUBLIC_GOOGLE_PLACES_API_KEY": "AIzaSyAhnj-RPawHuFzcbBqvQZU70bsesXXNDm0",

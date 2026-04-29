@@ -6,6 +6,7 @@ import {
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { signInWithPhoneOtp, signInWithGoogle } from '../../lib/firebase';
+import { api } from '../../lib/api-client';
 import { useAuthStore } from '../../store/auth.store';
 import { SUPPORTED_LANGUAGES, changeAppLanguage, type LangCode } from '../../lib/i18n';
 import { Colors, Radius, Spacing, Font } from '../../constants/theme';
@@ -13,10 +14,15 @@ import CountryPicker from '../../components/CountryPicker';
 import { logEvent } from '../../lib/crashlytics';
 import { showToast } from '../../lib/toast';
 
+// Firebase Phone Auth를 쓸 수 있는 환경인지 판단 (phone.tsx와 동일 로직)
+const IS_PRODUCTION =
+  process.env.EXPO_PUBLIC_APP_ENV === 'production' &&
+  process.env.EXPO_PUBLIC_FIREBASE_DISABLE_APP_VERIFY !== 'true';
+
 export default function SignupScreen() {
   const { t, i18n } = useTranslation();
   const router = useRouter();
-  const { setPendingName, setConfirmationResult } = useAuthStore();
+  const { setPendingName, setPendingPhone, setDevOtp, setConfirmationResult } = useAuthStore();
   const [name, setName] = useState('');
   const [countryCode, setCountryCode] = useState('+84');
   const [phone, setPhone] = useState('');
@@ -34,11 +40,20 @@ export default function SignupScreen() {
       const fullNumber = `${countryCode}${normalized}`;
       logEvent(`Auth: signup OTP send attempt — ${fullNumber.replace(/\d(?=\d{4})/g, '*')}`);
 
-      // Firebase Phone Auth (실제 SMS) — 스테이징/프로덕션 공통
-      const confirmation = await signInWithPhoneOtp(fullNumber);
       setPendingName(name.trim());
-      setConfirmationResult(confirmation);
-      logEvent('Auth: signup — Firebase SMS');
+
+      if (IS_PRODUCTION) {
+        // 프로덕션: Firebase Phone Auth (실제 SMS)
+        const confirmation = await signInWithPhoneOtp(fullNumber);
+        setConfirmationResult(confirmation);
+        logEvent('Auth: signup — Firebase SMS');
+      } else {
+        // 스테이징/프리뷰: 서버 OTP (Firebase APNs 불필요)
+        const result = await api.post<{ message: string; devOtp?: string }>('/auth/otp/send', { phone: fullNumber });
+        setPendingPhone(fullNumber);
+        if (result?.devOtp) setDevOtp(result.devOtp);
+        logEvent('Auth: signup — server OTP');
+      }
 
       router.push('/(auth)/otp');
     } catch (e) {

@@ -14,8 +14,12 @@ import { setCurrentScreen, logEvent } from '../../lib/crashlytics';
 import { showToast } from '../../lib/toast';
 import CountryPicker from '../../components/CountryPicker';
 
-// 프로덕션 빌드 여부 — 테스트폰 분기에만 사용
-const IS_PRODUCTION = process.env.EXPO_PUBLIC_APP_ENV === 'production';
+// 프로덕션 빌드 여부 — Firebase Phone Auth를 쓸 수 있는 환경인지 판단
+// EXPO_PUBLIC_FIREBASE_DISABLE_APP_VERIFY=true 이면 APNs 미설정 preview 빌드이므로
+// IS_PRODUCTION=false 로 처리하여 서버 OTP 흐름을 사용한다
+const IS_PRODUCTION =
+  process.env.EXPO_PUBLIC_APP_ENV === 'production' &&
+  process.env.EXPO_PUBLIC_FIREBASE_DISABLE_APP_VERIFY !== 'true';
 
 export default function PhoneScreen() {
   const { t, i18n } = useTranslation();
