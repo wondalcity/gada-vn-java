@@ -27,7 +27,11 @@ module.exports = ({ config }) => ({
     googleServicesFile: process.env.GOOGLE_SERVICES_JSON ?? './google-services.json',
     config: {
       googleMaps: {
-        apiKey: process.env.GOOGLE_MAPS_ANDROID_KEY ?? '',
+        // Prefer env var, then fall back to the value already in app.json so
+        // CI builds that don't inject GOOGLE_MAPS_ANDROID_KEY still work.
+        apiKey: process.env.GOOGLE_MAPS_ANDROID_KEY
+          || config.android?.config?.googleMaps?.apiKey
+          || '',
       },
     },
   },
@@ -42,7 +46,9 @@ module.exports = ({ config }) => ({
       ...(config.ios?.config ?? {}),
       // Enables Google Maps on iOS (instead of default Apple Maps).
       // Set GOOGLE_MAPS_IOS_KEY in .env.local; leave blank to use Apple Maps.
-      googleMapsApiKey: process.env.GOOGLE_MAPS_IOS_KEY ?? '',
+      googleMapsApiKey: process.env.GOOGLE_MAPS_IOS_KEY
+        || config.ios?.config?.googleMapsApiKey
+        || '',
     },
   },
 });
