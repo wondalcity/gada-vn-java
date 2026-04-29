@@ -3,12 +3,24 @@ import { GoogleSignin } from '@react-native-google-signin/google-signin';
 import * as SecureStore from 'expo-secure-store';
 import { api } from './api-client';
 
+// iOS Phone Auth requires APNs silent push configured in Firebase Console.
+// For preview/internal builds where APNs is not yet configured, set
+// EXPO_PUBLIC_FIREBASE_DISABLE_APP_VERIFY=true to bypass app verification
+// so Firebase can still send real SMS. Never set this in production AppStore builds.
+const DISABLE_APP_VERIFY = process.env.EXPO_PUBLIC_FIREBASE_DISABLE_APP_VERIFY === 'true';
+
 // Configure Google Sign-In (call once; safe to call multiple times)
 GoogleSignin.configure({
   webClientId: '359319234631-ijcqgg6lvjpch0jim2o4ogtqe71biliv.apps.googleusercontent.com',
 });
 
 export async function signInWithPhoneOtp(phoneNumber: string) {
+  if (DISABLE_APP_VERIFY) {
+    // Bypasses APNs-based app verification for internal/preview builds.
+    // Firebase still sends a real SMS — the OTP code is genuine.
+    // Do NOT use this flag in production AppStore builds.
+    auth().settings.appVerificationDisabledForTesting = true;
+  }
   return auth().signInWithPhoneNumber(phoneNumber);
 }
 
