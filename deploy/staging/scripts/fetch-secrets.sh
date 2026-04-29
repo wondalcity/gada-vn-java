@@ -57,6 +57,7 @@ REDIS_URL=$(secret "redis-url")
 FIREBASE_CREDENTIALS_B64=$(secret "firebase-credentials")
 FIREBASE_PROJECT_ID=$(secret "firebase-project-id")
 FIREBASE_WEB_API_KEY=$(secret "firebase-web-api-key")
+GOOGLE_MAPS_WEB_KEY=$(secret "google-maps-web-key")
 JWT_SECRET=$(secret "jwt-secret")
 ADMIN_SERVICE_KEY=$(secret "admin-service-key")
 ANTHROPIC_API_KEY=$(secret "anthropic-api-key")
@@ -170,7 +171,7 @@ NEXT_PUBLIC_FIREBASE_PROJECT_ID=${FIREBASE_PROJECT_ID}
 NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=${FIREBASE_PROJECT_ID}.appspot.com
 NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=
 NEXT_PUBLIC_FIREBASE_APP_ID=
-NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=
+NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=${GOOGLE_MAPS_WEB_KEY}
 EOF
 chmod 600 "$DEPLOY_DIR/.env.web"
 log ".env.web written"

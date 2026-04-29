@@ -38,6 +38,24 @@ function withFixFirebaseMessagingColor(config) {
   });
 }
 
+/**
+ * Enable hardware acceleration on MainActivity so that the WebView used by
+ * react-native-signature-canvas renders correctly. Without this flag the
+ * signature canvas crashes on many Android devices.
+ */
+function withHardwareAcceleration(config) {
+  return withAndroidManifest(config, (cfg) => {
+    const app = cfg.modResults.manifest.application?.[0];
+    if (!app) return cfg;
+    for (const activity of app.activity ?? []) {
+      if (activity.$['android:name'] === '.MainActivity') {
+        activity.$['android:hardwareAccelerated'] = 'true';
+      }
+    }
+    return cfg;
+  });
+}
+
 /** @param {{ config: import('@expo/config').ExpoConfig }} config */
 const buildConfig = ({ config }) => {
   const base = {
@@ -78,7 +96,7 @@ const buildConfig = ({ config }) => {
     },
   };
 
-  return withFixFirebaseMessagingColor(base);
+  return withHardwareAcceleration(withFixFirebaseMessagingColor(base));
 };
 
 module.exports = buildConfig;
