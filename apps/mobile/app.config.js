@@ -41,22 +41,35 @@ function withFixFirebaseMessagingColor(config) {
 }
 
 /**
- * Add $RNFirebaseAsStaticFramework = true to the iOS Podfile.
- * Required for @react-native-firebase pods to build correctly as static
- * libraries with CocoaPods 1.15+ (which made this a fatal error).
+ * Configure iOS Podfile for @react-native-firebase with CocoaPods 1.15+.
+ *
+ * CocoaPods 1.15+ made "Swift pods cannot be integrated as static libraries"
+ * a fatal error. The fix is:
+ *   1. Set $RNFirebaseAsStaticFramework = true (tells RNFirebase to use static)
+ *   2. Replace use_modular_headers! with use_frameworks! :linkage => :static
+ *      (required for Firebase Swift pods to see their ObjC dependencies as modules)
  */
 function withFirebaseStaticFramework(config) {
   return withDangerousMod(config, [
     'ios',
     (cfg) => {
       const podfilePath = path.join(cfg.modRequest.platformProjectRoot, 'Podfile');
-      if (fs.existsSync(podfilePath)) {
-        let contents = fs.readFileSync(podfilePath, 'utf8');
-        if (!contents.includes('$RNFirebaseAsStaticFramework')) {
-          contents = `$RNFirebaseAsStaticFramework = true\n${contents}`;
-          fs.writeFileSync(podfilePath, contents);
-        }
+      if (!fs.existsSync(podfilePath)) return cfg;
+
+      let contents = fs.readFileSync(podfilePath, 'utf8');
+
+      // 1. Prepend $RNFirebaseAsStaticFramework if not already present
+      if (!contents.includes('$RNFirebaseAsStaticFramework')) {
+        contents = `$RNFirebaseAsStaticFramework = true\n${contents}`;
       }
+
+      // 2. Replace use_modular_headers! with use_frameworks! :linkage => :static
+      //    (use_modular_headers! conflicts with the static framework approach)
+      if (contents.includes('use_modular_headers!') && !contents.includes("use_frameworks! :linkage => :static\n")) {
+        contents = contents.replace(/^use_modular_headers!\s*$/m, "use_frameworks! :linkage => :static");
+      }
+
+      fs.writeFileSync(podfilePath, contents);
       return cfg;
     },
   ]);
