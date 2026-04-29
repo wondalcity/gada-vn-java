@@ -19,18 +19,6 @@ spring:
       maximum-pool-size: 5
       connection-timeout: 10000
 
-  mail:
-    host: ${MAIL_HOST:email-smtp.ap-southeast-1.amazonaws.com}
-    port: ${MAIL_PORT:587}
-    username: ${MAIL_USERNAME:}
-    password: ${MAIL_PASSWORD:}
-    properties:
-      mail.smtp.auth: true
-      mail.smtp.starttls.enable: true
-      mail.smtp.starttls.required: true
-      mail.smtp.connectiontimeout: 5000
-      mail.smtp.timeout: 5000
-
 gada:
   admin:
     api-base-url: ${API_BASE_URL:http://localhost:7001/v1}

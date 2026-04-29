@@ -1,21 +1,33 @@
 package vn.gada.admin.service
 
 import org.slf4j.LoggerFactory
-import org.springframework.mail.javamail.JavaMailSender
-import org.springframework.mail.javamail.MimeMessageHelper
 import org.springframework.stereotype.Service
+import software.amazon.awssdk.regions.Region
+import software.amazon.awssdk.services.sesv2.SesV2Client
+import software.amazon.awssdk.services.sesv2.model.Body
+import software.amazon.awssdk.services.sesv2.model.Content
+import software.amazon.awssdk.services.sesv2.model.Destination
+import software.amazon.awssdk.services.sesv2.model.EmailContent
+import software.amazon.awssdk.services.sesv2.model.Message
+import software.amazon.awssdk.services.sesv2.model.SendEmailRequest
 import vn.gada.admin.config.AppProperties
 
 @Service
 class EmailService(
-    private val mailSender: JavaMailSender,
     private val props: AppProperties,
 ) {
     private val log = LoggerFactory.getLogger(EmailService::class.java)
 
+    // Lazy — only created when mail is actually enabled and used
+    private val sesClient: SesV2Client by lazy {
+        SesV2Client.builder()
+            .region(Region.AP_SOUTHEAST_1)
+            .build()
+    }
+
     /**
-     * Sends an admin invite email. Returns true if sent, false if skipped/failed.
-     * Non-blocking — never throws.
+     * Sends an admin invite email via AWS SES (uses EC2 instance profile — no SMTP credentials needed).
+     * Returns true if sent, false if skipped/failed. Non-blocking — never throws.
      */
     fun sendInvite(toEmail: String, toName: String?, inviteUrl: String, invitedByEmail: String): Boolean {
         if (!props.mailEnabled) {
@@ -23,17 +35,40 @@ class EmailService(
             return false
         }
         return try {
-            val msg = mailSender.createMimeMessage()
-            val helper = MimeMessageHelper(msg, true, "UTF-8")
-            helper.setFrom(props.mailFrom)
-            helper.setTo(toEmail)
-            helper.setSubject("[GADA VN] 어드민 계정 초대")
-            helper.setText(buildInviteHtml(toName ?: toEmail, inviteUrl, invitedByEmail), true)
-            mailSender.send(msg)
-            log.info("Invite email sent to $toEmail")
+            sesClient.sendEmail(
+                SendEmailRequest.builder()
+                    .fromEmailAddress(props.mailFrom)
+                    .destination(Destination.builder().toAddresses(toEmail).build())
+                    .content(
+                        EmailContent.builder()
+                            .simple(
+                                Message.builder()
+                                    .subject(
+                                        Content.builder()
+                                            .data("[GADA VN] 어드민 계정 초대")
+                                            .charset("UTF-8")
+                                            .build()
+                                    )
+                                    .body(
+                                        Body.builder()
+                                            .html(
+                                                Content.builder()
+                                                    .data(buildInviteHtml(toName ?: toEmail, inviteUrl, invitedByEmail))
+                                                    .charset("UTF-8")
+                                                    .build()
+                                            )
+                                            .build()
+                                    )
+                                    .build()
+                            )
+                            .build()
+                    )
+                    .build()
+            )
+            log.info("Invite email sent to $toEmail via SES")
             true
         } catch (e: Exception) {
-            log.warn("Failed to send invite email to $toEmail: ${e.message}")
+            log.warn("Failed to send invite email to $toEmail: ${e.javaClass.simpleName}: ${e.message}")
             false
         }
     }

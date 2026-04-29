@@ -27,8 +27,8 @@ dependencies {
     implementation("org.jetbrains.kotlin:kotlin-reflect")
     // For password hashing
     implementation("org.springframework.security:spring-security-crypto")
-    // Email (JavaMailSender)
-    implementation("org.springframework.boot:spring-boot-starter-mail")
+    // Email — AWS SES v2 (uses EC2 instance profile; no SMTP credentials needed)
+    implementation("software.amazon.awssdk:sesv2:2.21.0")
     // PostgreSQL JDBC driver
     runtimeOnly("org.postgresql:postgresql")
     testImplementation("org.springframework.boot:spring-boot-starter-test")
