@@ -147,6 +147,77 @@ a, button {
   -webkit-overflow-scrolling: touch;
 }
 
+/* ── Google Places Autocomplete dropdown — GADA design system ── */
+.pac-container {
+  background: #ffffff;
+  border: 1px solid #EFF1F5;
+  border-radius: 16px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.10), 0 2px 8px rgba(0, 0, 0, 0.06);
+  padding: 6px 0;
+  margin-top: 4px;
+  font-family: var(--font-sans);
+  overflow: hidden;
+  z-index: 9999;
+}
+
+/* Hide "Powered by Google" footer */
+.pac-container::after {
+  display: none;
+}
+
+.pac-item {
+  display: flex;
+  align-items: center;
+  padding: 10px 16px;
+  border-top: none;
+  cursor: pointer;
+  transition: background 0.12s;
+  min-height: 44px;
+}
+
+.pac-item:first-child {
+  border-top: none;
+}
+
+.pac-item:hover,
+.pac-item-selected {
+  background: #E6F0FE;
+}
+
+/* Place pin icon */
+.pac-icon {
+  width: 20px;
+  height: 20px;
+  background-size: 20px 20px;
+  margin-right: 10px;
+  margin-top: 0;
+  flex-shrink: 0;
+  filter: invert(30%) sepia(98%) saturate(1500%) hue-rotate(200deg) brightness(0.9);
+}
+
+/* Primary result text */
+.pac-item-query {
+  font-size: 14px;
+  font-weight: 600;
+  color: #25282A;
+  padding-right: 4px;
+}
+
+/* Highlighted match in primary text */
+.pac-matched {
+  color: #0669F7;
+  font-weight: 700;
+}
+
+/* Secondary descriptive text (city, country) */
+.pac-item > span:not(.pac-icon):not(.pac-item-query) {
+  font-size: 12px;
+  color: #98A2B2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 /* ── Page entrance animation ─────────────────────────────── */
 @keyframes fadeSlideUp {
   from { opacity: 0; transform: translateY(8px); }

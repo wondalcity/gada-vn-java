@@ -1,6 +1,7 @@
 'use client'
 
 import * as React from 'react'
+import { useLocale } from 'next-intl'
 import { ProfileDraft } from '@/types/worker-profile'
 import { getGoogleMapsLoader } from '@/lib/maps/loader'
 
@@ -12,6 +13,7 @@ interface AddressStepProps {
 }
 
 export default function AddressStep({ draft, onChange, onNext, isSaving }: AddressStepProps) {
+  const locale = useLocale()
   const inputRef = React.useRef<HTMLInputElement>(null)
   const autocompleteRef = React.useRef<google.maps.places.Autocomplete | null>(null)
   const [mapsLoaded, setMapsLoaded] = React.useState(false)
@@ -20,7 +22,7 @@ export default function AddressStep({ draft, onChange, onNext, isSaving }: Addre
   // Load Google Maps on mount
   React.useEffect(() => {
     let cancelled = false
-    const loader = getGoogleMapsLoader()
+    const loader = getGoogleMapsLoader(locale === 'vi' ? 'vi' : 'ko')
     loader
       .importLibrary('places')
       .then(() => {

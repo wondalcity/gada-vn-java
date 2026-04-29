@@ -75,6 +75,13 @@ function formatDate(dateStr: string, lang: string): string {
   return d.toLocaleDateString(locale, { month: 'numeric', day: 'numeric', weekday: 'short' });
 }
 
+const STATUS_CONFIG: Record<string, { bg: string; text: string; dot: string; labelKey: string }> = {
+  OPEN:      { bg: '#D1F3D3', text: '#024209', dot: '#00C800', labelKey: 'jobs.status_open_label' },
+  FILLED:    { bg: '#F2F2F2', text: '#595959', dot: '#B2B2B2', labelKey: 'jobs.closed_label' },
+  CANCELLED: { bg: '#FFDCE0', text: '#540C0E', dot: '#ED1C24', labelKey: 'jobs.status_cancelled' },
+  COMPLETED: { bg: '#F2F2F2', text: '#595959', dot: '#B2B2B2', labelKey: 'jobs.status_completed' },
+};
+
 // ── Custom wage pill marker ──────────────────────────────────────────────────
 
 function getJobCoords(job: JobCardItem) {
@@ -112,10 +119,16 @@ function JobCard({
     ? (job.titleVi || job.titleKo || job.title || '')
     : (job.titleKo || job.titleVi || job.title || '');
   const displaySite = job.siteName || job.siteNameKo || job.site?.name || '';
+  const displayProvince = i18n.language === 'vi'
+    ? (job.provinceNameVi || job.provinceNameKo || null)
+    : (job.provinceNameKo || job.provinceNameVi || null);
   const coverUri = job.coverImageUrl
     || (job.imageS3Keys?.[job.coverImageIdx ?? 0]
       ? `${process.env.EXPO_PUBLIC_CDN_URL}/${job.imageS3Keys[job.coverImageIdx ?? 0]}`
       : null);
+
+  const statusKey = isFull ? 'FILLED' : (job.status ?? 'OPEN');
+  const statusCfg = STATUS_CONFIG[statusKey] ?? STATUS_CONFIG.OPEN;
 
   return (
     <Animated.View
@@ -147,6 +160,7 @@ function JobCard({
             <View style={styles.cardInfoTopLeft}>
               <Text style={styles.cardSite} numberOfLines={1}>
                 {displaySite}
+                {displayProvince ? ` · ${displayProvince}` : ''}
               </Text>
               <Text style={styles.cardTitle} numberOfLines={2}>
                 {displayTitle}
@@ -155,6 +169,21 @@ function JobCard({
             <TouchableOpacity style={styles.closeBtn} onPress={onClose} hitSlop={8}>
               <Text style={styles.closeBtnText}>✕</Text>
             </TouchableOpacity>
+          </View>
+
+          {/* Status badge + date row */}
+          <View style={styles.cardBadgeRow}>
+            <View style={[styles.statusBadge, { backgroundColor: statusCfg.bg }]}>
+              <View style={[styles.statusDot, { backgroundColor: statusCfg.dot }]} />
+              <Text style={[styles.statusBadgeText, { color: statusCfg.text }]}>
+                {t(statusCfg.labelKey)}
+              </Text>
+            </View>
+            {job.workDate ? (
+              <Text style={styles.cardDate}>
+                {formatDate(job.workDate instanceof Date ? job.workDate.toISOString() : (job.workDate ?? ''), i18n.language)}
+              </Text>
+            ) : null}
           </View>
 
           <View style={styles.cardMeta}>
@@ -168,8 +197,6 @@ function JobCard({
               </View>
             )}
           </View>
-
-          <Text style={styles.cardDate}>{formatDate(job.workDate instanceof Date ? job.workDate.toISOString() : (job.workDate ?? ''), i18n.language)}</Text>
         </View>
       </View>
 
@@ -424,11 +451,38 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   closeBtnText: { fontSize: 10, color: '#7A7B7A', fontWeight: '600' },
+  cardBadgeRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginTop: 5,
+  },
+  statusBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: 7,
+    paddingVertical: 3,
+    borderRadius: 999,
+  },
+  statusDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+  },
+  statusBadgeText: {
+    fontSize: 10,
+    fontWeight: '700',
+  },
+  cardDate: {
+    fontSize: 11,
+    color: '#7A7B7A',
+  },
   cardMeta: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    marginTop: 6,
+    marginTop: 5,
   },
   cardWage: {
     fontSize: 16,
@@ -450,11 +504,6 @@ const styles = StyleSheet.create({
     fontSize: 10,
     fontWeight: '600',
     color: '#024209',
-  },
-  cardDate: {
-    fontSize: 11,
-    color: '#7A7B7A',
-    marginTop: 4,
   },
 
   // CTA button

@@ -192,7 +192,7 @@ export default function SiteForm({ mode, initialData, siteId, locale, idToken }:
 
   React.useEffect(() => {
     let isMounted = true
-    getGoogleMapsLoader()
+    getGoogleMapsLoader(locale === 'vi' ? 'vi' : 'ko')
       .importLibrary('places')
       .then(() => {
         if (!isMounted || !addressInputRef.current) return

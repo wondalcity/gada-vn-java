@@ -484,13 +484,13 @@ export default function JobsMapView({
   // Job to focus once map finishes loading (set by focusJobId effect when map not ready)
   const pendingFocusRef = useRef<string | null>(null)
 
-  // language must NOT be passed here — the Google Maps Loader is a singleton and
-  // throws "Loader must not be called again with different options" if language
-  // changes between renders (e.g. locale switch).  Map tile labels are always
-  // in Vietnamese regardless; only the UI controls would differ, which is fine.
+  // language is safe to pass here: locale is baked into the URL prefix (/ko/, /vi/),
+  // so the Google Maps singleton is initialized once per page load with the correct locale.
   const { isLoaded } = useJsApiLoader({
     googleMapsApiKey: GOOGLE_MAPS_API_KEY,
     libraries: GOOGLE_MAPS_LIBRARIES,
+    language: locale === 'vi' ? 'vi' : 'ko',
+    region: 'VN',
   })
 
   const jobsWithCoords = jobs.filter(j => j.siteLat != null && j.siteLng != null)

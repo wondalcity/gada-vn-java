@@ -25,6 +25,8 @@ export interface JobCardItem {
   coverImageUrl?: string;
   imageS3Keys?: string[];
   coverImageIdx?: number;
+  provinceNameVi?: string;
+  provinceNameKo?: string;
 }
 
 interface Props {
