@@ -415,6 +415,7 @@ const ko = {
     support_phone_number: '+84 56 824 0240',
   },
   permissions: {
+    nav_title: '접근 권한 허용',
     title: '앱 사용을 위한\n권한 허용',
     subtitle1: '더 나은 서비스를 위해 아래 권한이 필요합니다.',
     subtitle2: '언제든지 설정에서 변경할 수 있습니다.',
@@ -878,6 +879,7 @@ const vi = {
     support_phone_number: '+84 56 824 0240',
   },
   permissions: {
+    nav_title: 'Cấp quyền truy cập',
     title: 'Yêu cầu\nquyền truy cập',
     subtitle1: 'Chúng tôi cần các quyền sau để cung cấp dịch vụ tốt hơn.',
     subtitle2: 'Bạn có thể thay đổi trong Cài đặt bất kỳ lúc nào.',
@@ -1341,6 +1343,7 @@ const en = {
     support_phone_number: '+84 56 824 0240',
   },
   permissions: {
+    nav_title: 'Allow Permissions',
     title: 'App\nPermissions',
     subtitle1: 'We need the following permissions for a better experience.',
     subtitle2: 'You can change these anytime in Settings.',
@@ -1447,8 +1450,8 @@ export async function changeAppLanguage(code: LangCode): Promise<void> {
 
 i18n.use(initReactI18next).init({
   resources: { ko: { translation: ko }, vi: { translation: vi }, en: { translation: en } },
-  lng: 'ko',
-  fallbackLng: 'ko',
+  lng: getDeviceLanguage(),
+  fallbackLng: 'vi',
   interpolation: { escapeValue: false },
 });
 

@@ -3,7 +3,7 @@ import {
   View, Text, StyleSheet, TouchableOpacity,
   ScrollView, Alert,
 } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useRouter, Stack } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import * as Location from 'expo-location';
 import * as ImagePicker from 'expo-image-picker';
@@ -77,6 +77,7 @@ export default function PermissionsScreen() {
 
   return (
     <View style={styles.container}>
+      <Stack.Screen options={{ title: t('permissions.nav_title') }} />
       <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
         <View style={styles.header}>
           <Text style={styles.appName}>GADA VN</Text>
