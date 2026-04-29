@@ -18,13 +18,17 @@ export default function OtpScreen() {
   const { t } = useTranslation();
   const router = useRouter();
   const {
-    pendingPhone, confirmationResult,
+    pendingPhone, confirmationResult, devOtp,
     clearPendingPhone, setConfirmationResult, setDevOtp, setUser,
   } = useAuthStore();
   const [otp, setOtp] = useState('');
   const [loading, setLoading] = useState(false);
 
-  useEffect(() => { setCurrentScreen('auth/otp'); }, []);
+  useEffect(() => {
+    setCurrentScreen('auth/otp');
+    // 스테이징: 서버가 반환한 devOtp 자동완성
+    if (devOtp) setOtp(devOtp);
+  }, []);
 
   async function handleVerify() {
     if (otp.length < 6) return;

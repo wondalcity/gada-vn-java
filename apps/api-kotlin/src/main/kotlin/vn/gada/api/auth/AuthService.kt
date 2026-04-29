@@ -16,7 +16,7 @@ class AuthService(
     @Value("\${gada.firebase.web-api-key:}") private val firebaseWebApiKey: String
 ) {
     private val log = LoggerFactory.getLogger(AuthService::class.java)
-    private val isDev: Boolean get() = activeProfile == "local" || activeProfile == "dev" || activeProfile == "default"
+    private val isDev: Boolean get() = activeProfile != "production"
 
     fun verifyAndGetOrCreateUser(idToken: String, name: String? = null, emailOverride: String? = null): Map<String, Any?> {
         if (!firebase.isInitialized()) {
@@ -116,23 +116,27 @@ class AuthService(
             throw UnauthorizedException("인증번호가 올바르지 않습니다.")
         }
 
-        // Test accounts: skip Firebase, use existing DB user directly
-        if (repo.isTestAccount(normalized)) {
-            val dbUser = repo.findByPhone(normalized)
-                ?: throw UnauthorizedException("테스트 계정을 찾을 수 없습니다.")
-            return mapOf("devToken" to "dev_${dbUser["id"]}", "isNewUser" to false)
+        // Dev/staging mode or test accounts: skip Firebase entirely, use DB directly
+        if (isDev || repo.isTestAccount(normalized)) {
+            var dbUser = repo.findByPhone(normalized)
+            var isNewUser = false
+            if (dbUser == null) {
+                val devUid = "dev_phone_${normalized.replace(Regex("[^\\d]"), "")}"
+                dbUser = repo.create(devUid, normalized, null, "WORKER")
+                repo.ensureWorkerProfile(dbUser["id"] as String, normalized)
+                isNewUser = true
+            }
+            return mapOf("devToken" to "dev_${dbUser["id"]}", "isNewUser" to isNewUser)
         }
 
-        // Find or create Firebase user by phone
+        // Production: Firebase flow
         val (uid, isFirebaseNew) = firebase.getOrCreateUserByPhone(normalized)
 
-        // Find or create DB user
         var dbUser = repo.findByFirebaseUid(uid)
         var isNewUser = isFirebaseNew
         if (dbUser == null) {
             dbUser = repo.findByPhone(normalized)
             if (dbUser != null) {
-                // Phone exists but different firebase uid — update it
                 repo.updateFirebaseUid(dbUser["id"] as String, uid)
                 dbUser = dbUser.toMutableMap().apply { put("firebase_uid", uid) }
             } else {
@@ -141,19 +145,14 @@ class AuthService(
                 isNewUser = true
             }
         } else {
-            // Found by firebase UID — sync phone if it differs (OTP proves ownership of normalized)
             if (dbUser["phone"] != normalized) {
                 repo.updatePhone(dbUser["id"] as String, normalized)
                 dbUser = dbUser.toMutableMap().apply { put("phone", normalized) }
             }
         }
 
-        return if (isDev) {
-            mapOf("devToken" to "dev_${dbUser["id"]}", "isNewUser" to isNewUser)
-        } else {
-            val customToken = firebase.createCustomToken(uid)
-            mapOf("customToken" to customToken, "isNewUser" to isNewUser)
-        }
+        val customToken = firebase.createCustomToken(uid)
+        return mapOf("customToken" to customToken, "isNewUser" to isNewUser)
     }
 
     // ── Phone change (authenticated) ────────────────────────────────────────

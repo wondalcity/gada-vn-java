@@ -5,7 +5,6 @@ import {
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
-import auth from '@react-native-firebase/auth';
 import { signInWithPhoneOtp, signInWithGoogle } from '../../lib/firebase';
 import { api } from '../../lib/api-client';
 import { useAuthStore } from '../../store/auth.store';
@@ -29,10 +28,6 @@ export default function PhoneScreen() {
 
   useEffect(() => {
     setCurrentScreen('auth/phone');
-    // 비프로덕션 빌드에서 Firebase 테스트 번호 사용 시 앱 인증 우회
-    if (!IS_PRODUCTION) {
-      auth().settings.appVerificationDisabledForTesting = true;
-    }
   }, []);
 
   async function handleSendOtp() {
@@ -61,10 +56,11 @@ export default function PhoneScreen() {
           logEvent('Auth: normal phone — Firebase SMS');
         }
       } else {
-        // 스테이징: Firebase Phone Auth (프로덕션과 동일 플로우)
-        const confirmation = await signInWithPhoneOtp(fullNumber);
-        setConfirmationResult(confirmation);
-        logEvent('Auth: staging — Firebase SMS');
+        // 스테이징: 서버 OTP flow (Firebase SMS 우회 — iOS APNs 불필요)
+        const result = await api.post<{ message: string; devOtp?: string }>('/auth/otp/send', { phone: fullNumber });
+        setPendingPhone(fullNumber);
+        if (result?.devOtp) setDevOtp(result.devOtp);
+        logEvent('Auth: staging — server OTP');
       }
 
       router.push('/(auth)/otp');
