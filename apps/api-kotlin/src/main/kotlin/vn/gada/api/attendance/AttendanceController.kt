@@ -20,6 +20,17 @@ class AttendanceController(private val attendanceService: AttendanceService) {
         return ok(attendanceService.findByJob(jobId, u.id))
     }
 
+    /** GET /attendance/:id/history — Get status change history for an attendance record */
+    @GetMapping("/attendance/{id}/history")
+    fun getAttendanceHistory(
+        @PathVariable id: String,
+        @AuthenticationPrincipal user: AuthUser?
+    ): ResponseEntity<Map<String, Any?>> {
+        if (user == null) throw UnauthorizedException("Unauthorized")
+        val rows = attendanceService.getStatusHistory(id)
+        return ok(rows)
+    }
+
     /** PUT /attendance/:id — Manager updates a single attendance record */
     @PutMapping("/attendance/{id}")
     fun updateAttendance(

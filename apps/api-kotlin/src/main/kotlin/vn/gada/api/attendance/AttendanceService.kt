@@ -53,4 +53,8 @@ class AttendanceService(
     ): List<Map<String, Any?>> {
         return repo.bulkUpsert(jobId, managerUserId, records)
     }
+
+    fun getStatusHistory(attendanceId: String): List<Map<String, Any?>> {
+        return repo.getStatusHistory(attendanceId)
+    }
 }

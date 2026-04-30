@@ -464,9 +464,12 @@ class ManagerJobController(
                  t.name_ko AS trade_name_ko,
                  ar.id AS attendance_id,
                  ar.status AS attendance_status,
-                 ar.check_in_time,
-                 ar.check_out_time,
-                 ar.hours_worked,
+                 ar.worker_status,
+                 ar.updated_by_role,
+                 ar.work_hours,
+                 ar.work_minutes,
+                 ar.work_duration_set_by,
+                 ar.work_duration_confirmed,
                  ar.notes AS attendance_notes
                FROM app.job_applications a
                JOIN app.worker_profiles wp ON a.worker_id = wp.id
@@ -489,9 +492,12 @@ class ManagerJobController(
                 "attendance" to if (r["attendance_id"] != null) mapOf(
                     "id" to r["attendance_id"],
                     "status" to r["attendance_status"],
-                    "checkInTime" to (r["check_in_time"] ?: ""),
-                    "checkOutTime" to (r["check_out_time"] ?: ""),
-                    "hoursWorked" to (r["hours_worked"] as? Number)?.toDouble(),
+                    "workerStatus" to r["worker_status"],
+                    "updatedByRole" to r["updated_by_role"],
+                    "workHours" to (r["work_hours"] as? Number)?.toInt(),
+                    "workMinutes" to (r["work_minutes"] as? Number)?.toInt(),
+                    "workDurationSetBy" to r["work_duration_set_by"],
+                    "workDurationConfirmed" to (r["work_duration_confirmed"] ?: false),
                     "notes" to (r["attendance_notes"] ?: "")
                 ) else null
             )
@@ -525,19 +531,27 @@ class ManagerJobController(
             for (rec in records) {
                 updateRaw(
                     """INSERT INTO app.attendance_records
-                         (job_id, worker_id, work_date, status, check_in_time, check_out_time, hours_worked, notes, marked_by, marked_at)
-                       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())
+                         (job_id, worker_id, work_date, status,
+                          work_hours, work_minutes, work_duration_confirmed,
+                          notes, marked_by, marked_at,
+                          updated_by_role, updated_by_id, manager_status_at)
+                       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), 'MANAGER', ?, NOW())
                        ON CONFLICT (job_id, worker_id, work_date) DO UPDATE SET
-                         status         = EXCLUDED.status,
-                         check_in_time  = COALESCE(EXCLUDED.check_in_time, app.attendance_records.check_in_time),
-                         check_out_time = COALESCE(EXCLUDED.check_out_time, app.attendance_records.check_out_time),
-                         hours_worked   = COALESCE(EXCLUDED.hours_worked, app.attendance_records.hours_worked),
-                         notes          = COALESCE(EXCLUDED.notes, app.attendance_records.notes),
-                         marked_by      = EXCLUDED.marked_by,
-                         marked_at      = NOW()""",
+                         status                   = EXCLUDED.status,
+                         work_hours               = COALESCE(EXCLUDED.work_hours, app.attendance_records.work_hours),
+                         work_minutes             = COALESCE(EXCLUDED.work_minutes, app.attendance_records.work_minutes),
+                         work_duration_confirmed  = COALESCE(EXCLUDED.work_duration_confirmed, app.attendance_records.work_duration_confirmed),
+                         notes                    = COALESCE(EXCLUDED.notes, app.attendance_records.notes),
+                         marked_by                = EXCLUDED.marked_by,
+                         marked_at                = NOW(),
+                         updated_by_role          = 'MANAGER',
+                         updated_by_id            = EXCLUDED.marked_by,
+                         manager_status_at        = NOW()""",
                     id, rec["worker_id"], workDate, rec["status"],
-                    rec["check_in_time"], rec["check_out_time"],
-                    rec["hours_worked"], rec["notes"], managerId
+                    (rec["work_hours"] as? Number)?.toInt(),
+                    (rec["work_minutes"] as? Number)?.toInt(),
+                    rec["work_duration_confirmed"],
+                    rec["notes"], managerId, managerId
                 )
             }
         }

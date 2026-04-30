@@ -54,6 +54,22 @@ class AttendanceRepository(private val db: DatabaseService) {
         ).firstOrNull()
     }
 
+    fun getStatusHistory(attendanceId: String): List<Map<String, Any?>> {
+        return db.queryForList(
+            """SELECT id,
+                      changed_by_role AS "changedByRole",
+                      changed_by_name AS "changedByName",
+                      old_status      AS "oldStatus",
+                      new_status      AS "newStatus",
+                      changed_at      AS "changedAt",
+                      note
+               FROM app.attendance_status_history
+               WHERE attendance_id = ?
+               ORDER BY changed_at ASC""",
+            attendanceId
+        )
+    }
+
     fun bulkUpsert(
         jobId: String,
         managerUserId: String,
