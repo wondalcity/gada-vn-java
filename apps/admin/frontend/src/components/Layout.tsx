@@ -13,6 +13,7 @@ const ALL_NAV: { to: string; labelKey: string; permission: NavPermission; exact?
   { to: '/managers',         labelKey: 'nav.managers',          permission: 'managers' },
   { to: '/workers',          labelKey: 'nav.workers',           permission: 'workers' },
   { to: '/jobs',             labelKey: 'nav.jobs',              permission: 'jobs' },
+  { to: '/attendance',       labelKey: 'nav.attendance',        permission: 'jobs' },
   { to: '/sites',            labelKey: 'nav.sites',             permission: 'sites' },
   { to: '/companies',        labelKey: 'nav.companies',         permission: 'sites' },
   { to: '/notifications',    labelKey: 'nav.notifications',     permission: 'notifications' },

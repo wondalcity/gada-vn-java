@@ -19,6 +19,7 @@ import AdminUsers from './pages/AdminUsers'
 import AcceptInvite from './pages/AcceptInvite'
 import Settings from './pages/Settings'
 import TestAccounts from './pages/TestAccounts'
+import Attendance from './pages/Attendance'
 
 export default function App() {
   return (
@@ -48,6 +49,7 @@ export default function App() {
             <Route path="notifications" element={<Notifications />} />
             <Route path="admin-users" element={<AdminUsers />} />
             <Route path="test-accounts" element={<TestAccounts />} />
+            <Route path="attendance" element={<Attendance />} />
             <Route path="settings" element={<Settings />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Route>

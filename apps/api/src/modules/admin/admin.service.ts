@@ -154,6 +154,12 @@ export class AdminService {
     return this.repo.findWorkerContracts(workerId);
   }
 
+  async getContractById(id: string) {
+    const contract = await this.repo.findContractById(id);
+    if (!contract) throw new NotFoundException(`Contract ${id} not found`);
+    return contract;
+  }
+
   async listTestAccounts() {
     return this.repo.findTestAccounts();
   }
@@ -535,5 +541,30 @@ export class AdminService {
     const user = await this.repo.updateAdminUserStatus(id, 'DISABLED');
     if (!user) throw new NotFoundException(`Admin user ${id} not found`);
     return user;
+  }
+
+  // ── Attendance ────────────────────────────────────────────────────────────
+
+  async listAttendance(filters: {
+    jobId?: string;
+    workDate?: string;
+    status?: string;
+    page: number;
+    limit: number;
+  }) {
+    return this.repo.listAttendance(filters);
+  }
+
+  async updateAttendance(id: string, data: {
+    status?: string;
+    workerStatus?: string;
+    workHours?: number;
+    workMinutes?: number;
+    workDurationConfirmed?: boolean;
+    notes?: string;
+  }) {
+    const record = await this.repo.updateAttendance(id, data);
+    if (!record) throw new NotFoundException(`Attendance record ${id} not found`);
+    return record;
   }
 }

@@ -20,7 +20,7 @@ export class AdminRepository {
          wp.id, wp.full_name, wp.current_province, wp.id_verified, wp.created_at,
          u.phone, u.email, u.role, u.provider
        FROM app.worker_profiles wp
-       JOIN auth.users u ON wp.user_id = u.id
+       JOIN app.users u ON wp.user_id = u.id
        WHERE (
          wp.full_name ILIKE $1
          OR u.phone ILIKE $1
@@ -48,7 +48,7 @@ export class AdminRepository {
     const { rows } = await this.db.query<{ count: string }>(
       `SELECT COUNT(*) as count
        FROM app.worker_profiles wp
-       JOIN auth.users u ON wp.user_id = u.id
+       JOIN app.users u ON wp.user_id = u.id
        WHERE wp.full_name ILIKE $1 OR u.phone ILIKE $1 OR u.email ILIKE $1`,
       [param],
     );
@@ -67,7 +67,7 @@ export class AdminRepository {
          mp.representative_name AS manager_representative_name,
          mp.approved_at AS manager_approved_at
        FROM app.worker_profiles wp
-       JOIN auth.users u ON wp.user_id = u.id
+       JOIN app.users u ON wp.user_id = u.id
        LEFT JOIN ref.construction_trades t ON wp.primary_trade_id = t.id
        LEFT JOIN app.manager_profiles mp ON mp.user_id = u.id
        WHERE wp.id = $1`,
@@ -234,7 +234,7 @@ export class AdminRepository {
     );
     // Upgrade role to MANAGER
     await this.db.query(
-      `UPDATE auth.users SET role = 'MANAGER', updated_at = NOW() WHERE id = $1`,
+      `UPDATE app.users SET role = 'MANAGER', updated_at = NOW() WHERE id = $1`,
       [data.userId],
     );
     return rows[0];
@@ -250,7 +250,7 @@ export class AdminRepository {
                WHERE msa.manager_id = mp.id
                ORDER BY msa.assigned_at DESC LIMIT 1) AS site_name
        FROM app.manager_profiles mp
-       JOIN auth.users u ON mp.user_id = u.id
+       JOIN app.users u ON mp.user_id = u.id
        LEFT JOIN app.worker_profiles wp ON wp.user_id = u.id
        WHERE mp.approval_status = $1
        ORDER BY mp.created_at DESC
@@ -273,7 +273,7 @@ export class AdminRepository {
       `SELECT mp.*, u.phone, u.created_at as user_created_at,
               wp.full_name AS worker_full_name
        FROM app.manager_profiles mp
-       JOIN auth.users u ON mp.user_id = u.id
+       JOIN app.users u ON mp.user_id = u.id
        LEFT JOIN app.worker_profiles wp ON wp.user_id = u.id
        WHERE mp.id = $1`,
       [id],
@@ -329,7 +329,7 @@ export class AdminRepository {
     if (profile) {
       // Also update the user's role to MANAGER
       await this.db.query(
-        `UPDATE auth.users SET role = 'MANAGER', updated_at = NOW() WHERE id = $1`,
+        `UPDATE app.users SET role = 'MANAGER', updated_at = NOW() WHERE id = $1`,
         [profile.user_id],
       );
     }
@@ -349,7 +349,7 @@ export class AdminRepository {
       `SELECT u.id AS user_id,
               COALESCE(wp.full_name, mp.representative_name, u.phone, u.email) AS name,
               u.phone, u.email, u.role
-       FROM auth.users u
+       FROM app.users u
        LEFT JOIN app.worker_profiles wp ON wp.user_id = u.id
        LEFT JOIN app.manager_profiles mp ON mp.user_id = u.id
        WHERE (
@@ -369,7 +369,7 @@ export class AdminRepository {
       `SELECT u.id AS user_id,
               COALESCE(wp.full_name, mp.representative_name, u.phone, u.email) AS name,
               u.phone, u.email, u.role
-       FROM auth.users u
+       FROM app.users u
        LEFT JOIN app.worker_profiles wp ON wp.user_id = u.id
        LEFT JOIN app.manager_profiles mp ON mp.user_id = u.id
        WHERE u.role = $1
@@ -382,7 +382,7 @@ export class AdminRepository {
   async getUserPhones(userIds: string[]): Promise<{ user_id: string; phone: string }[]> {
     if (userIds.length === 0) return [];
     const { rows } = await this.db.query<{ user_id: string; phone: string }>(
-      `SELECT id AS user_id, phone FROM auth.users WHERE id = ANY($1) AND phone IS NOT NULL`,
+      `SELECT id AS user_id, phone FROM app.users WHERE id = ANY($1) AND phone IS NOT NULL`,
       [userIds],
     );
     return rows;
@@ -450,7 +450,7 @@ export class AdminRepository {
     if (profile) {
       // Downgrade user role back to WORKER
       await this.db.query(
-        `UPDATE auth.users SET role = 'WORKER', updated_at = NOW() WHERE id = $1`,
+        `UPDATE app.users SET role = 'WORKER', updated_at = NOW() WHERE id = $1`,
         [profile.user_id],
       );
     }
@@ -526,7 +526,7 @@ export class AdminRepository {
   async findTestAccounts() {
     const { rows } = await this.db.query(
       `SELECT u.id, u.phone, u.role, u.status, u.created_at, wp.full_name
-       FROM auth.users u
+       FROM app.users u
        LEFT JOIN app.worker_profiles wp ON wp.user_id = u.id
        WHERE u.is_test_account = TRUE
        ORDER BY u.created_at DESC`,
@@ -536,7 +536,7 @@ export class AdminRepository {
 
   async createTestAccount(data: { firebaseUid: string; phone: string; role: string; name: string | null }) {
     const { rows: userRows } = await this.db.query<{ id: string }>(
-      `INSERT INTO auth.users (firebase_uid, phone, role, is_test_account)
+      `INSERT INTO app.users (firebase_uid, phone, role, is_test_account)
        VALUES ($1, $2, $3, TRUE)
        ON CONFLICT (firebase_uid) DO UPDATE SET
          phone = EXCLUDED.phone, role = EXCLUDED.role, is_test_account = TRUE, updated_at = NOW()
@@ -552,7 +552,7 @@ export class AdminRepository {
     );
     const { rows } = await this.db.query(
       `SELECT u.id, u.phone, u.role, u.status, u.created_at, wp.full_name
-       FROM auth.users u
+       FROM app.users u
        LEFT JOIN app.worker_profiles wp ON wp.user_id = u.id
        WHERE u.id = $1`,
       [userId],
@@ -562,10 +562,62 @@ export class AdminRepository {
 
   async deleteTestAccount(id: string) {
     const { rows } = await this.db.query(
-      `DELETE FROM auth.users WHERE id = $1 AND is_test_account = TRUE RETURNING id`,
+      `DELETE FROM app.users WHERE id = $1 AND is_test_account = TRUE RETURNING id`,
       [id],
     );
     return rows[0] ?? null;
+  }
+
+  async findContractById(id: string) {
+    const CDN = process.env.CLOUDFRONT_URL ?? '';
+    const cdnUrl = (key: string | null) => {
+      if (!key) return null;
+      if (key.startsWith('data:')) return key;
+      return CDN ? `${CDN}/${key}` : key;
+    };
+    const { rows } = await this.db.query(
+      `SELECT
+         c.id,
+         c.status,
+         c.worker_signed_at           AS "workerSignedAt",
+         c.manager_signed_at          AS "managerSignedAt",
+         c.worker_signature_s3_key    AS "workerSigKey",
+         c.manager_signature_s3_key   AS "managerSigKey",
+         c.created_at                 AS "createdAt",
+         j.title                      AS "jobTitle",
+         j.work_date                  AS "workDate",
+         j.daily_wage::INTEGER        AS "dailyWage",
+         j.start_time                 AS "startTime",
+         j.end_time                   AS "endTime",
+         s.name                       AS "siteName",
+         s.address                    AS "siteAddress",
+         wp.full_name                 AS "workerName",
+         uw.phone                     AS "workerPhone",
+         mp.representative_name       AS "managerName",
+         um.phone                     AS "managerPhone",
+         cc.name                      AS "companyName",
+         cc.contact_name              AS "companyContactName",
+         cc.contact_phone             AS "companyContactPhone",
+         cc.signature_s3_key          AS "companySigKey"
+       FROM app.contracts c
+       JOIN app.jobs j ON c.job_id = j.id
+       JOIN app.construction_sites s ON j.site_id = s.id
+       LEFT JOIN app.construction_companies cc ON s.company_id = cc.id
+       JOIN app.worker_profiles wp ON c.worker_id = wp.id
+       JOIN app.users uw ON wp.user_id = uw.id
+       JOIN app.manager_profiles mp ON c.manager_id = mp.id
+       JOIN app.users um ON mp.user_id = um.id
+       WHERE c.id = $1`,
+      [id],
+    );
+    if (!rows[0]) return null;
+    const r = rows[0];
+    return {
+      ...r,
+      workerSigUrl: cdnUrl(r.workerSigKey),
+      managerSigUrl: cdnUrl(r.managerSigKey),
+      companySigUrl: cdnUrl(r.companySigKey),
+    };
   }
 
   async findJobById(id: string) {
@@ -662,7 +714,7 @@ export class AdminRepository {
          ar.hours_worked
        FROM app.job_applications ja
        JOIN app.worker_profiles wp ON ja.worker_id = wp.id
-       JOIN auth.users u ON wp.user_id = u.id
+       JOIN app.users u ON wp.user_id = u.id
        LEFT JOIN app.contracts c ON c.application_id = ja.id
        LEFT JOIN app.attendance_records ar
          ON ar.job_id = ja.job_id AND ar.worker_id = ja.worker_id
@@ -677,7 +729,7 @@ export class AdminRepository {
     const { rows } = await this.db.query<{ user_id: string }>(
       `SELECT u.id AS user_id FROM app.job_applications ja
        JOIN app.worker_profiles wp ON ja.worker_id = wp.id
-       JOIN auth.users u ON wp.user_id = u.id
+       JOIN app.users u ON wp.user_id = u.id
        WHERE ja.id = $1`,
       [applicationId],
     );
@@ -832,7 +884,7 @@ export class AdminRepository {
        FROM app.construction_sites cs
        LEFT JOIN app.construction_companies cc ON cs.company_id = cc.id
        LEFT JOIN app.manager_profiles mp ON cs.manager_id = mp.id
-       LEFT JOIN auth.users u ON mp.user_id = u.id
+       LEFT JOIN app.users u ON mp.user_id = u.id
        LEFT JOIN app.jobs j ON j.site_id = cs.id
        GROUP BY cs.id, cc.name, mp.representative_name, u.phone
        ORDER BY cs.created_at DESC`,
@@ -853,7 +905,7 @@ export class AdminRepository {
        FROM app.construction_sites cs
        LEFT JOIN app.construction_companies cc ON cs.company_id = cc.id
        LEFT JOIN app.manager_profiles mp ON cs.manager_id = mp.id
-       LEFT JOIN auth.users u ON mp.user_id = u.id
+       LEFT JOIN app.users u ON mp.user_id = u.id
        WHERE cs.id = $1`,
       [id],
     );
@@ -937,7 +989,7 @@ export class AdminRepository {
 
   async createWorkerProfile(firebaseUid: string, phone: string, fullName: string) {
     const { rows: userRows } = await this.db.query<{ id: string }>(
-      `INSERT INTO auth.users (firebase_uid, phone, role)
+      `INSERT INTO app.users (firebase_uid, phone, role)
        VALUES ($1, $2, 'WORKER')
        ON CONFLICT (firebase_uid) DO UPDATE SET phone = EXCLUDED.phone, updated_at = NOW()
        RETURNING id`,
@@ -956,7 +1008,7 @@ export class AdminRepository {
 
   async deleteWorkerProfile(id: string) {
     const { rows } = await this.db.query(
-      `UPDATE auth.users u SET status = 'SUSPENDED', updated_at = NOW()
+      `UPDATE app.users u SET status = 'SUSPENDED', updated_at = NOW()
        FROM app.worker_profiles wp
        WHERE wp.id = $1 AND wp.user_id = u.id
        RETURNING u.id`,
@@ -1122,5 +1174,113 @@ export class AdminRepository {
       ],
     );
     return rows[0];
+  }
+
+  // ── Attendance ────────────────────────────────────────────────────────────
+
+  async listAttendance(filters: {
+    jobId?: string;
+    workDate?: string;
+    status?: string;
+    page: number;
+    limit: number;
+  }) {
+    const conditions: string[] = [];
+    const params: unknown[] = [];
+
+    if (filters.jobId) {
+      params.push(filters.jobId);
+      conditions.push(`ar.job_id = $${params.length}`);
+    }
+    if (filters.workDate) {
+      params.push(filters.workDate);
+      conditions.push(`ar.work_date = $${params.length}`);
+    }
+    if (filters.status) {
+      params.push(filters.status);
+      conditions.push(`ar.status = $${params.length}`);
+    }
+
+    const where = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
+    const offset = (filters.page - 1) * filters.limit;
+    params.push(filters.limit, offset);
+
+    const { rows } = await this.db.query(
+      `SELECT
+         ar.*,
+         wp.full_name     AS worker_name,
+         j.title          AS job_title,
+         j.work_date      AS job_work_date,
+         cs.name          AS site_name,
+         mp.company_name  AS manager_company
+       FROM app.attendance_records ar
+       JOIN app.worker_profiles wp ON ar.worker_id = wp.id
+       JOIN app.jobs j ON ar.job_id = j.id
+       JOIN app.construction_sites cs ON j.site_id = cs.id
+       JOIN app.manager_profiles mp ON j.manager_id = mp.id
+       ${where}
+       ORDER BY ar.work_date DESC, wp.full_name ASC
+       LIMIT $${params.length - 1} OFFSET $${params.length}`,
+      params,
+    );
+
+    const countParams = params.slice(0, -2);
+    const { rows: countRows } = await this.db.query(
+      `SELECT COUNT(*)::int AS total
+       FROM app.attendance_records ar
+       JOIN app.worker_profiles wp ON ar.worker_id = wp.id
+       JOIN app.jobs j ON ar.job_id = j.id
+       ${where}`,
+      countParams,
+    );
+
+    return { data: rows, total: countRows[0]?.total ?? 0 };
+  }
+
+  async updateAttendance(id: string, data: {
+    status?: string;
+    workerStatus?: string;
+    workHours?: number;
+    workMinutes?: number;
+    workDurationConfirmed?: boolean;
+    notes?: string;
+  }) {
+    const setClauses: string[] = [];
+    const params: unknown[] = [id];
+
+    const add = (col: string, val: unknown) => {
+      params.push(val);
+      setClauses.push(`${col} = $${params.length}`);
+    };
+
+    if (data.status !== undefined) {
+      add('status', data.status);
+      add('manager_status_at', new Date());
+    }
+    if (data.workerStatus !== undefined) {
+      add('worker_status', data.workerStatus);
+      add('worker_status_at', new Date());
+    }
+    if (data.workHours !== undefined) add('work_hours', data.workHours);
+    if (data.workMinutes !== undefined) add('work_minutes', data.workMinutes);
+    if (data.workDurationConfirmed !== undefined) {
+      add('work_duration_confirmed', data.workDurationConfirmed);
+      if (data.workDurationConfirmed) add('work_duration_confirmed_at', new Date());
+    }
+    if (data.notes !== undefined) add('notes', data.notes);
+
+    if (setClauses.length === 0) {
+      const { rows } = await this.db.query(
+        'SELECT * FROM app.attendance_records WHERE id = $1',
+        [id],
+      );
+      return rows[0] ?? null;
+    }
+
+    const { rows } = await this.db.query(
+      `UPDATE app.attendance_records SET ${setClauses.join(', ')} WHERE id = $1 RETURNING *`,
+      params,
+    );
+    return rows[0] ?? null;
   }
 }

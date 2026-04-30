@@ -117,6 +117,11 @@ export class AdminController {
     return this.adminService.getWorkerContracts(id);
   }
 
+  @Get('contracts/:id')
+  async getContract(@Param('id') id: string) {
+    return this.adminService.getContractById(id);
+  }
+
   @Put('workers/:id/trade-skills')
   async updateWorkerTradeSkills(
     @Param('id') id: string,
@@ -429,5 +434,33 @@ export class AdminController {
   @Delete('admin-users/:id')
   async disableAdminUser(@Param('id') id: string) {
     return this.adminService.disableAdminUser(id);
+  }
+
+  // ── Attendance management ─────────────────────────────────────────────────
+
+  @Get('attendance')
+  async listAttendance(
+    @Query('jobId') jobId?: string,
+    @Query('workDate') workDate?: string,
+    @Query('status') status?: string,
+    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number = 1,
+    @Query('limit', new DefaultValuePipe(20), ParseIntPipe) limit: number = 20,
+  ) {
+    return this.adminService.listAttendance({ jobId, workDate, status, page, limit });
+  }
+
+  @Put('attendance/:id')
+  async updateAttendance(
+    @Param('id') id: string,
+    @Body() body: {
+      status?: string;
+      workerStatus?: string;
+      workHours?: number;
+      workMinutes?: number;
+      workDurationConfirmed?: boolean;
+      notes?: string;
+    },
+  ) {
+    return this.adminService.updateAttendance(id, body);
   }
 }

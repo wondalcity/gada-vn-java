@@ -68,6 +68,7 @@ export const ADMIN_TRANSLATIONS: Record<AdminLocale, Record<string, string>> = {
     'nav.notifications': '🔔 알림 발송',
     'nav.admin_users': '🔑 어드민 계정',
     'nav.test_accounts': '🧪 테스트 계정',
+    'nav.attendance': '📋 출퇴근 관리',
     'nav.settings': '⚙️ 설정',
 
     'layout.change_password': '🔒 비밀번호 변경',
@@ -785,6 +786,7 @@ export const ADMIN_TRANSLATIONS: Record<AdminLocale, Record<string, string>> = {
     'nav.notifications': '🔔 Gửi thông báo',
     'nav.admin_users': '🔑 Tài khoản admin',
     'nav.test_accounts': '🧪 Tài khoản thử nghiệm',
+    'nav.attendance': '📋 Quản lý chấm công',
     'nav.settings': '⚙️ Cài đặt',
 
     'layout.change_password': '🔒 Đổi mật khẩu',
@@ -1502,6 +1504,7 @@ export const ADMIN_TRANSLATIONS: Record<AdminLocale, Record<string, string>> = {
     'nav.notifications': '🔔 Send Notifications',
     'nav.admin_users': '🔑 Admin Accounts',
     'nav.test_accounts': '🧪 Test Accounts',
+    'nav.attendance': '📋 Attendance',
     'nav.settings': '⚙️ Settings',
 
     'layout.change_password': '🔒 Change Password',

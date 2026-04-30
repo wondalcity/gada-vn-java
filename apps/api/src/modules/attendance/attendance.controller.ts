@@ -13,7 +13,8 @@ import { CurrentUser, CurrentUserPayload } from '../../common/decorators/current
 export class AttendanceController {
   constructor(private readonly attendanceService: AttendanceService) {}
 
-  // Manager fetches attendance records for a job
+  // ── Manager: fetch attendance records for a job ──────────────────────────
+
   @Get('jobs/:jobId/attendance')
   @Roles('MANAGER')
   async getJobAttendance(
@@ -23,7 +24,8 @@ export class AttendanceController {
     return this.attendanceService.findByJob(jobId, user.id);
   }
 
-  // Manager updates a single attendance record
+  // ── Manager: update a single attendance record (manager status) ──────────
+
   @Put('attendance/:id')
   @Roles('MANAGER')
   async updateAttendance(
@@ -31,10 +33,11 @@ export class AttendanceController {
     @CurrentUser() user: CurrentUserPayload,
     @Body() body: { status: string; notes?: string },
   ) {
-    return this.attendanceService.update(id, user.id, body);
+    return this.attendanceService.updateManagerStatus(id, user.id, body);
   }
 
-  // Manager bulk-creates or confirms attendance for a job
+  // ── Manager: bulk-create or confirm attendance for a job ─────────────────
+
   @Post('jobs/:jobId/attendance/bulk')
   @Roles('MANAGER')
   async bulkUpsertAttendance(
@@ -43,5 +46,40 @@ export class AttendanceController {
     @Body() body: { records: Array<{ workerId: string; workDate: string; status: string; notes?: string }> },
   ) {
     return this.attendanceService.bulkUpsert(jobId, user.id, body.records);
+  }
+
+  // ── Worker: set own attendance status ───────────────────────────────────
+
+  @Post('attendance/:id/worker-status')
+  @Roles('WORKER')
+  async setWorkerStatus(
+    @Param('id') id: string,
+    @CurrentUser() user: CurrentUserPayload,
+    @Body() body: { status: 'ATTENDED' | 'ABSENT' | 'EARLY_LEAVE' },
+  ) {
+    return this.attendanceService.setWorkerStatus(id, user.id, body.status);
+  }
+
+  // ── Worker or Manager: set work duration ────────────────────────────────
+
+  @Put('attendance/:id/work-duration')
+  @Roles('WORKER', 'MANAGER')
+  async setWorkDuration(
+    @Param('id') id: string,
+    @CurrentUser() user: CurrentUserPayload,
+    @Body() body: { hours: number; minutes: number },
+  ) {
+    return this.attendanceService.setWorkDuration(id, user.id, user.role, body.hours, body.minutes);
+  }
+
+  // ── Worker or Manager: confirm work duration ─────────────────────────────
+
+  @Post('attendance/:id/work-duration/confirm')
+  @Roles('WORKER', 'MANAGER')
+  async confirmWorkDuration(
+    @Param('id') id: string,
+    @CurrentUser() user: CurrentUserPayload,
+  ) {
+    return this.attendanceService.confirmWorkDuration(id, user.id);
   }
 }

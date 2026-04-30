@@ -18,7 +18,7 @@ export class WorkersRepository {
          u.phone, u.email,
          t.name_ko AS trade_name_ko, t.name_vi AS trade_name_vi
        FROM app.worker_profiles wp
-       JOIN auth.users u ON u.id = wp.user_id
+       JOIN app.users u ON u.id = wp.user_id
        LEFT JOIN ref.construction_trades t ON wp.primary_trade_id = t.id
        WHERE wp.user_id = $1`,
       [userId],
@@ -63,15 +63,32 @@ export class WorkersRepository {
     if (jobId) params.push(jobId);
     const { rows } = await this.db.query(
       `SELECT
-         ar.id, ar.job_id AS "jobId", j.title AS "jobTitle",
-         cs.name AS "siteName", ar.work_date AS "workDate",
-         ar.status, ar.check_in_time AS "checkInTime",
-         ar.check_out_time AS "checkOutTime",
-         ar.hours_worked AS "hoursWorked", ar.notes
+         ar.id,
+         ar.job_id                         AS "jobId",
+         j.title                           AS "jobTitle",
+         cs.name                           AS "siteName",
+         ar.work_date                      AS "workDate",
+         j.daily_wage                      AS "dailyWage",
+         -- Manager status (canonical)
+         ar.status                         AS "managerStatus",
+         ar.manager_status_at              AS "managerStatusAt",
+         -- Worker status (self-reported)
+         ar.worker_status                  AS "workerStatus",
+         ar.worker_status_at               AS "workerStatusAt",
+         -- Effective display status: prefer manager if set, else worker, else PENDING
+         COALESCE(ar.status, 'PENDING')    AS "status",
+         -- Work duration
+         ar.work_hours                     AS "workHours",
+         ar.work_minutes                   AS "workMinutes",
+         ar.work_duration_set_by           AS "workDurationSetBy",
+         ar.work_duration_confirmed        AS "workDurationConfirmed",
+         ar.work_duration_confirmed_at     AS "workDurationConfirmedAt",
+         ar.notes
        FROM app.attendance_records ar
        JOIN app.jobs j ON j.id = ar.job_id
        JOIN app.construction_sites cs ON cs.id = j.site_id
-       WHERE ar.worker_id = $1 ${jobFilter}
+       JOIN app.worker_profiles wp ON ar.worker_id = wp.id
+       WHERE wp.user_id = $1 ${jobFilter}
        ORDER BY ar.work_date DESC`,
       params,
     );
