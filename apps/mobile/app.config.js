@@ -103,6 +103,23 @@ function withFirebaseStaticFramework(config) {
 }
 
 /**
+ * Allow cleartext (HTTP) traffic on Android when the API URL uses http://.
+ * Android 9+ blocks plaintext traffic by default; the staging API runs on HTTP
+ * so we must opt in. Production (HTTPS) builds do not need this.
+ */
+function withCleartextTraffic(config) {
+  const apiUrl = process.env.EXPO_PUBLIC_API_URL ?? '';
+  if (!apiUrl.startsWith('http://')) return config;
+  return withAndroidManifest(config, (cfg) => {
+    const app = cfg.modResults.manifest.application?.[0];
+    if (app) {
+      app.$['android:usesCleartextTraffic'] = 'true';
+    }
+    return cfg;
+  });
+}
+
+/**
  * Enable hardware acceleration on MainActivity so that the WebView used by
  * react-native-signature-canvas renders correctly. Without this flag the
  * signature canvas crashes on many Android devices.
@@ -160,7 +177,7 @@ const buildConfig = ({ config }) => {
     },
   };
 
-  return withFirebaseStaticFramework(withHardwareAcceleration(withFixFirebaseMessagingColor(base)));
+  return withFirebaseStaticFramework(withCleartextTraffic(withHardwareAcceleration(withFixFirebaseMessagingColor(base))));
 };
 
 module.exports = buildConfig;

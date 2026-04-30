@@ -64,6 +64,12 @@ jobs:
           EXPO_PUBLIC_APP_ENV: staging
         run: npx expo prebuild --platform android --non-interactive --clean
 
+      - name: Pin Gradle to 8.6 (expo-modules-core incompatible with 8.8+)
+        run: |
+          sed -i 's|gradle-[0-9.]*-all|gradle-8.6-all|g' \
+            apps/mobile/android/gradle/wrapper/gradle-wrapper.properties
+          grep distributionUrl apps/mobile/android/gradle/wrapper/gradle-wrapper.properties
+
       - name: Patch settings.gradle with resolved module paths
         working-directory: apps/mobile
         run: |
@@ -92,20 +98,6 @@ jobs:
           fi
 
           python3 scripts/patch_settings_gradle.py "$RN_PKG" "$GRADLE_PLUGIN_PKG" "$EXPO_PKG" "$CLI_ANDROID_PKG"
-
-      - name: Patch AndroidManifest (FCM color + cleartext HTTP)
-        run: |
-          MANIFEST=apps/mobile/android/app/src/main/AndroidManifest.xml
-
-          # 1) expo-notifications adds default_notification_color without tools:replace,
-          #    causing a manifest merger conflict with react-native-firebase/messaging.
-          sed -i 's|\(messaging\.default_notification_color"[^>]*\)\/>|\1 tools:replace="android:resource"/>|' "$MANIFEST"
-          echo "FCM patch:"; grep "default_notification_color" "$MANIFEST"
-
-          # 2) Android 9+ blocks plain HTTP by default. The staging API runs on HTTP,
-          #    so we must explicitly allow cleartext traffic in the release build.
-          sed -i 's|<application android:name=".MainApplication"|<application android:name=".MainApplication" android:usesCleartextTraffic="true"|' "$MANIFEST"
-          echo "Cleartext patch:"; grep "usesCleartextTraffic" "$MANIFEST"
 
       - name: Decode release keystore
         run: |
