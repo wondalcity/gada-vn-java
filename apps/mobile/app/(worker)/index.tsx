@@ -3,10 +3,11 @@ import {
   View, FlatList, Text, StyleSheet,
   TouchableOpacity, RefreshControl,
   Modal, TextInput, KeyboardAvoidingView, Platform,
-  ScrollView, Dimensions, ActivityIndicator,
+  ScrollView, Dimensions,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Location from 'expo-location';
+import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { useLocalSearchParams } from 'expo-router';
 import { ApiError } from '../../lib/api-client';
@@ -158,6 +159,8 @@ export default function WorkerJobFeed() {
     setPendingLat(appliedLat);
     setPendingLng(appliedLng);
     setPendingRadius(appliedRadius);
+    setShowRegionPicker(false);
+    setShowTradePicker(false);
     setShowFilterModal(true);
   }
 
@@ -174,6 +177,8 @@ export default function WorkerJobFeed() {
     setAppliedLat(pendingLat);
     setAppliedLng(pendingLng);
     setAppliedRadius(pendingRadius);
+    setShowRegionPicker(false);
+    setShowTradePicker(false);
     setShowFilterModal(false);
   }
 
@@ -237,6 +242,10 @@ export default function WorkerJobFeed() {
     { value: '2to3', label: t('jobs.exp_2to3', '2~3년') },
     { value: 'gte3', label: t('jobs.exp_gte3', '3년 이상') },
   ];
+
+  // Sub-picker state for region / trade dropdowns inside search modal
+  const [showRegionPicker, setShowRegionPicker] = useState(false);
+  const [showTradePicker, setShowTradePicker] = useState(false);
 
   return (
     <View style={styles.container}>
@@ -397,209 +406,173 @@ export default function WorkerJobFeed() {
         />
       )}
 
-      {/* ── Filter Bottom Sheet ── */}
+      {/* ── Search Modal (웹앱과 동일한 UI) ── */}
       <Modal
         visible={showFilterModal}
         transparent
-        animationType="slide"
+        animationType="fade"
         statusBarTranslucent
         onRequestClose={() => setShowFilterModal(false)}
       >
         <TouchableOpacity
-          style={styles.modalOverlay}
+          style={styles.searchOverlayBackdrop}
           activeOpacity={1}
           onPress={() => setShowFilterModal(false)}
         >
           <KeyboardAvoidingView
             behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-            style={styles.filterSheetWrap}
           >
-            <ScrollView
-              style={styles.filterSheet}
-              contentContainerStyle={[styles.filterSheetContent, { paddingBottom: 32 + insets.bottom }]}
-              onStartShouldSetResponder={() => true}
-              keyboardShouldPersistTaps="handled"
-            >
-              <View style={styles.modalHandle} />
-              <Text style={styles.filterTitle}>{t('jobs.filter_title')}</Text>
-
-              {/* Search */}
-              <Text style={styles.filterLabel}>{t('jobs.filter_search')}</Text>
-              <TextInput
-                style={styles.filterInput}
-                value={pendingSearch}
-                onChangeText={setPendingSearch}
-                placeholder={t('jobs.filter_name_placeholder')}
-                placeholderTextColor={Colors.disabled}
-                returnKeyType="search"
-              />
-
-              {/* Recruitment Status — matches web: Open / Closing Soon / Closed */}
-              <Text style={styles.filterLabel}>{t('jobs.filter_status_label', '모집 상태')}</Text>
-              <View style={styles.statusRow}>
-                {statusOptions.map(opt => (
-                  <TouchableOpacity
-                    key={opt.value}
-                    style={[
-                      styles.statusBtn,
-                      pendingStatus === opt.value && styles.statusBtnActive,
-                    ]}
-                    onPress={() => setPendingStatus(opt.value)}
-                    activeOpacity={0.7}
-                  >
-                    <View style={[styles.statusDot, { backgroundColor: opt.dotColor }]} />
-                    <Text style={[
-                      styles.statusBtnText,
-                      pendingStatus === opt.value && styles.statusBtnTextActive,
-                    ]}>{opt.label}</Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
-
-              {/* Experience Required */}
-              <Text style={styles.filterLabel}>{t('jobs.filter_experience', '경력 요건')}</Text>
-              <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-                <View style={styles.chipRow}>
-                  {expOptions.map(opt => (
-                    <TouchableOpacity
-                      key={opt.value}
-                      style={[styles.chip, pendingMinExp === opt.value && styles.chipActive]}
-                      onPress={() => setPendingMinExp(opt.value)}
-                    >
-                      <Text style={[styles.chipText, pendingMinExp === opt.value && styles.chipTextActive]}>
-                        {opt.label}
-                      </Text>
-                    </TouchableOpacity>
-                  ))}
-                </View>
-              </ScrollView>
-
-              {/* Province */}
-              <Text style={styles.filterLabel}>{t('jobs.filter_province')}</Text>
-              <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-                <View style={styles.chipRow}>
-                  <TouchableOpacity
-                    style={[styles.chip, !pendingProvince && styles.chipActive]}
-                    onPress={() => setPendingProvince('')}
-                  >
-                    <Text style={[styles.chipText, !pendingProvince && styles.chipTextActive]}>{t('common.all')}</Text>
-                  </TouchableOpacity>
-                  {provinces.map(p => {
-                    const pKey = p.code ?? p.id ?? '';
-                    return (
-                      <TouchableOpacity
-                        key={pKey}
-                        style={[styles.chip, pendingProvince === pKey && styles.chipActive]}
-                        onPress={() => setPendingProvince(pendingProvince === pKey ? '' : pKey)}
-                      >
-                        <Text style={[styles.chipText, pendingProvince === pKey && styles.chipTextActive]}>
-                          {p.nameKo || p.nameVi || p.code}
-                        </Text>
-                      </TouchableOpacity>
-                    );
-                  })}
-                </View>
-              </ScrollView>
-
-              {/* Trade */}
-              <Text style={styles.filterLabel}>{t('jobs.filter_trade')}</Text>
-              <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-                <View style={styles.chipRow}>
-                  <TouchableOpacity
-                    style={[styles.chip, !pendingTradeId && styles.chipActive]}
-                    onPress={() => setPendingTradeId(null)}
-                  >
-                    <Text style={[styles.chipText, !pendingTradeId && styles.chipTextActive]}>{t('common.all')}</Text>
-                  </TouchableOpacity>
-                  {trades.map(tr => (
-                    <TouchableOpacity
-                      key={tr.id}
-                      style={[styles.chip, pendingTradeId === tr.id && styles.chipActive]}
-                      onPress={() => setPendingTradeId(pendingTradeId === tr.id ? null : tr.id)}
-                    >
-                      <Text style={[styles.chipText, pendingTradeId === tr.id && styles.chipTextActive]}>
-                        {tr.nameKo || tr.nameVi || String(tr.id)}
-                      </Text>
-                    </TouchableOpacity>
-                  ))}
-                </View>
-              </ScrollView>
-
-              {/* Wage */}
-              <Text style={styles.filterLabel}>{t('jobs.filter_wage_range')}</Text>
-              <View style={styles.wageRow}>
-                <View style={{ flex: 1 }}>
-                  <Text style={styles.wageSubLabel}>{t('jobs.filter_wage_min_label')}</Text>
+            <TouchableOpacity activeOpacity={1} onPress={() => {}}>
+              <View style={[styles.searchPanel, { paddingTop: insets.top + 8 }]}>
+                {/* 공고명 / 현장명 검색 */}
+                <View style={styles.searchInputRow}>
+                  <Ionicons name="search" size={18} color={Colors.onSurfaceVariant} style={{ marginRight: 8 }} />
                   <TextInput
-                    style={styles.filterInput}
-                    value={wageMin}
-                    onChangeText={setWageMin}
-                    placeholder="0"
+                    style={styles.searchInputField}
+                    value={pendingSearch}
+                    onChangeText={setPendingSearch}
+                    placeholder={t('jobs.filter_name_placeholder', '공고명 또는 현장명 검색...')}
                     placeholderTextColor={Colors.disabled}
-                    keyboardType="number-pad"
+                    returnKeyType="search"
+                    onSubmitEditing={applyFilter}
+                    autoFocus
                   />
+                  {pendingSearch.length > 0 && (
+                    <TouchableOpacity onPress={() => setPendingSearch('')} hitSlop={8}>
+                      <Ionicons name="close-circle" size={18} color={Colors.disabled} />
+                    </TouchableOpacity>
+                  )}
                 </View>
-                <Text style={styles.wageDash}>–</Text>
-                <View style={{ flex: 1 }}>
-                  <Text style={styles.wageSubLabel}>{t('jobs.filter_wage_max_label')}</Text>
-                  <TextInput
-                    style={styles.filterInput}
-                    value={wageMax}
-                    onChangeText={setWageMax}
-                    placeholder={t('jobs.filter_wage_no_max')}
-                    placeholderTextColor={Colors.disabled}
-                    keyboardType="number-pad"
-                  />
-                </View>
-              </View>
 
-              {/* My Location */}
-              <Text style={styles.filterLabel}>{t('jobs.filter_location', '내 위치')}</Text>
-              <TouchableOpacity
-                style={[styles.locationBtn, pendingLat != null && styles.locationBtnActive]}
-                onPress={pendingLat != null ? () => { setPendingLat(null); setPendingLng(null); } : handleUseCurrentLocation}
-                activeOpacity={0.8}
-                disabled={locLoading}
-              >
-                {locLoading ? (
-                  <ActivityIndicator size="small" color={Colors.primary} />
-                ) : (
-                  <Text style={[styles.locationBtnText, pendingLat != null && styles.locationBtnTextActive]}>
-                    {pendingLat != null
-                      ? `📍 ${t('jobs.location_using', '현재 위치 사용 중')} — ${t('jobs.filter_location_clear', '해제')}`
-                      : `📍 ${t('jobs.location_use_current', '현재 위치 사용')}`}
+                {/* 지역 선택 */}
+                <TouchableOpacity
+                  style={styles.dropdownRow}
+                  onPress={() => { setShowRegionPicker(true); setShowTradePicker(false); }}
+                  activeOpacity={0.7}
+                >
+                  <Text style={[styles.dropdownLabel, pendingProvince ? styles.dropdownLabelActive : undefined]}>
+                    {pendingProvince
+                      ? (provinces.find(p => (p.code ?? p.id) === pendingProvince)?.nameKo
+                          || provinces.find(p => (p.code ?? p.id) === pendingProvince)?.nameVi
+                          || pendingProvince)
+                      : t('jobs.filter_province', '전체 지역')}
                   </Text>
-                )}
-              </TouchableOpacity>
-              {pendingLat != null && (
-                <View style={styles.radiusRow}>
-                  <Text style={styles.radiusLabel}>{t('jobs.filter_radius', '반경')}</Text>
-                  <View style={styles.radiusBtns}>
-                    {RADIUS_OPTIONS.map(r => (
+                  <Ionicons
+                    name={showRegionPicker ? 'chevron-up' : 'chevron-down'}
+                    size={16}
+                    color={pendingProvince ? Colors.primary : Colors.onSurfaceVariant}
+                  />
+                </TouchableOpacity>
+
+                {showRegionPicker && (
+                  <ScrollView
+                    horizontal
+                    showsHorizontalScrollIndicator={false}
+                    style={styles.pickerScroll}
+                    keyboardShouldPersistTaps="handled"
+                  >
+                    <View style={styles.chipRow}>
                       <TouchableOpacity
-                        key={r}
-                        style={[styles.radiusBtn, pendingRadius === r && styles.radiusBtnActive]}
-                        onPress={() => setPendingRadius(r)}
+                        style={[styles.chip, !pendingProvince && styles.chipActive]}
+                        onPress={() => { setPendingProvince(''); setShowRegionPicker(false); }}
                       >
-                        <Text style={[styles.radiusBtnText, pendingRadius === r && styles.radiusBtnTextActive]}>
-                          {r}km
+                        <Text style={[styles.chipText, !pendingProvince && styles.chipTextActive]}>
+                          {t('common.all', '전체')}
                         </Text>
                       </TouchableOpacity>
-                    ))}
-                  </View>
-                </View>
-              )}
+                      {provinces.map(p => {
+                        const pKey = p.code ?? p.id ?? '';
+                        const isActive = pendingProvince === pKey;
+                        return (
+                          <TouchableOpacity
+                            key={pKey}
+                            style={[styles.chip, isActive && styles.chipActive]}
+                            onPress={() => { setPendingProvince(isActive ? '' : pKey); setShowRegionPicker(false); }}
+                          >
+                            <Text style={[styles.chipText, isActive && styles.chipTextActive]}>
+                              {p.nameKo || p.nameVi || p.code}
+                            </Text>
+                          </TouchableOpacity>
+                        );
+                      })}
+                    </View>
+                  </ScrollView>
+                )}
 
-              {/* Actions */}
-              <View style={styles.filterActions}>
-                <TouchableOpacity style={styles.resetBtn} onPress={resetFilter}>
-                  <Text style={styles.resetBtnText}>{t('jobs.wage_filter_reset')}</Text>
+                {/* 직종 선택 */}
+                <TouchableOpacity
+                  style={styles.dropdownRow}
+                  onPress={() => { setShowTradePicker(true); setShowRegionPicker(false); }}
+                  activeOpacity={0.7}
+                >
+                  <Text style={[styles.dropdownLabel, pendingTradeId != null && styles.dropdownLabelActive]}>
+                    {pendingTradeId != null
+                      ? (trades.find(tr => tr.id === pendingTradeId)?.nameKo
+                          || trades.find(tr => tr.id === pendingTradeId)?.nameVi
+                          || String(pendingTradeId))
+                      : t('jobs.filter_trade', '전체 직종')}
+                  </Text>
+                  <Ionicons
+                    name={showTradePicker ? 'chevron-up' : 'chevron-down'}
+                    size={16}
+                    color={pendingTradeId != null ? Colors.primary : Colors.onSurfaceVariant}
+                  />
                 </TouchableOpacity>
-                <TouchableOpacity style={styles.applyBtn} onPress={applyFilter}>
-                  <Text style={styles.applyBtnText}>{t('jobs.filter_apply')}</Text>
+
+                {showTradePicker && (
+                  <ScrollView
+                    horizontal
+                    showsHorizontalScrollIndicator={false}
+                    style={styles.pickerScroll}
+                    keyboardShouldPersistTaps="handled"
+                  >
+                    <View style={styles.chipRow}>
+                      <TouchableOpacity
+                        style={[styles.chip, pendingTradeId == null && styles.chipActive]}
+                        onPress={() => { setPendingTradeId(null); setShowTradePicker(false); }}
+                      >
+                        <Text style={[styles.chipText, pendingTradeId == null && styles.chipTextActive]}>
+                          {t('common.all', '전체')}
+                        </Text>
+                      </TouchableOpacity>
+                      {trades.map(tr => {
+                        const isActive = pendingTradeId === tr.id;
+                        return (
+                          <TouchableOpacity
+                            key={tr.id}
+                            style={[styles.chip, isActive && styles.chipActive]}
+                            onPress={() => { setPendingTradeId(isActive ? null : tr.id); setShowTradePicker(false); }}
+                          >
+                            <Text style={[styles.chipText, isActive && styles.chipTextActive]}>
+                              {tr.nameKo || tr.nameVi || String(tr.id)}
+                            </Text>
+                          </TouchableOpacity>
+                        );
+                      })}
+                    </View>
+                  </ScrollView>
+                )}
+
+                {/* 검색하기 / 지도로 보기 */}
+                <TouchableOpacity
+                  style={styles.searchActionBtn}
+                  onPress={applyFilter}
+                  activeOpacity={0.85}
+                >
+                  <Ionicons name="search" size={18} color="#fff" style={{ marginRight: 6 }} />
+                  <Text style={styles.searchActionBtnText}>{t('jobs.filter_apply', '검색하기')}</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={styles.mapActionBtn}
+                  onPress={() => { applyFilter(); setViewMode('map'); }}
+                  activeOpacity={0.85}
+                >
+                  <Ionicons name="map" size={18} color="#fff" style={{ marginRight: 6 }} />
+                  <Text style={styles.mapActionBtnText}>{t('jobs.view_map', '지도로 보기')}</Text>
                 </TouchableOpacity>
               </View>
-            </ScrollView>
+            </TouchableOpacity>
           </KeyboardAvoidingView>
         </TouchableOpacity>
       </Modal>
@@ -673,34 +646,33 @@ const styles = StyleSheet.create({
   clearEmptyBtn: { marginTop: 8, paddingHorizontal: 24, paddingVertical: 10, borderRadius: Radius.pill, backgroundColor: Colors.primary },
   clearEmptyText: { ...Font.t4, color: '#fff', fontWeight: '700' },
 
-  // Filter modal
-  modalOverlay: { flex: 1, backgroundColor: Colors.overlay80, justifyContent: 'flex-end' },
-  filterSheetWrap: { maxHeight: '92%' },
-  filterSheet: {
+  // Search modal (웹앱 스타일)
+  searchOverlayBackdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'flex-start' },
+  searchPanel: {
     backgroundColor: Colors.surface,
-    borderTopLeftRadius: 24, borderTopRightRadius: 24,
+    paddingHorizontal: 16,
+    paddingBottom: 20,
+    borderBottomLeftRadius: 20,
+    borderBottomRightRadius: 20,
+    shadowColor: '#000', shadowOpacity: 0.12, shadowRadius: 12, shadowOffset: { width: 0, height: 4 },
+    elevation: 8,
   },
-  filterSheetContent: { padding: 16, paddingBottom: 48 },
-  modalHandle: { width: 40, height: 4, borderRadius: 2, backgroundColor: Colors.outline, alignSelf: 'center', marginBottom: 12 },
-  filterTitle: { ...Font.t3, color: Colors.onSurface, textAlign: 'center', marginBottom: 16 },
-  filterLabel: { ...Font.caption, color: Colors.onSurfaceVariant, fontWeight: '600', marginTop: 16, marginBottom: 8 },
-  filterInput: {
-    borderWidth: 1.5, borderColor: Colors.outline, borderRadius: 4,
-    paddingHorizontal: 12, paddingVertical: 10,
-    ...Font.body3, color: Colors.onSurface, backgroundColor: Colors.surface,
+  searchInputRow: {
+    flexDirection: 'row', alignItems: 'center',
+    borderWidth: 1.5, borderColor: Colors.outline, borderRadius: 12,
+    paddingHorizontal: 14, paddingVertical: Platform.OS === 'ios' ? 12 : 8,
+    backgroundColor: Colors.surfaceContainer, marginBottom: 10,
   },
-
-  // Status
-  statusRow: { flexDirection: 'row', gap: 8 },
-  statusBtn: {
-    flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6,
-    paddingVertical: 10, borderRadius: 4,
-    borderWidth: 1.5, borderColor: Colors.outline, backgroundColor: Colors.surface,
+  searchInputField: { flex: 1, ...Font.body3, color: Colors.onSurface, padding: 0 },
+  dropdownRow: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+    borderWidth: 1.5, borderColor: Colors.outline, borderRadius: 12,
+    paddingHorizontal: 14, paddingVertical: 14,
+    backgroundColor: Colors.surface, marginBottom: 10,
   },
-  statusBtnActive: { borderColor: Colors.primary, backgroundColor: 'rgba(6,105,247,0.06)' },
-  statusDot: { width: 8, height: 8, borderRadius: 4 },
-  statusBtnText: { ...Font.caption, color: Colors.onSurfaceVariant, fontWeight: '600' },
-  statusBtnTextActive: { color: Colors.primary },
+  dropdownLabel: { ...Font.body3, color: Colors.onSurfaceVariant },
+  dropdownLabelActive: { color: Colors.primary, fontWeight: '600' },
+  pickerScroll: { marginBottom: 10, maxHeight: 44 },
 
   // Chips
   chipRow: { flexDirection: 'row', gap: 6, paddingVertical: 2 },
@@ -713,42 +685,17 @@ const styles = StyleSheet.create({
   chipText: { ...Font.caption, color: Colors.onSurfaceVariant, fontWeight: '600' },
   chipTextActive: { color: '#fff' },
 
-  // Wage range
-  wageRow: { flexDirection: 'row', alignItems: 'flex-end', gap: 8 },
-  wageSubLabel: { ...Font.caption, color: Colors.onSurfaceVariant, marginBottom: 4 },
-  wageDash: { ...Font.body2, color: Colors.disabled, marginBottom: 10 },
-
-  // Location filter
-  locationBtn: {
-    borderWidth: 1.5, borderColor: Colors.outline, borderRadius: Radius.md,
-    paddingVertical: 12, paddingHorizontal: 14, alignItems: 'center',
-    backgroundColor: Colors.surface, marginTop: 4,
+  // Action buttons
+  searchActionBtn: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
+    backgroundColor: Colors.primary, borderRadius: Radius.pill,
+    paddingVertical: 15, marginBottom: 10,
   },
-  locationBtnActive: { borderColor: Colors.primary, backgroundColor: 'rgba(6,105,247,0.06)' },
-  locationBtnText: { ...Font.body3, color: Colors.onSurfaceVariant, fontWeight: '500' },
-  locationBtnTextActive: { color: Colors.primary, fontWeight: '600' },
-  radiusRow: { marginTop: 10, flexDirection: 'row', alignItems: 'center', gap: 8 },
-  radiusLabel: { ...Font.caption, color: Colors.onSurfaceVariant, fontWeight: '600', marginRight: 4 },
-  radiusBtns: { flexDirection: 'row', gap: 6, flex: 1 },
-  radiusBtn: {
-    flex: 1, paddingVertical: 6, borderRadius: Radius.full,
-    borderWidth: 1, borderColor: Colors.outline,
-    alignItems: 'center', backgroundColor: Colors.surface,
+  searchActionBtnText: { ...Font.t4, color: '#fff', fontWeight: '700' },
+  mapActionBtn: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
+    backgroundColor: '#1e2a3a', borderRadius: Radius.pill,
+    paddingVertical: 15,
   },
-  radiusBtnActive: { backgroundColor: Colors.primary, borderColor: Colors.primary },
-  radiusBtnText: { ...Font.caption, color: Colors.onSurfaceVariant, fontWeight: '600' },
-  radiusBtnTextActive: { color: '#fff', fontWeight: '700' },
-
-  // Actions
-  filterActions: { flexDirection: 'row', gap: 10, marginTop: 24 },
-  resetBtn: {
-    flex: 1, paddingVertical: 14, borderRadius: Radius.pill,
-    borderWidth: 1.5, borderColor: Colors.outline, alignItems: 'center',
-  },
-  resetBtnText: { ...Font.t4, color: Colors.onSurfaceVariant, fontWeight: '600' },
-  applyBtn: {
-    flex: 2, paddingVertical: 14, borderRadius: Radius.pill,
-    backgroundColor: Colors.primary, alignItems: 'center',
-  },
-  applyBtnText: { ...Font.t4, color: '#fff', fontWeight: '700' },
+  mapActionBtnText: { ...Font.t4, color: '#fff', fontWeight: '700' },
 });

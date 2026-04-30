@@ -55,18 +55,18 @@ export default function WorkerLayout() {
   const { t } = useTranslation();
   const router = useRouter();
 
-  // Search + phone + bell — used on the main tab screens that show a native header
+  // Phone + search + bell — used on the main tab screens that show a native header
   const tabHeaderRight = () => (
     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginRight: 12 }}>
+      <TouchableOpacity onPress={() => Linking.openURL('tel:+84568240240')} style={{ padding: 4 }}>
+        <Text style={{ fontSize: 22 }}>📞</Text>
+      </TouchableOpacity>
       <TouchableOpacity
         onPress={() => router.push({ pathname: '/(worker)/' as any, params: { openFilter: '1' } })}
         style={{ padding: 4 }}
         hitSlop={8}
       >
         <Ionicons name="search" size={22} color={Colors.onSurface} />
-      </TouchableOpacity>
-      <TouchableOpacity onPress={() => Linking.openURL('tel:+84568240240')} style={{ padding: 4 }}>
-        <Text style={{ fontSize: 22 }}>📞</Text>
       </TouchableOpacity>
       <TouchableOpacity onPress={() => router.push('/(worker)/notifications' as any)} style={{ padding: 4 }}>
         <Text style={{ fontSize: 22 }}>🔔</Text>
