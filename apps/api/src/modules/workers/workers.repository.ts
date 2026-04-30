@@ -65,25 +65,43 @@ export class WorkersRepository {
       `SELECT
          ar.id,
          ar.job_id                         AS "jobId",
-         j.title                           AS "jobTitle",
+         j.title_ko                        AS "jobTitle",
          cs.name                           AS "siteName",
          ar.work_date                      AS "workDate",
          j.daily_wage                      AS "dailyWage",
-         -- Manager status (canonical)
+         j.work_start_time                 AS "workStartTime",
+         -- Current status + who last updated
+         ar.status                         AS "status",
+         ar.updated_by_role                AS "updatedByRole",
+         ar.marked_at                      AS "lastUpdatedAt",
+         -- Manager status
          ar.status                         AS "managerStatus",
          ar.manager_status_at              AS "managerStatusAt",
          -- Worker status (self-reported)
          ar.worker_status                  AS "workerStatus",
          ar.worker_status_at               AS "workerStatusAt",
-         -- Effective display status: prefer manager if set, else worker, else PENDING
-         COALESCE(ar.status, 'PENDING')    AS "status",
          -- Work duration
          ar.work_hours                     AS "workHours",
          ar.work_minutes                   AS "workMinutes",
          ar.work_duration_set_by           AS "workDurationSetBy",
          ar.work_duration_confirmed        AS "workDurationConfirmed",
          ar.work_duration_confirmed_at     AS "workDurationConfirmedAt",
-         ar.notes
+         ar.notes,
+         -- 상태 이력 (JSON 배열, 시간순)
+         COALESCE(
+           (SELECT json_agg(h ORDER BY h.changed_at ASC)
+            FROM (
+              SELECT id, changed_by_role AS "changedByRole",
+                     changed_by_name AS "changedByName",
+                     old_status AS "oldStatus",
+                     new_status AS "newStatus",
+                     changed_at AS "changedAt",
+                     note
+              FROM app.attendance_status_history
+              WHERE attendance_id = ar.id
+            ) h
+           ), '[]'::json
+         ) AS "statusHistory"
        FROM app.attendance_records ar
        JOIN app.jobs j ON j.id = ar.job_id
        JOIN app.construction_sites cs ON cs.id = j.site_id

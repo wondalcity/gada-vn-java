@@ -1283,4 +1283,17 @@ export class AdminRepository {
     );
     return rows[0] ?? null;
   }
+
+  async getAttendanceHistory(attendanceId: string) {
+    const { rows } = await this.db.query(
+      `SELECT id, changed_by_role AS "changedByRole", changed_by_name AS "changedByName",
+              old_status AS "oldStatus", new_status AS "newStatus",
+              changed_at AS "changedAt", note
+       FROM app.attendance_status_history
+       WHERE attendance_id = $1
+       ORDER BY changed_at ASC`,
+      [attendanceId],
+    );
+    return rows;
+  }
 }

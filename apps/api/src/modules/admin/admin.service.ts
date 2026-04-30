@@ -567,4 +567,8 @@ export class AdminService {
     if (!record) throw new NotFoundException(`Attendance record ${id} not found`);
     return record;
   }
+
+  async getAttendanceHistory(id: string) {
+    return this.repo.getAttendanceHistory(id);
+  }
 }

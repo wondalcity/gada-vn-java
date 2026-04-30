@@ -7,11 +7,20 @@ import { FirebaseAuthGuard } from '../../common/guards/firebase-auth.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
 import { Roles } from '../../common/decorators/roles.decorator';
 import { CurrentUser, CurrentUserPayload } from '../../common/decorators/current-user.decorator';
+import type { AttendanceStatus } from './attendance.repository';
 
 @Controller()
 @UseGuards(FirebaseAuthGuard, RolesGuard)
 export class AttendanceController {
   constructor(private readonly attendanceService: AttendanceService) {}
+
+  // ── 이력 조회 (근로자 + 관리자 공통) ────────────────────────────────────
+
+  @Get('attendance/:id/history')
+  @Roles('WORKER', 'MANAGER')
+  async getHistory(@Param('id') id: string) {
+    return this.attendanceService.getHistory(id);
+  }
 
   // ── Manager: fetch attendance records for a job ──────────────────────────
 
@@ -24,7 +33,7 @@ export class AttendanceController {
     return this.attendanceService.findByJob(jobId, user.id);
   }
 
-  // ── Manager: update a single attendance record (manager status) ──────────
+  // ── Manager: update a single attendance record ───────────────────────────
 
   @Put('attendance/:id')
   @Roles('MANAGER')
@@ -36,7 +45,7 @@ export class AttendanceController {
     return this.attendanceService.updateManagerStatus(id, user.id, body);
   }
 
-  // ── Manager: bulk-create or confirm attendance for a job ─────────────────
+  // ── Manager: bulk-create or confirm attendance ───────────────────────────
 
   @Post('jobs/:jobId/attendance/bulk')
   @Roles('MANAGER')
@@ -48,14 +57,15 @@ export class AttendanceController {
     return this.attendanceService.bulkUpsert(jobId, user.id, body.records);
   }
 
-  // ── Worker: set own attendance status ───────────────────────────────────
+  // ── Worker: set own attendance status (새 상태 흐름 지원) ────────────────
+  // PRE_CONFIRMED | COMMUTING | WORK_STARTED | WORK_COMPLETED | ATTENDED | ABSENT | EARLY_LEAVE
 
   @Post('attendance/:id/worker-status')
   @Roles('WORKER')
   async setWorkerStatus(
     @Param('id') id: string,
     @CurrentUser() user: CurrentUserPayload,
-    @Body() body: { status: 'ATTENDED' | 'ABSENT' | 'EARLY_LEAVE' },
+    @Body() body: { status: AttendanceStatus },
   ) {
     return this.attendanceService.setWorkerStatus(id, user.id, body.status);
   }

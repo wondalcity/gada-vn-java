@@ -438,6 +438,11 @@ export class AdminController {
 
   // ── Attendance management ─────────────────────────────────────────────────
 
+  @Get('attendance/:id/history')
+  async getAttendanceHistory(@Param('id') id: string) {
+    return this.adminService.getAttendanceHistory(id);
+  }
+
   @Get('attendance')
   async listAttendance(
     @Query('jobId') jobId?: string,
