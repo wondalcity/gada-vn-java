@@ -57,4 +57,19 @@ class AttendanceService(
     fun getStatusHistory(attendanceId: String): List<Map<String, Any?>> {
         return repo.getStatusHistory(attendanceId)
     }
+
+    fun setWorkerStatus(id: String, workerUserId: String, status: String): Map<String, Any?> {
+        return repo.setWorkerStatus(id, workerUserId, status)
+            ?: throw NotFoundException("Attendance record $id not found or not accessible")
+    }
+
+    fun setWorkerDuration(id: String, workerUserId: String, hours: Int, minutes: Int): Map<String, Any?> {
+        return repo.setWorkerDuration(id, workerUserId, hours, minutes)
+            ?: throw NotFoundException("Attendance record $id not found or not accessible")
+    }
+
+    fun confirmWorkerDuration(id: String, workerUserId: String): Map<String, Any?> {
+        return repo.confirmWorkerDuration(id, workerUserId)
+            ?: throw NotFoundException("Attendance record $id not found or no duration set")
+    }
 }

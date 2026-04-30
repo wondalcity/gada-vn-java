@@ -70,6 +70,60 @@ class AttendanceRepository(private val db: DatabaseService) {
         )
     }
 
+    /** Worker sets their own status (e.g. PRE_CONFIRMED, COMMUTING, WORK_STARTED) */
+    fun setWorkerStatus(id: String, workerUserId: String, status: String): Map<String, Any?>? {
+        return db.queryForListRaw(
+            """UPDATE app.attendance_records ar
+               SET worker_status = ?,
+                   worker_status_at = NOW(),
+                   status = ?,
+                   updated_by_role = 'WORKER',
+                   updated_by_id = (
+                     SELECT wp.id FROM app.worker_profiles wp
+                     JOIN auth.users u ON wp.user_id = u.id
+                     WHERE u.id = ?
+                   ),
+                   marked_at = NOW()
+               FROM app.worker_profiles wp
+               JOIN auth.users u ON wp.user_id = u.id
+               WHERE ar.id = ? AND ar.worker_id = wp.id AND u.id = ?
+               RETURNING ar.*""",
+            status, status, workerUserId, id, workerUserId
+        ).firstOrNull()
+    }
+
+    /** Worker sets their work duration */
+    fun setWorkerDuration(id: String, workerUserId: String, hours: Int, minutes: Int): Map<String, Any?>? {
+        return db.queryForListRaw(
+            """UPDATE app.attendance_records ar
+               SET work_hours = ?,
+                   work_minutes = ?,
+                   work_duration_set_by = 'WORKER',
+                   work_duration_confirmed = FALSE,
+                   marked_at = NOW()
+               FROM app.worker_profiles wp
+               JOIN auth.users u ON wp.user_id = u.id
+               WHERE ar.id = ? AND ar.worker_id = wp.id AND u.id = ?
+               RETURNING ar.*""",
+            hours, minutes, id, workerUserId
+        ).firstOrNull()
+    }
+
+    /** Worker confirms the work duration */
+    fun confirmWorkerDuration(id: String, workerUserId: String): Map<String, Any?>? {
+        return db.queryForListRaw(
+            """UPDATE app.attendance_records ar
+               SET work_duration_confirmed = TRUE,
+                   work_duration_confirmed_at = NOW(),
+                   marked_at = NOW()
+               FROM app.worker_profiles wp
+               JOIN auth.users u ON wp.user_id = u.id
+               WHERE ar.id = ? AND ar.worker_id = wp.id AND u.id = ? AND work_hours IS NOT NULL
+               RETURNING ar.*""",
+            id, workerUserId
+        ).firstOrNull()
+    }
+
     fun bulkUpsert(
         jobId: String,
         managerUserId: String,

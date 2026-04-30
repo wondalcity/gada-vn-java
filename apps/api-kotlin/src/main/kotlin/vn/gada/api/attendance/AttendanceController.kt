@@ -3,6 +3,7 @@ package vn.gada.api.attendance
 import org.springframework.http.ResponseEntity
 import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.web.bind.annotation.*
+import vn.gada.api.common.exception.BadRequestException
 import vn.gada.api.common.exception.ForbiddenException
 import vn.gada.api.common.exception.UnauthorizedException
 import vn.gada.api.common.security.AuthUser
@@ -43,6 +44,43 @@ class AttendanceController(private val attendanceService: AttendanceService) {
             ?: throw vn.gada.api.common.exception.BadRequestException("status is required")
         val notes = body["notes"] as? String
         return ok(attendanceService.update(id, u.id, status, notes))
+    }
+
+    /** POST /attendance/:id/worker-status — Worker self-reports their status */
+    @PostMapping("/attendance/{id}/worker-status")
+    fun setWorkerStatus(
+        @PathVariable id: String,
+        @AuthenticationPrincipal user: AuthUser?,
+        @RequestBody body: Map<String, Any?>
+    ): ResponseEntity<Map<String, Any?>> {
+        if (user == null) throw UnauthorizedException("Unauthorized")
+        val status = body["status"] as? String
+            ?: throw BadRequestException("status is required")
+        return ok(attendanceService.setWorkerStatus(id, user.id, status))
+    }
+
+    /** PUT /attendance/:id/work-duration — Worker inputs their work duration */
+    @PutMapping("/attendance/{id}/work-duration")
+    fun setWorkDuration(
+        @PathVariable id: String,
+        @AuthenticationPrincipal user: AuthUser?,
+        @RequestBody body: Map<String, Any?>
+    ): ResponseEntity<Map<String, Any?>> {
+        if (user == null) throw UnauthorizedException("Unauthorized")
+        val hours = (body["hours"] as? Number)?.toInt()
+            ?: throw BadRequestException("hours is required")
+        val minutes = (body["minutes"] as? Number)?.toInt() ?: 0
+        return ok(attendanceService.setWorkerDuration(id, user.id, hours, minutes))
+    }
+
+    /** POST /attendance/:id/work-duration/confirm — Worker confirms the work duration */
+    @PostMapping("/attendance/{id}/work-duration/confirm")
+    fun confirmWorkDuration(
+        @PathVariable id: String,
+        @AuthenticationPrincipal user: AuthUser?
+    ): ResponseEntity<Map<String, Any?>> {
+        if (user == null) throw UnauthorizedException("Unauthorized")
+        return ok(attendanceService.confirmWorkerDuration(id, user.id))
     }
 
     /** POST /jobs/:jobId/attendance/bulk — Manager bulk upsert attendance */

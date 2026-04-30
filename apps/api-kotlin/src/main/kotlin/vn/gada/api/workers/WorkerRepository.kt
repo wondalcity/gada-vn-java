@@ -76,37 +76,55 @@ class WorkerRepository(
     }
 
     fun findAttendanceByUserId(userId: String, jobId: String?): List<Map<String, Any?>> {
-        return if (jobId != null) {
-            db.queryForList(
-                """SELECT
-                     ar.id, ar.job_id AS "jobId", j.title AS "jobTitle",
-                     cs.name AS "siteName", ar.work_date AS "workDate",
-                     ar.status, ar.check_in_time AS "checkInTime",
-                     ar.check_out_time AS "checkOutTime",
-                     ar.hours_worked AS "hoursWorked", ar.notes
-                   FROM app.attendance_records ar
-                   JOIN app.jobs j ON j.id = ar.job_id
-                   JOIN app.construction_sites cs ON cs.id = j.site_id
-                   WHERE ar.worker_id = (SELECT id FROM app.worker_profiles WHERE user_id = ?)
-                     AND ar.job_id = ?
-                   ORDER BY ar.work_date DESC""",
-                userId, jobId
-            )
+        val baseSelect = """
+            SELECT ar.id,
+                   ar.job_id              AS "jobId",
+                   j.title                AS "jobTitle",
+                   COALESCE(cs.name, '')  AS "siteName",
+                   ar.work_date           AS "workDate",
+                   j.start_time           AS "workStartTime",
+                   j.daily_wage           AS "dailyWage",
+                   ar.status,
+                   ar.status              AS "managerStatus",
+                   ar.manager_status_at   AS "managerStatusAt",
+                   ar.worker_status       AS "workerStatus",
+                   ar.worker_status_at    AS "workerStatusAt",
+                   ar.updated_by_role     AS "updatedByRole",
+                   ar.marked_at           AS "lastUpdatedAt",
+                   ar.work_hours          AS "workHours",
+                   ar.work_minutes        AS "workMinutes",
+                   ar.work_duration_set_by AS "workDurationSetBy",
+                   ar.work_duration_confirmed AS "workDurationConfirmed",
+                   ar.work_duration_confirmed_at AS "workDurationConfirmedAt",
+                   ar.notes
+            FROM app.attendance_records ar
+            JOIN app.jobs j ON j.id = ar.job_id
+            LEFT JOIN app.construction_sites cs ON cs.id = j.site_id
+            WHERE ar.worker_id = (SELECT id FROM app.worker_profiles WHERE user_id = ?)"""
+
+        val records = if (jobId != null) {
+            db.queryForList("$baseSelect AND ar.job_id = ? ORDER BY ar.work_date DESC", userId, jobId)
         } else {
-            db.queryForList(
-                """SELECT
-                     ar.id, ar.job_id AS "jobId", j.title AS "jobTitle",
-                     cs.name AS "siteName", ar.work_date AS "workDate",
-                     ar.status, ar.check_in_time AS "checkInTime",
-                     ar.check_out_time AS "checkOutTime",
-                     ar.hours_worked AS "hoursWorked", ar.notes
-                   FROM app.attendance_records ar
-                   JOIN app.jobs j ON j.id = ar.job_id
-                   JOIN app.construction_sites cs ON cs.id = j.site_id
-                   WHERE ar.worker_id = (SELECT id FROM app.worker_profiles WHERE user_id = ?)
-                   ORDER BY ar.work_date DESC""",
-                userId
+            db.queryForList("$baseSelect ORDER BY ar.work_date DESC", userId)
+        }
+
+        // Embed status history in each record
+        return records.map { rec ->
+            val attendanceId = rec["id"] as? String ?: return@map rec
+            val history = db.queryForList(
+                """SELECT id,
+                          changed_by_role AS "changedByRole",
+                          changed_by_name AS "changedByName",
+                          old_status      AS "oldStatus",
+                          new_status      AS "newStatus",
+                          changed_at      AS "changedAt",
+                          note
+                   FROM app.attendance_status_history
+                   WHERE attendance_id = ?
+                   ORDER BY changed_at ASC""",
+                attendanceId
             )
+            rec + mapOf("statusHistory" to history)
         }
     }
 
