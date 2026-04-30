@@ -1,16 +1,14 @@
-import { useEffect, useState, useCallback, useRef } from 'react';
+import { useEffect, useState, useCallback, useRef, forwardRef, useImperativeHandle, useMemo } from 'react';
 import {
   View, Text, ScrollView, TouchableOpacity, StyleSheet,
   TextInput, ActivityIndicator, Image, KeyboardAvoidingView, Platform, Modal, FlatList,
-  Alert,
+  Alert, PanResponder,
 } from 'react-native';
-import SignatureCanvas from 'react-native-signature-canvas';
 import * as ImagePicker from 'expo-image-picker';
-import { useRouter } from 'expo-router';
+import { GooglePlacesAutocomplete } from 'react-native-google-places-autocomplete';
 import { useTranslation } from 'react-i18next';
 import i18n from '../../../lib/i18n';
 import { api, ApiError } from '../../../lib/api-client';
-import { useAuthStore } from '../../../store/auth.store';
 import { showToast } from '../../../lib/toast';
 import DatePickerField from '../../../components/DatePickerField';
 import { Colors, Radius, Spacing, Font } from '../../../constants/theme';
@@ -131,11 +129,149 @@ const VN_BANKS = [
   { code: 'SHINHAN',name: 'Shinhan Bank', fullName: 'Ngân hàng Shinhan Việt Nam' },
 ];
 
-const VN_PROVINCES = [
-  'Hà Nội', 'Hồ Chí Minh', 'Bình Dương', 'Đồng Nai', 'Đà Nẵng',
-  'Hải Phòng', 'Cần Thơ', 'Bà Rịa - Vũng Tàu', 'Long An', 'Khánh Hòa',
-  'Bình Định', 'Nghệ An', 'Thanh Hóa', 'Thừa Thiên Huế', 'Quảng Nam',
-];
+const PLACES_API_KEY = process.env.EXPO_PUBLIC_GOOGLE_PLACES_API_KEY ?? '';
+
+// ── NativeSignatureCanvas (pure RN — no react-native-webview needed) ─────────
+
+interface SigPoint { x: number; y: number }
+type SigStroke = SigPoint[]
+
+interface NativeSignatureCanvasRef {
+  clearSignature: () => void;
+  readSignature: () => void;
+}
+
+function strokesToSvgDataUrl(strokes: SigStroke[], w: number, h: number): string {
+  let pathData = '';
+  for (const stroke of strokes) {
+    if (stroke.length === 0) continue;
+    if (stroke.length === 1) {
+      const { x, y } = stroke[0];
+      pathData += `M${x.toFixed(1)} ${y.toFixed(1)}l1 1 `;
+    } else {
+      pathData += `M${stroke[0].x.toFixed(1)} ${stroke[0].y.toFixed(1)}`;
+      for (let i = 1; i < stroke.length; i++) {
+        pathData += `L${stroke[i].x.toFixed(1)} ${stroke[i].y.toFixed(1)}`;
+      }
+      pathData += ' ';
+    }
+  }
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}"><rect width="${w}" height="${h}" fill="white"/><path d="${pathData.trim()}" stroke="#25282A" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+  return `data:image/svg+xml;base64,${btoa(unescape(encodeURIComponent(svg)))}`;
+}
+
+const NativeSignatureCanvas = forwardRef<NativeSignatureCanvasRef, {
+  onOK: (dataUrl: string) => void;
+  onEmpty: () => void;
+  style?: object;
+}>(function NativeSignatureCanvas({ onOK, onEmpty, style }, ref) {
+  const [renderKey, setRenderKey] = useState(0);
+  const committedRef = useRef<SigStroke[]>([]);
+  const activeRef = useRef<SigPoint[]>([]);
+  const sizeRef = useRef({ w: 300, h: 200 });
+
+  useImperativeHandle(ref, () => ({
+    clearSignature() {
+      committedRef.current = [];
+      activeRef.current = [];
+      setRenderKey(k => k + 1);
+    },
+    readSignature() {
+      const strokes = [
+        ...committedRef.current,
+        ...(activeRef.current.length > 0 ? [[...activeRef.current]] : []),
+      ];
+      if (strokes.length === 0) { onEmpty(); return; }
+      const { w, h } = sizeRef.current;
+      onOK(strokesToSvgDataUrl(strokes, w, h));
+    },
+  }), [onOK, onEmpty]);
+
+  const panResponder = useMemo(() => PanResponder.create({
+    onStartShouldSetPanResponder: () => true,
+    onMoveShouldSetPanResponder: () => true,
+    onPanResponderGrant: (e) => {
+      const { locationX: x, locationY: y } = e.nativeEvent;
+      activeRef.current = [{ x, y }];
+      setRenderKey(k => k + 1);
+    },
+    onPanResponderMove: (e) => {
+      const { locationX: x, locationY: y } = e.nativeEvent;
+      activeRef.current.push({ x, y });
+      if (activeRef.current.length % 6 === 0) {
+        setRenderKey(k => k + 1);
+      }
+    },
+    onPanResponderRelease: () => {
+      if (activeRef.current.length > 0) {
+        committedRef.current = [...committedRef.current, [...activeRef.current]];
+        activeRef.current = [];
+        setRenderKey(k => k + 1);
+      }
+    },
+  }), []);
+
+  const allStrokes = [
+    ...committedRef.current,
+    ...(activeRef.current.length > 0 ? [[...activeRef.current]] : []),
+  ];
+
+  const segments: React.ReactElement[] = [];
+  let segKey = 0;
+  for (const stroke of allStrokes) {
+    if (stroke.length === 1) {
+      segments.push(
+        <View key={segKey++} style={{
+          position: 'absolute',
+          left: stroke[0].x - 1.5,
+          top: stroke[0].y - 1.5,
+          width: 3, height: 3,
+          backgroundColor: '#25282A',
+          borderRadius: 1.5,
+        }} />,
+      );
+      continue;
+    }
+    for (let i = 1; i < stroke.length; i++) {
+      const { x: x1, y: y1 } = stroke[i - 1];
+      const { x: x2, y: y2 } = stroke[i];
+      const dx = x2 - x1;
+      const dy = y2 - y1;
+      const len = Math.sqrt(dx * dx + dy * dy);
+      if (len < 0.3) continue;
+      const cx = (x1 + x2) / 2;
+      const cy = (y1 + y2) / 2;
+      const angleDeg = Math.atan2(dy, dx) * (180 / Math.PI);
+      segments.push(
+        <View key={segKey++} style={{
+          position: 'absolute',
+          left: cx - len / 2,
+          top: cy - 1.5,
+          width: len,
+          height: 3,
+          backgroundColor: '#25282A',
+          borderRadius: 1.5,
+          transform: [{ rotate: `${angleDeg}deg` }],
+        }} />,
+      );
+    }
+  }
+
+  return (
+    <View
+      style={[{ overflow: 'hidden', backgroundColor: '#F9FAFB' }, style]}
+      onLayout={(e) => {
+        sizeRef.current = {
+          w: e.nativeEvent.layout.width,
+          h: e.nativeEvent.layout.height,
+        };
+      }}
+      {...panResponder.panHandlers}
+    >
+      {segments}
+    </View>
+  );
+});
 
 // ── Shared sub-components ─────────────────────────────────────────────────────
 
@@ -524,6 +660,14 @@ function SkillsSection({
 
 // ── AddressSection ────────────────────────────────────────────────────────────
 
+interface SelectedPlace {
+  address: string;
+  lat: number;
+  lng: number;
+  province: string;
+  district: string;
+}
+
 function AddressSection({
   onLocationsChange,
 }: {
@@ -534,8 +678,7 @@ function AddressSection({
   const [showAddForm, setShowAddForm] = useState(false);
   const [saving, setSaving] = useState(false);
   const [newLabel, setNewLabel] = useState('');
-  const [newProvince, setNewProvince] = useState('');
-  const [newDistrict, setNewDistrict] = useState('');
+  const [selectedPlace, setSelectedPlace] = useState<SelectedPlace | null>(null);
 
   useEffect(() => {
     api.get<SavedLocation[]>('/workers/saved-locations')
@@ -544,27 +687,34 @@ function AddressSection({
       .finally(() => setLoading(false));
   }, []);
 
+  function resetForm() {
+    setNewLabel('');
+    setSelectedPlace(null);
+    setShowAddForm(false);
+  }
+
   async function handleAdd() {
-    if (!newProvince) {
-      showToast({ message: '성/시를 선택해주세요', type: 'warning' });
+    if (!selectedPlace) {
+      showToast({ message: '주소를 검색해서 선택해주세요', type: 'warning' });
       return;
     }
     setSaving(true);
     try {
-      const address = newDistrict ? `${newDistrict}, ${newProvince}` : newProvince;
-      const label = newLabel.trim() || newProvince;
-      const res = await api.post<SavedLocation>('/workers/saved-locations', {
+      const label = newLabel.trim() || selectedPlace.province || selectedPlace.address.split(',')[0];
+      const payload: Record<string, any> = {
         label,
-        address,
+        address: selectedPlace.address,
+        lat: selectedPlace.lat,
+        lng: selectedPlace.lng,
+        province: selectedPlace.province,
+        district: selectedPlace.district,
         isDefault: locations.length === 0,
-      });
+      };
+      const res = await api.post<SavedLocation>('/workers/saved-locations', payload);
       const updated = [...locations, res];
       setLocations(updated);
       onLocationsChange(updated);
-      setShowAddForm(false);
-      setNewLabel('');
-      setNewProvince('');
-      setNewDistrict('');
+      resetForm();
       showToast({ message: '주소가 저장되었습니다', type: 'success' });
     } catch {
       showToast({ message: '주소 저장에 실패했습니다', type: 'error' });
@@ -589,6 +739,7 @@ function AddressSection({
 
   return (
     <View style={s.sectionBody}>
+      {/* Saved locations list */}
       {locations.length === 0 && !showAddForm ? (
         <View style={s.emptyAddress}>
           <Text style={s.emptyAddressIcon}>📍</Text>
@@ -604,6 +755,9 @@ function AddressSection({
                 )}
                 <Text style={s.locationLabel}>{loc.label}</Text>
                 <Text style={s.locationAddress} numberOfLines={2}>{loc.address}</Text>
+                {loc.lat != null && loc.lng != null && (
+                  <Text style={s.locationCoords}>{loc.lat.toFixed(5)}, {loc.lng.toFixed(5)}</Text>
+                )}
               </View>
               <TouchableOpacity
                 style={s.locationDeleteBtn}
@@ -620,45 +774,137 @@ function AddressSection({
       {/* Add address form */}
       {showAddForm && (
         <View style={s.addAddressForm}>
-          <FieldLabel label="레이블 (선택)" />
+          <FieldLabel label="주소 명칭" />
           <TextInput
             style={s.input}
             value={newLabel}
             onChangeText={setNewLabel}
-            placeholder="예) 집, 회사"
+            placeholder="예: 집, 회사, 현장"
             placeholderTextColor="#C0C4CF"
           />
 
-          <FieldLabel label="성/시 (Province) *" />
-          <View style={s.chipRow}>
-            {VN_PROVINCES.map(prov => {
-              const isActive = newProvince === prov;
-              return (
-                <TouchableOpacity
-                  key={prov}
-                  style={[s.chip, isActive && s.chipActive]}
-                  onPress={() => setNewProvince(isActive ? '' : prov)}
-                  activeOpacity={0.7}
-                >
-                  <Text style={[s.chipText, isActive && s.chipTextActive]}>{prov}</Text>
-                </TouchableOpacity>
-              );
-            })}
+          {/* Google Places Autocomplete */}
+          <View style={{ zIndex: 10 }}>
+            <FieldLabel label="주소 검색" />
+            <GooglePlacesAutocomplete
+              placeholder="주소를 검색하고 목록에서 선택하세요."
+              minLength={2}
+              fetchDetails
+              onPress={(data, details) => {
+                if (!details?.geometry) return;
+                let province = '';
+                let district = '';
+                for (const comp of details.address_components ?? []) {
+                  if (comp.types.includes('administrative_area_level_1')) province = comp.long_name;
+                  if (comp.types.includes('administrative_area_level_2')) district = comp.long_name;
+                }
+                setSelectedPlace({
+                  address: data.description,
+                  lat: details.geometry.location.lat,
+                  lng: details.geometry.location.lng,
+                  province,
+                  district,
+                });
+              }}
+              query={{
+                key: PLACES_API_KEY,
+                language: 'vi',
+                components: 'country:vn',
+              }}
+              renderLeftButton={() => (
+                <View style={s.placesSearchIcon}>
+                  <Text style={{ fontSize: 16 }}>🔍</Text>
+                </View>
+              )}
+              styles={{
+                container: { flex: 0 },
+                textInputContainer: {
+                  backgroundColor: Colors.surface,
+                  borderRadius: Radius.md,
+                  borderWidth: 1.5,
+                  borderColor: Colors.primary,
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  paddingHorizontal: 8,
+                  shadowColor: Colors.primary,
+                  shadowOpacity: 0.08,
+                  shadowRadius: 6,
+                  elevation: 2,
+                },
+                textInput: {
+                  backgroundColor: 'transparent',
+                  color: Colors.onSurface,
+                  fontSize: 14,
+                  height: 46,
+                  marginBottom: 0,
+                  flex: 1,
+                },
+                listView: {
+                  position: 'absolute',
+                  top: 50,
+                  left: 0,
+                  right: 0,
+                  borderWidth: 1,
+                  borderColor: Colors.outline,
+                  borderRadius: Radius.md,
+                  backgroundColor: Colors.surface,
+                  elevation: 8,
+                  shadowColor: '#000',
+                  shadowOpacity: 0.12,
+                  shadowRadius: 8,
+                  zIndex: 9999,
+                },
+                row: {
+                  paddingHorizontal: 14,
+                  paddingVertical: 12,
+                  borderBottomWidth: 0.5,
+                  borderBottomColor: Colors.outline,
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  gap: 8,
+                },
+                description: {
+                  fontSize: 13,
+                  color: Colors.onSurface,
+                },
+                poweredContainer: { display: 'none' },
+              }}
+              renderRow={(data) => (
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+                  <Text style={{ fontSize: 14 }}>📍</Text>
+                  <Text style={{ fontSize: 13, color: Colors.onSurface, flex: 1 }} numberOfLines={2}>
+                    {data.description}
+                  </Text>
+                </View>
+              )}
+              enablePoweredByContainer={false}
+              keyboardShouldPersistTaps="handled"
+              listViewDisplayed="auto"
+            />
+
+            {/* Selected address card */}
+            {selectedPlace && (
+              <View style={s.addressCard}>
+                <Text style={s.addressCardPin}>📍</Text>
+                <View style={{ flex: 1 }}>
+                  <Text style={s.addressCardText}>{selectedPlace.address}</Text>
+                  {(selectedPlace.province || selectedPlace.district) && (
+                    <Text style={s.addressCardMeta}>
+                      {[selectedPlace.province, selectedPlace.district].filter(Boolean).join(' · ')}
+                    </Text>
+                  )}
+                  <Text style={s.addressCardCoords}>
+                    {selectedPlace.lat.toFixed(5)}, {selectedPlace.lng.toFixed(5)}
+                  </Text>
+                </View>
+              </View>
+            )}
           </View>
-
-          <FieldLabel label="구/군 (선택)" />
-          <TextInput
-            style={s.input}
-            value={newDistrict}
-            onChangeText={setNewDistrict}
-            placeholder="예) Hai Bà Trưng"
-            placeholderTextColor="#C0C4CF"
-          />
 
           <View style={s.formBtnRow}>
             <TouchableOpacity
               style={s.cancelFormBtn}
-              onPress={() => { setShowAddForm(false); setNewProvince(''); setNewDistrict(''); setNewLabel(''); }}
+              onPress={resetForm}
               activeOpacity={0.7}
             >
               <Text style={s.cancelFormBtnText}>취소</Text>
@@ -934,13 +1180,13 @@ function SignatureSection({
   profile: WorkerProfile;
   onSaved: (p: Partial<WorkerProfile>) => void;
 }) {
-  const sigRef = useRef<any>(null);
+  const sigRef = useRef<NativeSignatureCanvasRef>(null);
   const [saving, setSaving] = useState(false);
   const [currentSigUrl, setCurrentSigUrl] = useState<string | null>(profile.signature_url);
   const [showFullSig, setShowFullSig] = useState(false);
 
   async function handleSignatureOK(dataUrl: string) {
-    if (!dataUrl || dataUrl === 'data:image/png;base64,') {
+    if (!dataUrl) {
       showToast({ message: '서명을 그려주세요', type: 'warning' });
       return;
     }
@@ -981,29 +1227,6 @@ function SignatureSection({
     );
   }
 
-  const webStyle = `
-    .m-signature-pad {
-      box-shadow: none;
-      border: none;
-      width: 100%;
-      height: 100%;
-      background: #F9FAFB;
-    }
-    .m-signature-pad--body {
-      border: 1.5px dashed #D1D5DB;
-      border-radius: 12px;
-      background: #F9FAFB;
-    }
-    .m-signature-pad--footer {
-      display: none;
-    }
-    body {
-      background: transparent;
-      margin: 0;
-      padding: 0;
-    }
-  `;
-
   return (
     <View style={s.sectionBody}>
       {/* Current signature */}
@@ -1028,16 +1251,14 @@ function SignatureSection({
       {/* Drawing canvas */}
       <Text style={s.fieldLabel}>새 서명</Text>
       <View style={s.sigCanvasWrap}>
-        <SignatureCanvas
+        <NativeSignatureCanvas
           ref={sigRef}
           onOK={handleSignatureOK}
           onEmpty={() => showToast({ message: '서명을 그려주세요', type: 'warning' })}
-          webStyle={webStyle}
-          backgroundColor="transparent"
           style={s.sigCanvas}
         />
       </View>
-      <Text style={s.sigHint}>손가락 또는 마우스로 서명하세요</Text>
+      <Text style={s.sigHint}>손가락으로 서명을 그려주세요</Text>
 
       {/* Action buttons */}
       <View style={s.sigBtnRow}>
@@ -1079,8 +1300,6 @@ function SignatureSection({
 
 export default function WorkerProfileEditScreen() {
   const { t } = useTranslation();
-  const router = useRouter();
-  const { isManager } = useAuthStore();
   const [profile, setProfile] = useState<WorkerProfile | null>(null);
   const [tradeSkills, setTradeSkills] = useState<TradeSkill[]>([]);
   const [savedLocations, setSavedLocations] = useState<SavedLocation[]>([]);
@@ -1120,7 +1339,6 @@ export default function WorkerProfileEditScreen() {
   }
 
   const p = profile!;
-  const activeTabInfo = TABS.find(t => t.id === activeTab)!;
 
   return (
     <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
@@ -1130,12 +1348,6 @@ export default function WorkerProfileEditScreen() {
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
-        {/* ── Page header ── */}
-        <View style={s.pageHeader}>
-          <Text style={s.pageTitle}>{t('worker.profile_management', '프로필 관리')}</Text>
-          <Text style={s.pageSubtitle}>{activeTabInfo.subtitle}</Text>
-        </View>
-
         {/* ── Completion bar ── */}
         <CompletionBar
           profile={p}
@@ -1186,16 +1398,6 @@ export default function WorkerProfileEditScreen() {
           )}
         </View>
 
-        {/* ── Manager switch ── */}
-        {isManager && (
-          <TouchableOpacity
-            style={s.managerSwitchBtn}
-            onPress={() => router.navigate('/(manager)/' as never)}
-            activeOpacity={0.8}
-          >
-            <Text style={s.managerSwitchText}>{t('worker.switch_to_manager', '관리자 모드로 전환')} →</Text>
-          </TouchableOpacity>
-        )}
       </ScrollView>
     </KeyboardAvoidingView>
   );
@@ -1360,6 +1562,7 @@ const s = StyleSheet.create({
   locationInfo: { flex: 1, gap: 2 },
   locationLabel: { ...Font.body3, fontWeight: '600', color: Colors.onSurface },
   locationAddress: { ...Font.caption, color: Colors.onSurfaceVariant },
+  locationCoords: { fontSize: 10, color: Colors.disabled, marginTop: 1 },
   defaultBadge: {
     alignSelf: 'flex-start', backgroundColor: Colors.successContainer,
     paddingHorizontal: 6, paddingVertical: 2, borderRadius: Radius.xs, marginBottom: 2,
@@ -1385,14 +1588,31 @@ const s = StyleSheet.create({
     borderStyle: 'dashed', borderRadius: Radius.md, alignItems: 'center',
   },
   addAddressBtnText: { color: Colors.primary, fontSize: 14, fontWeight: '600' },
-  chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.sm, marginTop: Spacing.xs },
-  chip: {
-    paddingHorizontal: Spacing.md, paddingVertical: 7, borderRadius: Radius.full,
-    borderWidth: 1, borderColor: Colors.outline, backgroundColor: Colors.surfaceDim,
+  // Places search icon
+  placesSearchIcon: {
+    paddingLeft: 4,
+    paddingRight: 2,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
-  chipActive: { borderColor: Colors.primary, backgroundColor: Colors.primaryContainer },
-  chipText: { fontSize: 13, color: Colors.onSurfaceVariant, fontWeight: '500' },
-  chipTextActive: { color: Colors.primary, fontWeight: '700' },
+
+  // Address card (selected place preview)
+  addressCard: {
+    marginTop: Spacing.md, flexDirection: 'row', gap: Spacing.sm, alignItems: 'flex-start',
+    backgroundColor: Colors.primaryContainer, borderRadius: Radius.md,
+    borderWidth: 1, borderColor: Colors.primaryContainer,
+    padding: 12,
+  },
+  addressCardPin: { fontSize: 16, marginTop: 1 },
+  addressCardText: { ...Font.body3, fontWeight: '600', color: Colors.onSurface, flexShrink: 1 },
+  addressCardMeta: { ...Font.caption, color: Colors.primary, marginTop: 2 },
+  addressCardCoords: { fontSize: 10, color: Colors.disabled, marginTop: 2 },
+  // Fallback notice
+  fallbackNotice: {
+    marginBottom: Spacing.sm, backgroundColor: '#FFF8E6',
+    borderWidth: 1, borderColor: '#F5D87D', borderRadius: Radius.sm, padding: 10,
+  },
+  fallbackNoticeText: { fontSize: 12, color: '#92620A' },
 
   // Bank section
   bankSelectBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },

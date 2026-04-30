@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import {
   View, Text, ScrollView, TouchableOpacity, StyleSheet,
-  ActivityIndicator, RefreshControl, Alert,
+  ActivityIndicator, RefreshControl,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
@@ -9,7 +9,6 @@ import { api } from '../../../lib/api-client';
 import { useAuthStore } from '../../../store/auth.store';
 import { setCurrentScreen } from '../../../lib/crashlytics';
 import { Colors } from '../../../constants/theme';
-import { showToast } from '../../../lib/toast';
 
 function formatPhone(phone: string | null | undefined): string {
   if (!phone) return '-';
@@ -74,43 +73,21 @@ export default function WorkerMyPageScreen() {
   const [applications, setApplications] = useState<Application[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [managerStatus, setManagerStatus] = useState<'NONE' | 'PENDING' | 'APPROVED' | 'REJECTED'>('NONE');
-  const [applyingManager, setApplyingManager] = useState(false);
-
   useEffect(() => { setCurrentScreen('worker/mypage'); }, []);
 
   const load = useCallback(async () => {
     try {
-      const [workerRes, appsRes, statusRes] = await Promise.all([
+      const [workerRes, appsRes] = await Promise.all([
         api.get<WorkerInfo>('/workers/me').catch(() => ({} as WorkerInfo)),
         api.get<Application[]>('/applications/mine').catch(() => [] as Application[]),
-        api.get<{ status?: string }>('/managers/registration-status').catch(() => ({ status: 'NONE' })),
       ]);
       setWorker(workerRes ?? {});
       setApplications(Array.isArray(appsRes) ? appsRes : []);
-      const st = (statusRes as any)?.status ?? 'NONE';
-      setManagerStatus(st === 'PENDING' ? 'PENDING' : st === 'APPROVED' ? 'APPROVED' : st === 'REJECTED' ? 'REJECTED' : 'NONE');
     } finally {
       setLoading(false);
       setRefreshing(false);
     }
   }, []);
-
-  async function handleApplyManager() {
-    setApplyingManager(true);
-    try {
-      await api.post('/managers/register', {});
-      setManagerStatus('PENDING');
-      showToast({
-        message: t('worker.manager_apply_success_body', '관리자 신청이 접수되었습니다. 검토 후 승인됩니다.'),
-        type: 'success',
-      });
-    } catch {
-      showToast({ message: t('common.process_fail', '처리 중 오류가 발생했습니다'), type: 'error' });
-    } finally {
-      setApplyingManager(false);
-    }
-  }
 
   useEffect(() => { load(); }, [load]);
 
@@ -198,37 +175,7 @@ export default function WorkerMyPageScreen() {
           </View>
         </View>
 
-        {/* Manager controls */}
-        {isManager ? (
-          <TouchableOpacity
-            style={s.managerBtn}
-            onPress={() => router.navigate('/(manager)/' as never)}
-            activeOpacity={0.8}
-          >
-            <Text style={s.managerBtnText}>{t('worker.switch_to_manager', '관리자 모드로 전환')}</Text>
-          </TouchableOpacity>
-        ) : managerStatus === 'PENDING' ? (
-          <View style={s.managerPendingBadge}>
-            <Text style={s.managerPendingText}>⏳ {t('worker.manager_apply_pending', '관리자 신청 검토 중')}</Text>
-          </View>
-        ) : managerStatus === 'NONE' || managerStatus === 'REJECTED' ? (
-          <TouchableOpacity
-            style={s.managerApplyBtn}
-            onPress={handleApplyManager}
-            disabled={applyingManager}
-            activeOpacity={0.8}
-          >
-            {applyingManager ? (
-              <ActivityIndicator size="small" color="#0669F7" />
-            ) : (
-              <Text style={s.managerApplyBtnText}>
-                {managerStatus === 'REJECTED'
-                  ? t('worker.manager_apply_again', '관리자 재신청하기')
-                  : t('worker.manager_apply', '관리자로 신청하기')}
-              </Text>
-            )}
-          </TouchableOpacity>
-        ) : null}
+        {/* Manager controls — hidden */}
       </View>
 
       {/* ── Quick actions grid ── */}

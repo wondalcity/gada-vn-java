@@ -19,7 +19,7 @@
       "googleServicesFile": "./GoogleService-Info.plist",
       "supportsTablet": false,
       "bundleIdentifier": "com.wondalcity.gadavn",
-      "buildNumber": "80",
+      "buildNumber": "81",
       "infoPlist": {
         "NSLocationWhenInUseUsageDescription": "가다 VN needs your location to show nearby construction jobs.",
         "NSCameraUsageDescription": "Used to capture ID documents and profile photos.",
@@ -47,7 +47,7 @@
         "backgroundColor": "#FFFFFF"
       },
       "package": "com.wondalcity.gadavn",
-      "versionCode": 80,
+      "versionCode": 81,
       "usesCleartextTraffic": true,
       "config": {
         "googleMaps": {
