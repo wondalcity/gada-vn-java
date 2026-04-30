@@ -215,9 +215,10 @@ jobs:
 
       - name: Patch ExportOptions.plist
         run: |
-          sed -i \
+          # macOS BSD sed requires empty backup suffix: sed -i ''
+          sed -i '' \
             -e "s/__APPLE_TEAM_ID__/${{ secrets.APPLE_TEAM_ID }}/g" \
-            -e "s/__PROVISIONING_PROFILE_NAME__/$PROFILE_NAME/g" \
+            -e "s/__PROVISIONING_PROFILE_NAME__/${PROFILE_NAME}/g" \
             apps/mobile/ExportOptions.plist
           cp apps/mobile/ExportOptions.plist apps/mobile/ios/ExportOptions.plist
 
