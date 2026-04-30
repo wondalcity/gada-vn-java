@@ -1,5 +1,5 @@
 import {
-  View, Text, TouchableOpacity, StyleSheet, Linking,
+  View, Text, TouchableOpacity, StyleSheet, Linking, Platform,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
