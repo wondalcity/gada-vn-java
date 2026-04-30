@@ -414,6 +414,7 @@ ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO app.contracts (
     id, job_id, worker_id, manager_id,
+    contract_html,
     status,
     worker_signed_at, manager_signed_at,
     created_at
@@ -425,6 +426,7 @@ INSERT INTO app.contracts (
     '00000000-0000-0006-0002-000000000003',
     '00000000-0000-0000-0000-000000000020',
     '00000000-0000-0006-0000-000000000010',
+    '<p>근로계약서 (seed)</p>',
     'FULLY_SIGNED',
     NOW() - INTERVAL '3 days',
     NOW() - INTERVAL '3 days',
@@ -437,6 +439,7 @@ INSERT INTO app.contracts (
     '00000000-0000-0006-0002-000000000004',
     '00000000-0000-0006-0000-000000000021',
     '00000000-0000-0000-0000-000000000010',
+    '<p>근로계약서 (seed)</p>',
     'FULLY_SIGNED',
     NOW() - INTERVAL '10 days',
     NOW() - INTERVAL '10 days',
