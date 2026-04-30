@@ -72,4 +72,14 @@ class AttendanceService(
         return repo.confirmWorkerDuration(id, workerUserId)
             ?: throw NotFoundException("Attendance record $id not found or no duration set")
     }
+
+    fun setManagerDuration(id: String, managerUserId: String, hours: Int, minutes: Int): Map<String, Any?> {
+        return repo.setManagerDuration(id, managerUserId, hours, minutes)
+            ?: throw NotFoundException("Attendance record $id not found or not accessible")
+    }
+
+    fun confirmManagerDuration(id: String, managerUserId: String): Map<String, Any?> {
+        return repo.confirmManagerDuration(id, managerUserId)
+            ?: throw NotFoundException("Attendance record $id not found or no duration set")
+    }
 }

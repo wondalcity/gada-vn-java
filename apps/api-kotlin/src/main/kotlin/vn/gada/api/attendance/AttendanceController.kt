@@ -59,7 +59,7 @@ class AttendanceController(private val attendanceService: AttendanceService) {
         return ok(attendanceService.setWorkerStatus(id, user.id, status))
     }
 
-    /** PUT /attendance/:id/work-duration — Worker inputs their work duration */
+    /** PUT /attendance/:id/work-duration — Worker or Manager inputs work duration */
     @PutMapping("/attendance/{id}/work-duration")
     fun setWorkDuration(
         @PathVariable id: String,
@@ -70,17 +70,25 @@ class AttendanceController(private val attendanceService: AttendanceService) {
         val hours = (body["hours"] as? Number)?.toInt()
             ?: throw BadRequestException("hours is required")
         val minutes = (body["minutes"] as? Number)?.toInt() ?: 0
-        return ok(attendanceService.setWorkerDuration(id, user.id, hours, minutes))
+        return if (user.role == "MANAGER" || user.role == "ADMIN") {
+            ok(attendanceService.setManagerDuration(id, user.id, hours, minutes))
+        } else {
+            ok(attendanceService.setWorkerDuration(id, user.id, hours, minutes))
+        }
     }
 
-    /** POST /attendance/:id/work-duration/confirm — Worker confirms the work duration */
+    /** POST /attendance/:id/work-duration/confirm — Worker or Manager confirms work duration */
     @PostMapping("/attendance/{id}/work-duration/confirm")
     fun confirmWorkDuration(
         @PathVariable id: String,
         @AuthenticationPrincipal user: AuthUser?
     ): ResponseEntity<Map<String, Any?>> {
         if (user == null) throw UnauthorizedException("Unauthorized")
-        return ok(attendanceService.confirmWorkerDuration(id, user.id))
+        return if (user.role == "MANAGER" || user.role == "ADMIN") {
+            ok(attendanceService.confirmManagerDuration(id, user.id))
+        } else {
+            ok(attendanceService.confirmWorkerDuration(id, user.id))
+        }
     }
 
     /** POST /jobs/:jobId/attendance/bulk — Manager bulk upsert attendance */

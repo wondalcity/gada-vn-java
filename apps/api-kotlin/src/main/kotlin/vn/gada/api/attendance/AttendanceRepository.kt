@@ -124,6 +124,38 @@ class AttendanceRepository(private val db: DatabaseService) {
         ).firstOrNull()
     }
 
+    /** Manager sets work duration */
+    fun setManagerDuration(id: String, managerUserId: String, hours: Int, minutes: Int): Map<String, Any?>? {
+        return db.queryForListRaw(
+            """UPDATE app.attendance_records ar
+               SET work_hours = ?,
+                   work_minutes = ?,
+                   work_duration_set_by = 'MANAGER',
+                   work_duration_confirmed = FALSE,
+                   marked_at = NOW()
+               FROM app.jobs j
+               JOIN app.manager_profiles mp ON j.manager_id = mp.id
+               WHERE ar.id = ? AND ar.job_id = j.id AND mp.user_id = ?
+               RETURNING ar.*""",
+            hours, minutes, id, managerUserId
+        ).firstOrNull()
+    }
+
+    /** Manager confirms the work duration */
+    fun confirmManagerDuration(id: String, managerUserId: String): Map<String, Any?>? {
+        return db.queryForListRaw(
+            """UPDATE app.attendance_records ar
+               SET work_duration_confirmed = TRUE,
+                   work_duration_confirmed_at = NOW(),
+                   marked_at = NOW()
+               FROM app.jobs j
+               JOIN app.manager_profiles mp ON j.manager_id = mp.id
+               WHERE ar.id = ? AND ar.job_id = j.id AND mp.user_id = ? AND work_hours IS NOT NULL
+               RETURNING ar.*""",
+            id, managerUserId
+        ).firstOrNull()
+    }
+
     fun bulkUpsert(
         jobId: String,
         managerUserId: String,
