@@ -652,7 +652,9 @@ const vi = {
     filter_search: 'Tìm kiếm',
     filter_search_placeholder: 'Tìm việc làm...',
     filter_province: 'Tỉnh thành',
+    filter_province_all: 'Tất cả tỉnh thành',
     filter_trade: 'Nghề nghiệp',
+    filter_trade_all: 'Tất cả nghề',
     filter_clear_all: 'Xóa bộ lọc',
     filter_apply: 'Áp dụng',
     filter_status_label: 'Trạng thái',
@@ -1118,7 +1120,9 @@ const en = {
     filter_search: 'Search',
     filter_search_placeholder: 'Search jobs...',
     filter_province: 'Province',
+    filter_province_all: 'All provinces',
     filter_trade: 'Trade',
+    filter_trade_all: 'All trades',
     filter_clear_all: 'Clear filters',
     filter_apply: 'Apply',
     filter_status_label: 'Status',
@@ -1459,6 +1463,7 @@ i18n.use(initReactI18next).init({
   lng: getDeviceLanguage(),
   fallbackLng: 'vi',
   interpolation: { escapeValue: false },
+  compatibilityJSON: 'v3',
 });
 
 export default i18n;
