@@ -37,11 +37,17 @@ function rosterToDraft(entry: RosterEntry): DraftRecord {
     experienceMonths: entry.experienceMonths,
     attendanceId: entry.attendance?.id,
     status: entry.attendance?.status ?? 'PENDING',
-    checkInTime: entry.attendance?.checkInTime ?? '',
-    checkOutTime: entry.attendance?.checkOutTime ?? '',
-    hoursWorked: entry.attendance?.hoursWorked ?? null,
+    checkInTime: '',
+    checkOutTime: '',
+    hoursWorked: null,
     notes: entry.attendance?.notes ?? '',
     isDirty: false,
+    workerStatus: entry.attendance?.workerStatus ?? null,
+    updatedByRole: entry.attendance?.updatedByRole ?? null,
+    workHours: entry.attendance?.workHours ?? null,
+    workMinutes: entry.attendance?.workMinutes ?? null,
+    workDurationSetBy: entry.attendance?.workDurationSetBy ?? null,
+    workDurationConfirmed: entry.attendance?.workDurationConfirmed ?? false,
   }
 }
 
@@ -112,12 +118,12 @@ export default function AttendanceManagerClient({ jobId, locale }: Props) {
         body: JSON.stringify({
           work_date: dateStr,
           records: [{
-            worker_id:      draft.workerId,
-            status:         draft.status,
-            check_in_time:  draft.checkInTime || null,
-            check_out_time: draft.checkOutTime || null,
-            hours_worked:   draft.hoursWorked,
-            notes:          draft.notes || null,
+            worker_id:               draft.workerId,
+            status:                  draft.status,
+            work_hours:              draft.workHours ?? null,
+            work_minutes:            draft.workMinutes ?? null,
+            work_duration_confirmed: draft.workDurationConfirmed ?? null,
+            notes:                   draft.notes || null,
           }],
         }),
       })
@@ -150,12 +156,12 @@ export default function AttendanceManagerClient({ jobId, locale }: Props) {
         body: JSON.stringify({
           work_date: dateStr,
           records: dirtyDrafts.map(d => ({
-            worker_id:      d.workerId,
-            status:         d.status,
-            check_in_time:  d.checkInTime || null,
-            check_out_time: d.checkOutTime || null,
-            hours_worked:   d.hoursWorked,
-            notes:          d.notes || null,
+            worker_id:               d.workerId,
+            status:                  d.status,
+            work_hours:              d.workHours ?? null,
+            work_minutes:            d.workMinutes ?? null,
+            work_duration_confirmed: d.workDurationConfirmed ?? null,
+            notes:                   d.notes || null,
           })),
         }),
       })
@@ -184,10 +190,13 @@ export default function AttendanceManagerClient({ jobId, locale }: Props) {
   const halfDayCount = drafts.filter(d => d.status === 'HALF_DAY').length
   const absentCount = drafts.filter(d => d.status === 'ABSENT').length
   const pendingCount = drafts.filter(d => d.status === 'PENDING').length
+  const preConfirmedCount = drafts.filter(d => d.status === 'PRE_CONFIRMED').length
+  const commutingCount = drafts.filter(d => d.status === 'COMMUTING').length
+  const workStartedCount = drafts.filter(d => d.status === 'WORK_STARTED').length
   const dirtyCount = drafts.filter(d => d.isDirty).length
 
   return (
-    <div className="max-w-[1760px] mx-auto px-4 pb-10">
+    <div className="max-w-[1760px] mx-auto px-4 sm:px-6 xl:px-20 pb-10">
       {/* Sticky header */}
       <div className="sticky top-0 z-10 bg-white border-b border-[#EFF1F5] pt-4 pb-3 space-y-3">
         {/* Date selector */}
@@ -242,6 +251,9 @@ export default function AttendanceManagerClient({ jobId, locale }: Props) {
                   { label: t('manager_attendance.status_half_day'), count: halfDayCount, cls: 'bg-[#FFF8E6] text-[#856404] border-[#F5D87D]' },
                   { label: t('manager_attendance.status_absent'), count: absentCount, cls: 'bg-[#FDE8EE] text-[#ED1C24] border-[#F4A8B8]' },
                   { label: t('manager_attendance.status_pending'), count: pendingCount, cls: 'bg-[#EFF1F5] text-[#98A2B2] border-[#EFF1F5]' },
+                  ...(preConfirmedCount > 0 ? [{ label: '출근 예정', count: preConfirmedCount, cls: 'bg-[#E3F2FD] text-[#1565C0] border-[#90CAF9]' }] : []),
+                  ...(commutingCount > 0 ? [{ label: '출근 중', count: commutingCount, cls: 'bg-[#FFF3E0] text-[#E65100] border-[#FFCC80]' }] : []),
+                  ...(workStartedCount > 0 ? [{ label: '작업 중', count: workStartedCount, cls: 'bg-[#E8F5E9] text-[#2E7D32] border-[#A5D6A7]' }] : []),
                 ].map(({ label, count, cls }) => (
                   <span key={label} className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium border ${cls}`}>
                     {label} {count}

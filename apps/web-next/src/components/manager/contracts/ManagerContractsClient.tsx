@@ -70,7 +70,7 @@ export default function ManagerContractsClient() {
 
   if (isLoading) {
     return (
-      <div className="max-w-[1760px] mx-auto px-4 py-6">
+      <div className="max-w-[1760px] mx-auto px-4 sm:px-6 xl:px-20 py-6">
         <h1 className="text-xl font-bold text-[#25282A] mb-6">{t('manager_contracts.title')}</h1>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           {[1, 2, 3].map((i) => (
@@ -91,7 +91,7 @@ export default function ManagerContractsClient() {
 
   if (error) {
     return (
-      <div className="max-w-[1760px] mx-auto px-4 py-6">
+      <div className="max-w-[1760px] mx-auto px-4 sm:px-6 xl:px-20 py-6">
         <h1 className="text-xl font-bold text-[#25282A] mb-6">{t('manager_contracts.title')}</h1>
         <p className="text-[#ED1C24] text-sm mb-4">{error}</p>
         <button
@@ -106,7 +106,7 @@ export default function ManagerContractsClient() {
   }
 
   return (
-    <div className="max-w-[1760px] mx-auto px-4 py-6">
+    <div className="max-w-[1760px] mx-auto px-4 sm:px-6 xl:px-20 py-6">
       <div className="flex items-center gap-3 mb-6">
         <h1 className="text-xl font-bold text-[#25282A]">{t('manager_contracts.title')}</h1>
       </div>

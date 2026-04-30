@@ -11,7 +11,7 @@ export default async function NewSitePage({ params }: Props) {
 
   return (
     <div className="min-h-screen bg-[#F8F8FA]">
-      <div className="max-w-[1760px] mx-auto px-4 pt-6 pb-8">
+      <div className="max-w-[1760px] mx-auto px-4 sm:px-6 xl:px-20 pt-6 pb-8">
         <h1 className="text-xl font-bold text-[#25282A] mb-6">{t('create_title')}</h1>
         <SiteFormWrapper locale={locale} />
       </div>

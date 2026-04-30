@@ -193,7 +193,7 @@ export default function ManagerContractClient({ contractId }: Props) {
 
   if (isLoading) {
     return (
-      <div className="max-w-[1760px] mx-auto px-4 py-6 space-y-4 animate-pulse">
+      <div className="max-w-[1760px] mx-auto px-4 sm:px-6 xl:px-20 py-6 space-y-4 animate-pulse">
         <div className="h-6 bg-[#DDDDDD] rounded w-1/3" />
         <div className="bg-white rounded-2xl border border-[#EFF1F5] p-4 space-y-3">
           {[...Array(5)].map((_, i) => <div key={i} className="h-4 bg-[#DDDDDD] rounded" />)}
@@ -205,7 +205,7 @@ export default function ManagerContractClient({ contractId }: Props) {
 
   if (error || !contract) {
     return (
-      <div className="max-w-[1760px] mx-auto px-4 py-6">
+      <div className="max-w-[1760px] mx-auto px-4 sm:px-6 xl:px-20 py-6">
         <p className="text-[#ED1C24] text-sm mb-4">{error ?? '계약서를 찾을 수 없습니다.'}</p>
         <button type="button" onClick={load} className="px-5 py-2.5 rounded-full bg-[#0669F7] text-white font-medium hover:bg-[#0557D4] transition-colors text-sm">다시 시도</button>
       </div>
@@ -216,7 +216,7 @@ export default function ManagerContractClient({ contractId }: Props) {
   const statusColor = CONTRACT_STATUS_COLORS[contract.status]
 
   return (
-    <div className="max-w-[1760px] mx-auto px-4 py-6 space-y-4">
+    <div className="max-w-[1760px] mx-auto px-4 sm:px-6 xl:px-20 py-6 space-y-4">
       {/* Signature modal */}
       {showSignModal && idToken && (
         <div

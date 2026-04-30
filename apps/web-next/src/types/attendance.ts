@@ -1,17 +1,39 @@
-export type AttendanceStatus = 'PENDING' | 'ATTENDED' | 'ABSENT' | 'HALF_DAY'
+export type AttendanceStatus =
+  | 'PENDING'
+  | 'PRE_CONFIRMED'
+  | 'COMMUTING'
+  | 'WORK_STARTED'
+  | 'WORK_COMPLETED'
+  | 'ATTENDED'
+  | 'ABSENT'
+  | 'HALF_DAY'
+  | 'EARLY_LEAVE'
+
+export interface StatusHistoryEntry {
+  id: string
+  changedByRole: 'WORKER' | 'MANAGER' | 'SYSTEM'
+  changedByName: string | null
+  oldStatus: AttendanceStatus | null
+  newStatus: AttendanceStatus
+  changedAt: string
+  note: string | null
+}
 
 export interface AttendanceRecord {
   id: string
   status: AttendanceStatus
-  checkInTime?: string    // "HH:MM"
-  checkOutTime?: string   // "HH:MM"
-  hoursWorked?: number
+  workerStatus?: AttendanceStatus | null
+  updatedByRole?: 'WORKER' | 'MANAGER' | 'SYSTEM' | null
+  workHours?: number | null
+  workMinutes?: number | null
+  workDurationSetBy?: 'WORKER' | 'MANAGER' | null
+  workDurationConfirmed?: boolean
   markedAt?: string
   notes?: string
 }
 
 export interface RosterEntry {
-  applicationId: string
+  applicationId?: string
   workerId: string
   workerName: string
   workerPhone?: string
@@ -21,22 +43,14 @@ export interface RosterEntry {
 }
 
 export interface AttendanceAuditEntry {
-  id: number
+  id: string
   attendanceId: string
-  changedBy?: string
-  changerName?: string
+  changedByRole: 'WORKER' | 'MANAGER' | 'SYSTEM'
+  changedByName: string | null
+  oldStatus: AttendanceStatus | null
+  newStatus: AttendanceStatus
   changedAt: string
-  oldStatus?: AttendanceStatus
-  newStatus?: AttendanceStatus
-  oldCheckIn?: string
-  newCheckIn?: string
-  oldCheckOut?: string
-  newCheckOut?: string
-  oldHours?: number
-  newHours?: number
-  oldNotes?: string
-  newNotes?: string
-  reason?: string
+  note: string | null
 }
 
 export interface WorkerAttendanceRecord {
@@ -45,10 +59,24 @@ export interface WorkerAttendanceRecord {
   jobTitle?: string
   siteName?: string
   workDate: string
+  dailyWage?: number
+  workStartTime?: string
+  // Unified status (whoever updated first)
   status: AttendanceStatus
-  checkInTime?: string
-  checkOutTime?: string
-  hoursWorked?: number
+  updatedByRole?: 'WORKER' | 'MANAGER' | 'SYSTEM' | null
+  lastUpdatedAt?: string
+  // Manager status
+  managerStatus?: AttendanceStatus
+  // Worker self-reported status
+  workerStatus?: AttendanceStatus | null
+  workerStatusAt?: string | null
+  // Work duration
+  workHours?: number | null
+  workMinutes?: number | null
+  workDurationSetBy?: 'WORKER' | 'MANAGER' | null
+  workDurationConfirmed?: boolean
+  workDurationConfirmedAt?: string | null
   notes?: string
-  markedAt?: string
+  // History
+  statusHistory?: StatusHistoryEntry[]
 }

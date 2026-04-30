@@ -160,7 +160,7 @@ export default function NotificationsClient() {
 
   if (isLoading) {
     return (
-      <div className="max-w-[1760px] mx-auto px-4 py-6 space-y-3">
+      <div className="max-w-[1760px] mx-auto px-4 sm:px-6 xl:px-20 py-6 space-y-3">
         {[1, 2, 3].map(i => (
           <div key={i} className="bg-white rounded-2xl shadow-sm border border-[#EFF1F5] p-4 animate-pulse flex gap-3">
             <div className="w-10 h-10 bg-[#DDDDDD] rounded-full flex-shrink-0" />
@@ -176,7 +176,7 @@ export default function NotificationsClient() {
 
   if (error) {
     return (
-      <div className="max-w-[1760px] mx-auto px-4 py-6">
+      <div className="max-w-[1760px] mx-auto px-4 sm:px-6 xl:px-20 py-6">
         <p className="text-[#ED1C24] text-sm text-center">{error}</p>
       </div>
     )

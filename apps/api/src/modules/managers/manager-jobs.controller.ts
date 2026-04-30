@@ -395,9 +395,12 @@ export class ManagerJobsController {
          t.name_ko AS trade_name_ko,
          ar.id AS attendance_id,
          ar.status AS attendance_status,
-         ar.check_in_time,
-         ar.check_out_time,
-         ar.hours_worked,
+         ar.worker_status,
+         ar.updated_by_role,
+         ar.work_hours,
+         ar.work_minutes,
+         ar.work_duration_set_by,
+         ar.work_duration_confirmed,
          ar.notes AS attendance_notes
        FROM app.job_applications a
        JOIN app.worker_profiles wp ON a.worker_id = wp.id
@@ -419,9 +422,12 @@ export class ManagerJobsController {
       attendance: r.attendance_id ? {
         id: r.attendance_id,
         status: r.attendance_status,
-        checkInTime: r.check_in_time ?? '',
-        checkOutTime: r.check_out_time ?? '',
-        hoursWorked: r.hours_worked ? Number(r.hours_worked) : null,
+        workerStatus: r.worker_status ?? null,
+        updatedByRole: r.updated_by_role ?? null,
+        workHours: r.work_hours != null ? Number(r.work_hours) : null,
+        workMinutes: r.work_minutes != null ? Number(r.work_minutes) : null,
+        workDurationSetBy: r.work_duration_set_by ?? null,
+        workDurationConfirmed: r.work_duration_confirmed ?? false,
         notes: r.attendance_notes ?? '',
       } : null,
     }));
@@ -439,9 +445,9 @@ export class ManagerJobsController {
       records: Array<{
         worker_id: string;
         status: string;
-        check_in_time?: string | null;
-        check_out_time?: string | null;
-        hours_worked?: number | null;
+        work_hours?: number | null;
+        work_minutes?: number | null;
+        work_duration_confirmed?: boolean | null;
         notes?: string | null;
       }>;
     },
@@ -460,19 +466,25 @@ export class ManagerJobsController {
       for (const rec of body.records) {
         await client.query(
           `INSERT INTO app.attendance_records
-             (job_id, worker_id, work_date, status, check_in_time, check_out_time, hours_worked, notes, marked_by, marked_at)
-           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, NOW())
+             (job_id, worker_id, work_date, status,
+              work_hours, work_minutes, work_duration_confirmed,
+              notes, marked_by, marked_at,
+              updated_by_role, updated_by_id, manager_status_at)
+           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, NOW(), 'MANAGER', $9, NOW())
            ON CONFLICT (job_id, worker_id, work_date) DO UPDATE SET
-             status         = EXCLUDED.status,
-             check_in_time  = COALESCE(EXCLUDED.check_in_time, app.attendance_records.check_in_time),
-             check_out_time = COALESCE(EXCLUDED.check_out_time, app.attendance_records.check_out_time),
-             hours_worked   = COALESCE(EXCLUDED.hours_worked, app.attendance_records.hours_worked),
-             notes          = COALESCE(EXCLUDED.notes, app.attendance_records.notes),
-             marked_by      = EXCLUDED.marked_by,
-             marked_at      = NOW()`,
+             status                   = EXCLUDED.status,
+             work_hours               = COALESCE(EXCLUDED.work_hours, app.attendance_records.work_hours),
+             work_minutes             = COALESCE(EXCLUDED.work_minutes, app.attendance_records.work_minutes),
+             work_duration_confirmed  = COALESCE(EXCLUDED.work_duration_confirmed, app.attendance_records.work_duration_confirmed),
+             notes                    = COALESCE(EXCLUDED.notes, app.attendance_records.notes),
+             marked_by                = EXCLUDED.marked_by,
+             marked_at                = NOW(),
+             updated_by_role          = 'MANAGER',
+             updated_by_id            = EXCLUDED.marked_by,
+             manager_status_at        = NOW()`,
           [id, rec.worker_id, body.work_date, rec.status,
-           rec.check_in_time ?? null, rec.check_out_time ?? null,
-           rec.hours_worked ?? null, rec.notes ?? null, managerId],
+           rec.work_hours ?? null, rec.work_minutes ?? null,
+           rec.work_duration_confirmed ?? null, rec.notes ?? null, managerId],
         );
       }
     });

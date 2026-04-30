@@ -8,7 +8,7 @@ export default async function HireDetailPage({ params }: Props) {
   const { hireId } = await params
 
   return (
-    <div className="max-w-[1760px] mx-auto px-4 pt-6 pb-10">
+    <div className="max-w-[1760px] mx-auto px-4 sm:px-6 xl:px-20 pt-6 pb-10">
       <HireDetailClient hireId={hireId} />
     </div>
   )

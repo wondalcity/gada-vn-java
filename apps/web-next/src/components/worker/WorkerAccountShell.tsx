@@ -123,7 +123,7 @@ export default function WorkerAccountShell({ locale, userName, userPhone, isMana
   const currentSection = NAV_ITEMS.find(item => isItemActive(item))
 
   return (
-    <div className="max-w-[1760px] mx-auto px-4 py-4 md:py-8">
+    <div className="max-w-[1760px] mx-auto px-4 sm:px-6 xl:px-20 py-4 md:py-8">
       {/* ── Mobile section breadcrumb + sub-nav (desktop sidebar alternative) ── */}
       <div className="md:hidden mb-4">
         {/* Section heading — hidden on mobile */}

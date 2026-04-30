@@ -302,7 +302,7 @@ export default function ManagerListingsClient({ locale }: { locale: string }) {
   const activeSites = sites.filter((s) => s.status === 'ACTIVE').length
 
   return (
-    <div className="max-w-[1760px] mx-auto px-4 pt-5 pb-24">
+    <div className="max-w-[1760px] mx-auto px-4 sm:px-6 xl:px-20 pt-5 pb-24">
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
         <div>

@@ -2,7 +2,7 @@
 
 import * as React from 'react'
 import type { AttendanceStatus } from '@/types/attendance'
-import { STATUS_LABELS, STATUS_COLORS } from '@/lib/attendance'
+import { STATUS_LABELS, STATUS_COLORS, formatHoursWorked } from '@/lib/attendance'
 import AttendanceStatusPicker from '@/components/attendance/AttendanceStatusPicker'
 import TimeEntry from '@/components/attendance/TimeEntry'
 import AttendanceAuditList from './AttendanceAuditList'
@@ -20,6 +20,13 @@ export interface DraftRecord {
   hoursWorked: number | null
   notes: string
   isDirty: boolean
+  // New fields from API
+  workerStatus?: string | null
+  updatedByRole?: string | null
+  workHours?: number | null
+  workMinutes?: number | null
+  workDurationSetBy?: string | null
+  workDurationConfirmed?: boolean
 }
 
 interface Props {
@@ -38,6 +45,20 @@ function getInitials(name: string): string {
   return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase()
 }
 
+function RoleBadge({ role }: { role: string }) {
+  const labels: Record<string, string> = { WORKER: '근로자', MANAGER: '관리자', SYSTEM: '시스템' }
+  const colors: Record<string, string> = {
+    WORKER: 'bg-[#E3F2FD] text-[#1565C0]',
+    MANAGER: 'bg-[#E8F5E9] text-[#2E7D32]',
+    SYSTEM: 'bg-[#EFF1F5] text-[#7A7B7A]',
+  }
+  return (
+    <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium ${colors[role] ?? 'bg-[#EFF1F5] text-[#7A7B7A]'}`}>
+      {labels[role] ?? role}
+    </span>
+  )
+}
+
 export default function AttendanceWorkerRow({
   draft,
   onChange,
@@ -49,6 +70,11 @@ export default function AttendanceWorkerRow({
 }: Props) {
   const [isExpanded, setIsExpanded] = React.useState(draft.status === 'PENDING')
   const [showAudit, setShowAudit] = React.useState(false)
+
+  const hasWorkerStatus =
+    draft.workerStatus != null &&
+    draft.workerStatus !== '' &&
+    draft.workerStatus !== draft.status
 
   function handleRevert() {
     onChange({
@@ -88,25 +114,41 @@ export default function AttendanceWorkerRow({
               <span className="w-2 h-2 rounded-full bg-[#FFC72C] flex-shrink-0" title="미저장 변경사항" />
             )}
           </div>
-          <p className="text-xs text-[#98A2B2] truncate">
-            {draft.tradeNameKo ?? '직종 미지정'}
-            {' · '}
-            {draft.experienceMonths >= 12
-              ? `${Math.floor(draft.experienceMonths / 12)}년 ${draft.experienceMonths % 12}개월`
-              : `${draft.experienceMonths}개월`} 경력
-          </p>
+          <div className="flex items-center gap-1.5 flex-wrap mt-0.5">
+            <p className="text-xs text-[#98A2B2] truncate">
+              {draft.tradeNameKo ?? '직종 미지정'}
+              {' · '}
+              {draft.experienceMonths >= 12
+                ? `${Math.floor(draft.experienceMonths / 12)}년 ${draft.experienceMonths % 12}개월`
+                : `${draft.experienceMonths}개월`} 경력
+            </p>
+            {/* Worker-reported status pill (different from manager status) */}
+            {hasWorkerStatus && (
+              <span className={[
+                'inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-medium border',
+                STATUS_COLORS[draft.workerStatus!] ?? 'bg-[#EFF1F5] text-[#7A7B7A] border-[#DDDDDD]',
+              ].join(' ')}>
+                자가: {STATUS_LABELS[draft.workerStatus!] ?? draft.workerStatus}
+              </span>
+            )}
+          </div>
         </div>
 
         {/* Status badge */}
         <div className="flex items-center gap-2 flex-shrink-0">
-          <span
-            className={[
-              'inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium border',
-              STATUS_COLORS[draft.status],
-            ].join(' ')}
-          >
-            {STATUS_LABELS[draft.status]}
-          </span>
+          <div className="flex flex-col items-end gap-1">
+            <span
+              className={[
+                'inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium border',
+                STATUS_COLORS[draft.status],
+              ].join(' ')}
+            >
+              {STATUS_LABELS[draft.status]}
+            </span>
+            {draft.updatedByRole && (
+              <RoleBadge role={draft.updatedByRole} />
+            )}
+          </div>
 
           {/* Expand icon */}
           <svg
@@ -134,8 +176,41 @@ export default function AttendanceWorkerRow({
       >
       <div style={{ overflow: 'hidden' }}>
         <div className="px-4 pb-4 border-t border-[#EFF1F5] space-y-4">
+          {/* Worker status info row */}
+          {(hasWorkerStatus || draft.workHours != null || draft.workMinutes != null) && (
+            <div className="pt-3 p-3 bg-[#FAFAFA] rounded-xl border border-[#EFF1F5] space-y-2">
+              {hasWorkerStatus && (
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="text-xs text-[#98A2B2]">근로자 자가 입력:</span>
+                  <span className={[
+                    'inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium border',
+                    STATUS_COLORS[draft.workerStatus!] ?? 'bg-[#EFF1F5] text-[#7A7B7A] border-[#DDDDDD]',
+                  ].join(' ')}>
+                    {STATUS_LABELS[draft.workerStatus!] ?? draft.workerStatus}
+                  </span>
+                </div>
+              )}
+              {(draft.workHours != null || draft.workMinutes != null) && (
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="text-xs text-[#98A2B2]">근무 시간:</span>
+                  <span className="text-xs font-medium text-[#25282A]">
+                    {formatHoursWorked(draft.workHours, draft.workMinutes)}
+                  </span>
+                  {draft.workDurationSetBy && (
+                    <RoleBadge role={draft.workDurationSetBy} />
+                  )}
+                  {draft.workDurationConfirmed ? (
+                    <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-[#E6F9E6] text-[#1A6B1A]">확정</span>
+                  ) : (
+                    <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-[#EFF1F5] text-[#7A7B7A]">미확정</span>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+
           {/* Status picker */}
-          <div className="pt-3">
+          <div className={hasWorkerStatus || draft.workHours != null ? '' : 'pt-3'}>
             <p className="text-xs font-medium text-[#98A2B2] mb-2">출근 상태</p>
             <AttendanceStatusPicker
               value={draft.status}

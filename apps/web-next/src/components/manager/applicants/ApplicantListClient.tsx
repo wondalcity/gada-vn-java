@@ -207,7 +207,7 @@ export default function ApplicantListClient({ jobId, locale }: Props) {
 
   if (isLoading) {
     return (
-      <div className="max-w-[1760px] mx-auto px-4 py-6">
+      <div className="max-w-[1760px] mx-auto px-4 sm:px-6 xl:px-20 py-6">
         <div className="h-5 bg-[#DDDDDD] rounded w-1/3 mb-6 animate-pulse" />
         <div className="space-y-3">
           {[1, 2, 3].map(i => (
@@ -226,7 +226,7 @@ export default function ApplicantListClient({ jobId, locale }: Props) {
 
   if (error) {
     return (
-      <div className="max-w-[1760px] mx-auto px-4 py-6">
+      <div className="max-w-[1760px] mx-auto px-4 sm:px-6 xl:px-20 py-6">
         <p className="text-[#ED1C24] text-sm">{error}</p>
       </div>
     )
