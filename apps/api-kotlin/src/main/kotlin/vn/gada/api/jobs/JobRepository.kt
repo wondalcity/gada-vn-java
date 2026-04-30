@@ -1,15 +1,43 @@
 package vn.gada.api.jobs
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Repository
 import vn.gada.api.common.database.DatabaseService
 import vn.gada.api.common.exception.NotFoundException
+import vn.gada.api.files.FileService
 
 @Repository
 class JobRepository(
     private val db: DatabaseService,
-    private val objectMapper: ObjectMapper
+    private val objectMapper: ObjectMapper,
+    private val fileService: FileService,
+    @Value("\${gada.aws.cdn-domain:}") private val cdnDomain: String
 ) {
+
+    private fun toImageUrl(key: String?): String? {
+        if (key == null) return null
+        if (key.startsWith("http://") || key.startsWith("https://") || key.startsWith("data:")) return key
+        if (cdnDomain.isNotBlank()) {
+            val base = if (cdnDomain.startsWith("http")) cdnDomain else "https://$cdnDomain"
+            return "$base/$key"
+        }
+        return fileService.toPublicUrl(key)
+    }
+
+    @Suppress("UNCHECKED_CAST")
+    private fun mapJobRow(r: Map<String, Any?>): Map<String, Any?> {
+        val keys = (r["site_image_s3_keys"] as? List<String>) ?: emptyList()
+        val coverIdx = (r["site_cover_image_idx"] as? Number)?.toInt() ?: 0
+        val validCoverIdx = if (coverIdx >= 0 && coverIdx < keys.size) coverIdx else 0
+        val imageUrls = keys.mapNotNull { toImageUrl(it) }
+        val result = r.toMutableMap()
+        result.remove("site_image_s3_keys")
+        result.remove("site_cover_image_idx")
+        result["site_image_urls"] = imageUrls
+        result["site_cover_image_url"] = imageUrls.getOrNull(validCoverIdx)
+        return result
+    }
 
     data class JobListQuery(
         val lat: Double? = null,
@@ -28,7 +56,8 @@ class JobRepository(
         val params = mutableListOf<Any?>()
         val sb = StringBuilder()
 
-        sb.append("SELECT j.*, s.name as site_name, s.address, s.province, s.lat, s.lng ")
+        sb.append("SELECT j.*, s.name as site_name, s.address, s.province, s.lat, s.lng, ")
+        sb.append("s.image_s3_keys as site_image_s3_keys, s.cover_image_idx as site_cover_image_idx ")
         if (useGeo) {
             sb.append(", ST_Distance(s.location::geography, ST_MakePoint(?, ?)::geography) / 1000 as distance_km ")
             params.add(query.lng)
@@ -63,25 +92,27 @@ class JobRepository(
         params.add(query.limit)
         params.add(offset)
 
-        return db.queryForList(sb.toString(), *params.toTypedArray())
+        return db.queryForList(sb.toString(), *params.toTypedArray()).map { mapJobRow(it) }
     }
 
     fun findByDate(date: String, page: Int = 1, limit: Int = 20): List<Map<String, Any?>> {
         val offset = (page - 1) * limit
         return db.queryForList(
-            """SELECT j.*, s.name as site_name, s.address
+            """SELECT j.*, s.name as site_name, s.address,
+                      s.image_s3_keys as site_image_s3_keys, s.cover_image_idx as site_cover_image_idx
                FROM app.jobs j
                JOIN app.construction_sites s ON j.site_id = s.id
                WHERE j.work_date = ? AND j.status = 'OPEN'
                ORDER BY j.daily_wage DESC
                LIMIT ? OFFSET ?""",
             date, limit, offset
-        )
+        ).map { mapJobRow(it) }
     }
 
     fun findById(id: String): Map<String, Any?>? {
         val rows = db.queryForList(
             """SELECT j.*, s.name as site_name, s.address, s.province, s.lat, s.lng,
+                      s.image_s3_keys as site_image_s3_keys, s.cover_image_idx as site_cover_image_idx,
                       (SELECT COUNT(*) FROM app.job_applications a
                        WHERE a.job_id = j.id AND a.status IN ('PENDING', 'ACCEPTED', 'CONTRACTED')
                       ) AS active_applicant_count
@@ -91,7 +122,7 @@ class JobRepository(
             id
         )
         return rows.firstOrNull()?.let { r ->
-            r + mapOf("slots_filled" to ((r["active_applicant_count"] as? Number)?.toInt() ?: 0))
+            mapJobRow(r + mapOf("slots_filled" to ((r["active_applicant_count"] as? Number)?.toInt() ?: 0)))
         }
     }
 

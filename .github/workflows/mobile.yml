@@ -153,3 +153,133 @@ jobs:
           name: app-release-${{ github.sha }}
           path: apps/mobile/android/app/build/outputs/apk/release/app-release.apk
           retention-days: 14
+
+  build-ios:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: pnpm
+
+      - name: Install JS dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Write GoogleService-Info.plist
+        run: echo "${{ secrets.GOOGLE_SERVICE_INFO_PLIST }}" | base64 -d > apps/mobile/GoogleService-Info.plist
+
+      - name: Generate native iOS project (expo prebuild)
+        working-directory: apps/mobile
+        env:
+          EXPO_PUBLIC_API_URL: ${{ secrets.EXPO_PUBLIC_API_URL }}
+          EXPO_PUBLIC_APP_ENV: staging
+        run: npx expo prebuild --platform ios --non-interactive --clean
+
+      - name: Cache CocoaPods
+        uses: actions/cache@v4
+        with:
+          path: apps/mobile/ios/Pods
+          key: pods-${{ hashFiles('apps/mobile/ios/Podfile.lock') }}
+          restore-keys: pods-
+
+      - name: Install CocoaPods
+        working-directory: apps/mobile/ios
+        run: pod install --repo-update
+
+      - name: Import signing certificate
+        env:
+          APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
+          APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+        run: |
+          echo "$APPLE_CERTIFICATE" | base64 -d > /tmp/cert.p12
+          security create-keychain -p "" build.keychain
+          security default-keychain -s build.keychain
+          security unlock-keychain -p "" build.keychain
+          security import /tmp/cert.p12 -k build.keychain -P "$APPLE_CERTIFICATE_PASSWORD" -A
+          security set-key-partition-list -S apple-tool:,apple: -s -k "" build.keychain
+          rm /tmp/cert.p12
+
+      - name: Install provisioning profile
+        env:
+          APPLE_PROVISIONING_PROFILE: ${{ secrets.APPLE_PROVISIONING_PROFILE }}
+        run: |
+          mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
+          echo "$APPLE_PROVISIONING_PROFILE" | base64 -d > /tmp/build.mobileprovision
+          # Get UUID from profile and use it as filename
+          PROFILE_UUID=$(security cms -D -i /tmp/build.mobileprovision | plutil -extract UUID raw -)
+          cp /tmp/build.mobileprovision ~/Library/MobileDevice/Provisioning\ Profiles/${PROFILE_UUID}.mobileprovision
+          echo "PROFILE_UUID=$PROFILE_UUID" >> $GITHUB_ENV
+          # Get profile name
+          PROFILE_NAME=$(security cms -D -i /tmp/build.mobileprovision | plutil -extract Name raw -)
+          echo "PROFILE_NAME=$PROFILE_NAME" >> $GITHUB_ENV
+          rm /tmp/build.mobileprovision
+
+      - name: Patch ExportOptions.plist
+        run: |
+          sed -i \
+            -e "s/__APPLE_TEAM_ID__/${{ secrets.APPLE_TEAM_ID }}/g" \
+            -e "s/__PROVISIONING_PROFILE_NAME__/$PROFILE_NAME/g" \
+            apps/mobile/ExportOptions.plist
+          cp apps/mobile/ExportOptions.plist apps/mobile/ios/ExportOptions.plist
+
+      - name: Bump build number
+        run: |
+          BASE=$(node -p "require('./apps/mobile/app.json').expo.ios.buildNumber")
+          CI_CODE=$(( ${{ github.run_number }} + 57 ))
+          BUILD_NUMBER=$(( CI_CODE > BASE ? CI_CODE : BASE + 1 ))
+          echo "BUILD_NUMBER=$BUILD_NUMBER" >> $GITHUB_ENV
+          /usr/libexec/PlistBuddy -c "Set :CFBundleVersion $BUILD_NUMBER" \
+            apps/mobile/ios/GADAVN2/Info.plist 2>/dev/null || true
+
+      - name: Build iOS archive
+        working-directory: apps/mobile/ios
+        env:
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+        run: |
+          xcodebuild archive \
+            -workspace GADAVN2.xcworkspace \
+            -scheme GADAVN2 \
+            -configuration Release \
+            -archivePath ./build/GADAVN2.xcarchive \
+            CODE_SIGN_STYLE=Manual \
+            DEVELOPMENT_TEAM="$APPLE_TEAM_ID" \
+            CODE_SIGN_IDENTITY="iPhone Distribution" \
+            PROVISIONING_PROFILE_SPECIFIER="$PROFILE_NAME" \
+            -allowProvisioningUpdates \
+            | xcpretty || true
+
+      - name: Export IPA
+        working-directory: apps/mobile/ios
+        run: |
+          xcodebuild -exportArchive \
+            -archivePath ./build/GADAVN2.xcarchive \
+            -exportOptionsPlist ../ExportOptions.plist \
+            -exportPath ./build/ipa \
+            | xcpretty || true
+
+      - name: Upload to Firebase App Distribution (iOS)
+        env:
+          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
+        run: |
+          NOTES="${{ github.event.inputs.release_notes }}"
+          if [ -z "$NOTES" ]; then
+            COMMITS=$(git log --pretty=format:"- %s" -5)
+            NOTES=$(printf '[build %s] %s @ %s\n\n%s' \
+              "$BUILD_NUMBER" "${{ github.ref_name }}" "${GITHUB_SHA::8}" "$COMMITS")
+          fi
+          npx --yes firebase-tools appdistribution:distribute \
+            apps/mobile/ios/build/ipa/GADAVN2.ipa \
+            --app "1:359319234631:ios:e83c148da4b8c2a5c0a962" \
+            --testers "kyle@worksmate.co.kr,wondalcity@gmail.com" \
+            --release-notes "$NOTES"
+
+      - name: Upload IPA artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: GADAVN2-${{ github.sha }}.ipa
+          path: apps/mobile/ios/build/ipa/GADAVN2.ipa
+          retention-days: 14

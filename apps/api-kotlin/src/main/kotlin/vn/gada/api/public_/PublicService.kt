@@ -78,6 +78,13 @@ class PublicService(
             binds.add(lat)
         }
 
+        val q = params["q"] as? String
+        if (!q.isNullOrBlank()) {
+            whereParts.add("(unaccent(j.title) ILIKE unaccent(?) OR unaccent(s.name) ILIKE unaccent(?))")
+            binds.add("%$q%")
+            binds.add("%$q%")
+        }
+
         val province = params["province"] as? String
         if (province != null) {
             whereParts.add("LOWER(s.province) = LOWER(?)")
@@ -378,6 +385,7 @@ class PublicService(
     private fun mapJob(r: Map<String, Any?>): Map<String, Any?> {
         val siteImageKeys = r["site_image_keys"] as? List<String>
         val siteCoverIdx = (r["site_cover_idx"] as? Number)?.toInt()
+        val validIdx = if (siteCoverIdx != null && siteCoverIdx >= 0 && siteImageKeys != null && siteCoverIdx < siteImageKeys.size) siteCoverIdx else 0
 
         return mapOf(
             "id" to r["id"],
@@ -402,6 +410,8 @@ class PublicService(
             "status" to r["status"],
             "expiresAt" to r["expires_at"],
             "coverImageUrl" to toCoverImageUrl(siteImageKeys, siteCoverIdx),
+            "imageS3Keys" to (siteImageKeys ?: emptyList<String>()),
+            "coverImageIdx" to validIdx,
             "publishedAt" to r["published_at"],
             "siteLat" to (r["site_lat"] as? Number)?.toDouble(),
             "siteLng" to (r["site_lng"] as? Number)?.toDouble(),

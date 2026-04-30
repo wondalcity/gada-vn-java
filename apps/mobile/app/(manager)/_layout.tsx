@@ -1,5 +1,5 @@
 import { Tabs, useRouter } from 'expo-router';
-import { View, StyleSheet, TouchableOpacity, Text } from 'react-native';
+import { View, StyleSheet, TouchableOpacity, Text, Linking } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { Colors } from '../../constants/theme';
@@ -33,12 +33,14 @@ export default function ManagerLayout() {
         headerShadowVisible: true,
         headerTintColor: Colors.onSurface,
         headerRight: () => (
-          <TouchableOpacity
-            onPress={() => router.push('/(manager)/notifications')}
-            style={{ marginRight: 16, padding: 4 }}
-          >
-            <Text style={{ fontSize: 22 }}>🔔</Text>
-          </TouchableOpacity>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginRight: 12 }}>
+            <TouchableOpacity onPress={() => Linking.openURL('tel:+84568240240')} style={{ padding: 4 }}>
+              <Text style={{ fontSize: 22 }}>📞</Text>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => router.push('/(manager)/notifications')} style={{ padding: 4 }}>
+              <Text style={{ fontSize: 22 }}>🔔</Text>
+            </TouchableOpacity>
+          </View>
         ),
       }}
     >

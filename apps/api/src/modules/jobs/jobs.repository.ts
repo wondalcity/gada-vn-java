@@ -21,6 +21,9 @@ function mapJobRow(r: Record<string, unknown>): Record<string, unknown> {
     ...rest,
     site_cover_image_url: toImageUrl(keys[validIdx]) ?? null,
     site_image_urls: keys.map(k => toImageUrl(k)).filter(Boolean) as string[],
+    // Raw keys for client-side CDN URL construction when CLOUDFRONT_DOMAIN is unset
+    image_s3_keys: keys,
+    cover_image_idx: validIdx,
   };
 }
 

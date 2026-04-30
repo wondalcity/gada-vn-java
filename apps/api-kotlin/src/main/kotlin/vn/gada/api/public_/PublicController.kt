@@ -11,6 +11,7 @@ class PublicController(private val publicService: PublicService) {
     /** GET /public/jobs */
     @GetMapping("/jobs")
     fun listJobs(
+        @RequestParam(required = false) q: String?,
         @RequestParam(required = false) province: String?,
         @RequestParam(required = false) tradeId: String?,
         @RequestParam(required = false) site: String?,
@@ -29,6 +30,7 @@ class PublicController(private val publicService: PublicService) {
         val parsedExp = if (minExp != null && validExpFilters.contains(minExp)) minExp else null
 
         val params = mapOf<String, Any?>(
+            "q" to q?.trim()?.takeIf { it.isNotEmpty() },
             "province" to province,
             "tradeId" to tradeId?.toIntOrNull(),
             "site" to site,

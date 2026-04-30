@@ -42,9 +42,12 @@ interface JobDetail {
   slotsTotal: number;
   slotsFilled: number;
   status: string;
-  // Site image fields from jobs repository mapJobRow
+  // Site image fields — resolved CDN URLs (present when CLOUDFRONT_DOMAIN is set on server)
   siteImageUrls?: string[];
   siteCoverImageUrl?: string | null;
+  // Raw S3 keys — always present; used as client-side CDN fallback
+  imageS3Keys?: string[];
+  coverImageIdx?: number;
   // Flat site fields
   siteName?: string | null;
   siteNameKo?: string | null;
@@ -265,10 +268,16 @@ export default function JobDetailScreen() {
     ?? null;
   const reqNotes = job.requirements?.notes ?? null;
 
-  // Images
-  const imageUrls = (job.siteImageUrls ?? []).length > 0
-    ? job.siteImageUrls!
-    : job.siteCoverImageUrl ? [job.siteCoverImageUrl] : [];
+  // Images — prefer server-resolved CDN URLs, fall back to client-side construction
+  const CDN_URL = process.env.EXPO_PUBLIC_CDN_URL ?? '';
+  const imageUrls = (() => {
+    if ((job.siteImageUrls ?? []).length > 0) return job.siteImageUrls!;
+    if (job.siteCoverImageUrl) return [job.siteCoverImageUrl];
+    if ((job.imageS3Keys ?? []).length > 0) {
+      return job.imageS3Keys!.map(key => `${CDN_URL}/${key}`);
+    }
+    return [];
+  })();
 
   // Site initials for avatar
   const siteInitials = displaySiteName

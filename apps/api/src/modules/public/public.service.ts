@@ -82,7 +82,7 @@ export class PublicService {
       binds.push(params.lng, params.lat);
     }
     if (params.q) {
-      where += ` AND (j.title ILIKE $${idx} OR s.name ILIKE $${idx})`;
+      where += ` AND (unaccent(j.title) ILIKE unaccent($${idx}) OR unaccent(s.name) ILIKE unaccent($${idx}))`;
       binds.push(`%${params.q}%`);
       idx++;
     }
@@ -343,6 +343,10 @@ export class PublicService {
   private mapJob(r: Record<string, unknown>) {
     const siteImageKeys = r.site_image_keys as string[] | null;
     const siteCoverIdx = r.site_cover_idx as number | null;
+    const validIdx =
+      siteCoverIdx != null && siteCoverIdx >= 0 && siteImageKeys && siteCoverIdx < siteImageKeys.length
+        ? siteCoverIdx
+        : 0;
 
     return {
       id: r.id,
@@ -365,6 +369,8 @@ export class PublicService {
       status: r.status,
       expiresAt: r.expires_at ?? undefined,
       coverImageUrl: toCoverImageUrl(siteImageKeys, siteCoverIdx),
+      imageS3Keys: siteImageKeys ?? [],
+      coverImageIdx: validIdx,
       publishedAt: r.published_at,
       siteLat: r.site_lat ? parseFloat(r.site_lat as string) : undefined,
       siteLng: r.site_lng ? parseFloat(r.site_lng as string) : undefined,

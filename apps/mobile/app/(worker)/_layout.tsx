@@ -1,9 +1,23 @@
 import { Tabs, useRouter } from 'expo-router';
-import { View, StyleSheet, TouchableOpacity, Text } from 'react-native';
+import { View, StyleSheet, TouchableOpacity, Text, Linking } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { Colors } from '../../constants/theme';
-import { BackBtn, CloseBtn, GadaLogo } from '../../components/NavElements';
+import { BackBtn, GadaLogo } from '../../components/NavElements';
+
+// Close button that always returns to the profile tab (fixes Tab navigator back-nav bug)
+function ProfileEditCloseBtn() {
+  const router = useRouter();
+  return (
+    <TouchableOpacity
+      onPress={() => router.navigate({ pathname: '/(worker)/profile/index' } as any)}
+      style={{ padding: 8, marginLeft: 4 }}
+      hitSlop={8}
+    >
+      <Ionicons name="close" size={24} color={Colors.onSurface} />
+    </TouchableOpacity>
+  );
+}
 
 // ── Tab icon pill (web-style: icon + bg pill when active) ──
 function TabIcon({ name, focused }: { name: React.ComponentProps<typeof Ionicons>['name']; focused: boolean }) {
@@ -34,12 +48,14 @@ export default function WorkerLayout() {
         headerShadowVisible: true,
         headerTintColor: Colors.onSurface,
         headerRight: () => (
-          <TouchableOpacity
-            onPress={() => router.push('/(worker)/notifications' as any)}
-            style={{ marginRight: 16, padding: 4 }}
-          >
-            <Text style={{ fontSize: 22 }}>🔔</Text>
-          </TouchableOpacity>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginRight: 12 }}>
+            <TouchableOpacity onPress={() => Linking.openURL('tel:+84568240240')} style={{ padding: 4 }}>
+              <Text style={{ fontSize: 22 }}>📞</Text>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => router.push('/(worker)/notifications' as any)} style={{ padding: 4 }}>
+              <Text style={{ fontSize: 22 }}>🔔</Text>
+            </TouchableOpacity>
+          </View>
         ),
       }}
     >
@@ -122,7 +138,7 @@ export default function WorkerLayout() {
       />
       <Tabs.Screen
         name="profile/edit"
-        options={{ href: null, title: t('worker.section_basic', '프로필 편집'), headerShown: true, tabBarStyle: { display: 'none' }, headerLeft: () => <CloseBtn /> }}
+        options={{ href: null, title: '프로필 관리', headerShown: true, tabBarStyle: { display: 'none' }, headerLeft: () => <ProfileEditCloseBtn /> }}
       />
     </Tabs>
   );

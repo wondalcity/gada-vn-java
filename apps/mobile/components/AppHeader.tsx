@@ -1,10 +1,9 @@
-import { useRef, useState } from 'react';
 import {
-  View, Text, TouchableOpacity, StyleSheet,
-  TextInput, Linking, Platform,
+  View, Text, TouchableOpacity, StyleSheet, Linking,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../constants/theme';
 
 const SUPPORT_PHONE = '+84568240240';
@@ -14,73 +13,18 @@ interface AppHeaderProps {
   dark?: boolean;
   /** path to push when notification bell is tapped */
   notificationsPath?: string;
-  /** base path for search results */
+  /** if provided, shows a search icon that navigates to this path with openFilter=1 */
   searchPath?: string;
 }
 
 export default function AppHeader({
   dark = false,
   notificationsPath = '/(worker)/notifications',
-  searchPath = '/(worker)/',
+  searchPath,
 }: AppHeaderProps) {
   const insets = useSafeAreaInsets();
   const router = useRouter();
-  const [searchActive, setSearchActive] = useState(false);
-  const [searchText, setSearchText] = useState('');
-  const inputRef = useRef<TextInput>(null);
 
-  function activateSearch() {
-    setSearchActive(true);
-    setTimeout(() => inputRef.current?.focus(), 50);
-  }
-
-  function submitSearch() {
-    const q = searchText.trim();
-    setSearchActive(false);
-    setSearchText('');
-    if (q) {
-      router.push({ pathname: searchPath as any, params: { q } });
-    }
-  }
-
-  function cancelSearch() {
-    setSearchActive(false);
-    setSearchText('');
-  }
-
-  // ── Search mode ──────────────────────────────────────────────────────────────
-  if (searchActive) {
-    return (
-      <View style={[styles.header, { paddingTop: insets.top + 4 }, styles.headerSearch]}>
-        <View style={styles.searchBox}>
-          <Text style={styles.searchIcon}>🔍</Text>
-          <TextInput
-            ref={inputRef}
-            style={styles.searchInput}
-            value={searchText}
-            onChangeText={setSearchText}
-            placeholder="공고명 또는 현장명 검색..."
-            placeholderTextColor="#9CA3AF"
-            returnKeyType="search"
-            onSubmitEditing={submitSearch}
-            autoFocus
-            autoCorrect={false}
-            autoCapitalize="none"
-          />
-          {searchText.length > 0 && (
-            <TouchableOpacity onPress={() => setSearchText('')} hitSlop={8}>
-              <Text style={styles.clearBtn}>✕</Text>
-            </TouchableOpacity>
-          )}
-        </View>
-        <TouchableOpacity onPress={cancelSearch} hitSlop={8} style={styles.cancelBtn}>
-          <Text style={styles.cancelText}>취소</Text>
-        </TouchableOpacity>
-      </View>
-    );
-  }
-
-  // ── Normal mode ──────────────────────────────────────────────────────────────
   return (
     <View style={[styles.header, { paddingTop: insets.top + 4 }, dark && styles.headerDark]}>
       {/* GADA VN logo */}
@@ -92,7 +36,7 @@ export default function AppHeader({
         </View>
       </View>
 
-      {/* Actions: phone · search · bell */}
+      {/* Actions: phone · [search] · bell */}
       <View style={styles.actions}>
         <TouchableOpacity
           style={styles.iconBtn}
@@ -104,15 +48,17 @@ export default function AppHeader({
           <Text style={styles.icon}>📞</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity
-          style={styles.iconBtn}
-          onPress={activateSearch}
-          hitSlop={8}
-          activeOpacity={0.7}
-          accessibilityLabel="검색"
-        >
-          <Text style={styles.icon}>🔍</Text>
-        </TouchableOpacity>
+        {searchPath && (
+          <TouchableOpacity
+            style={styles.iconBtn}
+            hitSlop={8}
+            activeOpacity={0.7}
+            accessibilityLabel="검색"
+            onPress={() => router.push({ pathname: searchPath as any, params: { openFilter: '1' } })}
+          >
+            <Ionicons name="search" size={22} color={dark ? '#fff' : Colors.onSurface} />
+          </TouchableOpacity>
+        )}
 
         <TouchableOpacity
           style={styles.iconBtn}

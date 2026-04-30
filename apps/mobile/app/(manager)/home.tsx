@@ -84,7 +84,6 @@ export default function ManagerHomeScreen() {
     <View style={styles.root}>
       <AppHeader
         notificationsPath="/(manager)/notifications"
-        searchPath="/(manager)/"
       />
 
       <ScrollView

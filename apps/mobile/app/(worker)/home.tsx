@@ -190,7 +190,7 @@ export default function WorkerHomeScreen() {
   return (
     <View style={{ flex: 1, backgroundColor: '#F8F8FA' }}>
       {/* Fixed header — same as other tabs */}
-      <AppHeader />
+      <AppHeader searchPath="/(worker)/" />
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
       {/* ── Hero: dark construction gradient (matches web app) ── */}
       <View style={styles.hero}>
@@ -256,21 +256,6 @@ export default function WorkerHomeScreen() {
             </View>
           </View>
 
-          {/* Province quick link pills — matches web app's bg-white/15 pills */}
-          <View style={styles.provinceQuickLinks}>
-            {PROVINCE_QUICK_LINKS.map(({ slug, labelKo, labelVi }) => (
-              <TouchableOpacity
-                key={slug}
-                style={styles.quickPill}
-                onPress={() => router.push({ pathname: '/(worker)/', params: { province: slug } } as any)}
-                activeOpacity={0.75}
-              >
-                <Text style={styles.quickPillText}>
-                  {i18n.language === 'vi' ? labelVi : labelKo}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </View>
         </View>
       </View>
 
@@ -420,7 +405,7 @@ const styles = StyleSheet.create({
   hero: {
     backgroundColor: '#1A1A2E',
     paddingHorizontal: 20,
-    paddingTop: 0,
+    paddingTop: 24,
     paddingBottom: 24,
     overflow: 'hidden',
     position: 'relative',

@@ -649,10 +649,10 @@ const styles = StyleSheet.create({
 
   // Active filter bar
   activeFilterBar: {
-    backgroundColor: 'rgba(6,105,247,0.06)', maxHeight: 40,
+    backgroundColor: 'rgba(6,105,247,0.06)',
     borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: Colors.outline,
   },
-  activeFilterContent: { paddingHorizontal: 12, paddingVertical: 6, gap: 6, flexDirection: 'row', alignItems: 'center' },
+  activeFilterContent: { paddingHorizontal: 12, paddingVertical: 8, gap: 6, flexDirection: 'row', alignItems: 'center' },
   activeChip: {
     backgroundColor: Colors.surface, borderRadius: Radius.pill,
     paddingHorizontal: 10, paddingVertical: 2,
