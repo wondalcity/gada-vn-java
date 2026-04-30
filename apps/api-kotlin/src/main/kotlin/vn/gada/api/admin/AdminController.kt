@@ -555,6 +555,42 @@ class AdminController(
         return ok(adminService.cancelPushSchedule(id))
     }
 
+    // ── Attendance (Admin) ─────────────────────────────────────────────────────
+
+    /** GET /admin/attendance — Paginated attendance records for all workers */
+    @GetMapping("/attendance")
+    fun listAttendance(
+        request: HttpServletRequest,
+        @RequestParam(required = false) status: String?,
+        @RequestParam(required = false) workDate: String?,
+        @RequestParam(defaultValue = "1") page: Int,
+        @RequestParam(defaultValue = "20") limit: Int
+    ): ResponseEntity<Map<String, Any?>> {
+        checkAdminKey(request)
+        return ok(adminService.listAttendance(status, workDate, page, limit))
+    }
+
+    /** GET /admin/attendance/:id/history — Status change history for one record */
+    @GetMapping("/attendance/{id}/history")
+    fun getAttendanceHistory(
+        request: HttpServletRequest,
+        @PathVariable id: String
+    ): ResponseEntity<Map<String, Any?>> {
+        checkAdminKey(request)
+        return ok(adminService.getAttendanceHistory(id))
+    }
+
+    /** PUT /admin/attendance/:id — Admin updates an attendance record */
+    @PutMapping("/attendance/{id}")
+    fun updateAttendance(
+        request: HttpServletRequest,
+        @PathVariable id: String,
+        @RequestBody body: Map<String, Any?>
+    ): ResponseEntity<Map<String, Any?>> {
+        checkAdminKey(request)
+        return ok(adminService.updateAttendance(id, body))
+    }
+
     // ── Test Accounts ─────────────────────────────────────────────────────────
 
     /** GET /admin/test-accounts */

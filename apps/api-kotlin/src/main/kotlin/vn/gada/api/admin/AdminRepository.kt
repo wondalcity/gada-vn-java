@@ -925,4 +925,123 @@ class AdminRepository(
             id
         ).firstOrNull()
     }
+
+    // ── Attendance (Admin) ────────────────────────────────────────────────────
+
+    fun listAttendancePaginated(status: String?, workDate: String?, page: Int, limit: Int): List<Map<String, Any?>> {
+        val offset = (page - 1) * limit
+        val conditions = mutableListOf<String>()
+        val params = mutableListOf<Any?>()
+
+        if (!status.isNullOrBlank()) {
+            conditions.add("ar.status = ?")
+            params.add(status)
+        }
+        if (!workDate.isNullOrBlank()) {
+            conditions.add("ar.work_date = ?")
+            params.add(workDate)
+        }
+
+        val where = if (conditions.isEmpty()) "" else "WHERE " + conditions.joinToString(" AND ")
+        params.add(limit)
+        params.add(offset)
+
+        return db.queryForList(
+            """SELECT ar.id, ar.work_date, ar.status,
+                      ar.worker_status, ar.worker_status_at,
+                      ar.work_hours, ar.work_minutes,
+                      ar.work_duration_set_by, ar.work_duration_confirmed, ar.work_duration_confirmed_at,
+                      ar.manager_status_at, ar.updated_by_role,
+                      ar.notes,
+                      wp.full_name AS worker_name,
+                      j.title AS job_title,
+                      COALESCE(cs.name, '') AS site_name,
+                      COALESCE(mp.company_name, '') AS manager_company
+               FROM app.attendance_records ar
+               JOIN app.worker_profiles wp ON ar.worker_id = wp.id
+               JOIN app.jobs j ON ar.job_id = j.id
+               LEFT JOIN app.construction_sites cs ON j.site_id = cs.id
+               JOIN app.manager_profiles mp ON j.manager_id = mp.id
+               $where
+               ORDER BY ar.work_date DESC, wp.full_name ASC
+               LIMIT ? OFFSET ?""",
+            *params.toTypedArray()
+        )
+    }
+
+    fun countAttendance(status: String?, workDate: String?): Int {
+        val conditions = mutableListOf<String>()
+        val params = mutableListOf<Any?>()
+
+        if (!status.isNullOrBlank()) {
+            conditions.add("ar.status = ?")
+            params.add(status)
+        }
+        if (!workDate.isNullOrBlank()) {
+            conditions.add("ar.work_date = ?")
+            params.add(workDate)
+        }
+
+        val where = if (conditions.isEmpty()) "" else "WHERE " + conditions.joinToString(" AND ")
+
+        val rows = db.queryForList(
+            """SELECT COUNT(*) AS count
+               FROM app.attendance_records ar
+               JOIN app.worker_profiles wp ON ar.worker_id = wp.id
+               JOIN app.jobs j ON ar.job_id = j.id
+               JOIN app.manager_profiles mp ON j.manager_id = mp.id
+               $where""",
+            *params.toTypedArray()
+        )
+        return (rows.firstOrNull()?.get("count") as? Number)?.toInt() ?: 0
+    }
+
+    fun getAttendanceHistoryAdmin(attendanceId: String): List<Map<String, Any?>> {
+        return db.queryForList(
+            """SELECT id,
+                      changed_by_role AS "changedByRole",
+                      changed_by_name AS "changedByName",
+                      old_status      AS "oldStatus",
+                      new_status      AS "newStatus",
+                      changed_at      AS "changedAt",
+                      note
+               FROM app.attendance_status_history
+               WHERE attendance_id = ?
+               ORDER BY changed_at ASC""",
+            attendanceId
+        )
+    }
+
+    fun updateAttendanceAdmin(id: String, body: Map<String, Any?>): Map<String, Any?>? {
+        val setClauses = mutableListOf<String>()
+        val params = mutableListOf<Any?>()
+
+        body["status"]?.let { setClauses.add("status = ?"); params.add(it) }
+        body["notes"]?.let { setClauses.add("notes = ?"); params.add(it) }
+        body["workerStatus"]?.let { setClauses.add("worker_status = ?"); params.add(it) }
+        body["workHours"]?.let { setClauses.add("work_hours = ?"); params.add((it as? Number)?.toInt()) }
+        body["workMinutes"]?.let { setClauses.add("work_minutes = ?"); params.add((it as? Number)?.toInt()) }
+        body["workDurationConfirmed"]?.let { setClauses.add("work_duration_confirmed = ?"); params.add(it) }
+
+        if (body["status"] != null) {
+            setClauses.add("updated_by_role = 'ADMIN'")
+            setClauses.add("manager_status_at = NOW()")
+        }
+        setClauses.add("marked_at = NOW()")
+
+        if (setClauses.isEmpty()) return findAttendanceById(id)
+
+        params.add(id)
+        return db.queryForListRaw(
+            "UPDATE app.attendance_records SET ${setClauses.joinToString(", ")} WHERE id = ? RETURNING *",
+            *params.toTypedArray()
+        ).firstOrNull()
+    }
+
+    private fun findAttendanceById(id: String): Map<String, Any?>? {
+        return db.queryForList(
+            "SELECT * FROM app.attendance_records WHERE id = ?",
+            id
+        ).firstOrNull()
+    }
 }

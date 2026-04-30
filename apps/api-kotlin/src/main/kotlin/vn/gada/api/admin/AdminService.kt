@@ -339,4 +339,21 @@ class AdminService(
         val deleted = authRepo.deleteTestAccount(id)
         return mapOf("deleted" to deleted)
     }
+
+    // ── Attendance (Admin) ────────────────────────────────────────────────────
+
+    fun listAttendance(status: String?, workDate: String?, page: Int, limit: Int): Map<String, Any?> {
+        val data = repo.listAttendancePaginated(status, workDate, page, limit)
+        val total = repo.countAttendance(status, workDate)
+        return mapOf("data" to data, "total" to total, "page" to page, "limit" to limit)
+    }
+
+    fun getAttendanceHistory(attendanceId: String): List<Map<String, Any?>> {
+        return repo.getAttendanceHistoryAdmin(attendanceId)
+    }
+
+    fun updateAttendance(id: String, body: Map<String, Any?>): Map<String, Any?> {
+        return repo.updateAttendanceAdmin(id, body)
+            ?: throw NotFoundException("Attendance record $id not found")
+    }
 }
