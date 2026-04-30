@@ -241,7 +241,7 @@ export default function WorkerJobFeed() {
   return (
     <View style={styles.container}>
       {/* Custom header replaces native Tabs header */}
-      <AppHeader />
+      <AppHeader searchPath="/(worker)/" />
 
       {/* ── Top bar: job count + filter + view toggle ── */}
       <View style={styles.topBar}>

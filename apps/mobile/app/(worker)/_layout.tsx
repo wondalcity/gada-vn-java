@@ -37,6 +37,25 @@ export default function WorkerLayout() {
   const { t } = useTranslation();
   const router = useRouter();
 
+  // Search + phone + bell — used on the main tab screens that show a native header
+  const tabHeaderRight = () => (
+    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginRight: 12 }}>
+      <TouchableOpacity
+        onPress={() => router.push({ pathname: '/(worker)/' as any, params: { openFilter: '1' } })}
+        style={{ padding: 4 }}
+        hitSlop={8}
+      >
+        <Ionicons name="search" size={22} color={Colors.onSurface} />
+      </TouchableOpacity>
+      <TouchableOpacity onPress={() => Linking.openURL('tel:+84568240240')} style={{ padding: 4 }}>
+        <Text style={{ fontSize: 22 }}>📞</Text>
+      </TouchableOpacity>
+      <TouchableOpacity onPress={() => router.push('/(worker)/notifications' as any)} style={{ padding: 4 }}>
+        <Text style={{ fontSize: 22 }}>🔔</Text>
+      </TouchableOpacity>
+    </View>
+  );
+
   return (
     <Tabs
       screenOptions={{
@@ -47,6 +66,7 @@ export default function WorkerLayout() {
         headerStyle: { backgroundColor: Colors.surface },
         headerShadowVisible: true,
         headerTintColor: Colors.onSurface,
+        // Default headerRight (phone + bell only) for detail/hidden screens
         headerRight: () => (
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginRight: 12 }}>
             <TouchableOpacity onPress={() => Linking.openURL('tel:+84568240240')} style={{ padding: 4 }}>
@@ -79,7 +99,7 @@ export default function WorkerLayout() {
         }}
       />
 
-      {/* 지원현황 */}
+      {/* 지원현황 — search button in header */}
       <Tabs.Screen
         name="work"
         options={{
@@ -88,10 +108,11 @@ export default function WorkerLayout() {
           title: t('worker.work_tab_title'),
           tabBarLabel: t('worker.work_tab_label'),
           tabBarIcon: ({ focused }) => <TabIcon name={focused ? 'document-text' : 'document-text-outline'} focused={focused} />,
+          headerRight: tabHeaderRight,
         }}
       />
 
-      {/* 출퇴근 */}
+      {/* 출퇴근 — search button in header */}
       <Tabs.Screen
         name="attendance"
         options={{
@@ -100,10 +121,11 @@ export default function WorkerLayout() {
           title: t('attendance.title'),
           tabBarLabel: t('attendance.tab_label'),
           tabBarIcon: ({ focused }) => <TabIcon name={focused ? 'calendar' : 'calendar-outline'} focused={focused} />,
+          headerRight: tabHeaderRight,
         }}
       />
 
-      {/* 마이페이지 */}
+      {/* 마이페이지 — search button in header */}
       <Tabs.Screen
         name="profile/index"
         options={{
@@ -112,6 +134,7 @@ export default function WorkerLayout() {
           title: t('landing.mypage'),
           tabBarLabel: t('landing.mypage'),
           tabBarIcon: ({ focused }) => <TabIcon name={focused ? 'person' : 'person-outline'} focused={focused} />,
+          headerRight: tabHeaderRight,
         }}
       />
 

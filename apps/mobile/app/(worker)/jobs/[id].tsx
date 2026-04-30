@@ -268,13 +268,19 @@ export default function JobDetailScreen() {
     ?? null;
   const reqNotes = job.requirements?.notes ?? null;
 
-  // Images — prefer server-resolved CDN URLs, fall back to client-side construction
+  // Images — prefer server-resolved CDN URLs, fall back to client-side construction.
+  // Always put the cover image first so the carousel opens on the same image shown in the list.
   const CDN_URL = process.env.EXPO_PUBLIC_CDN_URL ?? '';
   const imageUrls = (() => {
     if ((job.siteImageUrls ?? []).length > 0) return job.siteImageUrls!;
     if (job.siteCoverImageUrl) return [job.siteCoverImageUrl];
     if ((job.imageS3Keys ?? []).length > 0) {
-      return job.imageS3Keys!.map(key => `${CDN_URL}/${key}`);
+      const keys = [...job.imageS3Keys!];
+      const idx = job.coverImageIdx ?? 0;
+      if (idx > 0 && idx < keys.length) {
+        keys.unshift(keys.splice(idx, 1)[0]);
+      }
+      return keys.map(key => `${CDN_URL}/${key}`);
     }
     return [];
   })();

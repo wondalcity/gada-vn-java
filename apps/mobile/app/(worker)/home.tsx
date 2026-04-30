@@ -173,11 +173,11 @@ export default function WorkerHomeScreen() {
   const selectedProvinceObj = provinces.find(p => p.code === selectedProvince);
   const selectedProvinceName = selectedProvince
     ? (selectedProvinceObj?.nameKo || selectedProvinceObj?.nameVi || selectedProvince)
-    : t('jobs.filter_province_all') || '전체 지역';
+    : t('jobs.filter_province_all', '전체 지역');
 
   const selectedTradeName = selectedTradeId
     ? (trades.find(tr => tr.id === selectedTradeId)?.nameKo ?? String(selectedTradeId))
-    : t('jobs.filter_trade_all') || '전체 직종';
+    : t('jobs.filter_trade_all', '전체 직종');
 
   if (loading) {
     return (
