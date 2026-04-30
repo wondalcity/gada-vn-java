@@ -1,7 +1,7 @@
 -- Audit log table (used by AuditLogObserver)
 CREATE TABLE IF NOT EXISTS ops.audit_logs (
     id          BIGSERIAL PRIMARY KEY,
-    user_id     UUID REFERENCES auth.users(id) ON DELETE SET NULL,
+    user_id     UUID REFERENCES app.users(id) ON DELETE SET NULL,
     action      TEXT NOT NULL,           -- created | updated | deleted
     entity_type TEXT NOT NULL,           -- model class basename
     entity_id   TEXT NOT NULL,           -- PK of the changed record
@@ -18,7 +18,7 @@ CREATE INDEX IF NOT EXISTS idx_audit_logs_created ON ops.audit_logs(created_at D
 CREATE TABLE IF NOT EXISTS app.attendance_audits (
     id              BIGSERIAL PRIMARY KEY,
     attendance_id   UUID NOT NULL REFERENCES app.attendance_records(id) ON DELETE CASCADE,
-    changed_by      UUID REFERENCES auth.users(id) ON DELETE SET NULL,
+    changed_by      UUID REFERENCES app.users(id) ON DELETE SET NULL,
     changed_at      TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     old_status      TEXT,
     new_status      TEXT,

@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback, useRef } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import {
   View, Text, ScrollView, TouchableOpacity,
   StyleSheet, ActivityIndicator,
@@ -7,16 +7,10 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { api, ApiError } from '../../../lib/api-client';
 import { showToast } from '../../../lib/toast';
+import { ContractDocument, type MobileContract } from '../../../components/ContractDocument';
 
-interface Contract {
-  id: string;
-  status: string;
-  contractHtml: string;
-  workerSignedAt: string | null;
-  managerSignedAt: string | null;
-  workerSigUrl: string | null;
-  managerSigUrl: string | null;
-  createdAt: string;
+interface Contract extends MobileContract {
+  contractHtml?: string;
 }
 
 export default function WorkerContractScreen() {
@@ -69,16 +63,10 @@ export default function WorkerContractScreen() {
   return (
     <>
       <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-        {/* Contract HTML content */}
-        <View style={styles.contractBox}>
-          <Text style={styles.contractTitle}>{t('contract.title')}</Text>
-          <View style={styles.divider} />
-          <Text style={styles.contractText}>
-            {(contract.contractHtml ?? '').replace(/<[^>]*>/g, '').trim()}
-          </Text>
-        </View>
+        {/* Styled contract document with language tabs */}
+        <ContractDocument contract={contract} />
 
-        {/* Signature status card */}
+        {/* Signature status / action card */}
         <View style={styles.sigCard}>
           <Text style={styles.sigCardTitle}>{t('contract.section_signature_status')}</Text>
           <View style={styles.sigRow}>
@@ -132,7 +120,7 @@ export default function WorkerContractScreen() {
 }
 
 // ─── Signature Pad ────────────────────────────────────────────────────────────
-// Simple drawn signature using touch events stored as SVG path data
+
 interface SignaturePadProps {
   onConfirm: (signatureData: string) => void;
   onCancel: () => void;
@@ -187,7 +175,6 @@ function SignaturePadModal({ onConfirm, onCancel }: SignaturePadProps) {
           onResponderMove={(e) => handleTouchMove(e)}
           onResponderRelease={() => handleTouchEnd()}
         >
-          {/* Visual strokes using positioned views */}
           {!hasSignature && (
             <Text style={sig.placeholder}>{t('contract.sign_pad_placeholder')}</Text>
           )}
@@ -217,10 +204,6 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#F5F5F5' },
   content: { padding: 16, paddingBottom: 24 },
   center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  contractBox: { backgroundColor: '#fff', borderRadius: 16, padding: 20 },
-  contractTitle: { fontSize: 20, fontWeight: '800', textAlign: 'center', marginBottom: 16 },
-  divider: { height: 1, backgroundColor: '#E0E0E0', marginBottom: 16 },
-  contractText: { fontSize: 14, color: '#444', lineHeight: 22 },
   // Signature status card
   sigCard: { backgroundColor: '#fff', borderRadius: 16, padding: 16, marginTop: 12 },
   sigCardTitle: { fontSize: 14, fontWeight: '700', color: '#25282A', marginBottom: 12 },
@@ -228,7 +211,7 @@ const styles = StyleSheet.create({
   sigBox: { flex: 1, borderRadius: 12, borderWidth: 2, padding: 12, alignItems: 'center', minHeight: 110, justifyContent: 'center' },
   sigBoxActive: { borderColor: '#0669F7', backgroundColor: '#EFF5FF' },
   sigBoxDone: { borderColor: '#86EFAC', backgroundColor: '#F0FDF4' },
-  sigBoxWait: { borderColor: '#E5E7EB', backgroundColor: '#F9FAFB', borderStyle: 'dashed' },
+  sigBoxWait: { borderColor: '#E5E7EB', backgroundColor: '#F9FAFB' },
   sigBoxLabel: { fontSize: 11, fontWeight: '600', color: '#9CA3AF', marginBottom: 4 },
   sigBoxLabelActive: { fontSize: 11, fontWeight: '700', color: '#0669F7', marginBottom: 4 },
   sigBoxLabelDone: { color: '#16A34A' },

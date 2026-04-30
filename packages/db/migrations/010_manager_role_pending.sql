@@ -3,9 +3,9 @@
 -- Makes manager_profiles fields nullable for minimal initial record creation
 
 -- 1. Add 'pending' status to user_roles
-ALTER TABLE auth.user_roles
+ALTER TABLE app.user_roles
   DROP CONSTRAINT IF EXISTS user_roles_status_check;
-ALTER TABLE auth.user_roles
+ALTER TABLE app.user_roles
   ADD CONSTRAINT user_roles_status_check
   CHECK (status IN ('active', 'pending', 'suspended'));
 

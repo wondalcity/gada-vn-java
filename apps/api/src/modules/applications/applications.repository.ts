@@ -98,7 +98,7 @@ export class ApplicationsRepository {
        SELECT u.id,
               COALESCE(mp.representative_name, u.phone, u.email, 'Unknown'),
               0
-       FROM auth.users u
+       FROM app.users u
        LEFT JOIN app.manager_profiles mp ON mp.user_id = u.id
        WHERE u.id = $1
        ON CONFLICT (user_id) DO NOTHING`,
@@ -118,7 +118,7 @@ export class ApplicationsRepository {
     const { rows } = await this.db.query<{ user_id: string }>(
       `SELECT u.id as user_id FROM app.job_applications a
        JOIN app.worker_profiles wp ON a.worker_id = wp.id
-       JOIN auth.users u ON wp.user_id = u.id
+       JOIN app.users u ON wp.user_id = u.id
        WHERE a.id = $1`,
       [id],
     );

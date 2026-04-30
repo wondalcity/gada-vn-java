@@ -4,7 +4,6 @@ CREATE EXTENSION IF NOT EXISTS "postgis";
 CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 
 -- Create schemas
-CREATE SCHEMA IF NOT EXISTS auth;
 CREATE SCHEMA IF NOT EXISTS app;
 CREATE SCHEMA IF NOT EXISTS ref;
 CREATE SCHEMA IF NOT EXISTS ops;
@@ -31,7 +30,7 @@ CREATE TABLE ref.vn_provinces (
 -- AUTH SCHEMA — user identity
 -- ============================================================
 
-CREATE TABLE auth.users (
+CREATE TABLE app.users (
     id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     firebase_uid    TEXT UNIQUE NOT NULL,
     phone           TEXT UNIQUE,
@@ -43,8 +42,8 @@ CREATE TABLE auth.users (
     updated_at      TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
-CREATE INDEX idx_auth_users_firebase_uid ON auth.users(firebase_uid);
-CREATE INDEX idx_auth_users_phone ON auth.users(phone);
+CREATE INDEX idx_auth_users_firebase_uid ON app.users(firebase_uid);
+CREATE INDEX idx_auth_users_phone ON app.users(phone);
 
 -- ============================================================
 -- APP SCHEMA — WORKER PROFILES
@@ -52,7 +51,7 @@ CREATE INDEX idx_auth_users_phone ON auth.users(phone);
 
 CREATE TABLE app.worker_profiles (
     id                  UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    user_id             UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+    user_id             UUID NOT NULL REFERENCES app.users(id) ON DELETE CASCADE,
     full_name           TEXT NOT NULL,
     date_of_birth       DATE NOT NULL,
     gender              TEXT CHECK (gender IN ('MALE', 'FEMALE', 'OTHER')),
@@ -95,7 +94,7 @@ CREATE TABLE app.worker_trade_skills (
 
 CREATE TABLE app.manager_profiles (
     id                      UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    user_id                 UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+    user_id                 UUID NOT NULL REFERENCES app.users(id) ON DELETE CASCADE,
     business_type           TEXT NOT NULL CHECK (business_type IN ('INDIVIDUAL', 'CORPORATE')),
     company_name            TEXT,
     representative_name     TEXT NOT NULL,
@@ -115,7 +114,7 @@ CREATE TABLE app.manager_profiles (
     approval_status         TEXT NOT NULL DEFAULT 'PENDING'
                             CHECK (approval_status IN ('PENDING', 'APPROVED', 'REJECTED')),
     approved_at             TIMESTAMPTZ,
-    approved_by             UUID REFERENCES auth.users(id),
+    approved_by             UUID REFERENCES app.users(id),
     rejection_reason        TEXT,
     -- Terms
     terms_accepted          BOOLEAN NOT NULL DEFAULT FALSE,
@@ -300,7 +299,7 @@ CREATE INDEX idx_attendance_work_date ON app.attendance_records(work_date);
 
 CREATE TABLE ops.notifications (
     id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    user_id         UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+    user_id         UUID NOT NULL REFERENCES app.users(id) ON DELETE CASCADE,
     type            TEXT NOT NULL,
     title           TEXT NOT NULL,
     body            TEXT NOT NULL,
@@ -315,7 +314,7 @@ CREATE INDEX idx_notifications_user_id ON ops.notifications(user_id);
 CREATE INDEX idx_notifications_read ON ops.notifications(user_id, read) WHERE read = FALSE;
 
 CREATE TABLE ops.fcm_tokens (
-    user_id         UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+    user_id         UUID NOT NULL REFERENCES app.users(id) ON DELETE CASCADE,
     token           TEXT NOT NULL,
     platform        TEXT CHECK (platform IN ('IOS', 'ANDROID')),
     last_seen_at    TIMESTAMPTZ NOT NULL DEFAULT NOW(),
@@ -340,7 +339,7 @@ DECLARE
     t TEXT;
 BEGIN
     FOR t IN SELECT table_name FROM information_schema.tables
-             WHERE table_schema IN ('auth', 'app')
+             WHERE table_schema IN ('app')
                AND table_name IN (
                    'users', 'worker_profiles', 'manager_profiles',
                    'construction_sites', 'jobs', 'contracts'

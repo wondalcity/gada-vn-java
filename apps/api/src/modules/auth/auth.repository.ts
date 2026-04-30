@@ -19,7 +19,7 @@ export class AuthRepository {
 
   async findByFirebaseUid(firebaseUid: string) {
     const { rows } = await this.db.query<UserRow>(
-      'SELECT * FROM auth.users WHERE firebase_uid = $1',
+      'SELECT * FROM app.users WHERE firebase_uid = $1',
       [firebaseUid],
     );
     return rows[0] || null;
@@ -34,7 +34,7 @@ export class AuthRepository {
   }) {
     try {
       const { rows } = await this.db.query<UserRow>(
-        `INSERT INTO auth.users (firebase_uid, phone, email, role, provider)
+        `INSERT INTO app.users (firebase_uid, phone, email, role, provider)
          VALUES ($1, $2, $3, $4, $5)
          RETURNING *`,
         [data.firebaseUid, data.phone, data.email, data.role, data.provider ?? 'phone'],
@@ -44,7 +44,7 @@ export class AuthRepository {
       // 42703 = undefined_column: migration 027 미적용 시 provider 컬럼 없음 — 폴백
       if ((err as { code?: string })?.code === '42703') {
         const { rows } = await this.db.query<UserRow>(
-          `INSERT INTO auth.users (firebase_uid, phone, email, role)
+          `INSERT INTO app.users (firebase_uid, phone, email, role)
            VALUES ($1, $2, $3, $4)
            RETURNING *`,
           [data.firebaseUid, data.phone, data.email, data.role],
@@ -57,14 +57,14 @@ export class AuthRepository {
 
   async updateFirebaseUid(userId: string, firebaseUid: string) {
     await this.db.query(
-      'UPDATE auth.users SET firebase_uid = $1, updated_at = NOW() WHERE id = $2',
+      'UPDATE app.users SET firebase_uid = $1, updated_at = NOW() WHERE id = $2',
       [firebaseUid, userId],
     );
   }
 
   async updateRole(userId: string, role: string) {
     const { rows } = await this.db.query<UserRow>(
-      'UPDATE auth.users SET role = $1, updated_at = NOW() WHERE id = $2 RETURNING *',
+      'UPDATE app.users SET role = $1, updated_at = NOW() WHERE id = $2 RETURNING *',
       [role, userId],
     );
     return rows[0];
@@ -82,7 +82,7 @@ export class AuthRepository {
 
   async findById(userId: string) {
     const { rows } = await this.db.query<UserRow>(
-      'SELECT * FROM auth.users WHERE id = $1',
+      'SELECT * FROM app.users WHERE id = $1',
       [userId],
     );
     return rows[0] || null;
@@ -90,7 +90,7 @@ export class AuthRepository {
 
   async findByEmail(email: string) {
     const { rows } = await this.db.query<UserRow>(
-      'SELECT * FROM auth.users WHERE email = $1',
+      'SELECT * FROM app.users WHERE email = $1',
       [email],
     );
     return rows[0] || null;
@@ -98,7 +98,7 @@ export class AuthRepository {
 
   async findByPhone(phone: string) {
     const { rows } = await this.db.query<UserRow>(
-      'SELECT * FROM auth.users WHERE phone = $1',
+      'SELECT * FROM app.users WHERE phone = $1',
       [phone],
     );
     return rows[0] || null;
@@ -112,7 +112,7 @@ export class AuthRepository {
          u.created_at, u.updated_at,
          wp.full_name as worker_name,
          mp.approval_status as manager_status
-       FROM auth.users u
+       FROM app.users u
        LEFT JOIN app.worker_profiles wp ON wp.user_id = u.id
        LEFT JOIN app.manager_profiles mp ON mp.user_id = u.id
        WHERE u.id = $1`,
@@ -145,7 +145,7 @@ export class AuthRepository {
 
   async updatePhone(userId: string, phone: string) {
     await this.db.query(
-      'UPDATE auth.users SET phone = $1, updated_at = NOW() WHERE id = $2',
+      'UPDATE app.users SET phone = $1, updated_at = NOW() WHERE id = $2',
       [phone, userId],
     );
   }
@@ -154,7 +154,7 @@ export class AuthRepository {
     // Update email if provided
     if (data.email) {
       await this.db.query(
-        'UPDATE auth.users SET email = $1, updated_at = NOW() WHERE id = $2',
+        'UPDATE app.users SET email = $1, updated_at = NOW() WHERE id = $2',
         [data.email, userId],
       );
     }
@@ -172,7 +172,7 @@ export class AuthRepository {
 
   async isTestPhone(phone: string): Promise<boolean> {
     const { rows } = await this.db.query<{ is_test_account: boolean }>(
-      'SELECT is_test_account FROM auth.users WHERE phone = $1',
+      'SELECT is_test_account FROM app.users WHERE phone = $1',
       [phone],
     );
     return rows[0]?.is_test_account === true;
@@ -189,10 +189,10 @@ export class AuthRepository {
     );
   }
 
-  /** Update email in auth.users only if currently NULL (e.g. after Google sign-in). */
+  /** Update email in app.users only if currently NULL (e.g. after Google sign-in). */
   async updateEmailIfNull(userId: string, email: string): Promise<void> {
     await this.db.query(
-      'UPDATE auth.users SET email = $1, updated_at = NOW() WHERE id = $2 AND email IS NULL',
+      'UPDATE app.users SET email = $1, updated_at = NOW() WHERE id = $2 AND email IS NULL',
       [email, userId],
     );
   }

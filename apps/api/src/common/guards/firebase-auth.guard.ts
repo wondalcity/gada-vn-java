@@ -37,7 +37,7 @@ export class FirebaseAuthGuard implements CanActivate {
     if (token.startsWith('dev_')) {
       const userId = token.slice(4); // remove 'dev_' prefix
       const { rows: devRows } = await this.db.query<{ id: string; role: string; status: string }>(
-        'SELECT id, role, status FROM auth.users WHERE id = $1',
+        'SELECT id, role, status FROM app.users WHERE id = $1',
         [userId],
       );
       if (devRows.length === 0) throw new UnauthorizedException('Dev user not found');
@@ -61,7 +61,7 @@ export class FirebaseAuthGuard implements CanActivate {
         role: string;
         status: string;
       }>(
-        'SELECT id, role, status FROM auth.users WHERE firebase_uid = $1',
+        'SELECT id, role, status FROM app.users WHERE firebase_uid = $1',
         [decoded.uid],
       );
 

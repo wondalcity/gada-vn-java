@@ -87,9 +87,9 @@ export class ContractsRepository {
        JOIN app.construction_sites s ON j.site_id = s.id
        LEFT JOIN app.construction_companies cc ON s.company_id = cc.id
        JOIN app.worker_profiles wp ON c.worker_id = wp.id
-       JOIN auth.users uw ON wp.user_id = uw.id
+       JOIN app.users uw ON wp.user_id = uw.id
        JOIN app.manager_profiles mp ON c.manager_id = mp.id
-       JOIN auth.users um ON mp.user_id = um.id
+       JOIN app.users um ON mp.user_id = um.id
        WHERE c.id = $1`,
       [id],
     );
@@ -131,8 +131,8 @@ export class ContractsRepository {
        FROM app.contracts c
        JOIN app.worker_profiles wp ON c.worker_id = wp.id
        JOIN app.manager_profiles mp ON c.manager_id = mp.id
-       JOIN auth.users uw ON wp.user_id = uw.id
-       JOIN auth.users um ON mp.user_id = um.id
+       JOIN app.users uw ON wp.user_id = uw.id
+       JOIN app.users um ON mp.user_id = um.id
        WHERE c.id = $1`,
       [contractId],
     );
@@ -248,7 +248,7 @@ export class ContractsRepository {
        JOIN app.construction_sites s ON j.site_id = s.id
        JOIN app.manager_profiles mp ON c.manager_id = mp.id
        JOIN app.worker_profiles wp ON c.worker_id = wp.id
-       JOIN auth.users uw ON wp.user_id = uw.id
+       JOIN app.users uw ON wp.user_id = uw.id
        WHERE mp.user_id = $1
        ORDER BY c.created_at DESC`,
       [userId],

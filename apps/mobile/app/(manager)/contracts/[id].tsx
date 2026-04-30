@@ -6,13 +6,10 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { api } from '../../../lib/api-client';
 import { showToast } from '../../../lib/toast';
+import { ContractDocument, type MobileContract } from '../../../components/ContractDocument';
 
-interface Contract {
-  id: string;
-  status: string;
-  contractHtml: string;
-  workerSignedAt: string | null;
-  createdAt: string;
+interface Contract extends MobileContract {
+  contractHtml?: string;
 }
 
 export default function ManagerContractScreen() {
@@ -56,13 +53,10 @@ export default function ManagerContractScreen() {
         )}
       </View>
 
-      <View style={styles.contractBox}>
-        <Text style={styles.contractTitle}>{t('contract.title')}</Text>
-        <View style={styles.divider} />
-        <Text style={styles.contractText}>
-          {(contract.contractHtml ?? '').replace(/<[^>]*>/g, '').trim()}
-        </Text>
-      </View>
+      {/* Styled contract document with language tabs */}
+      <ContractDocument contract={contract} />
+
+      <View style={{ height: 32 }} />
     </ScrollView>
   );
 }
@@ -76,8 +70,4 @@ const styles = StyleSheet.create({
   pending: { backgroundColor: '#FFF3E0' },
   statusText: { fontSize: 16, fontWeight: '700' },
   statusSub: { fontSize: 12, color: '#888', marginTop: 4 },
-  contractBox: { backgroundColor: '#fff', borderRadius: 16, padding: 20 },
-  contractTitle: { fontSize: 20, fontWeight: '800', textAlign: 'center', marginBottom: 16 },
-  divider: { height: 1, backgroundColor: '#E0E0E0', marginBottom: 16 },
-  contractText: { fontSize: 14, color: '#444', lineHeight: 22 },
 });

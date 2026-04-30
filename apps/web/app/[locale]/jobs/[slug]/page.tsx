@@ -35,7 +35,13 @@ const PROVINCE_CODE: Record<string, string> = {
 
 // ── Data fetchers ─────────────────────────────────────────────────────────────
 
-type JobWithMeta = JobWithSite & { site_name?: string; address?: string; site_cover_image_url?: string | null };
+type JobWithMeta = JobWithSite & {
+  site_name?: string;
+  address?: string;
+  site_cover_image_url?: string | null;
+  lat?: number | null;
+  lng?: number | null;
+};
 
 async function getJob(id: string): Promise<JobWithMeta | null> {
   const apiUrl = process.env.INTERNAL_API_URL || 'http://localhost:3001/v1';
@@ -376,6 +382,32 @@ export default async function JobsSlugPage({ params, searchParams }: Props) {
             <div className="mb-6">
               <h2 className="font-semibold text-gray-900 mb-2">상세 정보</h2>
               <p className="text-gray-600">{job.description}</p>
+            </div>
+          )}
+
+          {jobWithMeta.lat != null && jobWithMeta.lng != null && process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY && (
+            <div className="mb-6">
+              <h2 className="font-semibold text-gray-900 mb-2">📍 현장 위치</h2>
+              <div className="rounded-xl overflow-hidden border border-gray-100">
+                <iframe
+                  title="현장 위치"
+                  width="100%"
+                  height="240"
+                  style={{ border: 0 }}
+                  loading="lazy"
+                  allowFullScreen
+                  referrerPolicy="no-referrer-when-downgrade"
+                  src={`https://www.google.com/maps/embed/v1/place?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}&q=${jobWithMeta.lat},${jobWithMeta.lng}&zoom=15`}
+                />
+              </div>
+              <a
+                href={`https://www.google.com/maps/search/?api=1&query=${jobWithMeta.lat},${jobWithMeta.lng}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-2 inline-block text-sm text-brand hover:underline"
+              >
+                Google Maps에서 보기 →
+              </a>
             </div>
           )}
 

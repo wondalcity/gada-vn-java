@@ -3,6 +3,7 @@ import { useParams, Link, useNavigate } from 'react-router-dom'
 import { api } from '../lib/api'
 import { useAdminTranslation } from '../context/LanguageContext'
 import { fmtDate, fmtDateTime, tradeName } from '../lib/dateUtils'
+import { ContractDocument, ContractDownloadButton, ContractLangSelector, type AdminContract } from '../components/ContractDocument'
 
 interface Job {
   id: string
@@ -123,7 +124,7 @@ function RejectModal({
   )
 }
 
-// ── Contract view modal ────────────────────────────────────────────────
+// ── Contract view modal (full document) ───────────────────────────────────────
 function ContractModal({
   row,
   t,
@@ -133,52 +134,76 @@ function ContractModal({
   t: (key: string) => string
   onClose: () => void
 }) {
+  const [contract, setContract] = useState<AdminContract | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [lang, setLang] = useState<'ko' | 'vi' | 'en'>('ko')
+  const documentRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (!row.contract_id) return
+    setLoading(true)
+    api.get<AdminContract>(`/admin/contracts/${row.contract_id}`)
+      .then(data => setContract(data))
+      .catch(() => setError('계약서를 불러올 수 없습니다.'))
+      .finally(() => setLoading(false))
+  }, [row.contract_id])
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
-      <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm p-6">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-base font-bold text-gray-900">{t('jobs.detail.contract_modal_title')}</h3>
-          <button
-            onClick={onClose}
-            className="w-7 h-7 flex items-center justify-center rounded-full hover:bg-[#EFF1F5] text-[#7A7B7A]"
-          >
-            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
-        </div>
-        <div className="space-y-3 text-sm">
-          <div className="flex items-start justify-between gap-2">
-            <span className="text-[#98A2B2] shrink-0">{t('jobs.detail.contract_modal_id')}</span>
-            <span className="text-[#25282A] font-mono text-xs text-right break-all">{row.contract_id}</span>
-          </div>
-          <div className="flex items-center justify-between gap-2">
-            <span className="text-[#98A2B2] shrink-0">{t('jobs.detail.contract_modal_status')}</span>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4" onClick={onClose}>
+      <div className="bg-white rounded-2xl shadow-xl w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden" onClick={e => e.stopPropagation()}>
+        {/* Header */}
+        <div className="flex items-center justify-between px-5 py-4 border-b border-[#EFF1F5] shrink-0">
+          <div className="flex items-center gap-3">
+            <h3 className="text-base font-bold text-gray-900">{t('jobs.detail.contract_modal_title')}</h3>
             {row.contract_status && (
-              <span className={`px-2.5 py-1 text-xs rounded-full font-medium whitespace-nowrap ${CONTRACT_STATUS_BADGE[row.contract_status] ?? 'bg-[#EFF1F5] text-[#98A2B2]'}`}>
+              <span className={`px-2.5 py-1 text-xs rounded-full font-medium ${CONTRACT_STATUS_BADGE[row.contract_status] ?? 'bg-[#EFF1F5] text-[#98A2B2]'}`}>
                 {CONTRACT_STATUS_LABEL(row.contract_status, t)}
               </span>
             )}
           </div>
-          <div className="flex items-center justify-between gap-2">
-            <span className="text-[#98A2B2] shrink-0">{t('jobs.detail.contract_modal_worker_signed')}</span>
-            <span className={row.worker_signed_at ? 'text-green-700 font-medium' : 'text-[#98A2B2]'}>
-              {row.worker_signed_at ? fmtDateTime(row.worker_signed_at) : t('jobs.detail.contract_modal_not_signed')}
-            </span>
-          </div>
-          <div className="flex items-center justify-between gap-2">
-            <span className="text-[#98A2B2] shrink-0">{t('jobs.detail.contract_modal_manager_signed')}</span>
-            <span className={row.manager_signed_at ? 'text-green-700 font-medium' : 'text-[#98A2B2]'}>
-              {row.manager_signed_at ? fmtDateTime(row.manager_signed_at) : t('jobs.detail.contract_modal_not_signed')}
-            </span>
+          <div className="flex items-center gap-2">
+            {contract && (
+              <ContractDownloadButton documentRef={documentRef} contractId={contract.id} lang={lang} />
+            )}
+            <button onClick={onClose} className="w-7 h-7 flex items-center justify-center rounded-full hover:bg-[#EFF1F5] text-[#7A7B7A]">
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
           </div>
         </div>
-        <button
-          onClick={onClose}
-          className="mt-5 w-full py-2.5 rounded-xl text-sm font-medium border border-[#EFF1F5] text-gray-600 hover:bg-[#F2F4F5] transition-colors"
-        >
-          {t('jobs.detail.contract_modal_close')}
-        </button>
+
+        {/* Language selector */}
+        {contract && (
+          <div className="px-5 py-2.5 border-b border-[#EFF1F5] shrink-0">
+            <ContractLangSelector lang={lang} onChange={setLang} />
+          </div>
+        )}
+
+        {/* Body */}
+        <div className="flex-1 overflow-y-auto p-4">
+          {loading && (
+            <div className="flex items-center justify-center py-12">
+              <div className="w-6 h-6 border-2 border-[#0669F7] border-t-transparent rounded-full animate-spin" />
+            </div>
+          )}
+          {error && (
+            <div className="p-4 bg-[#FDE8EE] border border-[#F4A8B8] rounded-xl text-sm text-[#ED1C24]">{error}</div>
+          )}
+          {contract && (
+            <div className="overflow-x-auto rounded-xl border border-[#EFF1F5]">
+              <ContractDocument contract={contract} documentRef={documentRef} lang={lang} />
+            </div>
+          )}
+        </div>
+
+        {/* Footer */}
+        <div className="px-5 py-3 border-t border-[#EFF1F5] shrink-0">
+          <button onClick={onClose} className="w-full py-2.5 rounded-xl text-sm font-medium border border-[#EFF1F5] text-gray-600 hover:bg-[#F2F4F5] transition-colors">
+            {t('jobs.detail.contract_modal_close')}
+          </button>
+        </div>
       </div>
     </div>
   )

@@ -223,7 +223,7 @@ export class ManagerJobsController {
               t.name_ko AS trade_name_ko, t.id AS trade_id
        FROM app.job_applications a
        JOIN app.worker_profiles wp ON a.worker_id = wp.id
-       JOIN auth.users u ON wp.user_id = u.id
+       JOIN app.users u ON wp.user_id = u.id
        LEFT JOIN ref.construction_trades t ON t.id = wp.primary_trade_id
        WHERE a.job_id = $1
          AND a.status != 'WITHDRAWN'
@@ -346,7 +346,7 @@ export class ManagerJobsController {
        JOIN app.jobs j ON a.job_id = j.id
        JOIN app.manager_profiles mp ON j.manager_id = mp.id
        JOIN app.worker_profiles wp ON a.worker_id = wp.id
-       JOIN auth.users u ON wp.user_id = u.id
+       JOIN app.users u ON wp.user_id = u.id
        LEFT JOIN ref.construction_trades t ON t.id = wp.primary_trade_id
        WHERE mp.user_id = $1
          AND a.status != 'WITHDRAWN'
@@ -401,7 +401,7 @@ export class ManagerJobsController {
          ar.notes AS attendance_notes
        FROM app.job_applications a
        JOIN app.worker_profiles wp ON a.worker_id = wp.id
-       JOIN auth.users u ON wp.user_id = u.id
+       JOIN app.users u ON wp.user_id = u.id
        LEFT JOIN ref.construction_trades t ON t.id = wp.primary_trade_id
        LEFT JOIN app.attendance_records ar
          ON ar.job_id = a.job_id AND ar.worker_id = a.worker_id AND ar.work_date = $2

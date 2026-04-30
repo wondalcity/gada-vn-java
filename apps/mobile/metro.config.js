@@ -29,6 +29,8 @@ config.resolver.nodeModulesPaths = [
 const REACT_SINGLETONS = {
   react: require.resolve('react'),
   'react-native': require.resolve('react-native'),
+  'react/jsx-runtime': require.resolve('react/jsx-runtime'),
+  'react/jsx-dev-runtime': require.resolve('react/jsx-dev-runtime'),
 };
 
 config.resolver.resolveRequest = (context, moduleName, platform) => {
