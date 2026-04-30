@@ -243,6 +243,63 @@ export default function WorkerJobFeed() {
       {/* Custom header replaces native Tabs header */}
       <AppHeader searchPath="/(worker)/" />
 
+      {/* Active filter chips — shown at top when any filter is active */}
+      {isFilterActive && (
+        <View style={styles.activeFilterBar}>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.activeFilterContent}
+          >
+            {appliedSearch ? (
+              <View style={styles.activeChip}><Text style={styles.activeChipText}>"{appliedSearch}"</Text></View>
+            ) : null}
+            {appliedProvince ? (() => {
+              const p = provinces.find(pr => (pr.code ?? pr.id) === appliedProvince);
+              return (
+                <View style={styles.activeChip}><Text style={styles.activeChipText}>
+                  {p?.nameKo || p?.nameVi || appliedProvince}
+                </Text></View>
+              );
+            })() : null}
+            {appliedTradeId ? (() => {
+              const tr = trades.find(t => t.id === appliedTradeId);
+              return (
+                <View style={styles.activeChip}><Text style={styles.activeChipText}>
+                  {tr?.nameKo || tr?.nameVi || String(appliedTradeId)}
+                </Text></View>
+              );
+            })() : null}
+            {appliedStatus ? (
+              <View style={styles.activeChip}><Text style={styles.activeChipText}>
+                {statusOptions.find(s => s.value === appliedStatus)?.label}
+              </Text></View>
+            ) : null}
+            {appliedMinExp ? (
+              <View style={styles.activeChip}><Text style={styles.activeChipText}>
+                {expOptions.find(e => e.value === appliedMinExp)?.label}
+              </Text></View>
+            ) : null}
+            {appliedLat != null ? (
+              <View style={styles.activeChip}><Text style={styles.activeChipText}>
+                📍 {appliedRadius}km
+              </Text></View>
+            ) : null}
+            {(appliedMin || appliedMax) ? (
+              <View style={styles.activeChip}><Text style={styles.activeChipText}>
+                {appliedMin && appliedMax
+                  ? `₫${(appliedMin / 1000).toFixed(0)}K–₫${(appliedMax / 1000).toFixed(0)}K`
+                  : appliedMin ? `₫${(appliedMin / 1000).toFixed(0)}K+`
+                  : `~₫${(appliedMax! / 1000).toFixed(0)}K`}
+              </Text></View>
+            ) : null}
+            <TouchableOpacity style={styles.clearAllBtn} onPress={clearAllFilters}>
+              <Text style={styles.clearAllText}>{t('jobs.filter_clear_chips')}</Text>
+            </TouchableOpacity>
+          </ScrollView>
+        </View>
+      )}
+
       {/* ── Top bar: job count + filter + view toggle ── */}
       <View style={styles.topBar}>
         <Text style={styles.jobCount}>
@@ -291,62 +348,6 @@ export default function WorkerJobFeed() {
           </View>
         </View>
       </View>
-
-      {/* Active filter chips */}
-      {isFilterActive && (
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          style={styles.activeFilterBar}
-          contentContainerStyle={styles.activeFilterContent}
-        >
-          {appliedSearch ? (
-            <View style={styles.activeChip}><Text style={styles.activeChipText}>"{appliedSearch}"</Text></View>
-          ) : null}
-          {appliedProvince ? (() => {
-            const p = provinces.find(pr => (pr.code ?? pr.id) === appliedProvince);
-            return (
-              <View style={styles.activeChip}><Text style={styles.activeChipText}>
-                {p?.nameKo || p?.nameVi || appliedProvince}
-              </Text></View>
-            );
-          })() : null}
-          {appliedTradeId ? (() => {
-            const tr = trades.find(t => t.id === appliedTradeId);
-            return (
-              <View style={styles.activeChip}><Text style={styles.activeChipText}>
-                {tr?.nameKo || tr?.nameVi || String(appliedTradeId)}
-              </Text></View>
-            );
-          })() : null}
-          {appliedStatus ? (
-            <View style={styles.activeChip}><Text style={styles.activeChipText}>
-              {statusOptions.find(s => s.value === appliedStatus)?.label}
-            </Text></View>
-          ) : null}
-          {appliedMinExp ? (
-            <View style={styles.activeChip}><Text style={styles.activeChipText}>
-              {expOptions.find(e => e.value === appliedMinExp)?.label}
-            </Text></View>
-          ) : null}
-          {appliedLat != null ? (
-            <View style={styles.activeChip}><Text style={styles.activeChipText}>
-              📍 {appliedRadius}km
-            </Text></View>
-          ) : null}
-          {(appliedMin || appliedMax) ? (
-            <View style={styles.activeChip}><Text style={styles.activeChipText}>
-              {appliedMin && appliedMax
-                ? `₫${(appliedMin / 1000).toFixed(0)}K–₫${(appliedMax / 1000).toFixed(0)}K`
-                : appliedMin ? `₫${(appliedMin / 1000).toFixed(0)}K+`
-                : `~₫${(appliedMax! / 1000).toFixed(0)}K`}
-            </Text></View>
-          ) : null}
-          <TouchableOpacity style={styles.clearAllBtn} onPress={clearAllFilters}>
-            <Text style={styles.clearAllText}>{t('jobs.filter_clear_chips')}</Text>
-          </TouchableOpacity>
-        </ScrollView>
-      )}
 
       {/* Content */}
       {viewMode === 'list' ? (
@@ -622,7 +623,8 @@ const styles = StyleSheet.create({
   // Filter button
   filterBtn: {
     width: 44, height: 44, borderRadius: 10,
-    backgroundColor: Colors.surfaceContainer,
+    backgroundColor: Colors.surface,
+    borderWidth: 1, borderColor: Colors.outline,
     alignItems: 'center', justifyContent: 'center',
     position: 'relative',
   },
@@ -649,7 +651,7 @@ const styles = StyleSheet.create({
 
   // Active filter bar
   activeFilterBar: {
-    backgroundColor: 'rgba(6,105,247,0.06)',
+    backgroundColor: Colors.surface,
     borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: Colors.outline,
   },
   activeFilterContent: { paddingHorizontal: 12, paddingVertical: 8, gap: 6, flexDirection: 'row', alignItems: 'center' },

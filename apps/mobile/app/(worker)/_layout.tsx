@@ -5,19 +5,37 @@ import { useTranslation } from 'react-i18next';
 import { Colors } from '../../constants/theme';
 import { BackBtn, GadaLogo } from '../../components/NavElements';
 
-// Close button that always returns to the profile tab (fixes Tab navigator back-nav bug)
+// Close button — goes back if possible, else returns to profile tab
 function ProfileEditCloseBtn() {
   const router = useRouter();
   return (
     <TouchableOpacity
-      onPress={() => router.navigate({ pathname: '/(worker)/profile/index' } as any)}
-      style={{ padding: 8, marginLeft: 4 }}
+      onPress={() => {
+        if (router.canGoBack()) {
+          router.back();
+        } else {
+          router.navigate('/(worker)/profile' as any);
+        }
+      }}
+      style={{ paddingLeft: 4, paddingRight: Spacing.xs }}
       hitSlop={8}
     >
-      <Ionicons name="close" size={24} color={Colors.onSurface} />
+      <View style={closeBtn.circle}>
+        <Text style={closeBtn.icon}>‹</Text>
+      </View>
     </TouchableOpacity>
   );
 }
+
+const Spacing = { xs: 4 };
+const closeBtn = StyleSheet.create({
+  circle: {
+    width: 34, height: 34, borderRadius: 17,
+    backgroundColor: Colors.surfaceContainer,
+    justifyContent: 'center', alignItems: 'center',
+  },
+  icon: { fontSize: 22, lineHeight: 26, color: Colors.onSurface, fontWeight: '300', marginTop: -1 },
+});
 
 // ── Tab icon pill (web-style: icon + bg pill when active) ──
 function TabIcon({ name, focused }: { name: React.ComponentProps<typeof Ionicons>['name']; focused: boolean }) {
@@ -138,30 +156,30 @@ export default function WorkerLayout() {
         }}
       />
 
-      {/* ── Hidden screens (all get platform-native back/close button) ── */}
+      {/* ── Hidden screens (no phone/bell icons — detail pages) ── */}
       <Tabs.Screen
         name="notifications"
-        options={{ href: null, title: t('notifications.title'), headerShown: true, tabBarStyle: { display: 'none' }, headerLeft: () => <BackBtn /> }}
+        options={{ href: null, title: t('notifications.title'), headerShown: true, tabBarStyle: { display: 'none' }, headerLeft: () => <BackBtn />, headerRight: () => null }}
       />
       <Tabs.Screen
         name="settings"
-        options={{ href: null, title: t('profile.settings'), headerShown: true, tabBarStyle: { display: 'none' }, headerLeft: () => <BackBtn /> }}
+        options={{ href: null, title: t('profile.settings'), headerShown: true, tabBarStyle: { display: 'none' }, headerLeft: () => <BackBtn />, headerRight: () => null }}
       />
       <Tabs.Screen
         name="jobs/[id]"
-        options={{ href: null, title: t('manager.screen_job_detail'), headerShown: true, tabBarStyle: { display: 'none' }, headerLeft: () => <BackBtn /> }}
+        options={{ href: null, title: t('manager.screen_job_detail'), headerShown: true, tabBarStyle: { display: 'none' }, headerLeft: () => <BackBtn />, headerRight: () => null }}
       />
       <Tabs.Screen
         name="contracts/index"
-        options={{ href: null, title: t('worker.contracts_list', '계약서 목록'), headerShown: true, tabBarStyle: { display: 'none' }, headerLeft: () => <BackBtn /> }}
+        options={{ href: null, title: t('worker.contracts_list', '계약서 목록'), headerShown: true, tabBarStyle: { display: 'none' }, headerLeft: () => <BackBtn />, headerRight: () => null }}
       />
       <Tabs.Screen
         name="contracts/[id]"
-        options={{ href: null, title: t('manager.screen_contract'), headerShown: true, tabBarStyle: { display: 'none' }, headerLeft: () => <BackBtn /> }}
+        options={{ href: null, title: t('manager.screen_contract'), headerShown: true, tabBarStyle: { display: 'none' }, headerLeft: () => <BackBtn />, headerRight: () => null }}
       />
       <Tabs.Screen
         name="profile/edit"
-        options={{ href: null, title: '프로필 관리', headerShown: true, tabBarStyle: { display: 'none' }, headerLeft: () => <ProfileEditCloseBtn /> }}
+        options={{ href: null, title: '프로필 관리', headerShown: true, tabBarStyle: { display: 'none' }, headerLeft: () => <ProfileEditCloseBtn />, headerRight: () => null }}
       />
     </Tabs>
   );

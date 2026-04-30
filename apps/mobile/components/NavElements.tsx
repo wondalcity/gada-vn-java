@@ -11,7 +11,11 @@ export function BackBtn() {
   const router = useRouter();
   return (
     <TouchableOpacity
-      onPress={() => router.back()}
+      onPress={() => {
+        if (router.canGoBack()) {
+          router.back();
+        }
+      }}
       hitSlop={{ top: 12, bottom: 12, left: 8, right: 12 }}
       activeOpacity={0.7}
       style={btn.backWrap}
@@ -30,7 +34,11 @@ export function CloseBtn() {
   const router = useRouter();
   return (
     <TouchableOpacity
-      onPress={() => router.back()}
+      onPress={() => {
+        if (router.canGoBack()) {
+          router.back();
+        }
+      }}
       hitSlop={{ top: 12, bottom: 12, left: 12, right: 8 }}
       activeOpacity={0.7}
       style={btn.closeWrap}

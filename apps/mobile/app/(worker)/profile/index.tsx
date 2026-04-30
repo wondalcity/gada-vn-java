@@ -175,7 +175,16 @@ export default function WorkerMyPageScreen() {
           </View>
         </View>
 
-        {/* Manager controls — hidden */}
+        {/* Manager mode switch — only shown when user has manager role */}
+        {isManager && (
+          <TouchableOpacity
+            style={s.managerBtn}
+            onPress={() => router.replace('/(auth)/mode' as never)}
+            activeOpacity={0.8}
+          >
+            <Text style={s.managerBtnText}>{t('worker.switch_to_manager', '관리자 화면으로 전환')}</Text>
+          </TouchableOpacity>
+        )}
       </View>
 
       {/* ── Quick actions grid ── */}

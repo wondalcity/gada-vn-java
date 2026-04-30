@@ -3,6 +3,8 @@ import { Stack, useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import * as SplashScreen from 'expo-splash-screen';
+import { useFonts } from 'expo-font';
+import { Ionicons } from '@expo/vector-icons';
 import auth from '@react-native-firebase/auth';
 import i18n, { getSavedLanguage } from '../lib/i18n';
 import { syncAuthToken } from '../lib/firebase';
@@ -21,6 +23,9 @@ export default function RootLayout() {
   const { setUser, setNew, clearUser } = useAuthStore();
   const router = useRouter();
   const authInitialized = useRef(false);
+
+  // Pre-load icon fonts so they render in production builds and the simulator
+  useFonts({ ...Ionicons.font });
 
   // Crashlytics 초기화
   useEffect(() => {
